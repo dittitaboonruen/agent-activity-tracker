@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import type { Filters, Submission } from "@/types";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Filters, Submission, JotformApiResponse } from "@/types";
 import { todayBangkokStr, bangkokRefreshLabel } from "@/lib/date-utils";
 import { sanitizeFilterChange } from "@/lib/validation";
 import {
-  uniq,
+  getAllAgents,
+  getAllSources,
+  getAllChannels,
   getFiltered,
   getBaseFiltered,
   computeKpis,
@@ -40,16 +42,47 @@ const DEFAULT_FILTERS: Filters = {
   channelFilter: "all",
 };
 
-export default function Dashboard() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+interface DashboardProps {
+  /**
+   * Server-prefetched submissions (see app/page.tsx), read through the same
+   * short cache as /api/jotform. When present, the dashboard renders fully
+   * populated on first paint — no blocking loading state — and then silently
+   * revalidates in the background. When null (prefetch failed or the cache
+   * was cold with no prior server data), the dashboard falls back to its own
+   * client-side fetch + blocking loading UI, same as before this change.
+   */
+  initialData?: JotformApiResponse | null;
+}
+
+export default function Dashboard({ initialData = null }: DashboardProps) {
+  const [submissions, setSubmissions] = useState<Submission[]>(initialData?.submissions ?? []);
+  const [lastFetchedUTC, setLastFetchedUTC] = useState<string | null>(initialData?.fetchedAtUTC ?? null);
+  // `loading` blocks the dashboard (shows the loading banner, no data underneath) —
+  // true only when there is truly nothing to show yet.
+  const [loading, setLoading] = useState(!initialData);
+  // `refreshing` is the non-blocking stale-while-revalidate indicator: a fetch is
+  // in flight, but the dashboard keeps showing whatever data it already has.
+  const [refreshing, setRefreshing] = useState(false);
+  // Hard error — only ever shown when there's no data at all to fall back on.
   const [error, setError] = useState<string | null>(null);
-  const [lastFetchedUTC, setLastFetchedUTC] = useState<string | null>(null);
+  // Soft warning — a background/manual refresh failed, but we're still showing
+  // the last successful data. Never blanks the dashboard.
+  const [staleWarning, setStaleWarning] = useState(false);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
-  const agents = useMemo(() => uniq(submissions.map((s) => s.agent)).filter(Boolean).sort(), [submissions]);
-  const sources = useMemo(() => uniq(submissions.map((s) => s.source)).filter(Boolean).sort(), [submissions]);
-  const channels = useMemo(() => uniq(submissions.map((s) => s.channel)).filter(Boolean).sort(), [submissions]);
+  // Tracks whether we've ever successfully rendered data (from SSR initialData or
+  // a completed client fetch), so subsequent fetches — including the very first
+  // background revalidation after an SSR-populated mount — are treated as
+  // non-blocking refreshes rather than the initial blocking load.
+  const hasLoadedOnceRef = useRef(Boolean(initialData));
+
+  // IMPORTANT: these always derive from the full `submissions` array — never
+  // `filtered`/`baseFiltered` — so the Agent Name (and channel/source) dropdown
+  // options never disappear just because the current date/channel filter
+  // happens to match zero records for that agent. See lib/dashboard-calculations.ts.
+  const agents = useMemo(() => getAllAgents(submissions), [submissions]);
+  const sources = useMemo(() => getAllSources(submissions), [submissions]);
+  const channels = useMemo(() => getAllChannels(submissions), [submissions]);
 
   // Filters are preserved automatically — refreshing only replaces `submissions`,
   // never resets `filters`.
@@ -66,30 +99,65 @@ export default function Dashboard() {
     [agents, channels]
   );
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Stale-while-revalidate fetch. `force` bypasses the server's short cache
+  // (used by the manual Refresh Data button); a plain background/mount fetch
+  // does not, so it's cheap even if several tabs/managers trigger it at once.
+  const fetchData = useCallback(async (force = false) => {
+    const isInitialLoad = !hasLoadedOnceRef.current;
+
+    if (isInitialLoad) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+    setStaleWarning(false);
+
     try {
-      const res = await fetch("/api/jotform", { cache: "no-store" });
+      // This is the ONLY query parameter ever sent to /api/jotform, and only
+      // for a manual refresh. Date range, Agent Name, and Contact Channel are
+      // never sent here — they're applied client-side (see getFiltered/
+      // getBaseFiltered below) against the single full submissions payload
+      // this endpoint always returns.
+      const url = force ? "/api/jotform?force=true" : "/api/jotform";
+      const res = await fetch(url, { cache: "no-store" });
       const json = await res.json();
       if (!res.ok) {
         throw new Error(json?.error || `Request failed with status ${res.status}`);
       }
       setSubmissions(json.submissions ?? []);
       setLastFetchedUTC(json.fetchedAtUTC ?? new Date().toISOString());
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ไม่สามารถดึงข้อมูลจาก Jotform ได้");
+      const message = err instanceof Error ? err.message : "ไม่สามารถดึงข้อมูลจาก Jotform ได้";
+      if (isInitialLoad) {
+        // Nothing on screen to fall back to — this is a hard error state.
+        setError(message);
+      } else {
+        // Dashboard already has good data showing — never blank it. Surface a
+        // small, non-blocking warning instead and keep the last data as-is.
+        setStaleWarning(true);
+      }
     } finally {
+      hasLoadedOnceRef.current = true;
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
+  // Always revalidate in the background after mount — whether we had SSR
+  // initialData (common case: this just tops up anything that changed since
+  // the server render) or not (this becomes the initial blocking load).
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Recomputed on every refresh — real "today" in Asia/Bangkok, not the last render's.
+  const handleRefreshClick = useCallback(() => {
+    fetchData(true);
+  }, [fetchData]);
+
+  // Recomputed whenever fresh data lands — real "today" in Asia/Bangkok, not
+  // frozen at mount time.
   const todayStr = useMemo(() => todayBangkokStr(), [lastFetchedUTC]);
 
   const filtered = useMemo(() => getFiltered(submissions, filters, todayStr), [submissions, filters, todayStr]);
@@ -107,6 +175,11 @@ export default function Dashboard() {
     [filters.agentFilter, baseFiltered, agents]
   );
 
+  const showBlockingLoading = loading && submissions.length === 0;
+  const showHardError = Boolean(error) && submissions.length === 0;
+  const showStaleWarning = staleWarning && submissions.length > 0;
+  const isBusy = loading || refreshing;
+
   return (
     <div className="dash-root">
       {/* HEADER */}
@@ -120,8 +193,12 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="dash-sync">
-          <button className="dash-refresh-btn" onClick={fetchData} disabled={loading}>
-            {loading ? (
+          <button className="dash-refresh-btn" onClick={handleRefreshClick} disabled={isBusy}>
+            {refreshing ? (
+              <>
+                <span className="dash-refresh-spinner" /> กำลังอัปเดตข้อมูล...
+              </>
+            ) : loading ? (
               <>
                 <span className="dash-refresh-spinner" /> กำลังโหลด...
               </>
@@ -129,18 +206,22 @@ export default function Dashboard() {
               <>↻ รีเฟรชข้อมูล</>
             )}
           </button>
-          {lastFetchedUTC && !error && (
-            <div className="dash-sync-time">อัปเดตล่าสุด: {bangkokRefreshLabel(lastFetchedUTC)}</div>
+          {lastFetchedUTC && !showHardError && (
+            <div className="dash-sync-time">
+              อัปเดตล่าสุด: {bangkokRefreshLabel(lastFetchedUTC)}
+              {refreshing && <span className="dash-sync-refreshing"> · กำลังอัปเดตข้อมูล...</span>}
+            </div>
           )}
-          {error && <div className="dash-sync-error">เกิดข้อผิดพลาด: {error}</div>}
+          {showHardError && <div className="dash-sync-error">เกิดข้อผิดพลาด: {error}</div>}
         </div>
       </div>
 
-      {loading && submissions.length === 0 && (
-        <div className="dash-loading-banner">กำลังดึงข้อมูลล่าสุดจาก Jotform…</div>
-      )}
-      {error && submissions.length === 0 && (
-        <div className="dash-error-banner">ไม่สามารถโหลดข้อมูลได้: {error}</div>
+      {showBlockingLoading && <div className="dash-loading-banner">กำลังดึงข้อมูลล่าสุดจาก Jotform…</div>}
+      {showHardError && <div className="dash-error-banner">ไม่สามารถโหลดข้อมูลได้: {error}</div>}
+      {showStaleWarning && (
+        <div className="dash-stale-warning">
+          ไม่สามารถอัปเดตข้อมูลล่าสุดได้ กำลังแสดงข้อมูลจากการอัปเดตครั้งก่อน
+        </div>
       )}
 
       {/* FILTERS */}
