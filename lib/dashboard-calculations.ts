@@ -42,6 +42,25 @@ export function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
 }
 
+/**
+ * These three functions power the FilterBar's dropdown options. They must
+ * always be called with the FULL, unfiltered submissions list — never
+ * `filtered`/`baseFiltered` — so that an agent, contact channel, or lead
+ * source never disappears from its dropdown just because the currently
+ * selected date range or another filter happens to match zero records for
+ * it. (This is what "populate the Agent Name filter from all available
+ * submissions before date/channel filtering" means in practice.)
+ */
+export function getAllAgents(submissions: Submission[]): string[] {
+  return uniq(submissions.map((s) => s.agent)).filter(Boolean).sort();
+}
+export function getAllSources(submissions: Submission[]): string[] {
+  return uniq(submissions.map((s) => s.source)).filter(Boolean).sort();
+}
+export function getAllChannels(submissions: Submission[]): string[] {
+  return uniq(submissions.map((s) => s.channel)).filter(Boolean).sort();
+}
+
 /** True if a submission's Asia/Bangkok local date satisfies the current date filter. */
 export function dateInRange(s: Submission, filters: Filters, todayStr: string): boolean {
   const localDate = bangkokDateStr(s.createdAtUTC);
