@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Filters, Submission } from "@/types";
 import { todayBangkokStr, bangkokRefreshLabel } from "@/lib/date-utils";
+import { sanitizeFilterChange } from "@/lib/validation";
 import {
   uniq,
   getFiltered,
@@ -46,11 +47,24 @@ export default function Dashboard() {
   const [lastFetchedUTC, setLastFetchedUTC] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
+  const agents = useMemo(() => uniq(submissions.map((s) => s.agent)).filter(Boolean).sort(), [submissions]);
+  const sources = useMemo(() => uniq(submissions.map((s) => s.source)).filter(Boolean).sort(), [submissions]);
+  const channels = useMemo(() => uniq(submissions.map((s) => s.channel)).filter(Boolean).sort(), [submissions]);
+
   // Filters are preserved automatically — refreshing only replaces `submissions`,
   // never resets `filters`.
-  const updateFilters = useCallback((next: Partial<Filters>) => {
-    setFilters((prev) => ({ ...prev, ...next }));
-  }, []);
+  //
+  // Every change is sanitized against known-safe shapes before it reaches state:
+  // dates must be valid YYYY-MM-DD, and agent/channel must be "all" or a value the
+  // server actually returned. This is defense-in-depth (today these values can only
+  // come from trusted <select>/<input type="date"> controls) that also protects any
+  // future change that wires filters to URL query parameters.
+  const updateFilters = useCallback(
+    (next: Partial<Filters>) => {
+      setFilters((prev) => ({ ...prev, ...sanitizeFilterChange(next, prev, agents, channels) }));
+    },
+    [agents, channels]
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -77,10 +91,6 @@ export default function Dashboard() {
 
   // Recomputed on every refresh — real "today" in Asia/Bangkok, not the last render's.
   const todayStr = useMemo(() => todayBangkokStr(), [lastFetchedUTC]);
-
-  const agents = useMemo(() => uniq(submissions.map((s) => s.agent)).filter(Boolean).sort(), [submissions]);
-  const sources = useMemo(() => uniq(submissions.map((s) => s.source)).filter(Boolean).sort(), [submissions]);
-  const channels = useMemo(() => uniq(submissions.map((s) => s.channel)).filter(Boolean).sort(), [submissions]);
 
   const filtered = useMemo(() => getFiltered(submissions, filters, todayStr), [submissions, filters, todayStr]);
   const baseFiltered = useMemo(() => getBaseFiltered(submissions, filters, todayStr), [submissions, filters, todayStr]);
@@ -130,9 +140,7 @@ export default function Dashboard() {
         <div className="dash-loading-banner">กำลังดึงข้อมูลล่าสุดจาก Jotform…</div>
       )}
       {error && submissions.length === 0 && (
-        <div className="dash-error-banner">
-          ไม่สามารถโหลดข้อมูลได้: {error} — ตรวจสอบว่าได้ตั้งค่า JOTFORM_API_KEY และ JOTFORM_FORM_ID ถูกต้อง
-        </div>
+        <div className="dash-error-banner">ไม่สามารถโหลดข้อมูลได้: {error}</div>
       )}
 
       {/* FILTERS */}
