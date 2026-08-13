@@ -87,29 +87,66 @@ export interface FetchJotformResult {
   fetchedAtUTC: string;
 }
 
+/** Thrown when required server configuration (env vars) is missing. Message is always safe to show to a client. */
+export class JotformConfigError extends Error {}
+
+/** Thrown when the upstream Jotform API itself fails. Message is always a sanitized, generic string — never the upstream body. */
+export class JotformUpstreamError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 /**
  * Fetches submissions directly from Jotform using the server-side API key.
  * This function must only ever run on the server (API routes / server components) —
  * the `server-only` import above throws a build error if it's pulled into client code.
+ *
+ * Every error path below logs full diagnostic detail with console.error (server-side
+ * only, e.g. visible in Vercel's function logs) but only ever throws a short, generic,
+ * pre-written message — the upstream response body, the request URL (which contains
+ * the API key), and any stack traces never leave this function.
  */
 export async function fetchJotformSubmissions(): Promise<FetchJotformResult> {
   const apiKey = process.env.JOTFORM_API_KEY;
   const formId = process.env.JOTFORM_FORM_ID;
 
   if (!apiKey || !formId) {
-    throw new Error("Missing JOTFORM_API_KEY or JOTFORM_FORM_ID environment variables.");
+    console.error("[jotform] missing JOTFORM_API_KEY and/or JOTFORM_FORM_ID environment variables.");
+    throw new JotformConfigError("Jotform integration is not configured.");
   }
 
-  const url = `https://api.jotform.com/form/${formId}/submissions?apiKey=${apiKey}&limit=1000&orderby=created_at`;
-  const res = await fetch(url, { cache: "no-store" });
+  const url = `https://api.jotform.com/form/${encodeURIComponent(formId)}/submissions?apiKey=${encodeURIComponent(
+    apiKey
+  )}&limit=1000&orderby=created_at`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, { cache: "no-store" });
+  } catch (networkErr) {
+    // Never log or rethrow `url` itself — it contains the API key.
+    console.error("[jotform] network error contacting the upstream API:", networkErr);
+    throw new JotformUpstreamError(502, "Unable to reach the upstream data provider.");
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Jotform API error (${res.status}): ${body || res.statusText}`);
+    // Full status + body is logged server-side only for debugging; never forwarded.
+    console.error(`[jotform] upstream API returned ${res.status}:`, body);
+    throw new JotformUpstreamError(res.status, "The upstream data provider returned an error.");
   }
 
-  const json = await res.json();
-  const rawSubmissions: JotformRawSubmission[] = json?.content ?? [];
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch (parseErr) {
+    console.error("[jotform] failed to parse upstream response as JSON:", parseErr);
+    throw new JotformUpstreamError(502, "The upstream data provider returned an unexpected response.");
+  }
+
+  const rawSubmissions: JotformRawSubmission[] = (json as { content?: JotformRawSubmission[] })?.content ?? [];
   const submissions = normalizeSubmissions(rawSubmissions);
 
   return { submissions, fetchedAtUTC: new Date().toISOString() };
