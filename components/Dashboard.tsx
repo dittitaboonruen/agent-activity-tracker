@@ -18,10 +18,12 @@ import {
   computeSourceData,
   computeAgentTable,
   computePepInsight,
+  PEP_META,
 } from "@/lib/dashboard-calculations";
 
 import { SectionLabel, KpiCard } from "./ui";
 import FilterBar from "./FilterBar";
+import ActivitySummary from "./ActivitySummary";
 import ClosingStatusCard from "./ClosingStatusCard";
 import ActivityBreakdownCard from "./ActivityBreakdownCard";
 import MoneyMapCard from "./MoneyMapCard";
@@ -29,6 +31,7 @@ import ChannelCard from "./ChannelCard";
 import SourceCard from "./SourceCard";
 import AgentTable from "./AgentTable";
 import PepInsightCard from "./PepInsightCard";
+import PepNotesPanel from "./PepNotesPanel";
 
 const GOLD = "#C9A24B";
 const BRONZE = "#4A3B1E";
@@ -175,6 +178,19 @@ export default function Dashboard({ initialData = null }: DashboardProps) {
     [filters.agentFilter, baseFiltered, agents]
   );
 
+  // One-time prefill source for the PEP Notes panel's editable fields — reuses
+  // the SAME auto-computed "gap" focus/question already shown read-only in
+  // PepInsightCard, so the manager starts from a sensible suggestion and can
+  // freely edit or replace it before saving to Supabase.
+  const suggestedRecommendation = useMemo(
+    () => (pepInsight && !pepInsight.empty && pepInsight.gapKey ? PEP_META[pepInsight.gapKey].focus : ""),
+    [pepInsight]
+  );
+  const suggestedQuestion = useMemo(
+    () => (pepInsight && !pepInsight.empty && pepInsight.gapKey ? PEP_META[pepInsight.gapKey].question : ""),
+    [pepInsight]
+  );
+
   const showBlockingLoading = loading && submissions.length === 0;
   const showHardError = Boolean(error) && submissions.length === 0;
   const showStaleWarning = staleWarning && submissions.length > 0;
@@ -238,6 +254,8 @@ export default function Dashboard({ initialData = null }: DashboardProps) {
         <KpiCard label="ปิดการขายสำเร็จ" value={kpis.closedSales} />
       </div>
 
+      <ActivitySummary breakdown={activityBreakdown} totalActivities={kpis.totalActivities} />
+
       {/* 2 & 3: CLOSING STATUS + ACTIVITY BREAKDOWN */}
       <div className="dash-grid-2">
         <ClosingStatusCard closingData={closingData} totalSubmissions={kpis.totalSubmissions} closedSales={kpis.closedSales} />
@@ -258,6 +276,14 @@ export default function Dashboard({ initialData = null }: DashboardProps) {
       {/* 8. PEP INSIGHT */}
       <SectionLabel>PEP Insight</SectionLabel>
       <PepInsightCard agentFilter={filters.agentFilter} insight={pepInsight} />
+      <div style={{ marginTop: 18 }}>
+        <PepNotesPanel
+          agentFilter={filters.agentFilter}
+          todayStr={todayStr}
+          suggestedRecommendation={suggestedRecommendation}
+          suggestedQuestion={suggestedQuestion}
+        />
+      </div>
     </div>
   );
 }
