@@ -19,19 +19,31 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
       if (error) {
-        setErrorMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        setErrorMessage(error.message);
+        console.error("Supabase Login Error:", error);
+        return;
+      }
+
+      if (!data.user) {
+        setErrorMessage("Login สำเร็จ แต่ไม่พบข้อมูลผู้ใช้");
         return;
       }
 
       window.location.href = "/";
-    } catch {
-      setErrorMessage("ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่");
+    } catch (error) {
+      console.error("Login Unexpected Error:", error);
+
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ กรุณาลองใหม่");
+      }
     } finally {
       setLoading(false);
     }
@@ -191,6 +203,8 @@ export default function LoginPage() {
                 border: "1px solid var(--rp-danger-border)",
                 color: "var(--rp-danger)",
                 fontSize: 13,
+                lineHeight: 1.5,
+                wordBreak: "break-word",
               }}
             >
               {errorMessage}
