@@ -415,4 +415,104 @@ table.dash-table td.dash-num { text-align: right; font-variant-numeric: tabular-
 }
 .dash-pep-history-row { font-size: 13px; color: var(--cream); line-height: 1.6; }
 .dash-pep-history-label { color: var(--cream-faint); font-size: 11px; letter-spacing: 0.03em; }
+/* =========================================================
+   ROYAL PARTNER PERFORMANCE HUB
+   GLOBAL MORNING / NIGHT THEME
+========================================================= */
 
+:root,
+html[data-rp-theme="night"] {
+  --bg: #0A0908;
+
+  --surface: #151209;
+  --surface-alt: #1C1810;
+
+  --hairline: #3A2F1B;
+  --hairline-soft: #241E12;
+
+  --gold: #C9A24B;
+  --gold-bright: #EBCB7E;
+  --gold-dim: #7A6230;
+  --bronze: #4A3B1E;
+
+  --cream: #F4EEDD;
+  --cream-muted: #B4A98D;
+  --cream-faint: #8A8066;
+
+  --rp-danger: #E09A8E;
+  --rp-danger-border: #8E4B40;
+
+  --rp-soft-gold:
+    rgba(201, 162, 75, 0.08);
+
+  --rp-page-gradient:
+    radial-gradient(
+      circle at 15% 0%,
+      #171307 0%,
+      #0A0908 45%
+    );
+
+  color-scheme: dark;
+}
+
+html[data-rp-theme="morning"] {
+  --bg: #F5EFE4;
+
+  --surface: #FFFDF8;
+  --surface-alt: #F8F0E2;
+
+  --hairline: #E3D3B2;
+  --hairline-soft: #EEE3D0;
+
+  --gold: #B88929;
+  --gold-bright: #9A6C16;
+  --gold-dim: #CDAA60;
+  --bronze: #C7A35B;
+
+  --cream: #2C241A;
+  --cream-muted: #756A5A;
+  --cream-faint: #928674;
+
+  --rp-danger: #A94E42;
+  --rp-danger-border: #D59B91;
+
+  --rp-soft-gold:
+    rgba(201, 162, 75, 0.10);
+
+  --rp-page-gradient:
+    radial-gradient(
+      circle at 15% 0%,
+      #FFF9EC 0%,
+      #F5EFE4 48%
+    );
+
+  color-scheme: light;
+}
+
+html,
+body {
+  background:
+    var(--bg);
+
+  color:
+    var(--cream);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Activity Dashboard จะใช้ Theme ชุดเดียวกัน */
+.dash-root {
+  background:
+    var(--rp-page-gradient),
+    var(--bg);
+}
+
+/* ช่วยให้ form control เปลี่ยนตาม theme */
+input,
+select,
+textarea {
+  color-scheme:
+    inherit;
+}
