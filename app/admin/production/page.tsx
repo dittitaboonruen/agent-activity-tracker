@@ -276,17 +276,11 @@ export default function DailyProductionPage() {
           margin: "0 auto",
         }}
       >
-        {/* BACK */}
         <div style={{ marginBottom: 20 }}>
           <HomeButton />
         </div>
 
-        {/* HEADER */}
-        <div
-          style={{
-            marginBottom: 26,
-          }}
-        >
+        <div style={{ marginBottom: 26 }}>
           <div
             style={{
               color: "#C9A24B",
@@ -319,7 +313,6 @@ export default function DailyProductionPage() {
           </p>
         </div>
 
-        {/* DATE */}
         <div
           style={{
             background: "#17130E",
@@ -368,7 +361,6 @@ export default function DailyProductionPage() {
           )}
         </div>
 
-        {/* TABLE */}
         <div
           style={{
             background: "#17130E",
@@ -377,11 +369,7 @@ export default function DailyProductionPage() {
             overflow: "hidden",
           }}
         >
-          <div
-            style={{
-              overflowX: "auto",
-            }}
-          >
+          <div style={{ overflowX: "auto" }}>
             <table
               style={{
                 width: "100%",
@@ -407,7 +395,7 @@ export default function DailyProductionPage() {
                   <HeaderCell>PA FYC</HeaderCell>
 
                   <HeaderCell>หมายเหตุ</HeaderCell>
-                  <HeaderCell></HeaderCell>
+                  <HeaderCell>จัดการ</HeaderCell>
                 </tr>
               </thead>
 
@@ -531,7 +519,6 @@ export default function DailyProductionPage() {
             </table>
           </div>
 
-          {/* ACTION */}
           <div
             style={{
               padding: 20,
