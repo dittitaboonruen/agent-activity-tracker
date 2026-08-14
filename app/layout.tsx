@@ -2,14 +2,58 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agent Activity Tracker | แดชบอร์ดผลงานตัวแทน",
-  description: "แดชบอร์ดผลงานตัวแทนประกันภัย เชื่อมต่อข้อมูลจาก Jotform แบบเรียลไทม์ สำหรับผู้บริหาร",
+  title:
+    "Royal Partner Agent Performance",
+
+  description:
+    "Royal Partner Agent Activity, Production, Performance and Development System",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const themeScript = `
+(function () {
+  try {
+    var saved = localStorage.getItem("agent-dev-theme");
+    var theme =
+      saved === "morning" || saved === "night"
+        ? saved
+        : "night";
+
+    document.documentElement.setAttribute(
+      "data-rp-theme",
+      theme
+    );
+  } catch (e) {
+    document.documentElement.setAttribute(
+      "data-rp-theme",
+      "night"
+    );
+  }
+})();
+`;
+
+export default function RootLayout({
+  children,
+}: {
+  children:
+    React.ReactNode;
+}) {
   return (
-    <html lang="th" style={{ backgroundColor: "#0A0908" }}>
-      <body style={{ margin: 0, backgroundColor: "#0A0908" }}>{children}</body>
+    <html
+      lang="th"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              themeScript,
+          }}
+        />
+      </head>
+
+      <body>
+        {children}
+      </body>
     </html>
   );
 }
