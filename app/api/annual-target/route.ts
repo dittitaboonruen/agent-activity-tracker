@@ -16,15 +16,12 @@ function errorResponse(message: string, status: number) {
   );
 }
 
+/* READ TARGET */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
 
   const agent = params.get("agent")?.trim() || "";
   const year = Number(params.get("year"));
-
-  if (!agent) {
-    return errorResponse("กรุณาระบุตัวแทน", 400);
-  }
 
   if (!Number.isInteger(year)) {
     return errorResponse("ปีไม่ถูกต้อง", 400);
@@ -33,21 +30,41 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("agent_targets")
       .select("*")
-      .eq("agent_name", agent)
       .eq("target_year", year)
-      .maybeSingle();
+      .order("agent_name", { ascending: true });
+
+    if (agent) {
+      query = query.eq("agent_name", agent);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("[annual-target] GET error:", error);
       return errorResponse("ไม่สามารถโหลดข้อมูลเป้าหมายได้", 500);
     }
 
+    if (agent) {
+      return NextResponse.json(
+        {
+          target: data?.[0] ?? null,
+        },
+        {
+          headers: NO_STORE_HEADERS,
+        }
+      );
+    }
+
     return NextResponse.json(
-      { target: data ?? null },
-      { headers: NO_STORE_HEADERS }
+      {
+        targets: data ?? [],
+      },
+      {
+        headers: NO_STORE_HEADERS,
+      }
     );
   } catch (error) {
     console.error("[annual-target] GET unexpected error:", error);
@@ -55,6 +72,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/* SAVE TARGET */
 export async function POST(request: NextRequest) {
   const rate = checkRateLimit(request);
 
@@ -90,7 +108,11 @@ export async function POST(request: NextRequest) {
     return errorResponse("กรุณาระบุชื่อตัวแทน", 400);
   }
 
-  if (!Number.isInteger(targetYear) || targetYear < 2025 || targetYear > 2100) {
+  if (
+    !Number.isInteger(targetYear) ||
+    targetYear < 2025 ||
+    targetYear > 2100
+  ) {
     return errorResponse("ปีเป้าหมายไม่ถูกต้อง", 400);
   }
 
