@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { Filters, DateQuickOption } from "@/types";
-import { fmtDateThai, parseYMD } from "@/lib/date-utils";
+import { formatThaiDateLong } from "@/lib/date-utils";
 
 interface FilterBarProps {
   filters: Filters;
@@ -18,8 +18,6 @@ const DATE_OPTIONS: { key: DateQuickOption; label: string }[] = [
 ];
 
 export default function FilterBar({ filters, onChange, agents, channels, todayStr }: FilterBarProps) {
-  const today = parseYMD(todayStr);
-
   return (
     <div className="dash-filter-bar">
       <div className="dash-filter dash-filter-date active">
@@ -55,10 +53,15 @@ export default function FilterBar({ filters, onChange, agents, channels, todaySt
             {(!filters.customStart || !filters.customEnd) && (
               <span className="dash-date-caption">เลือกวันที่เริ่มต้นและสิ้นสุด</span>
             )}
+            {filters.customStart && filters.customEnd && (
+              <span className="dash-date-caption">
+                {formatThaiDateLong(filters.customStart)} – {formatThaiDateLong(filters.customEnd)}
+              </span>
+            )}
           </div>
         )}
 
-        {filters.dateQuick === "today" && <div className="dash-date-caption">{fmtDateThai(today)}</div>}
+        {filters.dateQuick === "today" && <div className="dash-date-caption">{formatThaiDateLong(todayStr)}</div>}
       </div>
 
       <div className="dash-filter-row">
