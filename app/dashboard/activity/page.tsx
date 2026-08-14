@@ -1,13 +1,25 @@
 import Dashboard from "@/components/Dashboard";
-import HomeButton from "@/components/HomeButton";
-import { fetchJotformSubmissions } from "@/lib/jotform";
-import type { JotformApiResponse } from "@/types";
+import PageTopBar from "@/components/PageTopBar";
 
-export const dynamic = "force-dynamic";
+import {
+  fetchJotformSubmissions,
+} from "@/lib/jotform";
 
-async function getInitialData(): Promise<JotformApiResponse | null> {
+import type {
+  JotformApiResponse,
+} from "@/types";
+
+export const dynamic =
+  "force-dynamic";
+
+async function getInitialData(): Promise<
+  JotformApiResponse | null
+> {
   try {
-    const { submissions, fetchedAtUTC } =
+    const {
+      submissions,
+      fetchedAtUTC,
+    } =
       await fetchJotformSubmissions();
 
     return {
@@ -20,20 +32,29 @@ async function getInitialData(): Promise<JotformApiResponse | null> {
 }
 
 export default async function ActivityDashboardPage() {
-  const initialData = await getInitialData();
+  const initialData =
+    await getInitialData();
 
   return (
-    <>
-      <div
-        style={{
-          background: "#0D0B08",
-          padding: "18px 24px 0",
-        }}
-      >
-        <HomeButton />
-      </div>
+    <div
+      style={{
+        minHeight:
+          "100vh",
 
-      <Dashboard initialData={initialData} />
-    </>
+        background:
+          "var(--bg)",
+
+        padding:
+          "18px 20px 0",
+      }}
+    >
+      <PageTopBar />
+
+      <Dashboard
+        initialData={
+          initialData
+        }
+      />
+    </div>
   );
 }
