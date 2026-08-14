@@ -1,4 +1,5 @@
 import Dashboard from "@/components/Dashboard";
+import HomeButton from "@/components/HomeButton";
 import { fetchJotformSubmissions } from "@/lib/jotform";
 import type { JotformApiResponse } from "@/types";
 
@@ -22,6 +23,17 @@ export default async function ActivityDashboardPage() {
   const initialData = await getInitialData();
 
   return (
-    <Dashboard initialData={initialData} />
+    <>
+      <div
+        style={{
+          background: "#0D0B08",
+          padding: "18px 24px 0",
+        }}
+      >
+        <HomeButton />
+      </div>
+
+      <Dashboard initialData={initialData} />
+    </>
   );
 }
