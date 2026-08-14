@@ -52,9 +52,18 @@ export async function POST(request: NextRequest) {
       ? data.agentName.trim()
       : "";
 
-  const aiaCase = Number(data.aiaCase ?? 0);
-  const aiaFyp = Number(data.aiaFyp ?? 0);
-  const aiaFyc = Number(data.aiaFyc ?? 0);
+  const agentNickname =
+    typeof data.agentNickname === "string"
+      ? data.agentNickname.trim()
+      : "";
+
+  const aiaCaseSubmitted = Number(data.aiaCaseSubmitted ?? 0);
+  const aiaCaseApproved = Number(data.aiaCaseApproved ?? 0);
+
+  const aiaFypSubmitted = Number(data.aiaFypSubmitted ?? 0);
+  const aiaFypApproved = Number(data.aiaFypApproved ?? 0);
+
+  const aiaFycApproved = Number(data.aiaFycApproved ?? 0);
 
   const paCase = Number(data.paCase ?? 0);
   const paFyp = Number(data.paFyp ?? 0);
@@ -73,20 +82,26 @@ export async function POST(request: NextRequest) {
     return errorResponse("กรุณาระบุชื่อตัวแทน", 400);
   }
 
-  const numberValues = [
-    aiaCase,
-    aiaFyp,
-    aiaFyc,
+  const numericValues = [
+    aiaCaseSubmitted,
+    aiaCaseApproved,
+    aiaFypSubmitted,
+    aiaFypApproved,
+    aiaFycApproved,
     paCase,
     paFyp,
     paFyc,
   ];
 
-  if (numberValues.some((v) => !Number.isFinite(v) || v < 0)) {
+  if (numericValues.some((value) => !Number.isFinite(value) || value < 0)) {
     return errorResponse("กรุณากรอกตัวเลขให้ถูกต้อง", 400);
   }
 
-  if (!Number.isInteger(aiaCase) || !Number.isInteger(paCase)) {
+  if (
+    !Number.isInteger(aiaCaseSubmitted) ||
+    !Number.isInteger(aiaCaseApproved) ||
+    !Number.isInteger(paCase)
+  ) {
     return errorResponse("จำนวน CASE ต้องเป็นจำนวนเต็ม", 400);
   }
 
@@ -100,10 +115,13 @@ export async function POST(request: NextRequest) {
           production_date: productionDate,
           agent_code: agentCode || null,
           agent_name: agentName,
+          agent_nickname: agentNickname || null,
 
-          aia_case: aiaCase,
-          aia_fyp: aiaFyp,
-          aia_fyc: aiaFyc,
+          aia_case_submitted: aiaCaseSubmitted,
+          aia_case_approved: aiaCaseApproved,
+          aia_fyp_submitted: aiaFypSubmitted,
+          aia_fyp_approved: aiaFypApproved,
+          aia_fyc_approved: aiaFycApproved,
 
           pa_case: paCase,
           pa_fyp: paFyp,
@@ -141,9 +159,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const params = request.nextUrl.searchParams;
-
-  const date = params.get("date")?.trim() || "";
+  const date = request.nextUrl.searchParams.get("date")?.trim() || "";
 
   try {
     const supabase = getSupabaseClient();
@@ -151,7 +167,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("daily_production")
       .select("*")
-      .order("agent_name", { ascending: true });
+      .order("agent_code", { ascending: true });
 
     if (date) {
       query = query.eq("production_date", date);
