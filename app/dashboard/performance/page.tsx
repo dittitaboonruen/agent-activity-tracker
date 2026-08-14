@@ -20,14 +20,6 @@ type DailyProduction = {
   pa_fyc: number;
 };
 
-type AnnualTarget = {
-  agent_name: string;
-  target_year: number;
-  target_fyp: number;
-  target_fyc: number;
-  target_case: number;
-};
-
 type AgentSummary = {
   code: string;
   name: string;
@@ -52,10 +44,6 @@ type AgentSummary = {
   ytdPaFyc: number;
 
   approvedMonths: number;
-
-  targetFyp: number;
-  targetFyc: number;
-  targetCase: number;
 };
 
 function currentBangkokYearMonth() {
@@ -73,13 +61,9 @@ function currentBangkokYearMonth() {
 
 function money(value: number) {
   return value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-function percent(actual: number, target: number) {
-  if (!target) return 0;
-  return Math.round((actual / target) * 1000) / 10;
 }
 
 export default function PerformanceDashboardPage() {
@@ -89,8 +73,6 @@ export default function PerformanceDashboardPage() {
   const [month, setMonth] = useState(initial.month);
 
   const [rows, setRows] = useState<DailyProduction[]>([]);
-  const [targets, setTargets] = useState<AnnualTarget[]>([]);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -99,36 +81,18 @@ export default function PerformanceDashboardPage() {
     setError("");
 
     try {
-      const [productionResponse, targetResponse] = await Promise.all([
-        fetch("/api/daily-production", {
-          cache: "no-store",
-        }),
-        fetch(`/api/annual-target?year=${year}`, {
-          cache: "no-store",
-        }),
-      ]);
+      const response = await fetch("/api/daily-production", {
+        cache: "no-store",
+      });
 
-      const productionData = await productionResponse.json();
-      const targetData = await targetResponse.json();
+      const data = await response.json();
 
-      if (!productionResponse.ok) {
-        setError(
-          productionData.error ||
-            "ไม่สามารถโหลดข้อมูล Production ได้"
-        );
+      if (!response.ok) {
+        setError(data.error || "ไม่สามารถโหลดข้อมูล Production ได้");
         return;
       }
 
-      if (!targetResponse.ok) {
-        setError(
-          targetData.error ||
-            "ไม่สามารถโหลด Annual Target ได้"
-        );
-        return;
-      }
-
-      setRows(productionData.rows ?? []);
-      setTargets(targetData.targets ?? []);
+      setRows(data.rows ?? []);
     } catch {
       setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
     } finally {
@@ -138,7 +102,7 @@ export default function PerformanceDashboardPage() {
 
   useEffect(() => {
     loadData();
-  }, [year]);
+  }, []);
 
   const summary = useMemo(() => {
     const selectedMonth = `${year}-${month}`;
@@ -155,16 +119,15 @@ export default function PerformanceDashboardPage() {
         row.production_date <= ytdEnd
     );
 
-    const allNames = Array.from(
-      new Set([
-        ...ytdRows.map((row) => row.agent_name),
-        ...targets.map((target) => target.agent_name),
-      ])
-    )
-      .filter(Boolean)
-      .sort();
+    const agentNames = Array.from(
+      new Set(
+        ytdRows
+          .map((row) => row.agent_name)
+          .filter(Boolean)
+      )
+    ).sort();
 
-    return allNames.map((agentName): AgentSummary => {
+    return agentNames.map((agentName): AgentSummary => {
       const monthly = monthRows.filter(
         (row) => row.agent_name === agentName
       );
@@ -177,11 +140,6 @@ export default function PerformanceDashboardPage() {
         [...ytd].sort((a, b) =>
           b.production_date.localeCompare(a.production_date)
         )[0] ?? null;
-
-      const target =
-        targets.find(
-          (item) => item.agent_name === agentName
-        ) ?? null;
 
       const approvedMonthSet = new Set(
         ytd
@@ -246,43 +204,126 @@ export default function PerformanceDashboardPage() {
         ),
 
         monthlyPaCase: monthly.reduce(
-          (sum, row) => sum + Number(row.pa_case ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_case ?? 0),
           0
         ),
 
         monthlyPaFyp: monthly.reduce(
-          (sum, row) => sum + Number(row.pa_fyp ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_fyp ?? 0),
           0
         ),
 
         monthlyPaFyc: monthly.reduce(
-          (sum, row) => sum + Number(row.pa_fyc ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_fyc ?? 0),
           0
         ),
 
         ytdPaCase: ytd.reduce(
-          (sum, row) => sum + Number(row.pa_case ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_case ?? 0),
           0
         ),
 
         ytdPaFyp: ytd.reduce(
-          (sum, row) => sum + Number(row.pa_fyp ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_fyp ?? 0),
           0
         ),
 
         ytdPaFyc: ytd.reduce(
-          (sum, row) => sum + Number(row.pa_fyc ?? 0),
+          (sum, row) =>
+            sum + Number(row.pa_fyc ?? 0),
           0
         ),
 
         approvedMonths: approvedMonthSet.size,
-
-        targetFyp: Number(target?.target_fyp ?? 0),
-        targetFyc: Number(target?.target_fyc ?? 0),
-        targetCase: Number(target?.target_case ?? 0),
       };
     });
-  }, [rows, targets, year, month]);
+  }, [rows, year, month]);
+
+  const totals = useMemo(() => {
+    return summary.reduce(
+      (acc, row) => ({
+        monthlyAiaCaseSubmitted:
+          acc.monthlyAiaCaseSubmitted +
+          row.monthlyAiaCaseSubmitted,
+
+        monthlyAiaCaseApproved:
+          acc.monthlyAiaCaseApproved +
+          row.monthlyAiaCaseApproved,
+
+        monthlyAiaFypSubmitted:
+          acc.monthlyAiaFypSubmitted +
+          row.monthlyAiaFypSubmitted,
+
+        monthlyAiaFypApproved:
+          acc.monthlyAiaFypApproved +
+          row.monthlyAiaFypApproved,
+
+        monthlyAiaFycApproved:
+          acc.monthlyAiaFycApproved +
+          row.monthlyAiaFycApproved,
+
+        ytdAiaCaseApproved:
+          acc.ytdAiaCaseApproved +
+          row.ytdAiaCaseApproved,
+
+        ytdAiaFypApproved:
+          acc.ytdAiaFypApproved +
+          row.ytdAiaFypApproved,
+
+        ytdAiaFycApproved:
+          acc.ytdAiaFycApproved +
+          row.ytdAiaFycApproved,
+
+        monthlyPaCase:
+          acc.monthlyPaCase +
+          row.monthlyPaCase,
+
+        monthlyPaFyp:
+          acc.monthlyPaFyp +
+          row.monthlyPaFyp,
+
+        monthlyPaFyc:
+          acc.monthlyPaFyc +
+          row.monthlyPaFyc,
+
+        ytdPaCase:
+          acc.ytdPaCase +
+          row.ytdPaCase,
+
+        ytdPaFyp:
+          acc.ytdPaFyp +
+          row.ytdPaFyp,
+
+        ytdPaFyc:
+          acc.ytdPaFyc +
+          row.ytdPaFyc,
+      }),
+      {
+        monthlyAiaCaseSubmitted: 0,
+        monthlyAiaCaseApproved: 0,
+        monthlyAiaFypSubmitted: 0,
+        monthlyAiaFypApproved: 0,
+        monthlyAiaFycApproved: 0,
+
+        ytdAiaCaseApproved: 0,
+        ytdAiaFypApproved: 0,
+        ytdAiaFycApproved: 0,
+
+        monthlyPaCase: 0,
+        monthlyPaFyp: 0,
+        monthlyPaFyc: 0,
+
+        ytdPaCase: 0,
+        ytdPaFyp: 0,
+        ytdPaFyc: 0,
+      }
+    );
+  }, [summary]);
 
   return (
     <main
@@ -293,7 +334,12 @@ export default function PerformanceDashboardPage() {
         padding: "26px 18px 60px",
       }}
     >
-      <div style={{ maxWidth: 1900, margin: "0 auto" }}>
+      <div
+        style={{
+          maxWidth: 1900,
+          margin: "0 auto",
+        }}
+      >
         <div style={{ marginBottom: 20 }}>
           <HomeButton />
         </div>
@@ -307,15 +353,20 @@ export default function PerformanceDashboardPage() {
               letterSpacing: 2,
             }}
           >
-            ROYAL PARTNER · AGENT DEV
+            ROYAL PARTNER · PERFORMANCE HUB
           </div>
 
-          <h1 style={{ fontSize: 34, margin: "8px 0" }}>
+          <h1
+            style={{
+              fontSize: 34,
+              margin: "8px 0",
+            }}
+          >
             Monthly Performance
           </h1>
 
           <div style={{ color: "#A89B86" }}>
-            Production · YTD · Annual Target
+            Production · Monthly · YTD
           </div>
         </div>
 
@@ -367,100 +418,79 @@ export default function PerformanceDashboardPage() {
             )}
           </select>
 
-          <button onClick={loadData} style={filterStyle}>
+          <button
+            type="button"
+            onClick={loadData}
+            style={filterStyle}
+          >
             ↻ รีเฟรช
           </button>
         </div>
 
         {loading && (
-          <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              marginBottom: 16,
+              color: "#A89B86",
+            }}
+          >
             กำลังโหลดข้อมูล...
           </div>
         )}
 
         {error && (
-          <div style={{ marginBottom: 16, color: "#E0A98B" }}>
+          <div
+            style={{
+              marginBottom: 16,
+              color: "#E0A98B",
+            }}
+          >
             {error}
           </div>
         )}
 
-        {/* TARGET VS ACTUAL */}
+        {/* SUMMARY CARDS */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns:
-              "repeat(auto-fit,minmax(300px,1fr))",
-            gap: 14,
-            marginBottom: 26,
+              "repeat(auto-fit,minmax(180px,1fr))",
+            gap: 12,
+            marginBottom: 22,
           }}
         >
-          {summary.map((row) => (
-            <div
-              key={row.name}
-              style={{
-                background: "#17130E",
-                border: "1px solid #4A3B1E",
-                borderRadius: 16,
-                padding: 18,
-              }}
-            >
-              <div
-                style={{
-                  color: "#C9A24B",
-                  fontWeight: 800,
-                  fontSize: 17,
-                }}
-              >
-                {row.nickname || row.name}
-              </div>
+          <SummaryCard
+            label="AIA Case อนุมัติ"
+            value={totals.monthlyAiaCaseApproved.toLocaleString()}
+          />
 
-              <div
-                style={{
-                  color: "#8F8370",
-                  fontSize: 12,
-                  marginTop: 4,
-                  marginBottom: 18,
-                }}
-              >
-                {row.name}
-              </div>
+          <SummaryCard
+            label="AIA FYP อนุมัติ"
+            value={money(totals.monthlyAiaFypApproved)}
+          />
 
-              <Progress
-                label="FYP"
-                actual={row.ytdAiaFypApproved}
-                target={row.targetFyp}
-              />
+          <SummaryCard
+            label="AIA FYC อนุมัติ"
+            value={money(totals.monthlyAiaFycApproved)}
+          />
 
-              <Progress
-                label="FYC"
-                actual={row.ytdAiaFycApproved}
-                target={row.targetFyc}
-              />
+          <SummaryCard
+            label="PA Case"
+            value={totals.monthlyPaCase.toLocaleString()}
+          />
 
-              <Progress
-                label="CASE"
-                actual={row.ytdAiaCaseApproved}
-                target={row.targetCase}
-              />
+          <SummaryCard
+            label="PA FYP"
+            value={money(totals.monthlyPaFyp)}
+          />
 
-              <div
-                style={{
-                  marginTop: 14,
-                  fontSize: 13,
-                  color: "#A89B86",
-                }}
-              >
-                เดือนที่มีงานอนุมัติ:{" "}
-                <strong style={{ color: "#F4E8D0" }}>
-                  {row.approvedMonths}
-                </strong>{" "}
-                เดือน
-              </div>
-            </div>
-          ))}
+          <SummaryCard
+            label="PA FYC"
+            value={money(totals.monthlyPaFyc)}
+          />
         </div>
 
-        {/* MONTHLY TABLE */}
+        {/* TABLE */}
         <div
           style={{
             background: "#17130E",
@@ -473,7 +503,7 @@ export default function PerformanceDashboardPage() {
             <table
               style={{
                 width: "100%",
-                minWidth: 2200,
+                minWidth: 1900,
                 borderCollapse: "collapse",
               }}
             >
@@ -495,17 +525,9 @@ export default function PerformanceDashboardPage() {
                   <HeaderCell>FYP อนุมัติ</HeaderCell>
                   <HeaderCell>FYC อนุมัติ</HeaderCell>
 
-                  <HeaderCell>Case YTD</HeaderCell>
-                  <HeaderCell>FYP YTD</HeaderCell>
-                  <HeaderCell>FYC YTD</HeaderCell>
-
-                  <HeaderCell>Target CASE</HeaderCell>
-                  <HeaderCell>Target FYP</HeaderCell>
-                  <HeaderCell>Target FYC</HeaderCell>
-
-                  <HeaderCell>CASE %</HeaderCell>
-                  <HeaderCell>FYP %</HeaderCell>
-                  <HeaderCell>FYC %</HeaderCell>
+                  <HeaderCell>AIA Case YTD</HeaderCell>
+                  <HeaderCell>AIA FYP YTD</HeaderCell>
+                  <HeaderCell>AIA FYC YTD</HeaderCell>
 
                   <HeaderCell>Approved Months</HeaderCell>
 
@@ -520,105 +542,167 @@ export default function PerformanceDashboardPage() {
               </thead>
 
               <tbody>
-                {summary.map((row, index) => (
-                  <tr
-                    key={row.name}
-                    style={{
-                      borderTop: "1px solid #332A1C",
-                    }}
-                  >
-                    <Cell>{index + 1}</Cell>
-                    <Cell>{row.code}</Cell>
-                    <Cell>{row.name}</Cell>
-                    <Cell>{row.nickname}</Cell>
-
-                    <NumberCell>
-                      {row.monthlyAiaCaseSubmitted}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {row.monthlyAiaCaseApproved}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.monthlyAiaFypSubmitted)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.monthlyAiaFypApproved)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.monthlyAiaFycApproved)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {row.ytdAiaCaseApproved}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.ytdAiaFypApproved)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.ytdAiaFycApproved)}
-                    </NumberCell>
-
-                    <NumberCell>{row.targetCase}</NumberCell>
-
-                    <NumberCell>
-                      {money(row.targetFyp)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {money(row.targetFyc)}
-                    </NumberCell>
-
-                    <NumberCell>
-                      {percent(
-                        row.ytdAiaCaseApproved,
-                        row.targetCase
-                      )}
-                      %
-                    </NumberCell>
-
-                    <NumberCell>
-                      {percent(
-                        row.ytdAiaFypApproved,
-                        row.targetFyp
-                      )}
-                      %
-                    </NumberCell>
-
-                    <NumberCell>
-                      {percent(
-                        row.ytdAiaFycApproved,
-                        row.targetFyc
-                      )}
-                      %
-                    </NumberCell>
-
-                    <NumberCell>
-                      {row.approvedMonths}
-                    </NumberCell>
-
-                    <NumberCell>{row.monthlyPaCase}</NumberCell>
-                    <NumberCell>
-                      {money(row.monthlyPaFyp)}
-                    </NumberCell>
-                    <NumberCell>
-                      {money(row.monthlyPaFyc)}
-                    </NumberCell>
-
-                    <NumberCell>{row.ytdPaCase}</NumberCell>
-                    <NumberCell>
-                      {money(row.ytdPaFyp)}
-                    </NumberCell>
-                    <NumberCell>
-                      {money(row.ytdPaFyc)}
-                    </NumberCell>
+                {summary.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={19}
+                      style={{
+                        padding: 30,
+                        textAlign: "center",
+                        color: "#8F8370",
+                      }}
+                    >
+                      ยังไม่มี Production ในช่วงเวลาที่เลือก
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  <>
+                    {summary.map((row, index) => (
+                      <tr
+                        key={row.name}
+                        style={{
+                          borderTop: "1px solid #332A1C",
+                        }}
+                      >
+                        <Cell>{index + 1}</Cell>
+                        <Cell>{row.code || "-"}</Cell>
+                        <Cell>{row.name}</Cell>
+                        <Cell>{row.nickname || "-"}</Cell>
+
+                        <NumberCell>
+                          {row.monthlyAiaCaseSubmitted}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {row.monthlyAiaCaseApproved}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.monthlyAiaFypSubmitted)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.monthlyAiaFypApproved)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.monthlyAiaFycApproved)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {row.ytdAiaCaseApproved}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.ytdAiaFypApproved)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.ytdAiaFycApproved)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {row.approvedMonths}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {row.monthlyPaCase}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.monthlyPaFyp)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.monthlyPaFyc)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {row.ytdPaCase}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.ytdPaFyp)}
+                        </NumberCell>
+
+                        <NumberCell>
+                          {money(row.ytdPaFyc)}
+                        </NumberCell>
+                      </tr>
+                    ))}
+
+                    <tr
+                      style={{
+                        background: "rgba(201,162,75,.10)",
+                        borderTop: "1px solid #C9A24B",
+                        fontWeight: 800,
+                      }}
+                    >
+                      <Cell>รวม</Cell>
+                      <Cell></Cell>
+                      <Cell></Cell>
+                      <Cell></Cell>
+
+                      <NumberCell>
+                        {totals.monthlyAiaCaseSubmitted}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {totals.monthlyAiaCaseApproved}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.monthlyAiaFypSubmitted)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.monthlyAiaFypApproved)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.monthlyAiaFycApproved)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {totals.ytdAiaCaseApproved}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.ytdAiaFypApproved)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.ytdAiaFycApproved)}
+                      </NumberCell>
+
+                      <Cell>-</Cell>
+
+                      <NumberCell>
+                        {totals.monthlyPaCase}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.monthlyPaFyp)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.monthlyPaFyc)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {totals.ytdPaCase}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.ytdPaFyp)}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(totals.ytdPaFyc)}
+                      </NumberCell>
+                    </tr>
+                  </>
+                )}
               </tbody>
             </table>
           </div>
@@ -628,54 +712,40 @@ export default function PerformanceDashboardPage() {
   );
 }
 
-function Progress({
+function SummaryCard({
   label,
-  actual,
-  target,
+  value,
 }: {
   label: string;
-  actual: number;
-  target: number;
+  value: string;
 }) {
-  const progress = percent(actual, target);
-  const width = Math.min(progress, 100);
-
   return (
-    <div style={{ marginBottom: 15 }}>
+    <div
+      style={{
+        background: "#17130E",
+        border: "1px solid #4A3B1E",
+        borderRadius: 14,
+        padding: 16,
+      }}
+    >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 10,
-          fontSize: 13,
-          marginBottom: 6,
+          color: "#8F8370",
+          fontSize: 12,
+          marginBottom: 7,
         }}
       >
-        <span>{label}</span>
-
-        <span>
-          {money(actual)} / {money(target)} ·{" "}
-          <strong style={{ color: "#C9A24B" }}>
-            {progress}%
-          </strong>
-        </span>
+        {label}
       </div>
 
       <div
         style={{
-          height: 7,
-          borderRadius: 99,
-          background: "#2C251B",
-          overflow: "hidden",
+          color: "#D8B66A",
+          fontSize: 21,
+          fontWeight: 800,
         }}
       >
-        <div
-          style={{
-            width: `${width}%`,
-            height: "100%",
-            background: "#C9A24B",
-          }}
-        />
+        {value}
       </div>
     </div>
   );
