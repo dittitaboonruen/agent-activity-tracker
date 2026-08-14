@@ -24,10 +24,10 @@ const modules = [
   {
     icon: "📥",
     title: "Daily Production",
-    description: "Admin บันทึกผลงานที่อนุมัติประจำวัน",
+    description: "Admin บันทึกผลงานนำส่งและอนุมัติประจำวัน",
     href: "/admin/production",
     external: false,
-    status: "กำลังสร้าง",
+    status: "พร้อมใช้งาน",
   },
   {
     icon: "📊",
@@ -40,10 +40,18 @@ const modules = [
   {
     icon: "📈",
     title: "Monthly Performance",
-    description: "สรุป FYP / FYC / CASE รายเดือนและ YTD",
+    description: "สรุป Production รายเดือน YTD และเทียบ Annual Target",
     href: "/dashboard/performance",
     external: false,
-    status: "กำลังสร้าง",
+    status: "พร้อมใช้งาน",
+  },
+  {
+    icon: "👥",
+    title: "Agent Master",
+    description: "จัดการ Code / Name / Nick Name ของตัวแทน",
+    href: "/admin/agents",
+    external: false,
+    status: "Admin",
   },
 ];
 
@@ -51,7 +59,9 @@ export default function AgentDevHome() {
   const [theme, setTheme] = useState<Theme>("night");
 
   useEffect(() => {
-    const saved = localStorage.getItem("agent-dev-theme") as Theme | null;
+    const saved = localStorage.getItem(
+      "agent-dev-theme"
+    ) as Theme | null;
 
     if (saved === "morning" || saved === "night") {
       setTheme(saved);
@@ -60,19 +70,37 @@ export default function AgentDevHome() {
 
   function changeTheme(nextTheme: Theme) {
     setTheme(nextTheme);
-    localStorage.setItem("agent-dev-theme", nextTheme);
+    localStorage.setItem(
+      "agent-dev-theme",
+      nextTheme
+    );
   }
 
   const isMorning = theme === "morning";
 
   const colors = {
-    background: isMorning ? "#F5EFE4" : "#0D0B08",
-    card: isMorning ? "#FFFDF8" : "#17130E",
-    cardHover: isMorning ? "#FFF8E9" : "#20190F",
-    text: isMorning ? "#2C241A" : "#F4E8D0",
-    muted: isMorning ? "#756A5A" : "#A89B86",
+    background: isMorning
+      ? "#F5EFE4"
+      : "#0D0B08",
+
+    card: isMorning
+      ? "#FFFDF8"
+      : "#17130E",
+
+    text: isMorning
+      ? "#2C241A"
+      : "#F4E8D0",
+
+    muted: isMorning
+      ? "#756A5A"
+      : "#A89B86",
+
     gold: "#C9A24B",
-    border: isMorning ? "#E3D3B2" : "#4A3B1E",
+
+    border: isMorning
+      ? "#E3D3B2"
+      : "#4A3B1E",
+
     softGold: isMorning
       ? "rgba(201,162,75,0.12)"
       : "rgba(201,162,75,0.08)",
@@ -121,7 +149,8 @@ export default function AgentDevHome() {
             <h1
               style={{
                 margin: 0,
-                fontSize: "clamp(32px, 5vw, 52px)",
+                fontSize:
+                  "clamp(32px, 5vw, 52px)",
                 lineHeight: 1.05,
               }}
             >
@@ -136,7 +165,8 @@ export default function AgentDevHome() {
                 fontSize: 16,
               }}
             >
-              Agent Development & Performance System
+              Agent Development & Performance
+              System
             </p>
           </div>
 
@@ -152,14 +182,21 @@ export default function AgentDevHome() {
             }}
           >
             <button
-              onClick={() => changeTheme("morning")}
+              type="button"
+              onClick={() =>
+                changeTheme("morning")
+              }
               style={{
                 border: 0,
                 cursor: "pointer",
                 borderRadius: 999,
                 padding: "9px 14px",
-                background: isMorning ? colors.gold : "transparent",
-                color: isMorning ? "#18120A" : colors.muted,
+                background: isMorning
+                  ? colors.gold
+                  : "transparent",
+                color: isMorning
+                  ? "#18120A"
+                  : colors.muted,
                 fontWeight: 700,
               }}
             >
@@ -167,14 +204,21 @@ export default function AgentDevHome() {
             </button>
 
             <button
-              onClick={() => changeTheme("night")}
+              type="button"
+              onClick={() =>
+                changeTheme("night")
+              }
               style={{
                 border: 0,
                 cursor: "pointer",
                 borderRadius: 999,
                 padding: "9px 14px",
-                background: !isMorning ? colors.gold : "transparent",
-                color: !isMorning ? "#18120A" : colors.muted,
+                background: !isMorning
+                  ? colors.gold
+                  : "transparent",
+                color: !isMorning
+                  ? "#18120A"
+                  : colors.muted,
                 fontWeight: 700,
               }}
             >
@@ -220,8 +264,9 @@ export default function AgentDevHome() {
               lineHeight: 1.6,
             }}
           >
-            ตั้งเป้าหมาย · บันทึกกิจกรรม · ติดตาม Production ·
-            วิเคราะห์ผลงาน · PEP
+            ตั้งเป้าหมาย · บันทึกกิจกรรม ·
+            ติดตาม Production · วิเคราะห์ผลงาน ·
+            PEP
           </div>
         </section>
 
@@ -235,17 +280,20 @@ export default function AgentDevHome() {
           }}
         >
           {modules.map((module) => {
-            const comingSoon = module.status === "กำลังสร้าง";
+            const isAdmin =
+              module.status === "Admin";
 
             return (
               <a
                 key={module.title}
-                href={comingSoon ? undefined : module.href}
+                href={module.href}
                 target={
-                  module.external && !comingSoon ? "_blank" : undefined
+                  module.external
+                    ? "_blank"
+                    : undefined
                 }
                 rel={
-                  module.external && !comingSoon
+                  module.external
                     ? "noopener noreferrer"
                     : undefined
                 }
@@ -259,14 +307,14 @@ export default function AgentDevHome() {
                   minHeight: 195,
                   display: "flex",
                   flexDirection: "column",
-                  cursor: comingSoon ? "default" : "pointer",
-                  opacity: comingSoon ? 0.68 : 1,
+                  cursor: "pointer",
                 }}
               >
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent:
+                      "space-between",
                     gap: 12,
                     marginBottom: 22,
                   }}
@@ -276,10 +324,12 @@ export default function AgentDevHome() {
                       width: 50,
                       height: 50,
                       borderRadius: 14,
-                      background: colors.softGold,
+                      background:
+                        colors.softGold,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
+                      justifyContent:
+                        "center",
                       fontSize: 25,
                     }}
                   >
@@ -293,7 +343,9 @@ export default function AgentDevHome() {
                       borderRadius: 999,
                       fontSize: 11,
                       fontWeight: 700,
-                      color: comingSoon ? colors.muted : colors.gold,
+                      color: isAdmin
+                        ? colors.muted
+                        : colors.gold,
                       border: `1px solid ${colors.border}`,
                     }}
                   >
@@ -321,19 +373,17 @@ export default function AgentDevHome() {
                   {module.description}
                 </div>
 
-                {!comingSoon && (
-                  <div
-                    style={{
-                      marginTop: "auto",
-                      paddingTop: 18,
-                      color: colors.gold,
-                      fontSize: 13,
-                      fontWeight: 700,
-                    }}
-                  >
-                    เปิดระบบ →
-                  </div>
-                )}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    paddingTop: 18,
+                    color: colors.gold,
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  เปิดระบบ →
+                </div>
               </a>
             );
           })}
@@ -347,7 +397,8 @@ export default function AgentDevHome() {
             marginTop: 50,
           }}
         >
-          Royal Partner · Agent Development System
+          Royal Partner · Agent Development
+          System
         </footer>
       </div>
     </main>
