@@ -1,7 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import HomeButton from "@/components/HomeButton";
+
+type AgentMaster = {
+  id?: number;
+  agent_code: string | null;
+  agent_name: string;
+  agent_nickname: string | null;
+};
+
+type SavedProduction = {
+  production_date: string;
+  agent_code: string | null;
+  agent_name: string;
+  agent_nickname: string | null;
+
+  aia_case_submitted: number;
+  aia_case_approved: number;
+
+  aia_fyp_submitted: number;
+  aia_fyp_approved: number;
+  aia_fyc_approved: number;
+
+  pa_case: number;
+  pa_fyp: number;
+  pa_fyc: number;
+
+  note: string | null;
+};
 
 type ProductionRow = {
   agentCode: string;
@@ -13,7 +40,6 @@ type ProductionRow = {
 
   aiaFypSubmitted: string;
   aiaFypApproved: string;
-
   aiaFycApproved: string;
 
   paCase: string;
@@ -22,26 +48,6 @@ type ProductionRow = {
 
   note: string;
 };
-
-const emptyRow = (): ProductionRow => ({
-  agentCode: "",
-  agentName: "",
-  agentNickname: "",
-
-  aiaCaseSubmitted: "",
-  aiaCaseApproved: "",
-
-  aiaFypSubmitted: "",
-  aiaFypApproved: "",
-
-  aiaFycApproved: "",
-
-  paCase: "",
-  paFyp: "",
-  paFyc: "",
-
-  note: "",
-});
 
 function todayBangkok() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -52,12 +58,33 @@ function todayBangkok() {
   }).format(new Date());
 }
 
-function parseNumber(value: string) {
-  const cleaned = value.replace(/,/g, "").trim();
-  return cleaned ? Number(cleaned) : 0;
+function valueOrBlank(value: unknown) {
+  const number = Number(value ?? 0);
+
+  if (!number) return "";
+
+  return String(number);
 }
 
-function formatNumberInput(value: string) {
+function moneyOrBlank(value: unknown) {
+  const number = Number(value ?? 0);
+
+  if (!number) return "";
+
+  return number.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+}
+
+function parseNumber(value: string) {
+  const cleaned = value.replace(/,/g, "").trim();
+
+  if (!cleaned) return 0;
+
+  return Number(cleaned);
+}
+
+function formatMoneyInput(value: string) {
   const cleaned = value.replace(/,/g, "");
 
   if (!cleaned) return "";
@@ -75,65 +102,160 @@ function formatNumberInput(value: string) {
   return formattedInteger;
 }
 
-export default function DailyProductionPage() {
-  const [productionDate, setProductionDate] = useState(todayBangkok());
-  const [rows, setRows] = useState<ProductionRow[]>([emptyRow()]);
-  const [loading, setLoading] = useState(false);
-  const [loadingExisting, setLoadingExisting] = useState(false);
-  const [status, setStatus] = useState("");
+function createRowFromAgent(
+  agent: AgentMaster,
+  saved?: SavedProduction
+): ProductionRow {
+  return {
+    agentCode:
+      saved?.agent_code ??
+      agent.agent_code ??
+      "",
 
-  async function loadExistingRows(date: string) {
-    setLoadingExisting(true);
+    agentName:
+      saved?.agent_name ??
+      agent.agent_name ??
+      "",
+
+    agentNickname:
+      saved?.agent_nickname ??
+      agent.agent_nickname ??
+      "",
+
+    aiaCaseSubmitted: valueOrBlank(
+      saved?.aia_case_submitted
+    ),
+
+    aiaCaseApproved: valueOrBlank(
+      saved?.aia_case_approved
+    ),
+
+    aiaFypSubmitted: moneyOrBlank(
+      saved?.aia_fyp_submitted
+    ),
+
+    aiaFypApproved: moneyOrBlank(
+      saved?.aia_fyp_approved
+    ),
+
+    aiaFycApproved: moneyOrBlank(
+      saved?.aia_fyc_approved
+    ),
+
+    paCase: valueOrBlank(saved?.pa_case),
+    paFyp: moneyOrBlank(saved?.pa_fyp),
+    paFyc: moneyOrBlank(saved?.pa_fyc),
+
+    note: saved?.note ?? "",
+  };
+}
+
+export default function DailyProductionPage() {
+  const [productionDate, setProductionDate] =
+    useState(todayBangkok());
+
+  const [agents, setAgents] =
+    useState<AgentMaster[]>([]);
+
+  const [savedRows, setSavedRows] =
+    useState<SavedProduction[]>([]);
+
+  const [rows, setRows] =
+    useState<ProductionRow[]>([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [loadingData, setLoadingData] =
+    useState(false);
+
+  const [status, setStatus] =
+    useState("");
+
+  async function loadPageData(date: string) {
+    setLoadingData(true);
     setStatus("");
 
     try {
-      const response = await fetch(
-        `/api/daily-production?date=${encodeURIComponent(date)}`,
-        { cache: "no-store" }
-      );
+      const [agentResponse, productionResponse] =
+        await Promise.all([
+          fetch("/api/agent-master", {
+            cache: "no-store",
+          }),
 
-      const data = await response.json();
+          fetch(
+            `/api/daily-production?date=${encodeURIComponent(
+              date
+            )}`,
+            {
+              cache: "no-store",
+            }
+          ),
+        ]);
 
-      if (!response.ok) {
-        setStatus(data.error || "ไม่สามารถโหลดข้อมูลเดิมได้");
+      const agentData =
+        await agentResponse.json();
+
+      const productionData =
+        await productionResponse.json();
+
+      if (!agentResponse.ok) {
+        setStatus(
+          agentData.error ||
+            "ไม่สามารถโหลดรายชื่อตัวแทนได้"
+        );
         return;
       }
 
-      if (!data.rows || data.rows.length === 0) {
-        setRows([emptyRow()]);
+      if (!productionResponse.ok) {
+        setStatus(
+          productionData.error ||
+            "ไม่สามารถโหลด Production ได้"
+        );
         return;
       }
 
-      setRows(
-        data.rows.map((item: Record<string, unknown>) => ({
-          agentCode: String(item.agent_code ?? ""),
-          agentName: String(item.agent_name ?? ""),
-          agentNickname: String(item.agent_nickname ?? ""),
+      const loadedAgents: AgentMaster[] =
+        agentData.agents ?? [];
 
-          aiaCaseSubmitted: valueOrBlank(item.aia_case_submitted),
-          aiaCaseApproved: valueOrBlank(item.aia_case_approved),
+      const loadedProduction: SavedProduction[] =
+        productionData.rows ?? [];
 
-          aiaFypSubmitted: moneyOrBlank(item.aia_fyp_submitted),
-          aiaFypApproved: moneyOrBlank(item.aia_fyp_approved),
+      setAgents(loadedAgents);
+      setSavedRows(loadedProduction);
 
-          aiaFycApproved: moneyOrBlank(item.aia_fyc_approved),
+      const productionMap = new Map<
+        string,
+        SavedProduction
+      >();
 
-          paCase: valueOrBlank(item.pa_case),
-          paFyp: moneyOrBlank(item.pa_fyp),
-          paFyc: moneyOrBlank(item.pa_fyc),
+      loadedProduction.forEach((item) => {
+        productionMap.set(
+          item.agent_name,
+          item
+        );
+      });
 
-          note: String(item.note ?? ""),
-        }))
-      );
+      const builtRows =
+        loadedAgents.map((agent) =>
+          createRowFromAgent(
+            agent,
+            productionMap.get(agent.agent_name)
+          )
+        );
+
+      setRows(builtRows);
     } catch {
-      setStatus("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      setStatus(
+        "เกิดข้อผิดพลาดในการโหลดข้อมูล"
+      );
     } finally {
-      setLoadingExisting(false);
+      setLoadingData(false);
     }
   }
 
   useEffect(() => {
-    loadExistingRows(productionDate);
+    loadPageData(productionDate);
   }, [productionDate]);
 
   function updateRow(
@@ -143,84 +265,191 @@ export default function DailyProductionPage() {
   ) {
     setRows((current) =>
       current.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [field]: value } : row
+        rowIndex === index
+          ? {
+              ...row,
+              [field]: value,
+            }
+          : row
       )
     );
   }
 
-  function addRow() {
-    setRows((current) => [...current, emptyRow()]);
+  function updateMoney(
+    index: number,
+    field: keyof ProductionRow,
+    value: string
+  ) {
+    updateRow(
+      index,
+      field,
+      formatMoneyInput(value)
+    );
   }
 
-  function removeRow(index: number) {
-    setRows((current) => {
-      const next = current.filter((_, rowIndex) => rowIndex !== index);
-      return next.length ? next : [emptyRow()];
-    });
+  function rowHasProduction(
+    row: ProductionRow
+  ) {
+    return (
+      parseNumber(row.aiaCaseSubmitted) > 0 ||
+      parseNumber(row.aiaCaseApproved) > 0 ||
+      parseNumber(row.aiaFypSubmitted) > 0 ||
+      parseNumber(row.aiaFypApproved) > 0 ||
+      parseNumber(row.aiaFycApproved) > 0 ||
+      parseNumber(row.paCase) > 0 ||
+      parseNumber(row.paFyp) > 0 ||
+      parseNumber(row.paFyc) > 0 ||
+      row.note.trim() !== ""
+    );
   }
+
+  const activeRows = useMemo(
+    () =>
+      rows.filter((row) =>
+        rowHasProduction(row)
+      ),
+    [rows]
+  );
 
   async function saveAll() {
     setStatus("");
 
-    const validRows = rows.filter((row) => row.agentName.trim());
+    if (!rows.length) {
+      setStatus(
+        "ยังไม่มีรายชื่อตัวแทนใน Agent Master"
+      );
+      return;
+    }
 
-    if (!validRows.length) {
-      setStatus("กรุณากรอกชื่อตัวแทนอย่างน้อย 1 คน");
+    const rowsToSave =
+      rows.filter((row) => {
+        const existed =
+          savedRows.some(
+            (saved) =>
+              saved.agent_name ===
+              row.agentName
+          );
+
+        return (
+          rowHasProduction(row) ||
+          existed
+        );
+      });
+
+    if (!rowsToSave.length) {
+      setStatus(
+        "ยังไม่มี Production ที่ต้องบันทึก"
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const results = await Promise.all(
-        validRows.map(async (row) => {
-          const response = await fetch("/api/daily-production", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              productionDate,
+      const results =
+        await Promise.all(
+          rowsToSave.map(async (row) => {
+            const response =
+              await fetch(
+                "/api/daily-production",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type":
+                      "application/json",
+                  },
+                  body: JSON.stringify({
+                    productionDate,
 
-              agentCode: row.agentCode.trim(),
-              agentName: row.agentName.trim(),
-              agentNickname: row.agentNickname.trim(),
+                    agentCode:
+                      row.agentCode,
 
-              aiaCaseSubmitted: parseNumber(row.aiaCaseSubmitted),
-              aiaCaseApproved: parseNumber(row.aiaCaseApproved),
+                    agentName:
+                      row.agentName,
 
-              aiaFypSubmitted: parseNumber(row.aiaFypSubmitted),
-              aiaFypApproved: parseNumber(row.aiaFypApproved),
+                    agentNickname:
+                      row.agentNickname,
 
-              aiaFycApproved: parseNumber(row.aiaFycApproved),
+                    aiaCaseSubmitted:
+                      parseNumber(
+                        row.aiaCaseSubmitted
+                      ),
 
-              paCase: parseNumber(row.paCase),
-              paFyp: parseNumber(row.paFyp),
-              paFyc: parseNumber(row.paFyc),
+                    aiaCaseApproved:
+                      parseNumber(
+                        row.aiaCaseApproved
+                      ),
 
-              note: row.note.trim(),
-            }),
-          });
+                    aiaFypSubmitted:
+                      parseNumber(
+                        row.aiaFypSubmitted
+                      ),
 
-          return {
-            ok: response.ok,
-            data: await response.json(),
-          };
-        })
-      );
+                    aiaFypApproved:
+                      parseNumber(
+                        row.aiaFypApproved
+                      ),
 
-      const failed = results.filter((result) => !result.ok);
+                    aiaFycApproved:
+                      parseNumber(
+                        row.aiaFycApproved
+                      ),
 
-      if (failed.length) {
-        setStatus(`บันทึกไม่สำเร็จ ${failed.length} รายการ`);
+                    paCase:
+                      parseNumber(
+                        row.paCase
+                      ),
+
+                    paFyp:
+                      parseNumber(
+                        row.paFyp
+                      ),
+
+                    paFyc:
+                      parseNumber(
+                        row.paFyc
+                      ),
+
+                    note:
+                      row.note.trim(),
+                  }),
+                }
+              );
+
+            return {
+              ok: response.ok,
+              agentName:
+                row.agentName,
+              data:
+                await response.json(),
+            };
+          })
+        );
+
+      const failed =
+        results.filter(
+          (result) => !result.ok
+        );
+
+      if (failed.length > 0) {
+        setStatus(
+          `บันทึกไม่สำเร็จ ${failed.length} รายการ`
+        );
+
         return;
       }
 
-      setStatus(`บันทึก Daily Production สำเร็จ ${validRows.length} คน`);
+      setStatus(
+        `บันทึก Production วันที่ ${productionDate} สำเร็จ ${rowsToSave.length} คน`
+      );
 
-      await loadExistingRows(productionDate);
+      await loadPageData(
+        productionDate
+      );
     } catch {
-      setStatus("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setStatus(
+        "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+      );
     } finally {
       setLoading(false);
     }
@@ -235,12 +464,26 @@ export default function DailyProductionPage() {
         padding: "26px 18px 60px",
       }}
     >
-      <div style={{ maxWidth: 1700, margin: "0 auto" }}>
-        <div style={{ marginBottom: 20 }}>
+      <div
+        style={{
+          maxWidth: 1800,
+          margin: "0 auto",
+        }}
+      >
+        <div
+          style={{
+            marginBottom: 20,
+          }}
+        >
           <HomeButton />
         </div>
 
-        <div style={{ marginBottom: 24 }}>
+        {/* HEADER */}
+        <div
+          style={{
+            marginBottom: 24,
+          }}
+        >
           <div
             style={{
               color: "#C9A24B",
@@ -253,238 +496,468 @@ export default function DailyProductionPage() {
             ROYAL PARTNER · AGENT DEV
           </div>
 
-          <h1 style={{ margin: 0, fontSize: 34 }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 34,
+            }}
+          >
             Daily Production
           </h1>
 
-          <p style={{ color: "#A89B86" }}>
-            บันทึกผลงานนำส่ง / อนุมัติ ประจำวัน
+          <p
+            style={{
+              marginTop: 8,
+              color: "#A89B86",
+            }}
+          >
+            บันทึกผลงานนำส่ง /
+            อนุมัติประจำวัน
           </p>
         </div>
 
+        {/* DATE + SUMMARY */}
         <div
           style={{
             background: "#17130E",
-            border: "1px solid #4A3B1E",
+            border:
+              "1px solid #4A3B1E",
             borderRadius: 16,
             padding: 18,
             marginBottom: 18,
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "end",
+            flexWrap: "wrap",
+            gap: 16,
           }}
         >
-          <label
-            style={{
-              display: "block",
-              color: "#C9A24B",
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            วันที่
-          </label>
-
-          <input
-            type="date"
-            value={productionDate}
-            onChange={(e) => setProductionDate(e.target.value)}
-            style={dateInputStyle}
-          />
-
-          {loadingExisting && (
-            <span style={{ marginLeft: 12, color: "#A89B86" }}>
-              กำลังโหลด...
-            </span>
-          )}
-        </div>
-
-        <div
-          style={{
-            background: "#17130E",
-            border: "1px solid #4A3B1E",
-            borderRadius: 16,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ overflowX: "auto" }}>
-            <table
+          <div>
+            <label
               style={{
-                width: "100%",
-                minWidth: 1550,
-                borderCollapse: "collapse",
+                display: "block",
+                color: "#C9A24B",
+                fontWeight: 700,
+                fontSize: 13,
+                marginBottom: 8,
               }}
             >
-              <thead>
-                <tr style={{ background: "rgba(201,162,75,.1)" }}>
-                  <HeaderCell>Code</HeaderCell>
-                  <HeaderCell>Name</HeaderCell>
-                  <HeaderCell>Nick Name</HeaderCell>
+              วันที่ Production
+            </label>
 
-                  <HeaderCell>AIA Case นำส่ง</HeaderCell>
-                  <HeaderCell>AIA Case อนุมัติ</HeaderCell>
-
-                  <HeaderCell>AIA FYP นำส่ง</HeaderCell>
-                  <HeaderCell>AIA FYP อนุมัติ</HeaderCell>
-
-                  <HeaderCell>AIA FYC อนุมัติ</HeaderCell>
-
-                  <HeaderCell>PA Case</HeaderCell>
-                  <HeaderCell>PA FYP</HeaderCell>
-                  <HeaderCell>PA FYC</HeaderCell>
-
-                  <HeaderCell>หมายเหตุ</HeaderCell>
-                  <HeaderCell>จัดการ</HeaderCell>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr
-                    key={index}
-                    style={{ borderTop: "1px solid #332A1C" }}
-                  >
-                    <Cell>
-                      <TextInput
-                        value={row.agentCode}
-                        onChange={(v) => updateRow(index, "agentCode", v)}
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <TextInput
-                        value={row.agentName}
-                        onChange={(v) => updateRow(index, "agentName", v)}
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <TextInput
-                        value={row.agentNickname}
-                        onChange={(v) => updateRow(index, "agentNickname", v)}
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.aiaCaseSubmitted}
-                        onChange={(v) =>
-                          updateRow(index, "aiaCaseSubmitted", v)
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.aiaCaseApproved}
-                        onChange={(v) =>
-                          updateRow(index, "aiaCaseApproved", v)
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.aiaFypSubmitted}
-                        onChange={(v) =>
-                          updateRow(
-                            index,
-                            "aiaFypSubmitted",
-                            formatNumberInput(v)
-                          )
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.aiaFypApproved}
-                        onChange={(v) =>
-                          updateRow(
-                            index,
-                            "aiaFypApproved",
-                            formatNumberInput(v)
-                          )
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.aiaFycApproved}
-                        onChange={(v) =>
-                          updateRow(
-                            index,
-                            "aiaFycApproved",
-                            formatNumberInput(v)
-                          )
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.paCase}
-                        onChange={(v) => updateRow(index, "paCase", v)}
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.paFyp}
-                        onChange={(v) =>
-                          updateRow(index, "paFyp", formatNumberInput(v))
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <NumberInput
-                        value={row.paFyc}
-                        onChange={(v) =>
-                          updateRow(index, "paFyc", formatNumberInput(v))
-                        }
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <TextInput
-                        value={row.note}
-                        onChange={(v) => updateRow(index, "note", v)}
-                      />
-                    </Cell>
-
-                    <Cell>
-                      <button
-                        onClick={() => removeRow(index)}
-                        style={deleteButtonStyle}
-                      >
-                        ลบ
-                      </button>
-                    </Cell>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <input
+              type="date"
+              value={
+                productionDate
+              }
+              onChange={(e) =>
+                setProductionDate(
+                  e.target.value
+                )
+              }
+              style={
+                dateInputStyle
+              }
+            />
           </div>
 
           <div
             style={{
-              padding: 18,
-              borderTop: "1px solid #332A1C",
               display: "flex",
-              justifyContent: "space-between",
+              gap: 22,
               flexWrap: "wrap",
-              gap: 12,
             }}
           >
-            <button onClick={addRow} style={outlineButtonStyle}>
-              + เพิ่มตัวแทน
-            </button>
+            <MiniStat
+              label="ตัวแทนทั้งหมด"
+              value={rows.length}
+            />
+
+            <MiniStat
+              label="มี Production"
+              value={activeRows.length}
+            />
+          </div>
+        </div>
+
+        {loadingData && (
+          <div
+            style={{
+              marginBottom: 16,
+              color: "#A89B86",
+            }}
+          >
+            กำลังโหลดรายชื่อและ
+            Production...
+          </div>
+        )}
+
+        {/* TABLE */}
+        <div
+          style={{
+            background: "#17130E",
+            border:
+              "1px solid #4A3B1E",
+            borderRadius: 16,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              overflowX: "auto",
+            }}
+          >
+            <table
+              style={{
+                width: "100%",
+                minWidth: 1600,
+                borderCollapse:
+                  "collapse",
+              }}
+            >
+              <thead>
+                <tr
+                  style={{
+                    background:
+                      "rgba(201,162,75,.10)",
+                  }}
+                >
+                  <HeaderCell>
+                    No.
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Code
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Nick Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYC อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA Case
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYP
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYC
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    หมายเหตุ
+                  </HeaderCell>
+                </tr>
+              </thead>
+
+              <tbody>
+                {!loadingData &&
+                rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={13}
+                      style={{
+                        padding: 30,
+                        textAlign:
+                          "center",
+                        color:
+                          "#8F8370",
+                      }}
+                    >
+                      ยังไม่มีรายชื่อใน
+                      Agent Master
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map(
+                    (
+                      row,
+                      index
+                    ) => (
+                      <tr
+                        key={`${row.agentName}-${index}`}
+                        style={{
+                          borderTop:
+                            "1px solid #332A1C",
+                          background:
+                            rowHasProduction(
+                              row
+                            )
+                              ? "rgba(201,162,75,.035)"
+                              : "transparent",
+                        }}
+                      >
+                        <Cell>
+                          {index +
+                            1}
+                        </Cell>
+
+                        <Cell>
+                          <FixedText>
+                            {
+                              row.agentCode
+                            }
+                          </FixedText>
+                        </Cell>
+
+                        <Cell>
+                          <FixedText>
+                            {
+                              row.agentName
+                            }
+                          </FixedText>
+                        </Cell>
+
+                        <Cell>
+                          <FixedText>
+                            {
+                              row.agentNickname
+                            }
+                          </FixedText>
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.aiaCaseSubmitted
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "aiaCaseSubmitted",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.aiaCaseApproved
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "aiaCaseApproved",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.aiaFypSubmitted
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateMoney(
+                                index,
+                                "aiaFypSubmitted",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.aiaFypApproved
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateMoney(
+                                index,
+                                "aiaFypApproved",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.aiaFycApproved
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateMoney(
+                                index,
+                                "aiaFycApproved",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.paCase
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "paCase",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.paFyp
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateMoney(
+                                index,
+                                "paFyp",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <NumberInput
+                            value={
+                              row.paFyc
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateMoney(
+                                index,
+                                "paFyc",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+
+                        <Cell>
+                          <TextInput
+                            value={
+                              row.note
+                            }
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "note",
+                                value
+                              )
+                            }
+                          />
+                        </Cell>
+                      </tr>
+                    )
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* SAVE */}
+          <div
+            style={{
+              padding: 18,
+              borderTop:
+                "1px solid #332A1C",
+              display: "flex",
+              justifyContent:
+                "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div
+              style={{
+                color: "#807460",
+                fontSize: 12,
+              }}
+            >
+              รายชื่อดึงจาก Agent
+              Master อัตโนมัติ
+            </div>
 
             <button
+              type="button"
               onClick={saveAll}
-              disabled={loading}
-              style={saveButtonStyle}
+              disabled={
+                loading ||
+                loadingData
+              }
+              style={{
+                border:
+                  "1px solid #C9A24B",
+                background:
+                  "#C9A24B",
+                color: "#17110A",
+                borderRadius: 10,
+                padding:
+                  "12px 22px",
+                fontWeight: 800,
+                cursor:
+                  loading
+                    ? "default"
+                    : "pointer",
+                opacity:
+                  loading ||
+                  loadingData
+                    ? 0.6
+                    : 1,
+              }}
             >
-              {loading ? "กำลังบันทึก..." : "บันทึก Production วันนี้"}
+              {loading
+                ? "กำลังบันทึก..."
+                : "บันทึก Production สิ้นวัน"}
             </button>
           </div>
         </div>
@@ -492,11 +965,15 @@ export default function DailyProductionPage() {
         {status && (
           <div
             style={{
-              marginTop: 16,
-              padding: 14,
-              border: "1px solid #4A3B1E",
+              marginTop: 18,
+              padding:
+                "13px 16px",
+              border:
+                "1px solid #4A3B1E",
               borderRadius: 10,
               color: "#D8B66A",
+              background:
+                "rgba(201,162,75,.06)",
             }}
           >
             {status}
@@ -507,26 +984,48 @@ export default function DailyProductionPage() {
   );
 }
 
-function valueOrBlank(value: unknown) {
-  const n = Number(value ?? 0);
-  return n === 0 ? "" : String(n);
+function MiniStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          color: "#807460",
+          fontSize: 11,
+          marginBottom: 3,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          color: "#D8B66A",
+          fontSize: 22,
+          fontWeight: 800,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
 }
 
-function moneyOrBlank(value: unknown) {
-  const n = Number(value ?? 0);
-
-  return n === 0
-    ? ""
-    : n.toLocaleString("en-US", {
-        maximumFractionDigits: 2,
-      });
-}
-
-function HeaderCell({ children }: { children: React.ReactNode }) {
+function HeaderCell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <th
       style={{
-        padding: "13px 9px",
+        padding:
+          "13px 10px",
         color: "#D8B66A",
         fontSize: 12,
         textAlign: "left",
@@ -538,23 +1037,39 @@ function HeaderCell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Cell({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: 8 }}>{children}</td>;
-}
-
-function TextInput({
-  value,
-  onChange,
+function Cell({
+  children,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  children: React.ReactNode;
 }) {
   return (
-    <input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      style={tableInputStyle}
-    />
+    <td
+      style={{
+        padding: 8,
+        fontSize: 13,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+function FixedText({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        minWidth: 95,
+        color: "#E6D8C1",
+        fontSize: 13,
+      }}
+    >
+      {children || "-"}
+    </div>
   );
 }
 
@@ -563,13 +1078,20 @@ function NumberInput({
   onChange,
 }: {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (
+    value: string
+  ) => void;
 }) {
   return (
     <input
       value={value}
       inputMode="decimal"
-      onChange={(e) => onChange(e.target.value)}
+      placeholder="0"
+      onChange={(e) =>
+        onChange(
+          e.target.value
+        )
+      }
       style={{
         ...tableInputStyle,
         textAlign: "right",
@@ -578,50 +1100,51 @@ function NumberInput({
   );
 }
 
+function TextInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+}) {
+  return (
+    <input
+      value={value}
+      placeholder="-"
+      onChange={(e) =>
+        onChange(
+          e.target.value
+        )
+      }
+      style={
+        tableInputStyle
+      }
+    />
+  );
+}
+
 const tableInputStyle = {
   width: "100%",
-  minWidth: 105,
-  boxSizing: "border-box" as const,
+  minWidth: 100,
+  boxSizing:
+    "border-box" as const,
   background: "#0F0C09",
   color: "#F4E8D0",
-  border: "1px solid #3D3325",
+  border:
+    "1px solid #3D3325",
   borderRadius: 8,
   padding: "9px",
+  fontSize: 13,
 };
 
 const dateInputStyle = {
   background: "#0F0C09",
   color: "#F4E8D0",
-  border: "1px solid #4A3B1E",
+  border:
+    "1px solid #4A3B1E",
   borderRadius: 8,
   padding: "10px 12px",
-};
-
-const outlineButtonStyle = {
-  border: "1px solid #C9A24B",
-  background: "transparent",
-  color: "#C9A24B",
-  borderRadius: 9,
-  padding: "11px 16px",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const saveButtonStyle = {
-  border: "1px solid #C9A24B",
-  background: "#C9A24B",
-  color: "#17110A",
-  borderRadius: 9,
-  padding: "11px 20px",
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const deleteButtonStyle = {
-  border: "1px solid #5B4230",
-  background: "transparent",
-  color: "#C8AA83",
-  borderRadius: 8,
-  padding: "8px 10px",
-  cursor: "pointer",
+  fontSize: 14,
 };
