@@ -64,3 +64,28 @@ export interface PepInsightResult {
   mine?: Record<PepMetricKey, number>;
   averages?: Record<PepMetricKey, number>;
 }
+
+/**
+ * A manager-authored PEP note, stored in Supabase (table public.pep_notes) —
+ * entirely separate from Jotform-derived data. Each save creates a new history
+ * row; this is an append-only log, not an edit-in-place record.
+ */
+export interface PepNote {
+  id: number;
+  agentName: string;
+  pepDate: string; // YYYY-MM-DD, the date the PEP session covers
+  recommendation: string;
+  coachingQuestion: string;
+  actionPlan: string;
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+}
+
+/** Payload for creating a new PEP note via POST /api/pep-notes. */
+export interface PepNoteInput {
+  agentName: string;
+  pepDate: string;
+  recommendation: string;
+  coachingQuestion: string;
+  actionPlan: string;
+}
