@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import HomeButton from "@/components/HomeButton";
 
 export default function AnnualTargetPage() {
   const currentYear = new Date().getFullYear() + 543;
@@ -54,7 +55,7 @@ export default function AnnualTargetPage() {
         minHeight: "100vh",
         background: "#0d0b08",
         color: "#f4ead8",
-        padding: "40px 20px",
+        padding: "28px 20px 50px",
       }}
     >
       <div
@@ -62,104 +63,140 @@ export default function AnnualTargetPage() {
           width: "100%",
           maxWidth: 620,
           margin: "0 auto",
-          background: "#17120d",
-          border: "1px solid #8c6b32",
-          borderRadius: 20,
-          padding: 30,
         }}
       >
-        <div style={{ marginBottom: 28 }}>
-          <div
-            style={{
-              color: "#d8b66a",
-              fontSize: 13,
-              letterSpacing: 2,
-              marginBottom: 8,
-            }}
-          >
-            ROYAL PARTNER
-          </div>
-
-          <h1 style={{ margin: 0, fontSize: 30 }}>
-            Annual Target {currentYear}
-          </h1>
-
-          <p style={{ opacity: 0.7, marginTop: 10 }}>
-            กำหนดเป้าหมายประจำปีของคุณ
-          </p>
+        {/* BACK HOME */}
+        <div style={{ marginBottom: 18 }}>
+          <HomeButton />
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label style={labelStyle}>ชื่อ-นามสกุล / ชื่อตัวแทน</label>
-          <input
-            style={inputStyle}
-            value={agentName}
-            onChange={(e) => setAgentName(e.target.value)}
-            required
-            placeholder="กรอกชื่อของคุณ"
-          />
-
-          <label style={labelStyle}>Target FYP</label>
-          <input
-            style={inputStyle}
-            value={targetFyp}
-            onChange={(e) => setTargetFyp(e.target.value)}
-            required
-            inputMode="numeric"
-            placeholder="เช่น 1,200,000"
-          />
-
-          <label style={labelStyle}>Target FYC</label>
-          <input
-            style={inputStyle}
-            value={targetFyc}
-            onChange={(e) => setTargetFyc(e.target.value)}
-            required
-            inputMode="numeric"
-            placeholder="เช่น 300,000"
-          />
-
-          <label style={labelStyle}>Target CASE</label>
-          <input
-            style={inputStyle}
-            value={targetCase}
-            onChange={(e) => setTargetCase(e.target.value)}
-            required
-            inputMode="numeric"
-            placeholder="เช่น 36"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              marginTop: 12,
-              padding: "14px 18px",
-              borderRadius: 12,
-              border: "1px solid #d8b66a",
-              background: "#d8b66a",
-              color: "#16110b",
-              fontWeight: 700,
-              fontSize: 16,
-              cursor: "pointer",
-            }}
-          >
-            {loading ? "กำลังบันทึก..." : "บันทึกเป้าหมายประจำปี"}
-          </button>
-
-          {status && (
-            <p
+        {/* FORM CARD */}
+        <div
+          style={{
+            background: "#17120d",
+            border: "1px solid #8c6b32",
+            borderRadius: 20,
+            padding: 30,
+          }}
+        >
+          <div style={{ marginBottom: 28 }}>
+            <div
               style={{
-                marginTop: 18,
-                textAlign: "center",
                 color: "#d8b66a",
+                fontSize: 13,
+                letterSpacing: 2,
+                marginBottom: 8,
               }}
             >
-              {status}
+              ROYAL PARTNER · AGENT DEV
+            </div>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 30,
+              }}
+            >
+              Annual Target {currentYear}
+            </h1>
+
+            <p
+              style={{
+                opacity: 0.7,
+                marginTop: 10,
+              }}
+            >
+              กำหนดเป้าหมายประจำปีของคุณ
             </p>
-          )}
-        </form>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <label style={labelStyle}>
+              ชื่อ-นามสกุล / ชื่อตัวแทน
+            </label>
+
+            <input
+              style={inputStyle}
+              value={agentName}
+              onChange={(e) => setAgentName(e.target.value)}
+              required
+              placeholder="กรอกชื่อของคุณ"
+            />
+
+            <label style={labelStyle}>
+              Target FYP
+            </label>
+
+            <input
+              style={inputStyle}
+              value={targetFyp}
+              onChange={(e) => setTargetFyp(e.target.value)}
+              required
+              inputMode="numeric"
+              placeholder="เช่น 1,200,000"
+            />
+
+            <label style={labelStyle}>
+              Target FYC
+            </label>
+
+            <input
+              style={inputStyle}
+              value={targetFyc}
+              onChange={(e) => setTargetFyc(e.target.value)}
+              required
+              inputMode="numeric"
+              placeholder="เช่น 300,000"
+            />
+
+            <label style={labelStyle}>
+              Target CASE
+            </label>
+
+            <input
+              style={inputStyle}
+              value={targetCase}
+              onChange={(e) => setTargetCase(e.target.value)}
+              required
+              inputMode="numeric"
+              placeholder="เช่น 36"
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                marginTop: 12,
+                padding: "14px 18px",
+                borderRadius: 12,
+                border: "1px solid #d8b66a",
+                background: "#d8b66a",
+                color: "#16110b",
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: loading ? "default" : "pointer",
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading
+                ? "กำลังบันทึก..."
+                : "บันทึกเป้าหมายประจำปี"}
+            </button>
+
+            {status && (
+              <p
+                style={{
+                  marginTop: 18,
+                  textAlign: "center",
+                  color: "#d8b66a",
+                }}
+              >
+                {status}
+              </p>
+            )}
+          </form>
+        </div>
       </div>
     </main>
   );
