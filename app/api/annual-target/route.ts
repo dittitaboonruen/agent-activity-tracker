@@ -16,14 +16,50 @@ function errorResponse(message: string, status: number) {
   );
 }
 
+export async function GET(request: NextRequest) {
+  const params = request.nextUrl.searchParams;
+
+  const agent = params.get("agent")?.trim() || "";
+  const year = Number(params.get("year"));
+
+  if (!agent) {
+    return errorResponse("กรุณาระบุตัวแทน", 400);
+  }
+
+  if (!Number.isInteger(year)) {
+    return errorResponse("ปีไม่ถูกต้อง", 400);
+  }
+
+  try {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from("agent_targets")
+      .select("*")
+      .eq("agent_name", agent)
+      .eq("target_year", year)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[annual-target] GET error:", error);
+      return errorResponse("ไม่สามารถโหลดข้อมูลเป้าหมายได้", 500);
+    }
+
+    return NextResponse.json(
+      { target: data ?? null },
+      { headers: NO_STORE_HEADERS }
+    );
+  } catch (error) {
+    console.error("[annual-target] GET unexpected error:", error);
+    return errorResponse("เกิดข้อผิดพลาดในการโหลดข้อมูล", 500);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const rate = checkRateLimit(request);
 
   if (!rate.allowed) {
-    return errorResponse(
-      "กรุณารอสักครู่ก่อนลองใหม่อีกครั้ง",
-      429
-    );
+    return errorResponse("กรุณารอสักครู่ก่อนลองใหม่อีกครั้ง", 429);
   }
 
   let body: unknown;
@@ -109,10 +145,6 @@ export async function POST(request: NextRequest) {
     console.error("[annual-target] Unexpected error:", error);
     return errorResponse("เกิดข้อผิดพลาดในการบันทึกข้อมูล", 500);
   }
-}
-
-export async function GET() {
-  return errorResponse("Method not allowed.", 405);
 }
 
 export async function PUT() {
