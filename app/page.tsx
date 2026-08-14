@@ -24,37 +24,23 @@ const sections: ModuleSection[] = [
   {
     number: "01",
     title: "ACTIVITY",
-    description: "บันทึกและวิเคราะห์กิจกรรมของตัวแทน",
+    description: "วิเคราะห์กิจกรรมและติดตามการทำงานของตัวแทน",
     items: [
-      {
-        icon: "📝",
-        title: "Activity Form",
-        description: "บันทึกกิจกรรมตัวแทนประจำวัน",
-        href: "https://form.jotform.com/262221782679061",
-        external: true,
-        badge: "พร้อมใช้งาน",
-      },
       {
         icon: "📊",
         title: "Activity Dashboard",
         description: "วิเคราะห์กิจกรรมและติดตามการทำงานของตัวแทน",
         href: "/dashboard/activity",
-        badge: "พร้อมใช้งาน",
+        badge: "Manager",
       },
     ],
   },
+
   {
     number: "02",
     title: "PERFORMANCE",
-    description: "เป้าหมาย Production และผลงานรายเดือน",
+    description: "Production และผลงานรายเดือน",
     items: [
-      {
-        icon: "🎯",
-        title: "Annual Target",
-        description: "ตั้งเป้าหมาย FYP / FYC / CASE ประจำปี",
-        href: "/annual-target",
-        badge: "พร้อมใช้งาน",
-      },
       {
         icon: "📥",
         title: "Daily Production",
@@ -71,6 +57,7 @@ const sections: ModuleSection[] = [
       },
     ],
   },
+
   {
     number: "03",
     title: "ADMIN",
@@ -102,21 +89,47 @@ export default function PerformanceHubHome() {
 
   function changeTheme(nextTheme: Theme) {
     setTheme(nextTheme);
-    localStorage.setItem("agent-dev-theme", nextTheme);
+
+    localStorage.setItem(
+      "agent-dev-theme",
+      nextTheme
+    );
+
+    document.documentElement.setAttribute(
+      "data-rp-theme",
+      nextTheme
+    );
   }
 
   const isMorning = theme === "morning";
 
   const colors = {
-    background: isMorning ? "#F5EFE4" : "#0D0B08",
-    card: isMorning ? "#FFFDF8" : "#17130E",
-    text: isMorning ? "#2C241A" : "#F4E8D0",
-    muted: isMorning ? "#756A5A" : "#A89B86",
+    background: isMorning
+      ? "#F5EFE4"
+      : "#0D0B08",
+
+    card: isMorning
+      ? "#FFFDF8"
+      : "#17130E",
+
+    text: isMorning
+      ? "#2C241A"
+      : "#F4E8D0",
+
+    muted: isMorning
+      ? "#756A5A"
+      : "#A89B86",
+
     gold: "#C9A24B",
-    border: isMorning ? "#E3D3B2" : "#4A3B1E",
+
+    border: isMorning
+      ? "#E3D3B2"
+      : "#4A3B1E",
+
     softGold: isMorning
       ? "rgba(201,162,75,0.10)"
       : "rgba(201,162,75,0.07)",
+
     sectionBackground: isMorning
       ? "rgba(255,255,255,0.35)"
       : "rgba(255,255,255,0.015)",
@@ -128,7 +141,9 @@ export default function PerformanceHubHome() {
         minHeight: "100vh",
         background: colors.background,
         color: colors.text,
-        transition: "background 0.25s ease, color 0.25s ease",
+
+        transition:
+          "background 0.25s ease, color 0.25s ease",
       }}
     >
       <div
@@ -142,10 +157,17 @@ export default function PerformanceHubHome() {
         <header
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
+
+            justifyContent:
+              "space-between",
+
+            alignItems:
+              "flex-start",
+
             gap: 24,
+
             flexWrap: "wrap",
+
             marginBottom: 42,
           }}
         >
@@ -153,9 +175,13 @@ export default function PerformanceHubHome() {
             <div
               style={{
                 color: colors.gold,
+
                 fontSize: 12,
+
                 fontWeight: 800,
+
                 letterSpacing: 2.5,
+
                 marginBottom: 10,
               }}
             >
@@ -165,9 +191,14 @@ export default function PerformanceHubHome() {
             <h1
               style={{
                 margin: 0,
-                fontSize: "clamp(34px, 5vw, 54px)",
+
+                fontSize:
+                  "clamp(34px, 5vw, 54px)",
+
                 lineHeight: 1.05,
-                letterSpacing: "-1px",
+
+                letterSpacing:
+                  "-1px",
               }}
             >
               Performance Hub
@@ -176,8 +207,12 @@ export default function PerformanceHubHome() {
             <p
               style={{
                 marginTop: 12,
+
                 marginBottom: 0,
-                color: colors.muted,
+
+                color:
+                  colors.muted,
+
                 fontSize: 16,
               }}
             >
@@ -187,9 +222,14 @@ export default function PerformanceHubHome() {
             <div
               style={{
                 marginTop: 9,
-                color: colors.gold,
+
+                color:
+                  colors.gold,
+
                 fontSize: 12,
+
                 fontWeight: 700,
+
                 letterSpacing: 0.5,
               }}
             >
@@ -201,24 +241,53 @@ export default function PerformanceHubHome() {
           <div
             style={{
               display: "flex",
+
               gap: 4,
+
               padding: 5,
+
               borderRadius: 999,
-              background: colors.card,
-              border: `1px solid ${colors.border}`,
+
+              background:
+                colors.card,
+
+              border:
+                `1px solid ${colors.border}`,
             }}
           >
             <button
               type="button"
-              onClick={() => changeTheme("morning")}
+
+              onClick={() =>
+                changeTheme(
+                  "morning"
+                )
+              }
+
               style={{
                 border: 0,
-                borderRadius: 999,
-                padding: "9px 14px",
-                cursor: "pointer",
-                fontWeight: 700,
-                background: isMorning ? colors.gold : "transparent",
-                color: isMorning ? "#18120A" : colors.muted,
+
+                borderRadius:
+                  999,
+
+                padding:
+                  "9px 14px",
+
+                cursor:
+                  "pointer",
+
+                fontWeight:
+                  700,
+
+                background:
+                  isMorning
+                    ? colors.gold
+                    : "transparent",
+
+                color:
+                  isMorning
+                    ? "#18120A"
+                    : colors.muted,
               }}
             >
               ☀️ เช้า
@@ -226,15 +295,37 @@ export default function PerformanceHubHome() {
 
             <button
               type="button"
-              onClick={() => changeTheme("night")}
+
+              onClick={() =>
+                changeTheme(
+                  "night"
+                )
+              }
+
               style={{
                 border: 0,
-                borderRadius: 999,
-                padding: "9px 14px",
-                cursor: "pointer",
-                fontWeight: 700,
-                background: !isMorning ? colors.gold : "transparent",
-                color: !isMorning ? "#18120A" : colors.muted,
+
+                borderRadius:
+                  999,
+
+                padding:
+                  "9px 14px",
+
+                cursor:
+                  "pointer",
+
+                fontWeight:
+                  700,
+
+                background:
+                  !isMorning
+                    ? colors.gold
+                    : "transparent",
+
+                color:
+                  !isMorning
+                    ? "#18120A"
+                    : colors.muted,
               }}
             >
               🌙 กลางคืน
@@ -245,19 +336,31 @@ export default function PerformanceHubHome() {
         {/* INTRO */}
         <section
           style={{
-            padding: "22px 24px",
+            padding:
+              "22px 24px",
+
             borderRadius: 18,
-            border: `1px solid ${colors.border}`,
-            background: colors.softGold,
+
+            border:
+              `1px solid ${colors.border}`,
+
+            background:
+              colors.softGold,
+
             marginBottom: 34,
           }}
         >
           <div
             style={{
-              color: colors.gold,
+              color:
+                colors.gold,
+
               fontSize: 12,
+
               fontWeight: 800,
+
               letterSpacing: 1.2,
+
               marginBottom: 7,
             }}
           >
@@ -267,7 +370,9 @@ export default function PerformanceHubHome() {
           <div
             style={{
               fontSize: 20,
+
               fontWeight: 750,
+
               marginBottom: 6,
             }}
           >
@@ -276,13 +381,15 @@ export default function PerformanceHubHome() {
 
           <div
             style={{
-              color: colors.muted,
+              color:
+                colors.muted,
+
               fontSize: 14,
+
               lineHeight: 1.6,
             }}
           >
-            บันทึกกิจกรรม · ตั้งเป้าหมาย · ติดตาม Production ·
-            วิเคราะห์ผลงาน · พัฒนาตัวแทน
+            ติดตามกิจกรรม · Production · วิเคราะห์ผลงาน · จัดการข้อมูลตัวแทน
           </div>
         </section>
 
@@ -290,191 +397,350 @@ export default function PerformanceHubHome() {
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+
+            flexDirection:
+              "column",
+
             gap: 34,
           }}
         >
-          {sections.map((section) => (
-            <section
-              key={section.title}
-              style={{
-                padding: "22px",
-                borderRadius: 20,
-                border: `1px solid ${colors.border}`,
-                background: colors.sectionBackground,
-              }}
-            >
-              {/* SECTION HEADER */}
-              <div
+          {sections.map(
+            (section) => (
+              <section
+                key={
+                  section.title
+                }
+
                 style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 14,
-                  marginBottom: 18,
+                  padding: "22px",
+
+                  borderRadius:
+                    20,
+
+                  border:
+                    `1px solid ${colors.border}`,
+
+                  background:
+                    colors.sectionBackground,
                 }}
               >
+                {/* SECTION HEADER */}
                 <div
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: colors.softGold,
-                    border: `1px solid ${colors.border}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: colors.gold,
-                    fontWeight: 800,
-                    fontSize: 14,
-                    flexShrink: 0,
+                    display:
+                      "flex",
+
+                    alignItems:
+                      "flex-start",
+
+                    gap: 14,
+
+                    marginBottom:
+                      18,
                   }}
                 >
-                  {section.number}
-                </div>
-
-                <div>
                   <div
                     style={{
-                      color: colors.gold,
+                      width: 44,
+
+                      height: 44,
+
+                      borderRadius:
+                        12,
+
+                      background:
+                        colors.softGold,
+
+                      border:
+                        `1px solid ${colors.border}`,
+
+                      display:
+                        "flex",
+
+                      alignItems:
+                        "center",
+
+                      justifyContent:
+                        "center",
+
+                      color:
+                        colors.gold,
+
+                      fontWeight:
+                        800,
+
                       fontSize: 14,
-                      fontWeight: 800,
-                      letterSpacing: 1.3,
+
+                      flexShrink:
+                        0,
                     }}
                   >
-                    {section.title}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 5,
-                      color: colors.muted,
-                      fontSize: 13,
-                    }}
-                  >
-                    {section.description}
-                  </div>
-                </div>
-              </div>
-
-              {/* CARDS */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    section.items.length === 1
-                      ? "minmax(250px, 340px)"
-                      : "repeat(auto-fit, minmax(250px, 1fr))",
-                  gap: 15,
-                }}
-              >
-                {section.items.map((item) => (
-                  <a
-                    key={item.title}
-                    href={item.href}
-                    target={item.external ? "_blank" : undefined}
-                    rel={
-                      item.external
-                        ? "noopener noreferrer"
-                        : undefined
+                    {
+                      section.number
                     }
-                    style={{
-                      textDecoration: "none",
-                      color: colors.text,
-                      background: colors.card,
-                      border: `1px solid ${colors.border}`,
-                      borderRadius: 17,
-                      padding: 20,
-                      minHeight: 170,
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
+                  </div>
+
+                  <div>
                     <div
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        marginBottom: 18,
+                        color:
+                          colors.gold,
+
+                        fontSize:
+                          14,
+
+                        fontWeight:
+                          800,
+
+                        letterSpacing:
+                          1.3,
                       }}
                     >
-                      <div
+                      {
+                        section.title
+                      }
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop:
+                          5,
+
+                        color:
+                          colors.muted,
+
+                        fontSize:
+                          13,
+                      }}
+                    >
+                      {
+                        section.description
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARDS */}
+                <div
+                  style={{
+                    display:
+                      "grid",
+
+                    gridTemplateColumns:
+                      section.items.length ===
+                      1
+                        ? "minmax(250px, 340px)"
+                        : "repeat(auto-fit, minmax(250px, 1fr))",
+
+                    gap: 15,
+                  }}
+                >
+                  {section.items.map(
+                    (item) => (
+                      <a
+                        key={
+                          item.title
+                        }
+
+                        href={
+                          item.href
+                        }
+
+                        target={
+                          item.external
+                            ? "_blank"
+                            : undefined
+                        }
+
+                        rel={
+                          item.external
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+
                         style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 13,
-                          background: colors.softGold,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 24,
+                          textDecoration:
+                            "none",
+
+                          color:
+                            colors.text,
+
+                          background:
+                            colors.card,
+
+                          border:
+                            `1px solid ${colors.border}`,
+
+                          borderRadius:
+                            17,
+
+                          padding:
+                            20,
+
+                          minHeight:
+                            170,
+
+                          display:
+                            "flex",
+
+                          flexDirection:
+                            "column",
                         }}
                       >
-                        {item.icon}
-                      </div>
-
-                      {item.badge && (
                         <div
                           style={{
-                            height: "fit-content",
-                            borderRadius: 999,
-                            border: `1px solid ${colors.border}`,
-                            padding: "5px 9px",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            color:
-                              item.badge === "Admin"
-                                ? colors.muted
-                                : colors.gold,
+                            display:
+                              "flex",
+
+                            justifyContent:
+                              "space-between",
+
+                            gap: 12,
+
+                            marginBottom:
+                              18,
                           }}
                         >
-                          {item.badge}
+                          <div
+                            style={{
+                              width:
+                                48,
+
+                              height:
+                                48,
+
+                              borderRadius:
+                                13,
+
+                              background:
+                                colors.softGold,
+
+                              display:
+                                "flex",
+
+                              alignItems:
+                                "center",
+
+                              justifyContent:
+                                "center",
+
+                              fontSize:
+                                24,
+                            }}
+                          >
+                            {
+                              item.icon
+                            }
+                          </div>
+
+                          {item.badge && (
+                            <div
+                              style={{
+                                height:
+                                  "fit-content",
+
+                                borderRadius:
+                                  999,
+
+                                border:
+                                  `1px solid ${colors.border}`,
+
+                                padding:
+                                  "5px 9px",
+
+                                fontSize:
+                                  10,
+
+                                fontWeight:
+                                  700,
+
+                                color:
+                                  item.badge ===
+                                  "Admin"
+                                    ? colors.muted
+                                    : colors.gold,
+                              }}
+                            >
+                              {
+                                item.badge
+                              }
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    <div
-                      style={{
-                        fontSize: 19,
-                        fontWeight: 800,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {item.title}
-                    </div>
+                        <div
+                          style={{
+                            fontSize:
+                              19,
 
-                    <div
-                      style={{
-                        color: colors.muted,
-                        fontSize: 13,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      {item.description}
-                    </div>
+                            fontWeight:
+                              800,
 
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        paddingTop: 17,
-                        color: colors.gold,
-                        fontSize: 12,
-                        fontWeight: 800,
-                      }}
-                    >
-                      เปิดระบบ →
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
-          ))}
+                            marginBottom:
+                              8,
+                          }}
+                        >
+                          {
+                            item.title
+                          }
+                        </div>
+
+                        <div
+                          style={{
+                            color:
+                              colors.muted,
+
+                            fontSize:
+                              13,
+
+                            lineHeight:
+                              1.55,
+                          }}
+                        >
+                          {
+                            item.description
+                          }
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop:
+                              "auto",
+
+                            paddingTop:
+                              17,
+
+                            color:
+                              colors.gold,
+
+                            fontSize:
+                              12,
+
+                            fontWeight:
+                              800,
+                          }}
+                        >
+                          เปิดระบบ →
+                        </div>
+                      </a>
+                    )
+                  )}
+                </div>
+              </section>
+            )
+          )}
         </div>
 
         <footer
           style={{
             marginTop: 46,
-            textAlign: "center",
-            color: colors.muted,
+
+            textAlign:
+              "center",
+
+            color:
+              colors.muted,
+
             fontSize: 12,
           }}
         >
