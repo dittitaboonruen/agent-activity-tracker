@@ -1,33 +1,355 @@
-import Dashboard from "@/components/Dashboard";
-import { fetchJotformSubmissions } from "@/lib/jotform";
-import type { JotformApiResponse } from "@/types";
+"use client";
 
-// This page must run per-request, not be statically generated at build time —
-// the whole point is that it reflects live (cache-bounded) Jotform data.
-export const dynamic = "force-dynamic";
+import { useEffect, useState } from "react";
 
-/**
- * Server-side prefetch for fast first paint. This reads through the same short
- * in-memory cache as /api/jotform (see lib/jotform.ts), so:
- *   - the very first visitor after a cache expiry triggers one real Jotform call,
- *   - every other visitor within the cache window gets that cached result
- *     rendered directly into the initial HTML — no client-side loading spinner.
- *
- * If this fails (e.g. missing env vars, upstream down), we pass `initialData:
- * null` and let the Dashboard's existing client-side fetch + loading UI take
- * over, exactly as before this change. The error itself is already logged
- * server-side inside fetchJotformSubmissions.
- */
-async function getInitialData(): Promise<JotformApiResponse | null> {
-  try {
-    const { submissions, fetchedAtUTC } = await fetchJotformSubmissions();
-    return { submissions, fetchedAtUTC };
-  } catch {
-    return null;
+type Theme = "morning" | "night";
+
+const modules = [
+  {
+    icon: "📝",
+    title: "Activity Form",
+    description: "บันทึกกิจกรรมตัวแทนประจำวัน",
+    href: "https://form.jotform.com/262221782679061",
+    external: true,
+    status: "พร้อมใช้งาน",
+  },
+  {
+    icon: "🎯",
+    title: "Annual Target",
+    description: "กำหนด Target FYP / FYC / CASE ประจำปี",
+    href: "/annual-target",
+    external: false,
+    status: "พร้อมใช้งาน",
+  },
+  {
+    icon: "📥",
+    title: "Daily Production",
+    description: "Admin บันทึกผลงานที่อนุมัติประจำวัน",
+    href: "/admin/production",
+    external: false,
+    status: "กำลังสร้าง",
+  },
+  {
+    icon: "📊",
+    title: "Activity Dashboard",
+    description: "ติดตามกิจกรรม ผลงานตัวแทน และ PEP",
+    href: "/dashboard/activity",
+    external: false,
+    status: "พร้อมใช้งาน",
+  },
+  {
+    icon: "📈",
+    title: "Monthly Performance",
+    description: "สรุป FYP / FYC / CASE รายเดือนและ YTD",
+    href: "/dashboard/performance",
+    external: false,
+    status: "กำลังสร้าง",
+  },
+];
+
+export default function AgentDevHome() {
+  const [theme, setTheme] = useState<Theme>("night");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("agent-dev-theme") as Theme | null;
+
+    if (saved === "morning" || saved === "night") {
+      setTheme(saved);
+    }
+  }, []);
+
+  function changeTheme(nextTheme: Theme) {
+    setTheme(nextTheme);
+    localStorage.setItem("agent-dev-theme", nextTheme);
   }
-}
 
-export default async function Page() {
-  const initialData = await getInitialData();
-  return <Dashboard initialData={initialData} />;
+  const isMorning = theme === "morning";
+
+  const colors = {
+    background: isMorning ? "#F5EFE4" : "#0D0B08",
+    card: isMorning ? "#FFFDF8" : "#17130E",
+    cardHover: isMorning ? "#FFF8E9" : "#20190F",
+    text: isMorning ? "#2C241A" : "#F4E8D0",
+    muted: isMorning ? "#756A5A" : "#A89B86",
+    gold: "#C9A24B",
+    border: isMorning ? "#E3D3B2" : "#4A3B1E",
+    softGold: isMorning
+      ? "rgba(201,162,75,0.12)"
+      : "rgba(201,162,75,0.08)",
+  };
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background: colors.background,
+        color: colors.text,
+        transition: "all 0.25s ease",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "36px 22px 60px",
+        }}
+      >
+        {/* HEADER */}
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 20,
+            flexWrap: "wrap",
+            marginBottom: 46,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: colors.gold,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 2.4,
+                marginBottom: 10,
+              }}
+            >
+              ROYAL PARTNER
+            </div>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "clamp(32px, 5vw, 52px)",
+                lineHeight: 1.05,
+              }}
+            >
+              Agent Dev
+            </h1>
+
+            <p
+              style={{
+                marginTop: 12,
+                marginBottom: 0,
+                color: colors.muted,
+                fontSize: 16,
+              }}
+            >
+              Agent Development & Performance System
+            </p>
+          </div>
+
+          {/* THEME */}
+          <div
+            style={{
+              display: "flex",
+              padding: 5,
+              gap: 4,
+              borderRadius: 999,
+              border: `1px solid ${colors.border}`,
+              background: colors.card,
+            }}
+          >
+            <button
+              onClick={() => changeTheme("morning")}
+              style={{
+                border: 0,
+                cursor: "pointer",
+                borderRadius: 999,
+                padding: "9px 14px",
+                background: isMorning ? colors.gold : "transparent",
+                color: isMorning ? "#18120A" : colors.muted,
+                fontWeight: 700,
+              }}
+            >
+              ☀️ เช้า
+            </button>
+
+            <button
+              onClick={() => changeTheme("night")}
+              style={{
+                border: 0,
+                cursor: "pointer",
+                borderRadius: 999,
+                padding: "9px 14px",
+                background: !isMorning ? colors.gold : "transparent",
+                color: !isMorning ? "#18120A" : colors.muted,
+                fontWeight: 700,
+              }}
+            >
+              🌙 กลางคืน
+            </button>
+          </div>
+        </header>
+
+        {/* WELCOME */}
+        <section
+          style={{
+            padding: "24px 26px",
+            border: `1px solid ${colors.border}`,
+            borderRadius: 20,
+            background: colors.softGold,
+            marginBottom: 28,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              color: colors.gold,
+              fontWeight: 700,
+              marginBottom: 6,
+            }}
+          >
+            AGENT DEVELOPMENT HUB
+          </div>
+
+          <div
+            style={{
+              fontSize: 21,
+              fontWeight: 700,
+            }}
+          >
+            ทุกเครื่องมือสำหรับติดตามการเติบโตของตัวแทน
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: colors.muted,
+              lineHeight: 1.6,
+            }}
+          >
+            ตั้งเป้าหมาย · บันทึกกิจกรรม · ติดตาม Production ·
+            วิเคราะห์ผลงาน · PEP
+          </div>
+        </section>
+
+        {/* MODULES */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {modules.map((module) => {
+            const comingSoon = module.status === "กำลังสร้าง";
+
+            return (
+              <a
+                key={module.title}
+                href={comingSoon ? undefined : module.href}
+                target={
+                  module.external && !comingSoon ? "_blank" : undefined
+                }
+                rel={
+                  module.external && !comingSoon
+                    ? "noopener noreferrer"
+                    : undefined
+                }
+                style={{
+                  textDecoration: "none",
+                  color: colors.text,
+                  background: colors.card,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 20,
+                  padding: 22,
+                  minHeight: 195,
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: comingSoon ? "default" : "pointer",
+                  opacity: comingSoon ? 0.68 : 1,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginBottom: 22,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 14,
+                      background: colors.softGold,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 25,
+                    }}
+                  >
+                    {module.icon}
+                  </div>
+
+                  <div
+                    style={{
+                      height: "fit-content",
+                      padding: "5px 9px",
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: comingSoon ? colors.muted : colors.gold,
+                      border: `1px solid ${colors.border}`,
+                    }}
+                  >
+                    {module.status}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 750,
+                    marginBottom: 8,
+                  }}
+                >
+                  {module.title}
+                </div>
+
+                <div
+                  style={{
+                    color: colors.muted,
+                    fontSize: 14,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {module.description}
+                </div>
+
+                {!comingSoon && (
+                  <div
+                    style={{
+                      marginTop: "auto",
+                      paddingTop: 18,
+                      color: colors.gold,
+                      fontSize: 13,
+                      fontWeight: 700,
+                    }}
+                  >
+                    เปิดระบบ →
+                  </div>
+                )}
+              </a>
+            );
+          })}
+        </div>
+
+        <footer
+          style={{
+            textAlign: "center",
+            color: colors.muted,
+            fontSize: 12,
+            marginTop: 50,
+          }}
+        >
+          Royal Partner · Agent Development System
+        </footer>
+      </div>
+    </main>
+  );
 }
