@@ -4,58 +4,90 @@ import { useEffect, useState } from "react";
 
 type Theme = "morning" | "night";
 
-const modules = [
+type ModuleItem = {
+  icon: string;
+  title: string;
+  description: string;
+  href: string;
+  external?: boolean;
+  badge?: string;
+};
+
+type ModuleSection = {
+  number: string;
+  title: string;
+  description: string;
+  items: ModuleItem[];
+};
+
+const sections: ModuleSection[] = [
   {
-    icon: "📝",
-    title: "Activity Form",
-    description: "บันทึกกิจกรรมตัวแทนประจำวัน",
-    href: "https://form.jotform.com/262221782679061",
-    external: true,
-    status: "พร้อมใช้งาน",
+    number: "01",
+    title: "ACTIVITY",
+    description: "บันทึกและวิเคราะห์กิจกรรมของตัวแทน",
+    items: [
+      {
+        icon: "📝",
+        title: "Activity Form",
+        description: "บันทึกกิจกรรมตัวแทนประจำวัน",
+        href: "https://form.jotform.com/262221782679061",
+        external: true,
+        badge: "พร้อมใช้งาน",
+      },
+      {
+        icon: "📊",
+        title: "Activity Dashboard",
+        description: "วิเคราะห์กิจกรรมและติดตามการทำงานของตัวแทน",
+        href: "/dashboard/activity",
+        badge: "พร้อมใช้งาน",
+      },
+    ],
   },
   {
-    icon: "🎯",
-    title: "Annual Target",
-    description: "กำหนด Target FYP / FYC / CASE ประจำปี",
-    href: "/annual-target",
-    external: false,
-    status: "พร้อมใช้งาน",
+    number: "02",
+    title: "PERFORMANCE",
+    description: "เป้าหมาย Production และผลงานรายเดือน",
+    items: [
+      {
+        icon: "🎯",
+        title: "Annual Target",
+        description: "ตั้งเป้าหมาย FYP / FYC / CASE ประจำปี",
+        href: "/annual-target",
+        badge: "พร้อมใช้งาน",
+      },
+      {
+        icon: "📥",
+        title: "Daily Production",
+        description: "บันทึกผลงานนำส่งและอนุมัติประจำวัน",
+        href: "/admin/production",
+        badge: "พร้อมใช้งาน",
+      },
+      {
+        icon: "📈",
+        title: "Monthly Performance",
+        description: "สรุปผลงานรายเดือน · YTD",
+        href: "/dashboard/performance",
+        badge: "พร้อมใช้งาน",
+      },
+    ],
   },
   {
-    icon: "📥",
-    title: "Daily Production",
-    description: "Admin บันทึกผลงานนำส่งและอนุมัติประจำวัน",
-    href: "/admin/production",
-    external: false,
-    status: "พร้อมใช้งาน",
-  },
-  {
-    icon: "📊",
-    title: "Activity Dashboard",
-    description: "ติดตามกิจกรรม ผลงานตัวแทน และ PEP",
-    href: "/dashboard/activity",
-    external: false,
-    status: "พร้อมใช้งาน",
-  },
-  {
-    icon: "📈",
-    title: "Monthly Performance",
-    description: "สรุป Production รายเดือน YTD และเทียบ Annual Target",
-    href: "/dashboard/performance",
-    external: false,
-    status: "พร้อมใช้งาน",
-  },
-  {
-    icon: "👥",
-    title: "Agent Master",
-    description: "จัดการ Code / Name / Nick Name ของตัวแทน",
-    href: "/admin/agents",
-    external: false,
-    status: "Admin",
+    number: "03",
+    title: "ADMIN",
+    description: "ข้อมูลหลักสำหรับการใช้งานระบบ",
+    items: [
+      {
+        icon: "👥",
+        title: "Agent Master",
+        description: "จัดการ Code / Name / Nick Name ของตัวแทน",
+        href: "/admin/agents",
+        badge: "Admin",
+      },
+    ],
   },
 ];
 
-export default function AgentDevHome() {
+export default function PerformanceHubHome() {
   const [theme, setTheme] = useState<Theme>("night");
 
   useEffect(() => {
@@ -70,40 +102,24 @@ export default function AgentDevHome() {
 
   function changeTheme(nextTheme: Theme) {
     setTheme(nextTheme);
-    localStorage.setItem(
-      "agent-dev-theme",
-      nextTheme
-    );
+    localStorage.setItem("agent-dev-theme", nextTheme);
   }
 
   const isMorning = theme === "morning";
 
   const colors = {
-    background: isMorning
-      ? "#F5EFE4"
-      : "#0D0B08",
-
-    card: isMorning
-      ? "#FFFDF8"
-      : "#17130E",
-
-    text: isMorning
-      ? "#2C241A"
-      : "#F4E8D0",
-
-    muted: isMorning
-      ? "#756A5A"
-      : "#A89B86",
-
+    background: isMorning ? "#F5EFE4" : "#0D0B08",
+    card: isMorning ? "#FFFDF8" : "#17130E",
+    text: isMorning ? "#2C241A" : "#F4E8D0",
+    muted: isMorning ? "#756A5A" : "#A89B86",
     gold: "#C9A24B",
-
-    border: isMorning
-      ? "#E3D3B2"
-      : "#4A3B1E",
-
+    border: isMorning ? "#E3D3B2" : "#4A3B1E",
     softGold: isMorning
-      ? "rgba(201,162,75,0.12)"
-      : "rgba(201,162,75,0.08)",
+      ? "rgba(201,162,75,0.10)"
+      : "rgba(201,162,75,0.07)",
+    sectionBackground: isMorning
+      ? "rgba(255,255,255,0.35)"
+      : "rgba(255,255,255,0.015)",
   };
 
   return (
@@ -112,14 +128,14 @@ export default function AgentDevHome() {
         minHeight: "100vh",
         background: colors.background,
         color: colors.text,
-        transition: "all 0.25s ease",
+        transition: "background 0.25s ease, color 0.25s ease",
       }}
     >
       <div
         style={{
           maxWidth: 1180,
           margin: "0 auto",
-          padding: "36px 22px 60px",
+          padding: "34px 22px 70px",
         }}
       >
         {/* HEADER */}
@@ -128,9 +144,9 @@ export default function AgentDevHome() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            gap: 20,
+            gap: 24,
             flexWrap: "wrap",
-            marginBottom: 46,
+            marginBottom: 42,
           }}
         >
           <div>
@@ -138,8 +154,8 @@ export default function AgentDevHome() {
               style={{
                 color: colors.gold,
                 fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 2.4,
+                fontWeight: 800,
+                letterSpacing: 2.5,
                 marginBottom: 10,
               }}
             >
@@ -149,12 +165,12 @@ export default function AgentDevHome() {
             <h1
               style={{
                 margin: 0,
-                fontSize:
-                  "clamp(32px, 5vw, 52px)",
+                fontSize: "clamp(34px, 5vw, 54px)",
                 lineHeight: 1.05,
+                letterSpacing: "-1px",
               }}
             >
-              Agent Dev
+              Performance Hub
             </h1>
 
             <p
@@ -165,39 +181,44 @@ export default function AgentDevHome() {
                 fontSize: 16,
               }}
             >
-              Agent Development & Performance
-              System
+              Agent Activity · Production · Performance · Development
             </p>
+
+            <div
+              style={{
+                marginTop: 9,
+                color: colors.gold,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+              }}
+            >
+              Royal Partner Agent Performance
+            </div>
           </div>
 
           {/* THEME */}
           <div
             style={{
               display: "flex",
-              padding: 5,
               gap: 4,
+              padding: 5,
               borderRadius: 999,
-              border: `1px solid ${colors.border}`,
               background: colors.card,
+              border: `1px solid ${colors.border}`,
             }}
           >
             <button
               type="button"
-              onClick={() =>
-                changeTheme("morning")
-              }
+              onClick={() => changeTheme("morning")}
               style={{
                 border: 0,
-                cursor: "pointer",
                 borderRadius: 999,
                 padding: "9px 14px",
-                background: isMorning
-                  ? colors.gold
-                  : "transparent",
-                color: isMorning
-                  ? "#18120A"
-                  : colors.muted,
+                cursor: "pointer",
                 fontWeight: 700,
+                background: isMorning ? colors.gold : "transparent",
+                color: isMorning ? "#18120A" : colors.muted,
               }}
             >
               ☀️ เช้า
@@ -205,21 +226,15 @@ export default function AgentDevHome() {
 
             <button
               type="button"
-              onClick={() =>
-                changeTheme("night")
-              }
+              onClick={() => changeTheme("night")}
               style={{
                 border: 0,
-                cursor: "pointer",
                 borderRadius: 999,
                 padding: "9px 14px",
-                background: !isMorning
-                  ? colors.gold
-                  : "transparent",
-                color: !isMorning
-                  ? "#18120A"
-                  : colors.muted,
+                cursor: "pointer",
                 fontWeight: 700,
+                background: !isMorning ? colors.gold : "transparent",
+                color: !isMorning ? "#18120A" : colors.muted,
               }}
             >
               🌙 กลางคืน
@@ -227,178 +242,243 @@ export default function AgentDevHome() {
           </div>
         </header>
 
-        {/* WELCOME */}
+        {/* INTRO */}
         <section
           style={{
-            padding: "24px 26px",
+            padding: "22px 24px",
+            borderRadius: 18,
             border: `1px solid ${colors.border}`,
-            borderRadius: 20,
             background: colors.softGold,
-            marginBottom: 28,
+            marginBottom: 34,
           }}
         >
           <div
             style={{
-              fontSize: 13,
               color: colors.gold,
-              fontWeight: 700,
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: 1.2,
+              marginBottom: 7,
+            }}
+          >
+            ROYAL PARTNER AGENT PERFORMANCE
+          </div>
+
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 750,
               marginBottom: 6,
             }}
           >
-            AGENT DEVELOPMENT HUB
+            ศูนย์กลางสำหรับติดตามกิจกรรมและผลงานของตัวแทน
           </div>
 
           <div
             style={{
-              fontSize: 21,
-              fontWeight: 700,
-            }}
-          >
-            ทุกเครื่องมือสำหรับติดตามการเติบโตของตัวแทน
-          </div>
-
-          <div
-            style={{
-              marginTop: 7,
               color: colors.muted,
+              fontSize: 14,
               lineHeight: 1.6,
             }}
           >
-            ตั้งเป้าหมาย · บันทึกกิจกรรม ·
-            ติดตาม Production · วิเคราะห์ผลงาน ·
-            PEP
+            บันทึกกิจกรรม · ตั้งเป้าหมาย · ติดตาม Production ·
+            วิเคราะห์ผลงาน · พัฒนาตัวแทน
           </div>
         </section>
 
-        {/* MODULES */}
+        {/* SECTIONS */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 34,
           }}
         >
-          {modules.map((module) => {
-            const isAdmin =
-              module.status === "Admin";
-
-            return (
-              <a
-                key={module.title}
-                href={module.href}
-                target={
-                  module.external
-                    ? "_blank"
-                    : undefined
-                }
-                rel={
-                  module.external
-                    ? "noopener noreferrer"
-                    : undefined
-                }
+          {sections.map((section) => (
+            <section
+              key={section.title}
+              style={{
+                padding: "22px",
+                borderRadius: 20,
+                border: `1px solid ${colors.border}`,
+                background: colors.sectionBackground,
+              }}
+            >
+              {/* SECTION HEADER */}
+              <div
                 style={{
-                  textDecoration: "none",
-                  color: colors.text,
-                  background: colors.card,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 20,
-                  padding: 22,
-                  minHeight: 195,
                   display: "flex",
-                  flexDirection: "column",
-                  cursor: "pointer",
+                  alignItems: "flex-start",
+                  gap: 14,
+                  marginBottom: 18,
                 }}
               >
                 <div
                   style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: colors.softGold,
+                    border: `1px solid ${colors.border}`,
                     display: "flex",
-                    justifyContent:
-                      "space-between",
-                    gap: 12,
-                    marginBottom: 22,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 50,
-                      height: 50,
-                      borderRadius: 14,
-                      background:
-                        colors.softGold,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent:
-                        "center",
-                      fontSize: 25,
-                    }}
-                  >
-                    {module.icon}
-                  </div>
-
-                  <div
-                    style={{
-                      height: "fit-content",
-                      padding: "5px 9px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: isAdmin
-                        ? colors.muted
-                        : colors.gold,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    {module.status}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 750,
-                    marginBottom: 8,
-                  }}
-                >
-                  {module.title}
-                </div>
-
-                <div
-                  style={{
-                    color: colors.muted,
-                    fontSize: 14,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {module.description}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "auto",
-                    paddingTop: 18,
+                    alignItems: "center",
+                    justifyContent: "center",
                     color: colors.gold,
-                    fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 800,
+                    fontSize: 14,
+                    flexShrink: 0,
                   }}
                 >
-                  เปิดระบบ →
+                  {section.number}
                 </div>
-              </a>
-            );
-          })}
+
+                <div>
+                  <div
+                    style={{
+                      color: colors.gold,
+                      fontSize: 14,
+                      fontWeight: 800,
+                      letterSpacing: 1.3,
+                    }}
+                  >
+                    {section.title}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 5,
+                      color: colors.muted,
+                      fontSize: 13,
+                    }}
+                  >
+                    {section.description}
+                  </div>
+                </div>
+              </div>
+
+              {/* CARDS */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    section.items.length === 1
+                      ? "minmax(250px, 340px)"
+                      : "repeat(auto-fit, minmax(250px, 1fr))",
+                  gap: 15,
+                }}
+              >
+                {section.items.map((item) => (
+                  <a
+                    key={item.title}
+                    href={item.href}
+                    target={item.external ? "_blank" : undefined}
+                    rel={
+                      item.external
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    style={{
+                      textDecoration: "none",
+                      color: colors.text,
+                      background: colors.card,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 17,
+                      padding: 20,
+                      minHeight: 170,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        marginBottom: 18,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 13,
+                          background: colors.softGold,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 24,
+                        }}
+                      >
+                        {item.icon}
+                      </div>
+
+                      {item.badge && (
+                        <div
+                          style={{
+                            height: "fit-content",
+                            borderRadius: 999,
+                            border: `1px solid ${colors.border}`,
+                            padding: "5px 9px",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color:
+                              item.badge === "Admin"
+                                ? colors.muted
+                                : colors.gold,
+                          }}
+                        >
+                          {item.badge}
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 19,
+                        fontWeight: 800,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {item.title}
+                    </div>
+
+                    <div
+                      style={{
+                        color: colors.muted,
+                        fontSize: 13,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {item.description}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "auto",
+                        paddingTop: 17,
+                        color: colors.gold,
+                        fontSize: 12,
+                        fontWeight: 800,
+                      }}
+                    >
+                      เปิดระบบ →
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
 
         <footer
           style={{
+            marginTop: 46,
             textAlign: "center",
             color: colors.muted,
             fontSize: 12,
-            marginTop: 50,
           }}
         >
-          Royal Partner · Agent Development
-          System
+          Royal Partner · Agent Performance System
         </footer>
       </div>
     </main>
