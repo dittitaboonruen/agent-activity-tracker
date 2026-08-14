@@ -7,17 +7,34 @@ export default function HomeButton() {
     <Link
       href="/"
       style={{
-        display: "inline-flex",
-        alignItems: "center",
+        display:
+          "inline-flex",
+
+        alignItems:
+          "center",
+
         gap: 8,
-        padding: "10px 14px",
+
+        padding:
+          "10px 14px",
+
         borderRadius: 10,
-        border: "1px solid #C9A24B",
-        color: "#C9A24B",
-        textDecoration: "none",
+
+        border:
+          "1px solid var(--gold)",
+
+        color:
+          "var(--gold)",
+
+        background:
+          "var(--surface)",
+
+        textDecoration:
+          "none",
+
         fontWeight: 700,
+
         fontSize: 14,
-        marginBottom: 20,
       }}
     >
       ← กลับหน้าหลัก
