@@ -5,30 +5,30 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  const token_hash = searchParams.get("token_hash");
+  const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
 
-  const redirectTo = request.nextUrl.clone();
-  redirectTo.pathname = "/";
+  const redirectUrl = request.nextUrl.clone();
 
-  redirectTo.searchParams.delete("token_hash");
-  redirectTo.searchParams.delete("type");
-
-  if (token_hash && type) {
+  if (tokenHash && type) {
     const supabase = createClient();
 
     const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
       type,
-      token_hash,
     });
 
     if (!error) {
-      return NextResponse.redirect(redirectTo);
+      redirectUrl.pathname = "/";
+      redirectUrl.search = "";
+
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
-  redirectTo.pathname = "/login";
-  redirectTo.searchParams.set("error", "auth");
+  redirectUrl.pathname = "/login";
+  redirectUrl.search = "";
+  redirectUrl.searchParams.set("error", "auth");
 
-  return NextResponse.redirect(redirectTo);
+  return NextResponse.redirect(redirectUrl);
 }
