@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,19 +16,23 @@ export default function LoginPage() {
     setIsError(false);
 
     try {
-      const supabase = createClient();
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          shouldCreateUser: false,
+      const response = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          email: email.trim(),
+        }),
       });
 
-      if (error) {
+      const data = await response.json();
+
+      if (!response.ok) {
         setIsError(true);
-        setMessage(error.message);
+        setMessage(
+          data.error || "ไม่สามารถส่งลิงก์เข้าสู่ระบบได้"
+        );
         return;
       }
 
@@ -43,7 +46,7 @@ export default function LoginPage() {
       if (error instanceof Error) {
         setMessage(error.message);
       } else {
-        setMessage("ไม่สามารถส่งลิงก์เข้าสู่ระบบได้ กรุณาลองใหม่");
+        setMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
     } finally {
       setLoading(false);
