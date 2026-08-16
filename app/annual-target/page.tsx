@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import PageTopBar from "@/components/PageTopBar";
 
 export default function AnnualTargetPage() {
   const currentYear = new Date().getFullYear() + 543;
@@ -30,15 +29,8 @@ export default function AnnualTargetPage() {
         body: JSON.stringify({
           agentName,
           targetYear: currentYear - 543,
-
-          targetFyp: Number(
-            targetFyp.replace(/,/g, "")
-          ),
-
-          targetFyc: Number(
-            targetFyc.replace(/,/g, "")
-          ),
-
+          targetFyp: Number(targetFyp.replace(/,/g, "")),
+          targetFyc: Number(targetFyc.replace(/,/g, "")),
           targetCase: Number(targetCase),
         }),
       });
@@ -46,17 +38,13 @@ export default function AnnualTargetPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setStatus(
-          data.error || "ไม่สามารถบันทึกข้อมูลได้"
-        );
+        setStatus(data.error || "ไม่สามารถบันทึกข้อมูลได้");
         return;
       }
 
       setStatus("✅ บันทึกเป้าหมายเรียบร้อยแล้ว");
     } catch {
-      setStatus(
-        "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
-      );
+      setStatus("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
@@ -66,9 +54,7 @@ export default function AnnualTargetPage() {
     const name = agentName.trim();
 
     if (!name) {
-      setStatus(
-        "กรุณากรอกชื่อตัวแทนก่อนลบ Target"
-      );
+      setStatus("กรุณากรอกชื่อตัวแทนก่อนลบ Target");
       return;
     }
 
@@ -96,9 +82,7 @@ export default function AnnualTargetPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setStatus(
-          data.error || "ไม่สามารถลบ Target ได้"
-        );
+        setStatus(data.error || "ไม่สามารถลบ Target ได้");
         return;
       }
 
@@ -122,7 +106,7 @@ export default function AnnualTargetPage() {
         minHeight: "100vh",
         background: "var(--rp-page-gradient), var(--bg)",
         color: "var(--cream)",
-        padding: "24px 20px 60px",
+        padding: "32px 20px 60px",
         transition: "background .2s ease, color .2s ease",
       }}
     >
@@ -133,8 +117,6 @@ export default function AnnualTargetPage() {
           margin: "0 auto",
         }}
       >
-        <PageTopBar />
-
         <div
           style={{
             background: "var(--surface)",
@@ -144,7 +126,6 @@ export default function AnnualTargetPage() {
             boxShadow: "0 14px 40px rgba(0,0,0,.06)",
           }}
         >
-          {/* HEADER */}
           <div style={{ marginBottom: 28 }}>
             <div
               style={{
@@ -181,16 +162,12 @@ export default function AnnualTargetPage() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <FieldLabel>
-              ชื่อ-นามสกุล / ชื่อตัวแทน
-            </FieldLabel>
+            <FieldLabel>ชื่อ-นามสกุล / ชื่อตัวแทน</FieldLabel>
 
             <input
               style={inputStyle}
               value={agentName}
-              onChange={(e) =>
-                setAgentName(e.target.value)
-              }
+              onChange={(e) => setAgentName(e.target.value)}
               required
               placeholder="กรอกชื่อของคุณ"
             />
@@ -200,9 +177,7 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetFyp}
-              onChange={(e) =>
-                setTargetFyp(e.target.value)
-              }
+              onChange={(e) => setTargetFyp(e.target.value)}
               required
               inputMode="numeric"
               placeholder="เช่น 1,200,000"
@@ -213,9 +188,7 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetFyc}
-              onChange={(e) =>
-                setTargetFyc(e.target.value)
-              }
+              onChange={(e) => setTargetFyc(e.target.value)}
               required
               inputMode="numeric"
               placeholder="เช่น 300,000"
@@ -226,15 +199,12 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetCase}
-              onChange={(e) =>
-                setTargetCase(e.target.value)
-              }
+              onChange={(e) => setTargetCase(e.target.value)}
               required
               inputMode="numeric"
               placeholder="เช่น 36"
             />
 
-            {/* SAVE */}
             <button
               type="submit"
               disabled={loading || deleting}
@@ -243,16 +213,13 @@ export default function AnnualTargetPage() {
                 marginTop: 22,
                 padding: "14px 18px",
                 borderRadius: 12,
-
                 border: "1px solid var(--gold)",
                 background: "var(--gold)",
                 color: "#18120A",
-
                 fontWeight: 800,
                 fontSize: 16,
                 cursor: loading ? "default" : "pointer",
-                opacity:
-                  loading || deleting ? 0.65 : 1,
+                opacity: loading || deleting ? 0.65 : 1,
               }}
             >
               {loading
@@ -260,7 +227,6 @@ export default function AnnualTargetPage() {
                 : "บันทึกเป้าหมายประจำปี"}
             </button>
 
-            {/* DELETE */}
             <button
               type="button"
               onClick={handleDelete}
@@ -270,22 +236,13 @@ export default function AnnualTargetPage() {
                 marginTop: 12,
                 padding: "13px 18px",
                 borderRadius: 12,
-
-                border:
-                  "1px solid var(--rp-danger-border)",
-
+                border: "1px solid var(--rp-danger-border)",
                 background: "transparent",
-
                 color: "var(--rp-danger)",
-
                 fontWeight: 700,
                 fontSize: 15,
-
-                cursor:
-                  deleting ? "default" : "pointer",
-
-                opacity:
-                  loading || deleting ? 0.65 : 1,
+                cursor: deleting ? "default" : "pointer",
+                opacity: loading || deleting ? 0.65 : 1,
               }}
             >
               {deleting
@@ -300,13 +257,8 @@ export default function AnnualTargetPage() {
                   padding: "13px 14px",
                   textAlign: "center",
                   borderRadius: 10,
-
-                  border:
-                    "1px solid var(--hairline)",
-
-                  background:
-                    "var(--rp-soft-gold)",
-
+                  border: "1px solid var(--hairline)",
+                  background: "var(--rp-soft-gold)",
                   color: "var(--gold-bright)",
                   lineHeight: 1.5,
                 }}
@@ -345,18 +297,11 @@ function FieldLabel({
 const inputStyle = {
   width: "100%",
   boxSizing: "border-box" as const,
-
   padding: "13px 14px",
-
   borderRadius: 10,
-
   border: "1px solid var(--hairline)",
-
   background: "var(--surface-alt)",
-
   color: "var(--cream)",
-
   fontSize: 16,
-
   outline: "none",
 };
