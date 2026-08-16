@@ -5,44 +5,45 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setLoading(true);
-    setErrorMessage("");
+    setMessage("");
+    setIsError(false);
 
     try {
       const supabase = createClient();
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: false,
+        },
       });
 
       if (error) {
-        setErrorMessage(error.message);
-        console.error("Supabase Login Error:", error);
+        setIsError(true);
+        setMessage(error.message);
         return;
       }
 
-      if (!data.user) {
-        setErrorMessage("Login สำเร็จ แต่ไม่พบข้อมูลผู้ใช้");
-        return;
-      }
-
-      window.location.href = "/";
+      setIsError(false);
+      setMessage(
+        "ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกดลิงก์เพื่อเข้าสู่ Performance Hub"
+      );
     } catch (error) {
-      console.error("Login Unexpected Error:", error);
+      setIsError(true);
 
       if (error instanceof Error) {
-        setErrorMessage(error.message);
+        setMessage(error.message);
       } else {
-        setErrorMessage("เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ กรุณาลองใหม่");
+        setMessage("ไม่สามารถส่งลิงก์เข้าสู่ระบบได้ กรุณาลองใหม่");
       }
     } finally {
       setLoading(false);
@@ -116,11 +117,7 @@ export default function LoginPage() {
             padding: 26,
           }}
         >
-          <div
-            style={{
-              marginBottom: 18,
-            }}
-          >
+          <div style={{ marginBottom: 18 }}>
             <label
               htmlFor="email"
               style={{
@@ -140,7 +137,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
-              placeholder="name@company.com"
+              placeholder="name@royalpartner.org"
               style={{
                 width: "100%",
                 boxSizing: "border-box",
@@ -155,59 +152,26 @@ export default function LoginPage() {
             />
           </div>
 
-          <div
-            style={{
-              marginBottom: 18,
-            }}
-          >
-            <label
-              htmlFor="password"
-              style={{
-                display: "block",
-                marginBottom: 8,
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-            >
-              Password
-            </label>
-
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-              placeholder="••••••••"
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "13px 14px",
-                borderRadius: 12,
-                border: "1px solid var(--hairline)",
-                background: "var(--surface-alt)",
-                color: "var(--cream)",
-                fontSize: 15,
-                outline: "none",
-              }}
-            />
-          </div>
-
-          {errorMessage && (
+          {message && (
             <div
               style={{
                 marginBottom: 16,
-                padding: "11px 13px",
+                padding: "12px 13px",
                 borderRadius: 10,
-                border: "1px solid var(--rp-danger-border)",
-                color: "var(--rp-danger)",
+                border: isError
+                  ? "1px solid var(--rp-danger-border)"
+                  : "1px solid var(--hairline)",
+                background: isError
+                  ? "transparent"
+                  : "var(--rp-soft-gold)",
+                color: isError
+                  ? "var(--rp-danger)"
+                  : "var(--gold-bright)",
                 fontSize: 13,
-                lineHeight: 1.5,
-                wordBreak: "break-word",
+                lineHeight: 1.6,
               }}
             >
-              {errorMessage}
+              {message}
             </div>
           )}
 
@@ -227,7 +191,9 @@ export default function LoginPage() {
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+            {loading
+              ? "กำลังส่งลิงก์..."
+              : "ส่งลิงก์เข้าสู่ระบบ"}
           </button>
 
           <div
@@ -239,7 +205,7 @@ export default function LoginPage() {
               lineHeight: 1.5,
             }}
           >
-            Royal Partner · Back Office
+            ระบบจะส่ง Magic Link ไปยังอีเมลที่ได้รับอนุญาต
           </div>
         </form>
       </div>
