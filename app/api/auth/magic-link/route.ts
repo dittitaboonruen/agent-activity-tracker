@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
     const email = String(body?.email || "")
       .trim()
       .toLowerCase();
@@ -20,7 +21,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // อนุญาตเฉพาะอีเมล Royal Partner
     if (!email.endsWith("@royalpartner.org")) {
       return NextResponse.json(
         {
@@ -32,11 +32,14 @@ export async function POST(request: Request) {
     }
 
     const supabaseUrl = process.env.SUPABASE_URL;
+
     const publishableKey =
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
     if (!supabaseUrl || !publishableKey) {
-      console.error("Missing Supabase environment variables");
+      console.error(
+        "Missing Supabase environment variables"
+      );
 
       return NextResponse.json(
         {
@@ -67,7 +70,10 @@ export async function POST(request: Request) {
         email,
         options: {
           shouldCreateUser: false,
-          emailRedirectTo: `${origin}/`,
+
+          // หลังจากกด Magic Link
+          // ให้กลับมาที่ callback ของระบบ
+          emailRedirectTo: `${origin}/auth/callback`,
         },
       });
 
@@ -92,7 +98,10 @@ export async function POST(request: Request) {
         "ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาตรวจสอบอีเมล",
     });
   } catch (error) {
-    console.error("Magic Link API Error:", error);
+    console.error(
+      "Magic Link API Error:",
+      error
+    );
 
     return NextResponse.json(
       {
