@@ -13,24 +13,74 @@ export default function AuthCallbackPage() {
       try {
         const supabase = createClient();
 
+        // 1) กรณี Magic Link ส่ง token มากับ URL hash
+        const hash = new URLSearchParams(
+          window.location.hash.replace(/^#/, "")
+        );
+
+        const accessToken = hash.get("access_token");
+        const refreshToken = hash.get("refresh_token");
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            setMessage(`เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+            return;
+          }
+
+          window.history.replaceState(
+            {},
+            document.title,
+            "/auth/callback"
+          );
+
+          window.location.replace("/");
+          return;
+        }
+
+        // 2) กรณี Supabase ส่ง auth code กลับมา
+        const params = new URLSearchParams(
+          window.location.search
+        );
+
+        const code = params.get("code");
+
+        if (code) {
+          const { error } =
+            await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            setMessage(`เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+            return;
+          }
+
+          window.location.replace("/");
+          return;
+        }
+
+        // 3) ตรวจว่ามี session อยู่แล้วหรือไม่
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession();
 
         if (error) {
-          setMessage(error.message);
+          setMessage(`เกิดข้อผิดพลาด: ${error.message}`);
           return;
         }
 
-        if (!session) {
-          setMessage(
-            "ไม่พบ Session กรุณากลับไปขอลิงก์เข้าสู่ระบบใหม่"
-          );
+        if (session) {
+          window.location.replace("/");
           return;
         }
 
-        window.location.replace("/");
+        setMessage(
+          "ไม่พบข้อมูลสำหรับเข้าสู่ระบบ กรุณากลับไปขอลิงก์เข้าสู่ระบบใหม่"
+        );
       } catch (error) {
         setMessage(
           error instanceof Error
