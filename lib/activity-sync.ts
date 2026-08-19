@@ -15,7 +15,9 @@ import type {
 interface ActivityRow {
   jotform_submission_id: string;
 
-  agent_id: number | null;
+  agent_id:
+    | number
+    | null;
 
   agent_name: string;
 
@@ -44,13 +46,23 @@ interface ActivityRow {
     | null;
 }
 
+interface AgentMasterRow {
+  id: number;
+
+  agent_name:
+    | string
+    | null;
+
+  agent_nickname:
+    | string
+    | null;
+
+  active:
+    | boolean
+    | null;
+}
+
 interface SyncOptions {
-  /*
-   * true ได้เฉพาะเมื่อข้อมูล submissions
-   * เป็น snapshot ครบทุก submission จาก Jotform
-   *
-   * ถ้ายังดึงไม่ครบ ห้าม mark deleted
-   */
   snapshotComplete?: boolean;
 }
 
@@ -92,20 +104,224 @@ function getSupabaseAdmin() {
 }
 
 /* =========================================================
+   NORMALIZE AGENT NAME
+========================================================= */
+
+function normalizeAgentKey(
+  value:
+    | string
+    | null
+    | undefined
+): string {
+  return (
+    value ?? ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(
+      /\s+/g,
+      " "
+    );
+}
+
+/* =========================================================
+   LOAD AGENT MASTER
+========================================================= */
+
+async function loadAgentMaster(): Promise<
+  AgentMasterRow[]
+> {
+  const supabase =
+    getSupabaseAdmin();
+
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "agent_master"
+      )
+      .select(
+        "id, agent_name, agent_nickname, active"
+      )
+      .eq(
+        "active",
+        true
+      );
+
+  if (
+    error
+  ) {
+    console.error(
+      "[activity-sync] Unable to load agent_master:",
+      error.message
+    );
+
+    throw new Error(
+      "Unable to load agent master data."
+    );
+  }
+
+  return (
+    data ?? []
+  ) as AgentMasterRow[];
+}
+
+/* =========================================================
+   BUILD AGENT LOOKUP
+
+   รองรับการ match ด้วย:
+   - agent_name
+   - agent_nickname
+
+   ถ้าชื่อ/ชื่อเล่นซ้ำหลายคน
+   จะไม่เดา agent_id ให้
+========================================================= */
+
+function buildAgentLookup(
+  agents: AgentMasterRow[]
+): Map<
+  string,
+  number | null
+> {
+  const lookup =
+    new Map<
+      string,
+      number | null
+    >();
+
+  function addKey(
+    key: string,
+    agentId: number
+  ) {
+    if (
+      !key
+    ) {
+      return;
+    }
+
+    if (
+      !lookup.has(
+        key
+      )
+    ) {
+      lookup.set(
+        key,
+        agentId
+      );
+
+      return;
+    }
+
+    const existing =
+      lookup.get(
+        key
+      );
+
+    if (
+      existing !==
+      agentId
+    ) {
+      /*
+       * มีชื่อเดียวกันมากกว่า 1 คน
+       * ไม่เลือกให้เอง
+       */
+      lookup.set(
+        key,
+        null
+      );
+    }
+  }
+
+  for (
+    const agent
+    of agents
+  ) {
+    const nameKey =
+      normalizeAgentKey(
+        agent.agent_name
+      );
+
+    const nicknameKey =
+      normalizeAgentKey(
+        agent.agent_nickname
+      );
+
+    addKey(
+      nameKey,
+      agent.id
+    );
+
+    addKey(
+      nicknameKey,
+      agent.id
+    );
+  }
+
+  return lookup;
+}
+
+/* =========================================================
+   FIND AGENT ID
+========================================================= */
+
+function findAgentId(
+  agentName: string,
+  lookup: Map<
+    string,
+    number | null
+  >
+): number | null {
+  const key =
+    normalizeAgentKey(
+      agentName
+    );
+
+  if (
+    !key
+  ) {
+    return null;
+  }
+
+  const result =
+    lookup.get(
+      key
+    );
+
+  return (
+    typeof result ===
+      "number"
+      ? result
+      : null
+  );
+}
+
+/* =========================================================
    JOTFORM SUBMISSION
    → SUPABASE ROW
 ========================================================= */
 
 function toActivityRow(
   submission: Submission,
-  syncedAt: string
+  syncedAt: string,
+  agentLookup: Map<
+    string,
+    number | null
+  >
 ): ActivityRow {
+  const agentId =
+    findAgentId(
+      submission.agent,
+      agentLookup
+    );
+
   return {
     jotform_submission_id:
       submission.id,
 
     agent_id:
-      null,
+      agentId,
 
     agent_name:
       submission.agent,
@@ -133,9 +349,9 @@ function toActivityRow(
       syncedAt,
 
     /*
-     * ถ้า submission ที่เคย deleted
-     * กลับมาอยู่ใน Jotform
-     * upsert รอบนี้จะ restore เป็น active
+     * ถ้ารายการเคยถูก Soft Delete
+     * แล้วกลับมาอยู่ใน Jotform
+     * จะ restore เป็น active
      */
     sync_status:
       "active",
@@ -153,13 +369,25 @@ async function upsertActiveSubmissions(
   submissions: Submission[]
 ): Promise<void> {
   if (
-    submissions.length === 0
+    submissions.length ===
+    0
   ) {
     return;
   }
 
   const supabase =
     getSupabaseAdmin();
+
+  /*
+   * โหลด Agent Master ก่อน
+   */
+  const agents =
+    await loadAgentMaster();
+
+  const agentLookup =
+    buildAgentLookup(
+      agents
+    );
 
   const syncedAt =
     new Date().toISOString();
@@ -169,7 +397,8 @@ async function upsertActiveSubmissions(
       (submission) =>
         toActivityRow(
           submission,
-          syncedAt
+          syncedAt,
+          agentLookup
         )
     );
 
@@ -220,10 +449,6 @@ async function markMissingAsDeleted(
       )
     );
 
-  /*
-   * ดึงเฉพาะ ID ที่ Supabase
-   * เคยมองว่า active อยู่
-   */
   const {
     data,
     error: readError,
@@ -331,21 +556,22 @@ export async function syncActivitiesToSupabase(
   } = options;
 
   /*
-   * 1. รายการที่ Jotform ยังมีอยู่
-   *    → insert/update
-   *    → active
-   *    → deleted_at = null
+   * STEP 1
+   *
+   * Jotform
+   * → หา agent_master.id
+   * → upsert activities
    */
   await upsertActiveSubmissions(
     submissions
   );
 
   /*
-   * 2. ทำ Soft Delete
-   *    เฉพาะตอนยืนยันว่า Jotform snapshot ครบ
+   * STEP 2
    *
-   * ตอนนี้ false ไว้ก่อน
-   * เพื่อป้องกันข้อมูลถูก mark deleted ผิด
+   * submission ที่หายจาก
+   * Jotform snapshot ทั้งหมด
+   * → Soft Delete
    */
   if (
     snapshotComplete
