@@ -19,7 +19,9 @@ import {
   bangkokRefreshLabel,
 } from "@/lib/date-utils";
 
-import { sanitizeFilterChange } from "@/lib/validation";
+import {
+  sanitizeFilterChange,
+} from "@/lib/validation";
 
 import {
   getAllAgents,
@@ -30,6 +32,7 @@ import {
   computeKpis,
   computeClosingData,
   computeActivityBreakdown,
+  computeActivityGroups,
   computeMoneyMapData,
   computeChannelData,
   computeSourceData,
@@ -38,7 +41,11 @@ import {
   PEP_META,
 } from "@/lib/dashboard-calculations";
 
-import { SectionLabel, KpiCard } from "./ui";
+import {
+  SectionLabel,
+  KpiCard,
+} from "./ui";
+
 import FilterBar from "./FilterBar";
 import ActivitySummary from "./ActivitySummary";
 import AnnualTargetCard from "./AnnualTargetCard";
@@ -53,7 +60,9 @@ import PepNotesPanel from "./PepNotesPanel";
 
 const GOLD = "#C9A24B";
 const BRONZE = "#4A3B1E";
-const FORM_TITLE = "Agent Activity Tracker";
+
+const FORM_TITLE =
+  "Agent Activity Tracker";
 
 const DEFAULT_FILTERS: Filters = {
   dateQuick: "today",
@@ -64,171 +73,364 @@ const DEFAULT_FILTERS: Filters = {
 };
 
 interface DashboardProps {
-  initialData?: JotformApiResponse | null;
+  initialData?:
+    | JotformApiResponse
+    | null;
 }
 
 export default function Dashboard({
   initialData = null,
 }: DashboardProps) {
-  const [submissions, setSubmissions] = useState<Submission[]>(
+  const [
+    submissions,
+    setSubmissions,
+  ] = useState<Submission[]>(
     initialData?.submissions ?? []
   );
 
-  const [lastFetchedUTC, setLastFetchedUTC] = useState<string | null>(
-    initialData?.fetchedAtUTC ?? null
+  const [
+    lastFetchedUTC,
+    setLastFetchedUTC,
+  ] = useState<
+    string | null
+  >(
+    initialData?.fetchedAtUTC ??
+      null
   );
 
-  const [loading, setLoading] = useState(!initialData);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [staleWarning, setStaleWarning] = useState(false);
-
-  const [filters, setFilters] =
-    useState<Filters>(DEFAULT_FILTERS);
-
-  const hasLoadedOnceRef = useRef(Boolean(initialData));
-
-  const agents = useMemo(
-    () => getAllAgents(submissions),
-    [submissions]
+  const [
+    loading,
+    setLoading,
+  ] = useState(
+    !initialData
   );
 
-  const sources = useMemo(
-    () => getAllSources(submissions),
-    [submissions]
+  const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
+    staleWarning,
+    setStaleWarning,
+  ] = useState(false);
+
+  const [
+    filters,
+    setFilters,
+  ] = useState<Filters>(
+    DEFAULT_FILTERS
   );
 
-  const channels = useMemo(
-    () => getAllChannels(submissions),
-    [submissions]
-  );
+  const hasLoadedOnceRef =
+    useRef(
+      Boolean(
+        initialData
+      )
+    );
 
-  const updateFilters = useCallback(
-    (next: Partial<Filters>) => {
-      setFilters((prev) => ({
-        ...prev,
-        ...sanitizeFilterChange(
-          next,
-          prev,
-          agents,
-          channels
+  /* =========================================================
+     FILTER OPTIONS
+  ========================================================= */
+
+  const agents =
+    useMemo(
+      () =>
+        getAllAgents(
+          submissions
         ),
-      }));
-    },
-    [agents, channels]
-  );
+      [submissions]
+    );
 
-  const fetchData = useCallback(async (force = false) => {
-    const isInitialLoad =
-      !hasLoadedOnceRef.current;
+  const sources =
+    useMemo(
+      () =>
+        getAllSources(
+          submissions
+        ),
+      [submissions]
+    );
 
-    if (isInitialLoad) {
-      setLoading(true);
-    } else {
-      setRefreshing(true);
-    }
+  const channels =
+    useMemo(
+      () =>
+        getAllChannels(
+          submissions
+        ),
+      [submissions]
+    );
 
-    setStaleWarning(false);
+  const updateFilters =
+    useCallback(
+      (
+        next: Partial<Filters>
+      ) => {
+        setFilters(
+          (prev) => ({
+            ...prev,
 
-    try {
-      const url = force
-        ? "/api/jotform?force=true"
-        : "/api/jotform";
-
-      const res = await fetch(url, {
-        cache: "no-store",
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          json?.error ||
-            `Request failed with status ${res.status}`
+            ...sanitizeFilterChange(
+              next,
+              prev,
+              agents,
+              channels
+            ),
+          })
         );
-      }
+      },
+      [
+        agents,
+        channels,
+      ]
+    );
 
-      setSubmissions(
-        json.submissions ?? []
-      );
+  /* =========================================================
+     FETCH JOTFORM DATA
+  ========================================================= */
 
-      setLastFetchedUTC(
-        json.fetchedAtUTC ??
-          new Date().toISOString()
-      );
+  const fetchData =
+    useCallback(
+      async (
+        force = false
+      ) => {
+        const isInitialLoad =
+          !hasLoadedOnceRef
+            .current;
 
-      setError(null);
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "ไม่สามารถดึงข้อมูลจาก Jotform ได้";
+        if (
+          isInitialLoad
+        ) {
+          setLoading(
+            true
+          );
+        } else {
+          setRefreshing(
+            true
+          );
+        }
 
-      if (isInitialLoad) {
-        setError(message);
-      } else {
-        setStaleWarning(true);
-      }
-    } finally {
-      hasLoadedOnceRef.current = true;
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+        setStaleWarning(
+          false
+        );
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+        try {
+          const url =
+            force
+              ? "/api/jotform?force=true"
+              : "/api/jotform";
+
+          const res =
+            await fetch(
+              url,
+              {
+                cache:
+                  "no-store",
+              }
+            );
+
+          const json =
+            await res.json();
+
+          if (
+            !res.ok
+          ) {
+            throw new Error(
+              json?.error ||
+                `Request failed with status ${res.status}`
+            );
+          }
+
+          setSubmissions(
+            json.submissions ??
+              []
+          );
+
+          setLastFetchedUTC(
+            json.fetchedAtUTC ??
+              new Date().toISOString()
+          );
+
+          setError(
+            null
+          );
+        } catch (
+          err
+        ) {
+          const message =
+            err instanceof
+            Error
+              ? err.message
+              : "ไม่สามารถดึงข้อมูลจาก Jotform ได้";
+
+          if (
+            isInitialLoad
+          ) {
+            setError(
+              message
+            );
+          } else {
+            setStaleWarning(
+              true
+            );
+          }
+        } finally {
+          hasLoadedOnceRef.current =
+            true;
+
+          setLoading(
+            false
+          );
+
+          setRefreshing(
+            false
+          );
+        }
+      },
+      []
+    );
+
+  useEffect(
+    () => {
+      fetchData();
+    },
+    [fetchData]
+  );
 
   const handleRefreshClick =
-    useCallback(() => {
-      fetchData(true);
-    }, [fetchData]);
+    useCallback(
+      () => {
+        fetchData(
+          true
+        );
+      },
+      [fetchData]
+    );
 
-  const todayStr = useMemo(
-    () => todayBangkokStr(),
-    [lastFetchedUTC]
-  );
+  /* =========================================================
+     DATE
+  ========================================================= */
 
-  const currentYear = useMemo(
-    () => Number(todayStr.slice(0, 4)),
-    [todayStr]
-  );
+  const todayStr =
+    useMemo(
+      () =>
+        todayBangkokStr(),
+      [lastFetchedUTC]
+    );
 
-  const filtered = useMemo(
-    () =>
-      getFiltered(
+  const currentYear =
+    useMemo(
+      () =>
+        Number(
+          todayStr.slice(
+            0,
+            4
+          )
+        ),
+      [todayStr]
+    );
+
+  /* =========================================================
+     FILTERED DATA
+  ========================================================= */
+
+  const filtered =
+    useMemo(
+      () =>
+        getFiltered(
+          submissions,
+          filters,
+          todayStr
+        ),
+      [
         submissions,
         filters,
-        todayStr
-      ),
-    [submissions, filters, todayStr]
-  );
+        todayStr,
+      ]
+    );
 
-  const baseFiltered = useMemo(
-    () =>
-      getBaseFiltered(
+  const baseFiltered =
+    useMemo(
+      () =>
+        getBaseFiltered(
+          submissions,
+          filters,
+          todayStr
+        ),
+      [
         submissions,
         filters,
-        todayStr
-      ),
-    [submissions, filters, todayStr]
-  );
+        todayStr,
+      ]
+    );
 
-  const kpis = useMemo(
-    () => computeKpis(filtered),
-    [filtered]
-  );
+  /* =========================================================
+     KPI
+  ========================================================= */
 
-  const closingData = useMemo(
-    () =>
-      computeClosingData(
-        kpis,
-        GOLD,
-        BRONZE
-      ),
-    [kpis]
-  );
+  const kpis =
+    useMemo(
+      () =>
+        computeKpis(
+          filtered
+        ),
+      [filtered]
+    );
+
+  /* =========================================================
+     SALES PROCESS 3 GROUPS
+  ========================================================= */
+
+  const activityGroups =
+    useMemo(
+      () =>
+        computeActivityGroups(
+          filtered
+        ),
+      [filtered]
+    );
+
+  const prospectingTotal =
+    activityGroups.find(
+      (item) =>
+        item.key ===
+        "prospecting"
+    )?.count ?? 0;
+
+  const salesTotal =
+    activityGroups.find(
+      (item) =>
+        item.key ===
+        "sales"
+    )?.count ?? 0;
+
+  const serviceTotal =
+    activityGroups.find(
+      (item) =>
+        item.key ===
+        "service"
+    )?.count ?? 0;
+
+  /* =========================================================
+     CHART DATA
+  ========================================================= */
+
+  const closingData =
+    useMemo(
+      () =>
+        computeClosingData(
+          kpis,
+          GOLD,
+          BRONZE
+        ),
+      [kpis]
+    );
 
   const activityBreakdown =
     useMemo(
@@ -239,56 +441,78 @@ export default function Dashboard({
       [filtered]
     );
 
-  const moneyMapData = useMemo(
-    () =>
-      computeMoneyMapData(
-        filtered,
-        GOLD,
-        BRONZE
-      ),
-    [filtered]
-  );
+  const moneyMapData =
+    useMemo(
+      () =>
+        computeMoneyMapData(
+          filtered,
+          GOLD,
+          BRONZE
+        ),
+      [filtered]
+    );
 
-  const channelData = useMemo(
-    () =>
-      computeChannelData(
+  const channelData =
+    useMemo(
+      () =>
+        computeChannelData(
+          filtered,
+          channels
+        ),
+      [
         filtered,
-        channels
-      ),
-    [filtered, channels]
-  );
+        channels,
+      ]
+    );
 
-  const sourceData = useMemo(
-    () =>
-      computeSourceData(
+  const sourceData =
+    useMemo(
+      () =>
+        computeSourceData(
+          filtered,
+          sources
+        ),
+      [
         filtered,
-        sources
-      ),
-    [filtered, sources]
-  );
+        sources,
+      ]
+    );
 
-  const agentTable = useMemo(
-    () =>
-      computeAgentTable(
+  /* =========================================================
+     AGENT TABLE
+  ========================================================= */
+
+  const agentTable =
+    useMemo(
+      () =>
+        computeAgentTable(
+          baseFiltered,
+          agents
+        ),
+      [
         baseFiltered,
-        agents
-      ),
-    [baseFiltered, agents]
-  );
+        agents,
+      ]
+    );
 
-  const pepInsight = useMemo(
-    () =>
-      computePepInsight(
+  /* =========================================================
+     PEP INSIGHT
+  ========================================================= */
+
+  const pepInsight =
+    useMemo(
+      () =>
+        computePepInsight(
+          filters.agentFilter,
+          baseFiltered,
+          agents
+        ),
+      [
         filters.agentFilter,
         baseFiltered,
-        agents
-      ),
-    [
-      filters.agentFilter,
-      baseFiltered,
-      agents,
-    ]
-  );
+        agents,
+      ]
+    );
 
   const suggestedRecommendation =
     useMemo(
@@ -297,7 +521,8 @@ export default function Dashboard({
         !pepInsight.empty &&
         pepInsight.gapKey
           ? PEP_META[
-              pepInsight.gapKey
+              pepInsight
+                .gapKey
             ].focus
           : "",
       [pepInsight]
@@ -310,30 +535,48 @@ export default function Dashboard({
         !pepInsight.empty &&
         pepInsight.gapKey
           ? PEP_META[
-              pepInsight.gapKey
+              pepInsight
+                .gapKey
             ].question
           : "",
       [pepInsight]
     );
 
+  /* =========================================================
+     UI STATES
+  ========================================================= */
+
   const showBlockingLoading =
     loading &&
-    submissions.length === 0;
+    submissions.length ===
+      0;
 
   const showHardError =
-    Boolean(error) &&
-    submissions.length === 0;
+    Boolean(
+      error
+    ) &&
+    submissions.length ===
+      0;
 
   const showStaleWarning =
     staleWarning &&
-    submissions.length > 0;
+    submissions.length >
+      0;
 
   const isBusy =
-    loading || refreshing;
+    loading ||
+    refreshing;
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
 
   return (
     <div className="dash-root">
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <div className="dash-header">
         <div>
           <div className="dash-title-eyebrow">
@@ -345,11 +588,19 @@ export default function Dashboard({
           </h1>
 
           <div className="dash-title-sub">
-            ข้อมูลจริงจาก Jotform ·{" "}
-            {kpis.totalSubmissions}{" "}
-            รายการที่แสดงผล จากทั้งหมด{" "}
-            {submissions.length} รายการ ·
-            เขตเวลา Asia/Bangkok
+            ข้อมูลจริงจาก
+            Jotform ·{" "}
+            {
+              kpis.totalSubmissions
+            }{" "}
+            รายการที่แสดงผล
+            จากทั้งหมด{" "}
+            {
+              submissions.length
+            }{" "}
+            รายการ ·
+            เขตเวลา
+            Asia/Bangkok
             (UTC+7)
           </div>
         </div>
@@ -360,7 +611,9 @@ export default function Dashboard({
             onClick={
               handleRefreshClick
             }
-            disabled={isBusy}
+            disabled={
+              isBusy
+            }
           >
             {refreshing ? (
               <>
@@ -373,7 +626,10 @@ export default function Dashboard({
                 กำลังโหลด...
               </>
             ) : (
-              <>↻ รีเฟรชข้อมูล</>
+              <>
+                ↻
+                รีเฟรชข้อมูล
+              </>
             )}
           </button>
 
@@ -404,6 +660,10 @@ export default function Dashboard({
         </div>
       </div>
 
+      {/* =====================================================
+          LOADING / ERROR
+      ===================================================== */}
+
       {showBlockingLoading && (
         <div className="dash-loading-banner">
           กำลังดึงข้อมูลล่าสุดจาก
@@ -425,16 +685,32 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* FILTERS */}
+      {/* =====================================================
+          FILTERS
+      ===================================================== */}
+
       <FilterBar
-        filters={filters}
-        onChange={updateFilters}
-        agents={agents}
-        channels={channels}
-        todayStr={todayStr}
+        filters={
+          filters
+        }
+        onChange={
+          updateFilters
+        }
+        agents={
+          agents
+        }
+        channels={
+          channels
+        }
+        todayStr={
+          todayStr
+        }
       />
 
-      {/* 1. OVERVIEW KPI */}
+      {/* =====================================================
+          OVERVIEW KPI
+      ===================================================== */}
+
       <SectionLabel>
         ภาพรวม
       </SectionLabel>
@@ -448,16 +724,30 @@ export default function Dashboard({
         />
 
         <KpiCard
-          label="จำนวนรายการที่ส่ง"
+          label="กิจกรรมทั้งหมด"
           value={
-            kpis.totalSubmissions
+            kpis.totalActivities
           }
         />
 
         <KpiCard
-          label="กิจกรรมทั้งหมด"
+          label="หารายชื่อ"
           value={
-            kpis.totalActivities
+            prospectingTotal
+          }
+        />
+
+        <KpiCard
+          label="ขาย"
+          value={
+            salesTotal
+          }
+        />
+
+        <KpiCard
+          label="บริการ"
+          value={
+            serviceTotal
           }
         />
 
@@ -467,21 +757,11 @@ export default function Dashboard({
             kpis.moneyMapDone
           }
         />
-
-        <KpiCard
-          label="การเสนอขาย"
-          value={
-            kpis.presentations
-          }
-        />
-
-        <KpiCard
-          label="ปิดการขายสำเร็จ"
-          value={
-            kpis.closedSales
-          }
-        />
       </div>
+
+      {/* =====================================================
+          SALES PROCESS SUMMARY
+      ===================================================== */}
 
       <ActivitySummary
         breakdown={
@@ -492,7 +772,10 @@ export default function Dashboard({
         }
       />
 
-      {/* ANNUAL TARGET */}
+      {/* =====================================================
+          ANNUAL TARGET
+      ===================================================== */}
+
       <div
         style={{
           marginTop: 18,
@@ -502,11 +785,16 @@ export default function Dashboard({
           agentFilter={
             filters.agentFilter
           }
-          year={currentYear}
+          year={
+            currentYear
+          }
         />
       </div>
 
-      {/* 2 & 3 */}
+      {/* =====================================================
+          CLOSING + 9 STEPS
+      ===================================================== */}
+
       <div className="dash-grid-2">
         <ClosingStatusCard
           closingData={
@@ -527,37 +815,54 @@ export default function Dashboard({
         />
       </div>
 
-      {/* 4, 5, 6 */}
+      {/* =====================================================
+          MONEY MAP / CHANNEL / SOURCE
+      ===================================================== */}
+
       <div className="dash-grid-3">
         <MoneyMapCard
-          data={moneyMapData}
+          data={
+            moneyMapData
+          }
           total={
             filtered.length
           }
         />
 
         <ChannelCard
-          data={channelData}
+          data={
+            channelData
+          }
         />
 
         <SourceCard
-          data={sourceData}
+          data={
+            sourceData
+          }
         />
       </div>
 
-      {/* AGENT COMPARISON */}
+      {/* =====================================================
+          AGENT COMPARISON
+      ===================================================== */}
+
       <SectionLabel>
         เปรียบเทียบผลงานตัวแทน
       </SectionLabel>
 
       <AgentTable
-        rows={agentTable}
+        rows={
+          agentTable
+        }
         selectedAgent={
           filters.agentFilter
         }
       />
 
-      {/* PEP */}
+      {/* =====================================================
+          PEP
+      ===================================================== */}
+
       <SectionLabel>
         PEP Insight
       </SectionLabel>
@@ -566,7 +871,9 @@ export default function Dashboard({
         agentFilter={
           filters.agentFilter
         }
-        insight={pepInsight}
+        insight={
+          pepInsight
+        }
       />
 
       <div
@@ -578,7 +885,9 @@ export default function Dashboard({
           agentFilter={
             filters.agentFilter
           }
-          todayStr={todayStr}
+          todayStr={
+            todayStr
+          }
           suggestedRecommendation={
             suggestedRecommendation
           }
