@@ -10,9 +10,6 @@ import {
 
 /* =========================================================
    JOTFORM FIELD MAPPING
-
-   ใช้ keyword จากข้อความคำถาม
-   แทนการล็อก Question ID
 ========================================================= */
 
 const FIELD_KEYWORDS = {
@@ -44,11 +41,17 @@ const FIELD_KEYWORDS = {
 } as const;
 
 /* =========================================================
-   TIMEZONE
+   CONFIG
 ========================================================= */
 
 const CREATED_AT_IS_UTC =
   true;
+
+const JOTFORM_PAGE_SIZE =
+  1000;
+
+const CACHE_TTL_MS =
+  25_000;
 
 /* =========================================================
    RAW TYPES
@@ -73,6 +76,11 @@ interface JotformRawSubmission {
     string,
     JotformRawAnswer
   >;
+}
+
+interface JotformApiPage {
+  content?:
+    JotformRawSubmission[];
 }
 
 /* =========================================================
@@ -176,7 +184,7 @@ function toActivitiesArray(
 }
 
 /* =========================================================
-   CREATED DATE → ISO
+   DATE
 ========================================================= */
 
 function toUtcIso(
@@ -337,9 +345,6 @@ export class JotformUpstreamError extends Error {
    CACHE
 ========================================================= */
 
-const CACHE_TTL_MS =
-  25_000;
-
 interface CacheEntry {
   data: Omit<
     FetchJotformResult,
@@ -354,73 +359,22 @@ let cache:
   | null = null;
 
 /* =========================================================
-   FETCH JOTFORM
+   FETCH ONE JOTFORM PAGE
 ========================================================= */
 
-export async function fetchJotformSubmissions(
-  options: FetchJotformOptions = {}
-): Promise<FetchJotformResult> {
-  const {
-    force = false,
-  } = options;
-
-  /* =======================================================
-     RETURN CACHE
-  ======================================================= */
-
-  if (
-    !force &&
-    cache &&
-    Date.now() <
-      cache.expiresAt
-  ) {
-    return {
-      ...cache.data,
-      cacheHit: true,
-    };
-  }
-
-  /* =======================================================
-     ENVIRONMENT VARIABLES
-  ======================================================= */
-
-  const apiKey =
-    process.env
-      .JOTFORM_API_KEY;
-
-  const formId =
-    process.env
-      .JOTFORM_FORM_ID;
-
-  if (
-    !apiKey ||
-    !formId
-  ) {
-    console.error(
-      "[jotform] missing JOTFORM_API_KEY and/or JOTFORM_FORM_ID environment variables."
-    );
-
-    throw new JotformConfigError(
-      "Jotform integration is not configured."
-    );
-  }
-
-  /* =======================================================
-     JOTFORM URL
-  ======================================================= */
-
+async function fetchJotformPage(
+  apiKey: string,
+  formId: string,
+  offset: number
+): Promise<JotformRawSubmission[]> {
   const url =
     `https://api.jotform.com/form/${encodeURIComponent(
       formId
     )}/submissions?apiKey=${encodeURIComponent(
       apiKey
-    )}&limit=1000&orderby=created_at`;
+    )}&limit=${JOTFORM_PAGE_SIZE}&offset=${offset}&orderby=id`;
 
   let res: Response;
-
-  /* =======================================================
-     FETCH JOTFORM
-  ======================================================= */
 
   try {
     res =
@@ -435,7 +389,7 @@ export async function fetchJotformSubmissions(
     networkErr
   ) {
     console.error(
-      "[jotform] network error contacting the upstream API:",
+      "[jotform] network error contacting upstream API:",
       networkErr
     );
 
@@ -466,11 +420,8 @@ export async function fetchJotformSubmissions(
     );
   }
 
-  /* =======================================================
-     PARSE JSON
-  ======================================================= */
-
-  let json: unknown;
+  let json:
+    JotformApiPage;
 
   try {
     json =
@@ -479,7 +430,7 @@ export async function fetchJotformSubmissions(
     parseErr
   ) {
     console.error(
-      "[jotform] failed to parse upstream response as JSON:",
+      "[jotform] failed to parse upstream response:",
       parseErr
     );
 
@@ -489,18 +440,120 @@ export async function fetchJotformSubmissions(
     );
   }
 
+  return (
+    json.content ??
+    []
+  );
+}
+
+/* =========================================================
+   FETCH ALL JOTFORM SUBMISSIONS
+========================================================= */
+
+async function fetchAllJotformSubmissions(
+  apiKey: string,
+  formId: string
+): Promise<JotformRawSubmission[]> {
+  const all:
+    JotformRawSubmission[] =
+      [];
+
+  let offset =
+    0;
+
+  while (
+    true
+  ) {
+    const page =
+      await fetchJotformPage(
+        apiKey,
+        formId,
+        offset
+      );
+
+    all.push(
+      ...page
+    );
+
+    /*
+     * ถ้า page นี้มีน้อยกว่า 1000
+     * แปลว่าเราอยู่หน้าสุดท้ายแล้ว
+     */
+    if (
+      page.length <
+      JOTFORM_PAGE_SIZE
+    ) {
+      break;
+    }
+
+    offset +=
+      JOTFORM_PAGE_SIZE;
+  }
+
+  return all;
+}
+
+/* =========================================================
+   MAIN FETCH
+========================================================= */
+
+export async function fetchJotformSubmissions(
+  options: FetchJotformOptions = {}
+): Promise<FetchJotformResult> {
+  const {
+    force = false,
+  } = options;
+
   /* =======================================================
-     NORMALIZE JOTFORM DATA
+     CACHE
   ======================================================= */
 
-  const rawSubmissions:
-    JotformRawSubmission[] =
-      (
-        json as {
-          content?:
-            JotformRawSubmission[];
-        }
-      )?.content ?? [];
+  if (
+    !force &&
+    cache &&
+    Date.now() <
+      cache.expiresAt
+  ) {
+    return {
+      ...cache.data,
+      cacheHit: true,
+    };
+  }
+
+  /* =======================================================
+     ENV
+  ======================================================= */
+
+  const apiKey =
+    process.env
+      .JOTFORM_API_KEY;
+
+  const formId =
+    process.env
+      .JOTFORM_FORM_ID;
+
+  if (
+    !apiKey ||
+    !formId
+  ) {
+    console.error(
+      "[jotform] missing JOTFORM_API_KEY and/or JOTFORM_FORM_ID."
+    );
+
+    throw new JotformConfigError(
+      "Jotform integration is not configured."
+    );
+  }
+
+  /* =======================================================
+     FETCH COMPLETE SNAPSHOT
+  ======================================================= */
+
+  const rawSubmissions =
+    await fetchAllJotformSubmissions(
+      apiKey,
+      formId
+    );
 
   const submissions =
     normalizeSubmissions(
@@ -510,13 +563,17 @@ export async function fetchJotformSubmissions(
   /* =======================================================
      SYNC JOTFORM → SUPABASE
 
-     ถ้า Supabase sync มีปัญหา
-     Dashboard ยังทำงานต่อจาก Jotform ได้
+     snapshotComplete = true
+     เพราะดึง pagination จนครบแล้ว
   ======================================================= */
 
   try {
     await syncActivitiesToSupabase(
-      submissions
+      submissions,
+      {
+        snapshotComplete:
+          true,
+      }
     );
   } catch (
     syncError
@@ -528,7 +585,7 @@ export async function fetchJotformSubmissions(
   }
 
   /* =======================================================
-     BUILD RESPONSE
+     RESPONSE
   ======================================================= */
 
   const data = {
@@ -537,10 +594,6 @@ export async function fetchJotformSubmissions(
     fetchedAtUTC:
       new Date().toISOString(),
   };
-
-  /* =======================================================
-     UPDATE CACHE
-  ======================================================= */
 
   cache = {
     data,
