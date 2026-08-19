@@ -4,6 +4,10 @@ import type {
   Submission,
 } from "@/types";
 
+import {
+  syncActivitiesToSupabase,
+} from "@/lib/activity-sync";
+
 /* =========================================================
    JOTFORM FIELD MAPPING
 
@@ -360,6 +364,10 @@ export async function fetchJotformSubmissions(
     force = false,
   } = options;
 
+  /* =======================================================
+     RETURN CACHE
+  ======================================================= */
+
   if (
     !force &&
     cache &&
@@ -371,6 +379,10 @@ export async function fetchJotformSubmissions(
       cacheHit: true,
     };
   }
+
+  /* =======================================================
+     ENVIRONMENT VARIABLES
+  ======================================================= */
 
   const apiKey =
     process.env
@@ -393,6 +405,10 @@ export async function fetchJotformSubmissions(
     );
   }
 
+  /* =======================================================
+     JOTFORM URL
+  ======================================================= */
+
   const url =
     `https://api.jotform.com/form/${encodeURIComponent(
       formId
@@ -401,6 +417,10 @@ export async function fetchJotformSubmissions(
     )}&limit=1000&orderby=created_at`;
 
   let res: Response;
+
+  /* =======================================================
+     FETCH JOTFORM
+  ======================================================= */
 
   try {
     res =
@@ -446,6 +466,10 @@ export async function fetchJotformSubmissions(
     );
   }
 
+  /* =======================================================
+     PARSE JSON
+  ======================================================= */
+
   let json: unknown;
 
   try {
@@ -465,6 +489,10 @@ export async function fetchJotformSubmissions(
     );
   }
 
+  /* =======================================================
+     NORMALIZE JOTFORM DATA
+  ======================================================= */
+
   const rawSubmissions:
     JotformRawSubmission[] =
       (
@@ -479,12 +507,40 @@ export async function fetchJotformSubmissions(
       rawSubmissions
     );
 
+  /* =======================================================
+     SYNC JOTFORM → SUPABASE
+
+     ถ้า Supabase sync มีปัญหา
+     Dashboard ยังทำงานต่อจาก Jotform ได้
+  ======================================================= */
+
+  try {
+    await syncActivitiesToSupabase(
+      submissions
+    );
+  } catch (
+    syncError
+  ) {
+    console.error(
+      "[jotform] activity sync failed:",
+      syncError
+    );
+  }
+
+  /* =======================================================
+     BUILD RESPONSE
+  ======================================================= */
+
   const data = {
     submissions,
 
     fetchedAtUTC:
       new Date().toISOString(),
   };
+
+  /* =======================================================
+     UPDATE CACHE
+  ======================================================= */
 
   cache = {
     data,
