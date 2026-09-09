@@ -1,3 +1,4 @@
+
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -7,6 +8,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/agent",
   "/annual-target",
+  "/illustrations",
   "/auth/confirm",
 ];
 
@@ -72,8 +74,7 @@ function redirectWithCookies(
   url.pathname = pathname;
   url.search = "";
 
-  const redirectResponse =
-    NextResponse.redirect(url);
+  const redirectResponse = NextResponse.redirect(url);
 
   response.cookies.getAll().forEach((cookie) => {
     redirectResponse.cookies.set(
@@ -91,10 +92,9 @@ function jsonWithCookies(
   body: Record<string, unknown>,
   status: number
 ) {
-  const jsonResponse = NextResponse.json(
-    body,
-    { status }
-  );
+  const jsonResponse = NextResponse.json(body, {
+    status,
+  });
 
   response.cookies.getAll().forEach((cookie) => {
     jsonResponse.cookies.set(
@@ -126,11 +126,9 @@ export async function middleware(
         },
 
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(
-            ({ name, value }) => {
-              request.cookies.set(name, value);
-            }
-          );
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
 
           response = NextResponse.next({
             request,
@@ -198,8 +196,7 @@ export async function middleware(
       );
     }
 
-    const loginUrl =
-      request.nextUrl.clone();
+    const loginUrl = request.nextUrl.clone();
 
     loginUrl.pathname = "/login";
     loginUrl.search = "";
