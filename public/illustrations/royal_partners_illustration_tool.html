@@ -452,6 +452,25 @@ function riderCITopUp(age, gender, ciPlusSum){
   const topUpSum = ciPlusSum*0.4;
   return floorLookup(PL20.citopup, age, col)*(topUpSum/1000);
 }
+function riderHealthHappyKids(age, gender, planIdx, tier){
+  if(age > 10) return riderHealthHappy(age, gender, planIdx);
+  const match = planIdx + 1;
+  const tierBase = tier==='30,000' ? 8 : 0;
+  let excelCol = tierBase + 2*match;
+  if(gender!=='ชาย') excelCol += 1;
+  return floorLookup(PL20.hh_kids, age, excelCol - 1);
+}
+function riderInfiniteCare(age, gender, plan, deductible, territory){
+  const dedOffset = deductible==='ไม่มี (First Dollar)' ? 1 : deductible==='100,000 บาท' ? 9 : 17;
+  const territoryOffset = territory==='ทั่วโลก' ? 0 : 4;
+  const genderOffset = gender==='ชาย' ? 0 : 2;
+  const planOffset = plan==='แผน 60 ล้านบาท' ? 0 : 1;
+  const arrIdx = dedOffset + territoryOffset + genderOffset + planOffset;
+  const table = PL20.infinitecare;
+  const lo = table[0][0], hi = table[table.length-1][0];
+  if(age < lo || age > hi) return null;
+  return floorLookup(table, age, arrIdx);
+}
 function riderAI(type, occClass, sum){
   const colMap = {AI:1, ADD:2, ADB:3};
   const row = PL20.ai_add_adb.find(r=>r[0]===occClass);
@@ -558,8 +577,8 @@ function renderLedger(el, rows, cols){
 const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'excellent',
   agent: { name:'', phone:'', line:'' },
   paylife20: {
-    riders: { healthhappy:false, multipayci:false, tpd:false, ciplus:false, citopup:false, healthcancer:false, ladycare:false, ai:false },
-    opts: { healthhappyPlan:0, hcSmoker:0, hcUnits:1, lcPlan:'Lady Care', aiType:'AI', aiClass:1, aiRcc:false }
+    riders: { healthhappy:false, multipayci:false, tpd:false, ciplus:false, citopup:false, healthcancer:false, ladycare:false, ai:false, hhkids:false, infinitecare:false },
+    opts: { healthhappyPlan:0, hcSmoker:0, hcUnits:1, lcPlan:'Lady Care', aiType:'AI', aiClass:1, aiRcc:false, hhkidsPlan:0, hhkidsTier:'10,000', icPlan:'แผน 120 ล้านบาท', icDeductible:'ไม่มี (First Dollar)', icTerritory:'ทั่วโลก' }
   },
   cisupercare: { payPeriod:20 }
 };
@@ -764,6 +783,8 @@ function productCardData(key){
     if(rs.healthcancer){ const v=riderHealthCancer(state.age,state.gender,op.hcSmoker===1,op.hcUnits||1); riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม AIA Health Cancer', n:fmt(v)+'/ปี'}); }
     if(rs.ladycare && state.gender==='หญิง'){ const v=riderLadyCare(state.age,op.lcPlan,sum); riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม '+op.lcPlan, n:fmt(v)+'/ปี'}); }
     if(rs.ai){ const v=riderAI(op.aiType,op.aiClass,sum); if(v!==null){ let t=v; if(op.aiRcc) t+=riderRCC(op.aiType,sum); riderTotal+=t; benefits.push({t:'สัญญาเพิ่มเติม '+op.aiType+(op.aiRcc?'+RCC':''), n:fmt(t)+'/ปี'}); } }
+    if(rs.hhkids){ const v=riderHealthHappyKids(state.age,state.gender,op.hhkidsPlan,op.hhkidsTier); riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม AIA Health Happy Kids ('+RIDER_PLANS[op.hhkidsPlan]+')', n:fmt(v)+'/ปี'}); }
+    if(rs.infinitecare){ const v=riderInfiniteCare(state.age,state.gender,op.icPlan,op.icDeductible,op.icTerritory); if(v!==null){ riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม AIA Infinite Care ('+op.icPlan+')', n:fmt(v)+'/ปี'}); } }
     return { title:'AIA 20Pay Life (Non Par)', desc:'ชำระเบี้ย 20 ปี คุ้มครองยาวถึงอายุ 99 ปี พร้อมสัญญาเพิ่มเติมที่เลือกแนบ', ci:false,
       premiumLabel:'เบี้ยรวมปีแรก (หลัก + สัญญาเพิ่มเติม)', premiumValue:r.net+riderTotal, benefits };
   }
@@ -843,10 +864,10 @@ function exportImage(key, btn){
 }
 function addExportButton(app, key){
   const panel = app.querySelector('.panel');
-  const row = document.createElement('div');
-  row.className = 'export-row';
-  row.innerHTML = '<button class="btn-export" type="button" disabled title="รอตรวจสอบสูตรและเปิดระบบบันทึก">บันทึกและสร้างใบสรุป — รอเปิดใช้งาน</button>';
+  const row = document.createElement('div'); row.className = 'export-row';
+  row.innerHTML = `<button class="btn-export">บันทึกภาพสรุป (แบรนด์ Royal Partners)</button>`;
   panel.appendChild(row);
+  row.querySelector('.btn-export').addEventListener('click', e=>exportImage(key, e.target));
 }
 
 function riderControlsHTML(){
@@ -869,6 +890,13 @@ function riderControlsHTML(){
     <select data-rider-opt="aiType"><option value="AI" ${sel(op.aiType,'AI')}>AI</option><option value="ADD" ${sel(op.aiType,'ADD')}>ADD</option><option value="ADB" ${sel(op.aiType,'ADB')}>ADB</option></select>
     <select data-rider-opt="aiClass"><option value="1" ${sel(op.aiClass,1)}>ขั้นอาชีพ 1</option><option value="2" ${sel(op.aiClass,2)}>ขั้นอาชีพ 2</option><option value="3" ${sel(op.aiClass,3)}>ขั้นอาชีพ 3</option><option value="4" ${sel(op.aiClass,4)}>ขั้นอาชีพ 4</option></select>
     <label style="margin-left:6px"><input type="checkbox" data-rider-opt="aiRcc" ${op.aiRcc?'checked':''}> +RCC</label></div>
+  <div class="rider-chip"><label><input type="checkbox" data-rider="hhkids" ${chk('hhkids')}> AIA Health Happy Kids <span style="color:#948c78">(อายุ 15 วัน-10 ปี)</span></label>
+    <select data-rider-opt="hhkidsPlan">${RIDER_PLANS.map((p,i)=>`<option value="${i}" ${sel(op.hhkidsPlan,i)}>${p}</option>`).join('')}</select>
+    <select data-rider-opt="hhkidsTier"><option value="10,000" ${sel(op.hhkidsTier,'10,000')}>รับผิดส่วนแรก 10,000 บาท</option><option value="30,000" ${sel(op.hhkidsTier,'30,000')}>รับผิดส่วนแรก 30,000 บาท</option></select></div>
+  <div class="rider-chip"><label><input type="checkbox" data-rider="infinitecare" ${chk('infinitecare')}> AIA Infinite Care <span style="color:#948c78">(อายุ 18-75 ปี)</span></label>
+    <select data-rider-opt="icPlan"><option value="แผน 60 ล้านบาท" ${sel(op.icPlan,'แผน 60 ล้านบาท')}>แผน 60 ล้านบาท</option><option value="แผน 120 ล้านบาท" ${sel(op.icPlan,'แผน 120 ล้านบาท')}>แผน 120 ล้านบาท</option></select>
+    <select data-rider-opt="icDeductible"><option value="ไม่มี (First Dollar)" ${sel(op.icDeductible,'ไม่มี (First Dollar)')}>ไม่มีความรับผิดส่วนแรก</option><option value="100,000 บาท" ${sel(op.icDeductible,'100,000 บาท')}>รับผิดส่วนแรก 100,000 บาท</option><option value="300,000 บาท" ${sel(op.icDeductible,'300,000 บาท')}>รับผิดส่วนแรก 300,000 บาท</option></select>
+    <select data-rider-opt="icTerritory"><option value="ทั่วโลก" ${sel(op.icTerritory,'ทั่วโลก')}>ทั่วโลก</option><option value="ทั่วโลก ยกเว้นสหรัฐฯ" ${sel(op.icTerritory,'ทั่วโลก ยกเว้นสหรัฐฯ')}>ทั่วโลก ยกเว้นสหรัฐฯ</option></select></div>
   `;
 }
 function wireRiderControls(box){
@@ -879,7 +907,7 @@ function wireRiderControls(box){
     el.addEventListener('change', ()=>{
       const key = el.dataset.riderOpt;
       let v = el.type==='checkbox' ? el.checked : el.value;
-      if(['healthhappyPlan','hcSmoker','hcUnits','aiClass'].includes(key)) v = parseFloat(v);
+      if(['healthhappyPlan','hcSmoker','hcUnits','aiClass','hhkidsPlan'].includes(key)) v = parseFloat(v);
       state.paylife20.opts[key] = v;
       render();
     });
@@ -900,6 +928,11 @@ function computeRiderTotal(){
     const v = riderAI(op.aiType, op.aiClass, sum);
     if(v!==null) total += v;
     if(op.aiRcc) total += riderRCC(op.aiType, sum);
+  }
+  if(rs.hhkids) total += riderHealthHappyKids(age, gender, op.hhkidsPlan, op.hhkidsTier);
+  if(rs.infinitecare){
+    const v = riderInfiniteCare(age, gender, op.icPlan, op.icDeductible, op.icTerritory);
+    if(v!==null) total += v;
   }
   return total;
 }
