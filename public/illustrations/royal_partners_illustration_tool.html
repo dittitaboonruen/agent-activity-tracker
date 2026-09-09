@@ -843,10 +843,10 @@ function exportImage(key, btn){
 }
 function addExportButton(app, key){
   const panel = app.querySelector('.panel');
-  const row = document.createElement('div'); row.className = 'export-row';
-  row.innerHTML = `<button class="btn-export">บันทึกภาพสรุป (แบรนด์ Royal Partners)</button>`;
+  const row = document.createElement('div');
+  row.className = 'export-row';
+  row.innerHTML = '<button class="btn-export" type="button" disabled title="รอตรวจสอบสูตรและเปิดระบบบันทึก">บันทึกและสร้างใบสรุป — รอเปิดใช้งาน</button>';
   panel.appendChild(row);
-  row.querySelector('.btn-export').addEventListener('click', e=>exportImage(key, e.target));
 }
 
 function riderControlsHTML(){
