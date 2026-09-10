@@ -1682,6 +1682,29 @@
   .ex-summary-box.em .v{color:#7A2E2E;}
   .ex-footer-spacer{flex:1 1 auto;}
 
+
+  .bm-display-note{
+    margin:10px 0 0 192px;
+    padding:9px 11px;
+    border:1px solid #d9d2bf;
+    background:#F7F3EA;
+    color:#4b463d;
+    font-size:10.5px;
+    line-height:1.5;
+  }
+  .bm-display-note b{color:#0F1B2E;}
+
+  .rp-ci-display-note{
+    margin-top:7px;
+    padding:7px 9px;
+    border:1px solid #d9d2bf;
+    background:#F7F3EA;
+    color:#4b463d;
+    font-size:8.5px;
+    line-height:1.4;
+  }
+  .rp-ci-display-note b{color:#0F1B2E;}
+
 </style>
 </head>
 <body>
@@ -2193,14 +2216,9 @@ function viewCIProCare(app){
 }
 
 function renderCIProCareBenefitMap(app){
-  const totalYears = Math.max(1, 99 - state.age);
-  const width80 = Math.max(18, Math.min(100, ((80 - state.age) / totalYears) * 100));
-  const width85 = Math.max(width80, Math.min(100, ((85 - state.age) / totalYears) * 100));
   const premiumIcons = Array.from({length:20}, ()=>'<span>▲</span>').join('');
-  const ccbLump = state.sum * 0.10;
   const ccbMonthly = state.sum * 0.015;
-  const ciMax80 = state.sum * 8;
-  const ciMax85Plus = state.sum * 1.4;
+  const ciMax10x = state.sum * 10;
   const mib = state.sum;
   const deathOrMaturity = state.sum;
 
@@ -2212,20 +2230,23 @@ function renderCIProCareBenefitMap(app){
     <div class="bm-row">
       <div class="bm-label">ผลประโยชน์ค่าชดเชยต่อเนื่อง<br>จากโรคร้ายแรง</div>
       <div class="bm-track">
-        <div class="bm-bar gray" style="width:${width80}%">${fmt(ccbMonthly)} บาท/เดือน × 60 เดือน</div>
+        <div class="bm-bar gray" style="width:100%">
+          ${fmt(ccbMonthly)} บาท/เดือน × 60 เดือน
+        </div>
       </div>
     </div>
 
     <div class="bm-row">
       <div class="bm-label">ผลประโยชน์ความคุ้มครอง<br>โรคร้ายแรง</div>
       <div class="bm-track">
-        <div class="bm-bar gray" style="width:${width85}%">สูงสุด ${fmt(ciMax80)} บาท</div>
-        <div class="bm-tail">สูงสุด ${fmt(ciMax85Plus)} บาท*</div>
+        <div class="bm-bar gray" style="width:100%">
+          สูงสุด ${fmt(ciMax10x)} บาท (10 เท่าของทุนประกัน)
+        </div>
       </div>
     </div>
 
     <div class="bm-row">
-      <div class="bm-label">ผลประโยชน์ภาวะวิกฤต<br>ที่มีผลต่อการดำรงชีวิต</div>
+      <div class="bm-label">ผลประโยชน์ภาวะวิกฤต<br>ICU ติดต่อกัน 5 วัน</div>
       <div class="bm-track">
         <div class="bm-bar gray" style="width:100%">${fmt(mib)} บาท</div>
       </div>
@@ -2242,8 +2263,13 @@ function renderCIProCareBenefitMap(app){
       <div class="bm-timeline-track">
         <div class="bm-label">ระยะเวลาการคุ้มครอง</div>
         <div class="bm-years">
-          <div class="bm-yearlist">${Array.from({length:20}, (_,i)=>`<span>${i+1}</span>`).join('')}</div>
-          <div class="bm-arrow"><span>ถึงอายุ 80 ปี</span><span class="line"></span><span>85 ปี</span><span class="line"></span><span>ถึงอายุ 99 ปี</span></div>
+          <div class="bm-yearlist">
+            ${Array.from({length:20}, (_,i)=>`<span>${i+1}</span>`).join('')}
+          </div>
+          <div class="bm-arrow">
+            <span class="line"></span>
+            <span>ถึงอายุ 99 ปี</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2256,11 +2282,20 @@ function renderCIProCareBenefitMap(app){
     <div class="bm-check-row">
       <div class="bm-label"></div>
       <div class="bm-checkwrap">
-        <div class="bm-check"><span class="bm-box"></span><span>เงินคืน ณ วันครบกำหนดสัญญา</span></div>
+        <div class="bm-check">
+          <span class="bm-box"></span>
+          <span>เงินคืน ณ วันครบกำหนดสัญญา</span>
+        </div>
         <div class="bm-badge">100%*</div>
       </div>
     </div>
+
+    <div class="bm-display-note">
+      <b>ข้อมูลเพิ่มเติม:</b>
+      เบี้ยประกันคงที่ • ถ้าไม่เป็นโรคร้าย มีมูลค่าเวนคืนให้ (ตามปีนั้นๆ)
+    </div>
   `;
+
   app.querySelector('.panel').appendChild(wrap);
 }
 
@@ -3116,7 +3151,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.1.3";
+const CI_PROCARE_REPORT_VERSION = "1.1.4";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
@@ -3264,10 +3299,8 @@ function buildCIProCareReportData(){
 }
 
 function buildCIProCareTimelineHTML(data){
-  const totalYears = Math.max(1, 99 - data.customer.age);
-  const width80 = Math.max(18, Math.min(100, ((80 - data.customer.age) / totalYears) * 100));
-  const width85 = Math.max(width80, Math.min(100, ((85 - data.customer.age) / totalYears) * 100));
   const premiumIcons = Array.from({length:data.product.payYears}, ()=>'<span>▲</span>').join('');
+  const ciMax10x = data.customer.sumInsured * 10;
 
   return `
     <div class="rp-section">
@@ -3278,7 +3311,7 @@ function buildCIProCareTimelineHTML(data){
       <div class="rp-ci-map-row">
         <div class="rp-ci-map-label">ผลประโยชน์ค่าชดเชยต่อเนื่อง<br>จากโรคร้ายแรง</div>
         <div class="rp-ci-map-track">
-          <div class="rp-ci-map-bar gray" style="width:${width80}%">
+          <div class="rp-ci-map-bar gray" style="width:100%">
             ${fmt(data.benefits.ccb.monthly)} บาท/เดือน × ${data.benefits.ccb.months} เดือน
           </div>
         </div>
@@ -3287,17 +3320,14 @@ function buildCIProCareTimelineHTML(data){
       <div class="rp-ci-map-row">
         <div class="rp-ci-map-label">ผลประโยชน์ความคุ้มครอง<br>โรคร้ายแรง</div>
         <div class="rp-ci-map-track">
-          <div class="rp-ci-map-bar gray" style="width:${width85}%">
-            สูงสุด ${fmt(data.benefits.ciMaxToAge80)} บาท
-          </div>
-          <div class="rp-ci-map-tail">
-            สูงสุด ${fmt(data.benefits.ciMaxAge85Plus)} บาท*
+          <div class="rp-ci-map-bar gray" style="width:100%">
+            สูงสุด ${fmt(ciMax10x)} บาท (10 เท่าของทุนประกัน)
           </div>
         </div>
       </div>
 
       <div class="rp-ci-map-row">
-        <div class="rp-ci-map-label">ผลประโยชน์ภาวะวิกฤต<br>ที่มีผลต่อการดำรงชีวิต</div>
+        <div class="rp-ci-map-label">ผลประโยชน์ภาวะวิกฤต<br>ICU ติดต่อกัน 5 วัน</div>
         <div class="rp-ci-map-track">
           <div class="rp-ci-map-bar gray" style="width:100%">
             ${fmt(data.benefits.mib.maxTotal)} บาท
@@ -3318,11 +3348,9 @@ function buildCIProCareTimelineHTML(data){
         <div class="rp-ci-map-label">ระยะเวลาความคุ้มครอง</div>
         <div class="rp-ci-years">
           <div class="rp-ci-yearline">
-            <div class="years">${Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('')}</div>
-            <span class="arrowline"></span>
-            <span>ถึงอายุ 80 ปี</span>
-            <span class="arrowline"></span>
-            <span>85 ปี</span>
+            <div class="years">
+              ${Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('')}
+            </div>
             <span class="arrowline"></span>
             <span>ถึงอายุ ${data.product.coverToAge} ปี</span>
           </div>
@@ -3338,11 +3366,16 @@ function buildCIProCareTimelineHTML(data){
         <div class="rp-ci-map-label"></div>
         <div class="rp-ci-maturity">
           <div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:#4b463d;">
-            <span class="box"></span>
+            <span class="rp-ci-box"></span>
             <span>เงินคืน ณ วันครบกำหนดสัญญา</span>
           </div>
-          <span class="badge">100%*</span>
+          <span class="rp-ci-badge">100%*</span>
         </div>
+      </div>
+
+      <div class="rp-ci-display-note">
+        <b>ข้อมูลเพิ่มเติม:</b>
+        เบี้ยประกันคงที่ • ถ้าไม่เป็นโรคร้าย มีมูลค่าเวนคืนให้ (ตามปีนั้นๆ)
       </div>
     </div>
   `;
