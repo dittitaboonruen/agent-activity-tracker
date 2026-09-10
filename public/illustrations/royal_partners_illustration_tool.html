@@ -773,6 +773,78 @@
     margin-left:auto;
   }
 
+
+  /* ---------- CI ProCare A4 two-page report ---------- */
+  .rp-report{
+    width:auto !important;
+    border:none !important;
+    background:transparent !important;
+  }
+  .rp-report-pages{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    padding:14px 0 20px;
+  }
+  .rp-report-page{
+    width:794px;
+    min-height:1123px;
+    background:#fffdf8;
+    color:#20262f;
+    font-family:'IBM Plex Sans Thai Looped', sans-serif;
+    border:1px solid #d9d2bf;
+    box-sizing:border-box;
+    overflow:hidden;
+    position:relative;
+  }
+  .rp-report-page + .rp-report-page{
+    margin-top:0;
+  }
+  .rp-page-inner{
+    min-height:1123px;
+    display:flex;
+    flex-direction:column;
+  }
+  .rp-page-footer-spacer{
+    flex:1 1 auto;
+  }
+  .rp-page-number{
+    padding:6px 18px 10px;
+    text-align:right;
+    font-size:9px;
+    color:#8f8774;
+  }
+  .rp-preview-dialog{
+    max-width:940px;
+  }
+  .rp-preview-content{
+    overflow:auto;
+    max-height:calc(100vh - 110px);
+    padding:14px 0 28px;
+  }
+  .rp-preview-actions .rp-preview-download-all,
+  .rp-preview-actions .rp-preview-download-page{
+    border:none;
+    cursor:pointer;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    font-weight:700;
+    padding:8px 12px;
+  }
+  .rp-preview-actions .rp-preview-download-all{
+    background:var(--gold);
+    color:var(--navy);
+  }
+  .rp-preview-actions .rp-preview-download-page{
+    background:#fff;
+    color:var(--navy);
+    border:1px solid #d9d2bf;
+  }
+  .rp-preview-actions button:disabled{
+    opacity:.6;
+    cursor:wait;
+  }
+
 </style>
 </head>
 <body>
@@ -1691,245 +1763,295 @@ function buildCIProCareReportHTML(){
     </div>`;
   }
 
-  return `<div class="rp-report" data-report-version="${data.reportVersion}">
-    <div class="rp-report-head">
-      <div>
-        <div class="rp-report-brand">ROYAL PARTNER</div>
-        <div class="rp-report-title">${data.product.name}</div>
-        <div class="rp-report-sub">
-          สรุปประกอบการเรียนการสอน • แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ
-        </div>
-      </div>
-      <div class="rp-report-sum">
-        <div class="l">จำนวนเงินเอาประกันภัย</div>
-        <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
-      </div>
-    </div>
-
-    <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
-      <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
-      <div style="font-size:15px;font-weight:700;color:#0F1B2E;">
-        ${data.customer.fullName || '—'}
-      </div>
-    </div>
-
-    <div class="rp-report-meta">
-      <div class="cell"><div class="l">เพศ</div><div class="v">${data.customer.gender}</div></div>
-      <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
-      <div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">${data.product.payYears} ปี</div></div>
-    </div>
-
-    <div class="rp-report-kpis">
-      <div class="rp-kpi">
-        <div class="l">เบี้ยประกันภัยชีวิต / ปี</div>
-        <div class="v">${fmt(data.premium.life)} บาท</div>
-      </div>
-      <div class="rp-kpi">
-        <div class="l">เบี้ยประกันภัยโรคร้ายแรง / ปี</div>
-        <div class="v">${fmt(data.premium.ci)} บาท</div>
-      </div>
-      <div class="rp-kpi critical">
-        <div class="l">เบี้ยประกันภัยรวมสุทธิ / ปี</div>
-        <div class="v">${fmt(data.premium.net)} บาท</div>
-      </div>
-    </div>
-
-    ${buildCIProCareTimelineHTML(data)}
-
-    <div class="rp-section">
-      <div class="rp-info-box" style="background:#F7F3EA;">
-        <div class="head">หมายเหตุการอ้างอิงผลประโยชน์</div>
-        ผลประโยชน์โรคร้ายแรงระดับต้น–ปานกลาง 40% ต่อครั้ง สูงสุด 5 ครั้ง
-        และระดับรุนแรง 100% ต่อครั้ง สูงสุด 6 ครั้ง
-        รวมผลประโยชน์โรคร้ายแรงสูงสุด 1,000% ของจำนวนเงินเอาประกันภัย
-        โดยตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
-      </div>
-    </div>
-
-    <div class="rp-section" style="padding-top:4px;">
-      <div class="rp-section-title">สรุปรายละเอียดผลประโยชน์</div>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
-
-      <div class="rp-benefit-block">
-        <div class="rp-benefit-main">
-          <div class="rp-benefit-desc">
-            <span class="rp-benefit-no">1.1</span>
-            <span class="rp-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
-            <div class="rp-benefit-tags">
-              <span class="rp-benefit-tag formula">${data.benefits.early.formula}</span>
-              <span class="rp-benefit-tag">18 โรค/การรักษา</span>
-              <span class="rp-benefit-tag">สูงสุด ${data.benefits.early.maxClaims} ครั้ง</span>
+  const page1 = `
+    <section class="rp-report-page" id="ci-procare-report-page-1" data-page="1">
+      <div class="rp-page-inner">
+        <div class="rp-report-head">
+          <div>
+            <div class="rp-report-brand">ROYAL PARTNER</div>
+            <div class="rp-report-title">${data.product.name}</div>
+            <div class="rp-report-sub">
+              สรุปประกอบการเรียนการสอน • แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ
             </div>
           </div>
-          <div class="rp-benefit-amount">
-            <div class="l">รับเงิน / ครั้ง</div>
-            <div class="v">${fmt(data.benefits.early.perClaim)} บาท</div>
-          </div>
-          <div class="rp-benefit-amount">
-            <div class="l">เคลมสูงสุดได้</div>
-            <div class="v">${fmt(data.benefits.early.maxTotal)} บาท</div>
+          <div class="rp-report-sum">
+            <div class="l">จำนวนเงินเอาประกันภัย</div>
+            <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
           </div>
         </div>
-      </div>
 
-      <div class="rp-benefit-block">
-        <div class="rp-benefit-main">
-          <div class="rp-benefit-desc">
-            <span class="rp-benefit-no">1.2</span>
-            <span class="rp-benefit-name">โรคร้ายแรงระดับรุนแรง</span>
-            <div class="rp-benefit-tags">
-              <span class="rp-benefit-tag formula">${data.benefits.severe.formula}</span>
-              <span class="rp-benefit-tag">44 โรค/การรักษา</span>
-              <span class="rp-benefit-tag">สูงสุด ${data.benefits.severe.maxClaims} ครั้ง</span>
-              <span class="rp-benefit-tag condition">เป็นซ้ำได้ตามเงื่อนไข</span>
+        <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+          <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
+          <div style="font-size:15px;font-weight:700;color:#0F1B2E;">
+            ${data.customer.fullName || '—'}
+          </div>
+        </div>
+
+        <div class="rp-report-meta">
+          <div class="cell"><div class="l">เพศ</div><div class="v">${data.customer.gender}</div></div>
+          <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
+          <div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">${data.product.payYears} ปี</div></div>
+        </div>
+
+        <div class="rp-report-kpis">
+          <div class="rp-kpi">
+            <div class="l">เบี้ยประกันภัยชีวิต / ปี</div>
+            <div class="v">${fmt(data.premium.life)} บาท</div>
+          </div>
+          <div class="rp-kpi">
+            <div class="l">เบี้ยประกันภัยโรคร้ายแรง / ปี</div>
+            <div class="v">${fmt(data.premium.ci)} บาท</div>
+          </div>
+          <div class="rp-kpi critical">
+            <div class="l">เบี้ยประกันภัยรวมสุทธิ / ปี</div>
+            <div class="v">${fmt(data.premium.net)} บาท</div>
+          </div>
+        </div>
+
+        ${buildCIProCareTimelineHTML(data)}
+
+        <div class="rp-section">
+          <div class="rp-info-box" style="background:#F7F3EA;">
+            <div class="head">หมายเหตุการอ้างอิงผลประโยชน์</div>
+            ผลประโยชน์โรคร้ายแรงระดับต้น–ปานกลาง 40% ต่อครั้ง สูงสุด 5 ครั้ง
+            และระดับรุนแรง 100% ต่อครั้ง สูงสุด 6 ครั้ง
+            รวมผลประโยชน์โรคร้ายแรงสูงสุด 1,000% ของจำนวนเงินเอาประกันภัย
+            โดยตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
+          </div>
+        </div>
+
+        <div class="rp-section" style="padding-top:4px;">
+          <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
+
+          <div class="rp-benefit-block">
+            <div class="rp-benefit-main">
+              <div class="rp-benefit-desc">
+                <span class="rp-benefit-no">1.1</span>
+                <span class="rp-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
+                <div class="rp-benefit-tags">
+                  <span class="rp-benefit-tag formula">${data.benefits.early.formula}</span>
+                  <span class="rp-benefit-tag">18 โรค/การรักษา</span>
+                  <span class="rp-benefit-tag">สูงสุด ${data.benefits.early.maxClaims} ครั้ง</span>
+                </div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">รับเงิน / ครั้ง</div>
+                <div class="v">${fmt(data.benefits.early.perClaim)} บาท</div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">เคลมสูงสุดได้</div>
+                <div class="v">${fmt(data.benefits.early.maxTotal)} บาท</div>
+              </div>
             </div>
           </div>
-          <div class="rp-benefit-amount">
-            <div class="l">รับเงิน / ครั้ง</div>
-            <div class="v">${fmt(data.benefits.severe.perClaim)} บาท</div>
-          </div>
-          <div class="rp-benefit-amount">
-            <div class="l">เคลมสูงสุดได้</div>
-            <div class="v">${fmt(data.benefits.severe.maxTotal)} บาท</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="rp-benefit-block">
-        <div class="rp-benefit-main">
-          <div class="rp-benefit-desc">
-            <span class="rp-benefit-no">1.3</span>
-            <span class="rp-benefit-name">ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</span>
-            <div class="rp-benefit-tags">
-              <span class="rp-benefit-tag formula">${data.benefits.mib.formula}</span>
-              <span class="rp-benefit-tag condition">ตามเงื่อนไขของกรมธรรม์</span>
+          <div class="rp-benefit-block">
+            <div class="rp-benefit-main">
+              <div class="rp-benefit-desc">
+                <span class="rp-benefit-no">1.2</span>
+                <span class="rp-benefit-name">โรคร้ายแรงระดับรุนแรง</span>
+                <div class="rp-benefit-tags">
+                  <span class="rp-benefit-tag formula">${data.benefits.severe.formula}</span>
+                  <span class="rp-benefit-tag">44 โรค/การรักษา</span>
+                  <span class="rp-benefit-tag">สูงสุด ${data.benefits.severe.maxClaims} ครั้ง</span>
+                  <span class="rp-benefit-tag condition">เป็นซ้ำได้ตามเงื่อนไข</span>
+                </div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">รับเงิน / ครั้ง</div>
+                <div class="v">${fmt(data.benefits.severe.perClaim)} บาท</div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">เคลมสูงสุดได้</div>
+                <div class="v">${fmt(data.benefits.severe.maxTotal)} บาท</div>
+              </div>
             </div>
           </div>
-          <div class="rp-benefit-amount">
-            <div class="l">รับเงิน / ครั้ง</div>
-            <div class="v">${fmt(data.benefits.mib.perClaim)} บาท</div>
-          </div>
-          <div class="rp-benefit-amount">
-            <div class="l">เคลมสูงสุดได้</div>
-            <div class="v">${fmt(data.benefits.mib.maxTotal)} บาท</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="rp-benefit-block">
-        <div class="rp-benefit-main">
-          <div class="rp-benefit-desc">
-            <span class="rp-benefit-no">1.4</span>
-            <span class="rp-benefit-name">การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</span>
-            <div class="rp-benefit-tags">
-              <span class="rp-benefit-tag formula">${data.benefits.ccb.formula}</span>
-              <span class="rp-benefit-tag condition">คุ้มครอง 8 โรคตามเงื่อนไข</span>
+          <div class="rp-benefit-block">
+            <div class="rp-benefit-main">
+              <div class="rp-benefit-desc">
+                <span class="rp-benefit-no">1.3</span>
+                <span class="rp-benefit-name">ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</span>
+                <div class="rp-benefit-tags">
+                  <span class="rp-benefit-tag formula">${data.benefits.mib.formula}</span>
+                  <span class="rp-benefit-tag condition">ตามเงื่อนไขของกรมธรรม์</span>
+                </div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">รับเงิน / ครั้ง</div>
+                <div class="v">${fmt(data.benefits.mib.perClaim)} บาท</div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">เคลมสูงสุดได้</div>
+                <div class="v">${fmt(data.benefits.mib.maxTotal)} บาท</div>
+              </div>
             </div>
           </div>
-          <div class="rp-benefit-amount">
-            <div class="l">รวมสูงสุด</div>
-            <div class="v">${fmt(data.benefits.ccb.maxTotal)} บาท</div>
+
+          <div class="rp-benefit-block">
+            <div class="rp-benefit-main">
+              <div class="rp-benefit-desc">
+                <span class="rp-benefit-no">1.4</span>
+                <span class="rp-benefit-name">การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</span>
+                <div class="rp-benefit-tags">
+                  <span class="rp-benefit-tag formula">${data.benefits.ccb.formula}</span>
+                  <span class="rp-benefit-tag condition">คุ้มครอง 8 โรคตามเงื่อนไข</span>
+                </div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">รวมสูงสุด</div>
+                <div class="v">${fmt(data.benefits.ccb.maxTotal)} บาท</div>
+              </div>
+              <div class="rp-benefit-amount">
+                <div class="l">สัดส่วนสูงสุด</div>
+                <div class="v">100%</div>
+              </div>
+            </div>
+
+            <div class="rp-benefit-subrow">
+              <div><b>1.4.1</b> จ่ายครั้งเดียว 10% ของทุนประกัน</div>
+              <div class="money">${fmt(data.benefits.ccb.lumpSum)} บาท</div>
+              <div class="money">${fmt(data.benefits.ccb.lumpSum)} บาท</div>
+            </div>
+            <div class="rp-benefit-subrow">
+              <div><b>1.4.2</b> จ่ายรายเดือน เดือนละ 1.5% ต่อเนื่อง ${data.benefits.ccb.months} เดือน</div>
+              <div class="money">${fmt(data.benefits.ccb.monthly)} บาท/เดือน</div>
+              <div class="money">${fmt(data.benefits.ccb.monthlyTotal)} บาท</div>
+            </div>
           </div>
-          <div class="rp-benefit-amount">
-            <div class="l">สัดส่วนสูงสุด</div>
-            <div class="v">100%</div>
-          </div>
+
+          <table class="rp-benefit-table" style="margin-top:8px">
+            <tbody>
+              <tr>
+                <td>
+                  <b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br>
+                  <span style="font-size:9.5px;color:#847c69">
+                    800% (1.1–1.2) + 200% (1.3–1.4)
+                  </span>
+                </td>
+                <td></td>
+                <td class="num">${fmt(data.benefits.totalCiMax)} บาท</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="rp-benefit-subrow">
-          <div><b>1.4.1</b> จ่ายครั้งเดียว 10% ของทุนประกัน</div>
-          <div class="money">${fmt(data.benefits.ccb.lumpSum)} บาท</div>
-          <div class="money">${fmt(data.benefits.ccb.lumpSum)} บาท</div>
-        </div>
-        <div class="rp-benefit-subrow">
-          <div><b>1.4.2</b> จ่ายรายเดือน เดือนละ 1.5% ต่อเนื่อง ${data.benefits.ccb.months} เดือน</div>
-          <div class="money">${fmt(data.benefits.ccb.monthly)} บาท/เดือน</div>
-          <div class="money">${fmt(data.benefits.ccb.monthlyTotal)} บาท</div>
-        </div>
+        <div class="rp-page-footer-spacer"></div>
+        <div class="rp-page-number">หน้า 1 / 2 • Report v${data.reportVersion}</div>
       </div>
+    </section>`;
 
-      <table class="rp-benefit-table" style="margin-top:8px">
-        <tbody>
-          <tr>
-            <td>
-              <b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br>
-              <span style="font-size:9.5px;color:#847c69">
-                800% (1.1–1.2) + 200% (1.3–1.4)
+  const page2 = `
+    <section class="rp-report-page" id="ci-procare-report-page-2" data-page="2">
+      <div class="rp-page-inner">
+
+        <div class="rp-report-head">
+          <div>
+            <div class="rp-report-brand">ROYAL PARTNER</div>
+            <div class="rp-report-title">${data.product.name}</div>
+            <div class="rp-report-sub">สรุปรายละเอียดผลประโยชน์ • ต่อจากหน้า 1</div>
+          </div>
+          <div class="rp-report-sum">
+            <div class="l">จำนวนเงินเอาประกันภัย</div>
+            <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
+          </div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-section-title">2 ผลประโยชน์กรณีเสียชีวิต</div>
+          <div class="rp-info-box">
+            <div class="rp-death-lines">
+              <div class="row">
+                <span>สัญญาหลัก</span>
+                <strong>อย่างน้อย ${fmt(data.death.mainContract)} บาท</strong>
+              </div>
+              ${data.death.riderContract !== null ? `
+                <div class="row">
+                  <span>สัญญาเพิ่มเติม</span>
+                  <strong>${fmt(data.death.riderContract)} บาท</strong>
+                </div>` : ''}
+              <div class="row">
+                <span>รวม</span>
+                <strong>อย่างน้อย ${fmt(data.death.total)} บาท</strong>
+              </div>
+            </div>
+            <div style="margin-top:7px;font-size:9.5px;color:#847c69;line-height:1.55">
+              ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขของแบบประกันภัยหลัก AIA CI ProCare
+              โดยบริษัทจะพิจารณาจำนวนที่มากกว่าตามเงื่อนไขในกรมธรรม์
+              และหักผลประโยชน์ที่ได้จ่ายไปแล้ว (ถ้ามี)
+            </div>
+          </div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
+          <div class="rp-two-col">
+            <div class="rp-info-box">
+              <div class="head">ระยะเวลาความคุ้มครอง</div>
+              แบบประกันภัยหลักคุ้มครองถึงอายุ ${data.product.coverToAge} ปี<br>
+              <span style="color:#847c69">
+                ตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
               </span>
-            </td>
-            <td></td>
-            <td class="num">${fmt(data.benefits.totalCiMax)} บาท</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-section-title">2 ผลประโยชน์กรณีเสียชีวิต</div>
-      <div class="rp-info-box">
-        <div class="rp-death-lines">
-          <div class="row">
-            <span>สัญญาหลัก</span>
-            <strong>อย่างน้อย ${fmt(data.death.mainContract)} บาท</strong>
-          </div>
-          ${data.death.riderContract !== null ? `
-            <div class="row">
-              <span>สัญญาเพิ่มเติม</span>
-              <strong>${fmt(data.death.riderContract)} บาท</strong>
-            </div>` : ''}
-          <div class="row">
-            <span>รวม</span>
-            <strong>อย่างน้อย ${fmt(data.death.total)} บาท</strong>
+            </div>
+            <div class="rp-info-box">
+              <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
+              ${fmt(data.tax.relief)} บาท<br>
+              <span style="color:#847c69">
+                คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%
+              </span>
+            </div>
           </div>
         </div>
-        <div style="margin-top:7px;font-size:9.5px;color:#847c69;line-height:1.55">
-          ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขของแบบประกันภัยหลัก AIA CI ProCare
-          โดยบริษัทจะพิจารณาจำนวนที่มากกว่าตามเงื่อนไขในกรมธรรม์
-          และหักผลประโยชน์ที่ได้จ่ายไปแล้ว (ถ้ามี)
+
+        <div class="rp-section">
+          <div class="rp-section-title">4 ข้อมูลลูกค้าและตัวแทน</div>
+          <div class="rp-two-col">
+            <div class="rp-info-box">
+              <div class="head">ข้อมูลลูกค้า</div>
+              ชื่อ–นามสกุล: <b>${data.customer.fullName || '—'}</b><br>
+              เพศ: <b>${data.customer.gender}</b><br>
+              อายุ: <b>${data.customer.age} ปี</b><br>
+              ทุนประกัน: <b>${fmt(data.customer.sumInsured)} บาท</b>
+            </div>
+            <div class="rp-info-box">
+              <div class="head">ข้อมูลตัวแทน</div>
+              ชื่อตัวแทน: <b>${data.agent.name || 'ตัวแทน Royal Partner'}</b><br>
+              เบอร์โทร: <b>${data.agent.phone || '—'}</b><br>
+              LINE: <b>${data.agent.line || '—'}</b><br>
+              วันที่: <b>${data.agent.reportDate}</b>
+            </div>
+          </div>
         </div>
+
+        <div class="rp-page-footer-spacer"></div>
+
+        <div class="rp-agent-row">
+          <div class="cell">ตัวแทน<b>${data.agent.name || 'ตัวแทน Royal Partner'}</b></div>
+          <div class="cell">โทร.<b>${data.agent.phone || '—'}</b></div>
+          <div class="cell">LINE<b>${data.agent.line || '—'}</b></div>
+          <div class="cell">วันที่<b>${data.agent.reportDate}</b></div>
+        </div>
+
+        <div class="rp-red-remark">
+          หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+        </div>
+
+        <div class="rp-report-foot">
+          <b>คำชี้แจง:</b> เอกสารนี้จัดทำขึ้นเพื่อประกอบการเรียนการสอนและสร้างความเข้าใจเบื้องต้นเท่านั้น
+          ตัวเลขที่แสดงอ้างอิงจากข้อมูลที่กรอกในเครื่องมือและผลการคำนวณของระบบ
+          เงื่อนไข ความคุ้มครอง ข้อยกเว้น เบี้ยประกันภัย และสิทธิประโยชน์ที่แท้จริง
+          ให้ยึดตามกรมธรรม์ เอกสารประกอบการเสนอขาย และเงื่อนไขของบริษัทประกันภัย
+        </div>
+
+        <div class="rp-page-number">หน้า 2 / 2 • Report v${data.reportVersion}</div>
       </div>
-    </div>
+    </section>`;
 
-    <div class="rp-section">
-      <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
-      <div class="rp-two-col">
-        <div class="rp-info-box">
-          <div class="head">ระยะเวลาความคุ้มครอง</div>
-          แบบประกันภัยหลักคุ้มครองถึงอายุ ${data.product.coverToAge} ปี<br>
-          <span style="color:#847c69">
-            ตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
-          </span>
-        </div>
-        <div class="rp-info-box">
-          <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
-          ${fmt(data.tax.relief)} บาท<br>
-          <span style="color:#847c69">
-            คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="rp-agent-row">
-      <div class="cell">ตัวแทน<b>${data.agent.name || 'ตัวแทน Royal Partner'}</b></div>
-      <div class="cell">โทร.<b>${data.agent.phone || '—'}</b></div>
-      <div class="cell">LINE<b>${data.agent.line || '—'}</b></div>
-      <div class="cell">วันที่<b>${data.agent.reportDate}</b></div>
-    </div>
-
-    <div class="rp-red-remark">
-      หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-    </div>
-
-    <div class="rp-report-foot">
-      <b>คำชี้แจง:</b> เอกสารนี้จัดทำขึ้นเพื่อประกอบการเรียนการสอนและสร้างความเข้าใจเบื้องต้นเท่านั้น
-      ตัวเลขที่แสดงอ้างอิงจากข้อมูลที่กรอกในเครื่องมือและผลการคำนวณของระบบ
-      เงื่อนไข ความคุ้มครอง ข้อยกเว้น เบี้ยประกันภัย และสิทธิประโยชน์ที่แท้จริง
-      ให้ยึดตามกรมธรรม์ เอกสารประกอบการเสนอขาย และเงื่อนไขของบริษัทประกันภัย
-      <br>Report Version: ${data.reportVersion}
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      ${page1}
+      ${page2}
     </div>
   </div>`;
 }
@@ -1975,82 +2097,150 @@ function buildCardHTML(data, key){
   </div>`;
 }
 
-async function downloadReportImage(key, reportEl, btn){
+async function renderElementToPngBlob(element){
+  if(typeof html2canvas === 'undefined'){
+    throw new Error('ไม่พบไฟล์สร้าง PNG (/vendor/html2canvas.min.js)');
+  }
+
+  if(!element || element.offsetWidth <= 0 || element.offsetHeight <= 0){
+    throw new Error('ไม่พบพื้นที่ใบสรุปสำหรับสร้างภาพ');
+  }
+
+  if(document.fonts && document.fonts.ready){
+    await Promise.race([
+      document.fonts.ready,
+      new Promise(resolve => setTimeout(resolve, 2500))
+    ]);
+  }
+
+  const canvas = await html2canvas(element, {
+    scale:2,
+    backgroundColor:'#ffffff',
+    useCORS:false,
+    allowTaint:false,
+    imageTimeout:5000,
+    logging:false,
+    removeContainer:true
+  });
+
+  return await new Promise((resolve, reject)=>{
+    canvas.toBlob(blob=>{
+      if(blob) resolve(blob);
+      else reject(new Error('ไม่สามารถแปลงภาพเป็น PNG ได้'));
+    }, 'image/png', 1);
+  });
+}
+
+function triggerBlobDownload(blob, filename){
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectUrl), 10000);
+}
+
+async function downloadReportPage(key, pageNo, btn){
   if(btn.dataset.busy === '1') return;
 
-  if(typeof html2canvas === 'undefined'){
-    alert('ไม่พบไฟล์สร้าง PNG (/vendor/html2canvas.min.js) กรุณาตรวจว่าไฟล์ถูกอัปโหลดและ Deploy แล้ว');
+  const pageEl = document.getElementById(`ci-procare-report-page-${pageNo}`);
+  if(!pageEl){
+    alert(`ไม่พบหน้า ${pageNo} ของใบสรุป`);
     return;
   }
 
-  if(!reportEl || reportEl.offsetWidth <= 0 || reportEl.offsetHeight <= 0){
-    alert('ไม่พบพื้นที่ใบสรุปสำหรับสร้างภาพ กรุณาปิด Preview แล้วเปิดใหม่');
+  const oldTxt = btn.textContent;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  btn.textContent = `กำลังสร้างหน้า ${pageNo}...`;
+
+  try{
+    const blob = await renderElementToPngBlob(pageEl);
+    const suffix = `v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}`;
+    const filename =
+      `royal-partner-${key}-${suffix}-page-${pageNo}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`;
+    triggerBlobDownload(blob, filename);
+  }catch(error){
+    console.error('Report page export error:', error);
+    alert(error?.message || 'สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy = '0';
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
+
+async function downloadAllReportPages(key, btn){
+  if(btn.dataset.busy === '1') return;
+
+  const page1 = document.getElementById('ci-procare-report-page-1');
+  const page2 = document.getElementById('ci-procare-report-page-2');
+
+  if(!page1 || !page2){
+    alert('ไม่พบใบสรุปครบทั้ง 2 หน้า');
     return;
   }
 
+  const oldTxt = btn.textContent;
   btn.dataset.busy = '1';
   btn.disabled = true;
 
+  try{
+    btn.textContent = 'กำลังสร้างหน้า 1/2...';
+    const blob1 = await renderElementToPngBlob(page1);
+
+    btn.textContent = 'กำลังสร้างหน้า 2/2...';
+    const blob2 = await renderElementToPngBlob(page2);
+
+    const suffix = `v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}`;
+    const stamp = Date.now();
+    const userCode = `${state.age}${state.gender==='ชาย'?'M':'F'}`;
+
+    triggerBlobDownload(
+      blob1,
+      `royal-partner-${key}-${suffix}-page-1-${userCode}-${stamp}.png`
+    );
+
+    await new Promise(resolve=>setTimeout(resolve, 500));
+
+    triggerBlobDownload(
+      blob2,
+      `royal-partner-${key}-${suffix}-page-2-${userCode}-${stamp}.png`
+    );
+  }catch(error){
+    console.error('Report export error:', error);
+    alert(error?.message || 'สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy = '0';
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
+
+async function downloadReportImage(key, reportEl, btn){
+  if(key==='ciprocare'){
+    return downloadAllReportPages(key, btn);
+  }
+
+  if(btn.dataset.busy === '1') return;
+
   const oldTxt = btn.textContent;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
   btn.textContent = 'กำลังสร้างภาพ...';
 
   try{
-    // รอ font เท่าที่จำเป็น แต่ไม่ปล่อยให้ค้างไม่สิ้นสุด
-    if(document.fonts && document.fonts.ready){
-      await Promise.race([
-        document.fonts.ready,
-        new Promise(resolve => setTimeout(resolve, 2500))
-      ]);
-    }
-
-    const canvas = await html2canvas(reportEl, {
-      scale: 2,
-      backgroundColor: '#ffffff',
-      useCORS: false,
-      allowTaint: false,
-      imageTimeout: 5000,
-      logging: false,
-      removeContainer: true
-    });
-
-    const blob = await new Promise((resolve, reject)=>{
-      canvas.toBlob(result=>{
-        if(result) resolve(result);
-        else reject(new Error('Canvas toBlob returned null'));
-      }, 'image/png', 1);
-    });
-
-    const versionSuffix = key==='ciprocare'
-      ? `-v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}`
-      : '';
-
-    const filename =
-      `royal-partner-${key}${versionSuffix}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`;
-
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-
-    a.href = objectUrl;
-    a.download = filename;
-    a.style.display = 'none';
-
-    // บาง browser ต้องให้ anchor อยู่ใน DOM ก่อนจึงยอม download
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    // หน่วงการ revoke เพื่อไม่ตัด download ก่อน browser เริ่มอ่าน blob
-    setTimeout(()=>URL.revokeObjectURL(objectUrl), 10000);
-
+    const blob = await renderElementToPngBlob(reportEl);
+    triggerBlobDownload(
+      blob,
+      `royal-partner-${key}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`
+    );
   }catch(error){
     console.error('Report export error:', error);
-
-    const message =
-      error && error.message
-        ? `สร้างภาพไม่สำเร็จ: ${error.message}`
-        : 'สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
-
-    alert(message);
+    alert(error?.message || 'สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
   }finally{
     btn.dataset.busy = '0';
     btn.disabled = false;
@@ -2086,10 +2276,16 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุปฉบับเต็ม':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 2 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
+              ${key==='ciprocare' ? `
+                <button type="button" class="rp-preview-download-page" data-page="1">PNG หน้า 1</button>
+                <button type="button" class="rp-preview-download-page" data-page="2">PNG หน้า 2</button>
+                <button type="button" class="rp-preview-download-all">ดาวน์โหลดทั้ง 2 หน้า</button>
+              ` : `
+                <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
+              `}
               <button type="button" class="rp-preview-close">ปิด</button>
             </div>
           </div>
@@ -2098,15 +2294,34 @@ function showReportPreview(key){
       </div>`;
 
     const overlay = host.querySelector('.rp-preview-overlay');
-    const reportEl = host.querySelector('.rp-report, .card');
-    const downloadBtn = host.querySelector('.rp-preview-download');
     const closeBtn = host.querySelector('.rp-preview-close');
 
-    if(!overlay || !reportEl || !downloadBtn || !closeBtn){
+    if(!overlay || !closeBtn){
       throw new Error('Preview DOM is incomplete');
     }
 
-    downloadBtn.addEventListener('click', ()=>downloadReportImage(key, reportEl, downloadBtn));
+    if(key==='ciprocare'){
+      const pageButtons = host.querySelectorAll('.rp-preview-download-page');
+      const allBtn = host.querySelector('.rp-preview-download-all');
+
+      pageButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          downloadReportPage(key, Number(btn.dataset.page), btn);
+        });
+      });
+
+      allBtn.addEventListener('click', ()=>downloadAllReportPages(key, allBtn));
+    }else{
+      const reportEl = host.querySelector('.rp-report, .card');
+      const downloadBtn = host.querySelector('.rp-preview-download');
+
+      if(!reportEl || !downloadBtn){
+        throw new Error('Preview report is incomplete');
+      }
+
+      downloadBtn.addEventListener('click', ()=>downloadReportImage(key, reportEl, downloadBtn));
+    }
+
     closeBtn.addEventListener('click', closeReportPreview);
 
     overlay.addEventListener('click', e=>{
