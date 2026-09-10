@@ -1427,6 +1427,72 @@
   .sc-report-page .sc-chart-box{width:14px;height:14px;}
   .sc-report-page .sc-chart-badge{font-size:8.5px;padding:2px 6px;}
 
+
+  /* ---------- CI SuperCare plan selector ---------- */
+  .sc-plan-switch{
+    margin:14px 22px 0;
+    padding:10px 12px;
+    background:#F7F3EA;
+    border:1px solid #d9d2bf;
+  }
+  .sc-plan-switch-label{
+    font-size:11px;
+    font-weight:700;
+    color:#6b6455;
+    margin-bottom:7px;
+  }
+  .sc-plan-switch-buttons{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .sc-plan-btn{
+    border:1px solid #cdbf9e;
+    background:#fffdf8;
+    color:#0F1B2E;
+    padding:8px 14px;
+    border-radius:5px;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .sc-plan-btn:hover{
+    background:#F0E9DA;
+  }
+  .sc-plan-btn.active{
+    background:#7A2E2E;
+    border-color:#7A2E2E;
+    color:#fff;
+  }
+
+  /* ---------- CI SuperCare conditional tax column ---------- */
+  .sc-benefit-main.has-tax{
+    grid-template-columns:minmax(0,1.35fr) minmax(120px,.46fr) minmax(135px,.50fr) minmax(145px,.55fr);
+  }
+  .sc-benefit-tax{
+    border-left:1px solid #d9d2bf;
+    padding:10px 11px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:right;
+    background:#fffdf8;
+  }
+  .sc-benefit-tax .l{
+    font-size:8.5px;
+    line-height:1.35;
+    color:#847c69;
+  }
+  .sc-benefit-tax .v{
+    margin-top:3px;
+    font-size:13px;
+    font-weight:800;
+    color:#B8985A;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+
 </style>
 </head>
 <body>
@@ -1986,13 +2052,39 @@ function viewCISuperCare(app){
     true
   );
 
+  const panel = app.querySelector('.panel');
+
+  const switcher = document.createElement('div');
+  switcher.className = 'sc-plan-switch';
+  switcher.innerHTML = `
+    <div class="sc-plan-switch-label">เลือกระยะเวลาชำระเบี้ย</div>
+    <div class="sc-plan-switch-buttons">
+      <button type="button" class="sc-plan-btn ${pp===10?'active':''}" data-pay-period="10">
+        CI SuperCare 10/99
+      </button>
+      <button type="button" class="sc-plan-btn ${pp===20?'active':''}" data-pay-period="20">
+        CI SuperCare 20/99
+      </button>
+    </div>
+  `;
+  panel.appendChild(switcher);
+
+  switcher.querySelectorAll('[data-pay-period]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const next = Number(btn.dataset.payPeriod);
+      if(next===10 || next===20){
+        state.cisupercare.payPeriod = next;
+        render();
+      }
+    });
+  });
+
   fillSummary(app, [
     {lbl:'เบี้ยประกันภัยชีวิต / ปี', val:fmt(r.life)},
     {lbl:'เบี้ยประกันภัยโรคร้ายแรง / ปี', val:fmt(r.ci)},
     {lbl:'เบี้ยประกันภัยรวมสุทธิ / ปี', val:fmt(r.net), oxblood:true},
   ]);
 
-  const panel = app.querySelector('.panel');
   const chartWrap = document.createElement('div');
   chartWrap.innerHTML = buildCISuperCareChartHTML(pp, state.sum);
   panel.appendChild(chartWrap.firstElementChild);
@@ -2182,7 +2274,7 @@ function buildCISuperCareChartHTML(payYears, sumInsured){
 }
 
 
-const CI_SUPERCARE_REPORT_VERSION = "1.1.0";
+const CI_SUPERCARE_REPORT_VERSION = "1.2.0";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
@@ -2251,6 +2343,7 @@ function buildCISuperCareReportData(){
       rate:state.tax,
       relief:Math.min(lifePremium,100000) * state.tax,
       show:state.tax > 0,
+      showInBenefits:state.tax > 0,
     },
     agent:{
       name:state.agent.name || '',
@@ -2376,7 +2469,7 @@ function buildCISuperCareReportHTML(){
 
           <div class="sc-benefit-grid">
             <div class="sc-benefit-card">
-              <div class="sc-benefit-main">
+              <div class="sc-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
                 <div class="sc-benefit-desc">
                   <span class="sc-benefit-no">1.1</span>
                   <span class="sc-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
@@ -2394,11 +2487,17 @@ function buildCISuperCareReportHTML(){
                   <div class="l">รวมสูงสุดได้</div>
                   <div class="v">${fmt(data.benefits.earlyModerate.amount)} บาท</div>
                 </div>
+                ${data.tax.showInBenefits ? `
+                  <div class="sc-benefit-tax">
+                    <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                    <div class="v">${fmt(data.tax.relief)} บาท</div>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
             <div class="sc-benefit-card">
-              <div class="sc-benefit-main">
+              <div class="sc-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
                 <div class="sc-benefit-desc">
                   <span class="sc-benefit-no">1.2</span>
                   <span class="sc-benefit-name">โรคร้ายแรงระดับรุนแรง / เสียชีวิต / ครบกำหนดสัญญา</span>
@@ -2416,6 +2515,12 @@ function buildCISuperCareReportHTML(){
                   <div class="l">หากเคยรับ 1.1 แล้ว</div>
                   <div class="v">${fmt(data.benefits.severeDeathMaturity.amountAfterEarlyClaim)} บาท</div>
                 </div>
+                ${data.tax.showInBenefits ? `
+                  <div class="sc-benefit-tax">
+                    <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                    <div class="v">${fmt(data.tax.relief)} บาท</div>
+                  </div>
+                ` : ''}
               </div>
             </div>
           </div>
