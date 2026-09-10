@@ -436,6 +436,164 @@
     transform-origin:top center;
   }
 
+
+  /* ---------- CI ProCare final-report detail styles ---------- */
+  .rp-benefit-block{
+    border:1px solid #d9d2bf;
+    margin-bottom:8px;
+    background:#fffdf8;
+  }
+  .rp-benefit-main{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 150px 150px;
+    gap:0;
+    align-items:stretch;
+  }
+  .rp-benefit-desc{
+    padding:10px 12px;
+    min-width:0;
+  }
+  .rp-benefit-no{
+    color:#0F6B45;
+    font-weight:800;
+    margin-right:6px;
+  }
+  .rp-benefit-name{
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .rp-benefit-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:7px;
+  }
+  .rp-benefit-tag{
+    display:inline-block;
+    border-radius:999px;
+    padding:3px 8px;
+    font-size:9.5px;
+    line-height:1.35;
+    background:#EFE9DB;
+    color:#5b5549;
+  }
+  .rp-benefit-tag.formula{
+    background:#DDF3E8;
+    color:#0F6B45;
+    font-weight:800;
+  }
+  .rp-benefit-tag.condition{
+    background:#F2E7F5;
+    color:#664274;
+  }
+  .rp-benefit-amount{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:flex-end;
+    padding:10px 12px;
+    border-left:1px solid #e7e1d0;
+    text-align:right;
+  }
+  .rp-benefit-amount .l{
+    font-size:9.5px;
+    color:#847c69;
+    margin-bottom:3px;
+  }
+  .rp-benefit-amount .v{
+    font-size:15px;
+    font-weight:800;
+    color:#0F6B45;
+    white-space:nowrap;
+  }
+  .rp-benefit-subrow{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 150px 150px;
+    border-top:1px solid #e7e1d0;
+    background:#F7F3EA;
+    font-size:10.5px;
+  }
+  .rp-benefit-subrow > div{
+    padding:7px 12px;
+  }
+  .rp-benefit-subrow .money{
+    text-align:right;
+    font-weight:700;
+    color:#0F1B2E;
+    border-left:1px solid #e7e1d0;
+    white-space:nowrap;
+  }
+  .rp-death-lines{
+    font-size:12px;
+    line-height:1.8;
+  }
+  .rp-death-lines .row{
+    display:flex;
+    justify-content:space-between;
+    gap:18px;
+    border-bottom:1px dashed #ddd5c4;
+    padding:4px 0;
+  }
+  .rp-death-lines .row:last-child{
+    border-bottom:none;
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .rp-red-remark{
+    margin:0 18px 10px;
+    padding:9px 12px;
+    border:1px solid #C62828;
+    background:#FFF1F1;
+    color:#B71C1C;
+    text-align:center;
+    font-size:12px;
+    font-weight:800;
+    line-height:1.5;
+  }
+
+
+  /* ---------- product group + customer information ---------- */
+  .tab.active.life{
+    background:var(--navy);
+    color:var(--cream);
+    border-color:var(--navy);
+    box-shadow:inset 0 -3px 0 var(--gold);
+  }
+  .customerbar{
+    background:#F7F3EA;
+    border-top:1px solid #d9d2bf;
+    border-bottom:1px solid #d9d2bf;
+  }
+  .customerbar-inner{
+    max-width:1100px;
+    margin:0 auto;
+    padding:9px 20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .customerbar .abtag{
+    font-size:10px;
+    color:#7b7460;
+    font-weight:700;
+  }
+  .customerbar label{
+    font-size:10.5px;
+    color:#6b6455;
+    margin-right:4px;
+  }
+  .customerbar input{
+    min-width:170px;
+    border:1px solid #cfc7b3;
+    background:#fffdf8;
+    color:#0F1B2E;
+    padding:6px 8px;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    font-size:12px;
+  }
+  .agentbar input[type="date"]{min-width:145px;}
+
 </style>
 </head>
 <body>
@@ -477,19 +635,32 @@
   </div>
 </div>
 
+<div class="customerbar">
+  <div class="customerbar-inner">
+    <span class="abtag">ข้อมูลลูกค้า —</span>
+    <span><label>ชื่อ</label><input id="cust-first-name" type="text" placeholder="ชื่อ"></span>
+    <span><label>นามสกุล</label><input id="cust-last-name" type="text" placeholder="นามสกุล"></span>
+  </div>
+</div>
+
 <div class="agentbar">
   <div class="agentbar-inner">
-    <span class="abtag">ข้อมูลผู้นำเสนอ (แสดงบนภาพที่บันทึก) —</span>
+    <span class="abtag">ข้อมูลตัวแทน (แสดงบนใบสรุป) —</span>
     <span><label>ชื่อตัวแทน</label><input id="ag-name" type="text" placeholder="ชื่อ-นามสกุล"></span>
-    <span><label>โทร.</label><input id="ag-phone" type="text" placeholder="08x-xxx-xxxx"></span>
+    <span><label>เบอร์โทร</label><input id="ag-phone" type="text" placeholder="08x-xxx-xxxx"></span>
     <span><label>LINE</label><input id="ag-line" type="text" placeholder="LINE ID"></span>
+    <span><label>วันที่</label><input id="ag-date" type="date"></span>
   </div>
 </div>
 
 <div class="tabgroup-wrap">
-  <div class="tabgroup-label">กลุ่มออมทรัพย์</div>
+  <div class="tabgroup-label">1. กลุ่มตลอดชีพ</div>
+  <div class="tabs" id="tabs-life"></div>
+
+  <div class="tabgroup-label">2. กลุ่มออมทรัพย์</div>
   <div class="tabs" id="tabs-savings"></div>
-  <div class="tabgroup-label">กลุ่มโรคร้ายแรง</div>
+
+  <div class="tabgroup-label">3. กลุ่มโรคร้ายแรง</div>
   <div class="tabs" id="tabs-ci"></div>
 </div>
 
@@ -782,8 +953,9 @@ function renderLedger(el, rows, cols){
 }
 
 /* ===================== state & UI wiring ===================== */
-const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'excellent',
-  agent: { name:'', phone:'', line:'' },
+const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20',
+  customer: { firstName:'', lastName:'' },
+  agent: { name:'', phone:'', line:'', date:'' },
   paylife20: {
     riders: { healthhappy:false, multipayci:false, tpd:false, ciplus:false, citopup:false, healthcancer:false, ladycare:false, ai:false, hhkids:false, infinitecare:false },
     opts: { healthhappyPlan:0, hcSmoker:0, hcUnits:1, lcPlan:'Lady Care', aiType:'AI', aiClass:1, aiRcc:false, hhkidsPlan:0, hhkidsTier:'10,000', icPlan:'แผน 120 ล้านบาท', icDeductible:'ไม่มี (First Dollar)', icTerritory:'ทั่วโลก' }
@@ -792,21 +964,28 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'excellent
 };
 
 const TABS = [
+  {id:'paylife20', label:'20Pay Life', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
-  {id:'paylife20', label:'20Pay Life', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
   {id:'cisupercare', label:'CI SuperCare', group:'ci'},
 ];
 
 function buildTabs(){
+  const lEl = document.getElementById('tabs-life');
   const sEl = document.getElementById('tabs-savings');
   const cEl = document.getElementById('tabs-ci');
+
   TABS.forEach(t=>{
     const b = document.createElement('button');
-    b.className = 'tab '+t.group; b.textContent = t.label; b.dataset.id = t.id;
+    b.className = 'tab '+t.group;
+    b.textContent = t.label;
+    b.dataset.id = t.id;
     b.onclick = ()=>{ state.tab = t.id; render(); };
-    (t.group==='savings'?sEl:cEl).appendChild(b);
+
+    if(t.group==='life') lEl.appendChild(b);
+    else if(t.group==='savings') sEl.appendChild(b);
+    else cEl.appendChild(b);
   });
 }
 
@@ -1022,19 +1201,40 @@ function productCardData(key){
 
 function buildCIProCareReportHTML(){
   const r = calcCIProCare(state.age, state.gender, state.sum, state.tax);
-  const today = new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'});
+  const reportDate = state.agent.date
+    ? new Date(state.agent.date + 'T00:00:00').toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'})
+    : new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'});
   const taxRelief = Math.min(r.life,100000)*state.tax;
+
+  const earlyPerClaim = state.sum * 0.40;
+  const earlyMax = state.sum * 2.00;
+  const severePerClaim = state.sum * 1.00;
+  const severeMax = state.sum * 6.00;
+  const mibPerClaim = state.sum * 1.00;
+  const mibMax = state.sum * 1.00;
+  const ccbLump = state.sum * 0.10;
+  const ccbMonthly = state.sum * 0.015;
+  const ccbMonthlyTotal = ccbMonthly * 60;
+  const ccbMax = ccbLump + ccbMonthlyTotal;
+  const totalCIMax = state.sum * 10.00;
 
   return `<div class="rp-report">
     <div class="rp-report-head">
       <div>
         <div class="rp-report-brand">ROYAL PARTNER</div>
         <div class="rp-report-title">AIA CI ProCare</div>
-        <div class="rp-report-sub">สรุปประกอบการเสนอขาย • คุ้มครองโรคร้ายแรงครบทุกระยะ</div>
+        <div class="rp-report-sub">สรุปประกอบการเรียนการสอน • แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ</div>
       </div>
       <div class="rp-report-sum">
         <div class="l">จำนวนเงินเอาประกันภัย</div>
         <div class="v">${fmt(state.sum)} บาท</div>
+      </div>
+    </div>
+
+    <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+      <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
+      <div style="font-size:15px;font-weight:700;color:#0F1B2E;">
+        ${(state.customer.firstName || state.customer.lastName) ? `${state.customer.firstName} ${state.customer.lastName}`.trim() : '—'}
       </div>
     </div>
 
@@ -1051,7 +1251,7 @@ function buildCIProCareReportHTML(){
       </div>
       <div class="rp-kpi critical">
         <div class="l">ผลประโยชน์โรคร้ายแรงรวมสูงสุด</div>
-        <div class="v">${fmt(state.sum*10)} บาท</div>
+        <div class="v">${fmt(totalCIMax)} บาท</div>
       </div>
       <div class="rp-kpi">
         <div class="l">กรณีเสียชีวิต / ครบกำหนด</div>
@@ -1062,82 +1262,191 @@ function buildCIProCareReportHTML(){
     <div class="rp-section">
       <div class="rp-section-title">จุดเด่นแบบประกัน</div>
       <div class="rp-highlight-grid">
-        <div class="rp-highlight"><b>1.</b> คุ้มครองโรคร้ายแรงทั้งระดับต้น-ปานกลาง และระดับรุนแรง</div>
-        <div class="rp-highlight"><b>2.</b> ระดับต้น-ปานกลาง รับ 40% ต่อครั้ง สูงสุด 5 ครั้ง</div>
-        <div class="rp-highlight"><b>3.</b> ระดับรุนแรง รับ 100% ต่อครั้ง สูงสุด 6 ครั้ง</div>
-        <div class="rp-highlight"><b>4.</b> ผลประโยชน์โรคร้ายแรงรวมสูงสุด 1,000% ของทุนประกัน</div>
+        <div class="rp-highlight"><b>1.</b> แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ ถึงอายุ 99 ปี</div>
+        <div class="rp-highlight"><b>2.</b> คุ้มครองโรคร้ายแรงรวม 62 โรค/การรักษา ครอบคลุมตั้งแต่ระดับต้นถึงระดับรุนแรง</div>
+        <div class="rp-highlight"><b>3.</b> มีผลประโยชน์ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</div>
+        <div class="rp-highlight"><b>4.</b> มีผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</div>
       </div>
     </div>
 
     <div class="rp-section">
-      <div class="rp-section-title">ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
-      <table class="rp-benefit-table">
-        <thead>
-          <tr>
-            <th>รายการ</th>
-            <th>รับเงิน / ครั้ง</th>
-            <th>เคลมสูงสุด</th>
-          </tr>
-        </thead>
+      <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
+
+      <div class="rp-benefit-block">
+        <div class="rp-benefit-main">
+          <div class="rp-benefit-desc">
+            <span class="rp-benefit-no">1.1</span>
+            <span class="rp-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
+            <div class="rp-benefit-tags">
+              <span class="rp-benefit-tag formula">40% × 5 ครั้ง = 200%</span>
+              <span class="rp-benefit-tag">18 โรค/การรักษา</span>
+              <span class="rp-benefit-tag">สูงสุด 5 ครั้ง</span>
+            </div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">รับเงิน / ครั้ง</div>
+            <div class="v">${fmt(earlyPerClaim)} บาท</div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">เคลมสูงสุดได้</div>
+            <div class="v">${fmt(earlyMax)} บาท</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-benefit-block">
+        <div class="rp-benefit-main">
+          <div class="rp-benefit-desc">
+            <span class="rp-benefit-no">1.2</span>
+            <span class="rp-benefit-name">โรคร้ายแรงระดับรุนแรง</span>
+            <div class="rp-benefit-tags">
+              <span class="rp-benefit-tag formula">100% × 6 ครั้ง = 600%</span>
+              <span class="rp-benefit-tag">44 โรค/การรักษา</span>
+              <span class="rp-benefit-tag">สูงสุด 6 ครั้ง</span>
+              <span class="rp-benefit-tag condition">เป็นซ้ำได้ตามเงื่อนไข</span>
+            </div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">รับเงิน / ครั้ง</div>
+            <div class="v">${fmt(severePerClaim)} บาท</div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">เคลมสูงสุดได้</div>
+            <div class="v">${fmt(severeMax)} บาท</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-benefit-block">
+        <div class="rp-benefit-main">
+          <div class="rp-benefit-desc">
+            <span class="rp-benefit-no">1.3</span>
+            <span class="rp-benefit-name">ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</span>
+            <div class="rp-benefit-tags">
+              <span class="rp-benefit-tag formula">100% × 1 ครั้ง = 100%</span>
+              <span class="rp-benefit-tag condition">ตามเงื่อนไขของกรมธรรม์</span>
+            </div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">รับเงิน / ครั้ง</div>
+            <div class="v">${fmt(mibPerClaim)} บาท</div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">เคลมสูงสุดได้</div>
+            <div class="v">${fmt(mibMax)} บาท</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-benefit-block">
+        <div class="rp-benefit-main">
+          <div class="rp-benefit-desc">
+            <span class="rp-benefit-no">1.4</span>
+            <span class="rp-benefit-name">การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</span>
+            <div class="rp-benefit-tags">
+              <span class="rp-benefit-tag formula">10% + (1.5% × 60 เดือน) = 100%</span>
+              <span class="rp-benefit-tag condition">คุ้มครอง 8 โรคตามเงื่อนไข</span>
+            </div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">รวมสูงสุด</div>
+            <div class="v">${fmt(ccbMax)} บาท</div>
+          </div>
+          <div class="rp-benefit-amount">
+            <div class="l">สัดส่วนสูงสุด</div>
+            <div class="v">100%</div>
+          </div>
+        </div>
+        <div class="rp-benefit-subrow">
+          <div><b>1.4.1</b> จ่ายครั้งเดียว 10% ของทุนประกัน</div>
+          <div class="money">${fmt(ccbLump)} บาท</div>
+          <div class="money">${fmt(ccbLump)} บาท</div>
+        </div>
+        <div class="rp-benefit-subrow">
+          <div><b>1.4.2</b> จ่ายรายเดือน เดือนละ 1.5% ต่อเนื่อง 60 เดือน</div>
+          <div class="money">${fmt(ccbMonthly)} บาท/เดือน</div>
+          <div class="money">${fmt(ccbMonthlyTotal)} บาท</div>
+        </div>
+      </div>
+
+      <table class="rp-benefit-table" style="margin-top:8px">
         <tbody>
           <tr>
-            <td>โรคร้ายแรงระดับต้น-ปานกลาง</td>
-            <td class="num">${fmt(state.sum*0.4)} บาท</td>
-            <td class="num">${fmt(state.sum*2)} บาท</td>
-          </tr>
-          <tr>
-            <td>โรคร้ายแรงระดับรุนแรง</td>
-            <td class="num">${fmt(state.sum)} บาท</td>
-            <td class="num">${fmt(state.sum*6)} บาท</td>
-          </tr>
-          <tr>
-            <td><b>ผลประโยชน์โรคร้ายแรงรวมสูงสุด</b></td>
+            <td><b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br><span style="font-size:9.5px;color:#847c69">800% (1.1–1.2) + 200% (1.3–1.4)</span></td>
             <td></td>
-            <td class="num">${fmt(state.sum*10)} บาท</td>
+            <td class="num">${fmt(totalCIMax)} บาท</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="rp-section">
-      <div class="rp-section-title">ข้อมูลความคุ้มครองและภาษี</div>
+      <div class="rp-section-title">2 ผลประโยชน์กรณีเสียชีวิต</div>
+      <div class="rp-info-box">
+        <div class="rp-death-lines">
+          <div class="row"><span>สัญญาหลัก</span><strong>อย่างน้อย ${fmt(state.sum)} บาท</strong></div>
+          <div class="row"><span>รวม</span><strong>อย่างน้อย ${fmt(state.sum)} บาท</strong></div>
+        </div>
+        <div style="margin-top:7px;font-size:9.5px;color:#847c69;line-height:1.55">
+          ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขของแบบประกันภัยหลัก AIA CI ProCare
+          โดยบริษัทจะพิจารณาจำนวนที่มากกว่าตามเงื่อนไขในกรมธรรม์ และหักผลประโยชน์ที่ได้จ่ายไปแล้ว (ถ้ามี)
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
       <div class="rp-two-col">
         <div class="rp-info-box">
           <div class="head">ระยะเวลาความคุ้มครอง</div>
-          คุ้มครองถึงอายุ 99 ปี<br>
-          หลังอายุ 85 ปี ผลประโยชน์รวมสูงสุดลดเหลือ 140% ของทุนประกัน
+          แบบประกันภัยหลักคุ้มครองถึงอายุ 99 ปี<br>
+          <span style="color:#847c69">ตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข</span>
         </div>
         <div class="rp-info-box">
           <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
           ${fmt(taxRelief)} บาท<br>
-          <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(state.tax*100)}% ที่เลือกในเครื่องมือ</span>
+          <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(state.tax*100)}%</span>
         </div>
       </div>
     </div>
 
     <div class="rp-agent-row">
-      <div class="cell">ตัวแทน<b>${state.agent.name || 'ตัวแทน Royal Partners'}</b></div>
+      <div class="cell">ตัวแทน<b>${state.agent.name || 'ตัวแทน Royal Partner'}</b></div>
       <div class="cell">โทร.<b>${state.agent.phone || '—'}</b></div>
       <div class="cell">LINE<b>${state.agent.line || '—'}</b></div>
-      <div class="cell">วันที่<b>${today}</b></div>
+      <div class="cell">วันที่<b>${reportDate}</b></div>
+    </div>
+
+    <div class="rp-red-remark">
+      หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
     </div>
 
     <div class="rp-report-foot">
-      <b>หมายเหตุ:</b> เอกสารนี้จัดทำขึ้นเพื่ออธิบายและสร้างความเข้าใจเบื้องต้น ไม่ใช่เอกสารสัญญา
-      เงื่อนไขความคุ้มครองที่แท้จริงให้ยึดตามกรมธรรม์และเอกสารประกอบการเสนอขายจากบริษัทประกันเป็นหลัก
+      <b>คำชี้แจง:</b> เอกสารนี้จัดทำขึ้นเพื่อประกอบการเรียนการสอนและสร้างความเข้าใจเบื้องต้นเท่านั้น
+      ตัวเลขที่แสดงอ้างอิงจากข้อมูลที่กรอกในเครื่องมือและผลการคำนวณของระบบ
+      เงื่อนไข ความคุ้มครอง ข้อยกเว้น เบี้ยประกันภัย และสิทธิประโยชน์ที่แท้จริง
+      ให้ยึดตามกรมธรรม์ เอกสารประกอบการเสนอขาย และเงื่อนไขของบริษัทประกันภัย
     </div>
   </div>`;
 }
 
 function buildCardHTML(data, key){
   if(key==='ciprocare') return buildCIProCareReportHTML();
-  const today = new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'});
+  const reportDate = state.agent.date
+    ? new Date(state.agent.date + 'T00:00:00').toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'})
+    : new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'});
   return `<div class="card ${data.ci?'ci':''}">
     <div class="card-head">
       <div class="mark">ROYAL PARTNER</div>
       <h2>${data.title}</h2>
       <div class="desc">${data.desc}</div>
       <div class="suminsured"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">${fmt(state.sum)} บาท</div></div>
+    </div>
+    <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+      <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
+      <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
+        ${(state.customer.firstName || state.customer.lastName) ? `${state.customer.firstName} ${state.customer.lastName}`.trim() : '—'}
+      </div>
     </div>
     <div class="card-row">
       <div class="card-cell"><div class="l">เพศ</div><div class="v">${state.gender}</div></div>
@@ -1156,7 +1465,7 @@ function buildCardHTML(data, key){
         <b>${state.agent.name || 'ตัวแทนประกันชีวิต Royal Partners'}</b><br>
         ${state.agent.phone ? 'โทร. '+state.agent.phone : ''} ${state.agent.line ? '&nbsp;&nbsp;LINE: '+state.agent.line : ''}
       </div>
-      <div class="date">จัดทำเมื่อ<br>${today}</div>
+      <div class="date">จัดทำเมื่อ<br>${reportDate}</div>
     </div>
     <div class="card-disclaimer">เอกสารนี้จัดทำขึ้นเพื่ออธิบายและสร้างความเข้าใจเบื้องต้น ไม่ใช่เอกสารสัญญา เงื่อนไขความคุ้มครองที่แท้จริงให้ยึดตามกรมธรรม์และเอกสารประกอบการเสนอขายจากบริษัทประกันเป็นหลัก</div>
   </div>`;
@@ -1342,13 +1651,25 @@ function wireInputs(){
     e.target.value = state.sum.toLocaleString('en-US', {useGrouping:true, maximumFractionDigits:0});
   });
   document.getElementById('in-tax').addEventListener('change', e=>{ state.tax = parseFloat(e.target.value); render(); });
+  document.getElementById('cust-first-name').addEventListener('input', e=>{ state.customer.firstName = e.target.value; });
+  document.getElementById('cust-last-name').addEventListener('input', e=>{ state.customer.lastName = e.target.value; });
   document.getElementById('ag-name').addEventListener('input', e=>{ state.agent.name = e.target.value; });
   document.getElementById('ag-phone').addEventListener('input', e=>{ state.agent.phone = e.target.value; });
   document.getElementById('ag-line').addEventListener('input', e=>{ state.agent.line = e.target.value; });
+  document.getElementById('ag-date').addEventListener('change', e=>{ state.agent.date = e.target.value; });
+}
+
+function initReportDate(){
+  const dateInput = document.getElementById('ag-date');
+  const now = new Date();
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  state.agent.date = localDate;
+  dateInput.value = localDate;
 }
 
 buildTabs();
 wireInputs();
+initReportDate();
 render();
 </script>
 </body>
