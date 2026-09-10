@@ -1,4 +1,3 @@
-
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -9,6 +8,7 @@ const PUBLIC_PATHS = [
   "/agent",
   "/annual-target",
   "/illustrations",
+  "/vendor",
   "/auth/confirm",
 ];
 
@@ -29,7 +29,10 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/agent-master",
 ];
 
-function pathMatches(pathname: string, allowedPath: string) {
+function pathMatches(
+  pathname: string,
+  allowedPath: string
+) {
   if (allowedPath === "/") {
     return pathname === "/";
   }
@@ -74,15 +77,18 @@ function redirectWithCookies(
   url.pathname = pathname;
   url.search = "";
 
-  const redirectResponse = NextResponse.redirect(url);
+  const redirectResponse =
+    NextResponse.redirect(url);
 
-  response.cookies.getAll().forEach((cookie) => {
-    redirectResponse.cookies.set(
-      cookie.name,
-      cookie.value,
-      cookie
-    );
-  });
+  response.cookies
+    .getAll()
+    .forEach((cookie) => {
+      redirectResponse.cookies.set(
+        cookie.name,
+        cookie.value,
+        cookie
+      );
+    });
 
   return redirectResponse;
 }
@@ -92,17 +98,22 @@ function jsonWithCookies(
   body: Record<string, unknown>,
   status: number
 ) {
-  const jsonResponse = NextResponse.json(body, {
-    status,
-  });
+  const jsonResponse = NextResponse.json(
+    body,
+    {
+      status,
+    }
+  );
 
-  response.cookies.getAll().forEach((cookie) => {
-    jsonResponse.cookies.set(
-      cookie.name,
-      cookie.value,
-      cookie
-    );
-  });
+  response.cookies
+    .getAll()
+    .forEach((cookie) => {
+      jsonResponse.cookies.set(
+        cookie.name,
+        cookie.value,
+        cookie
+      );
+    });
 
   return jsonResponse;
 }
@@ -110,49 +121,65 @@ function jsonWithCookies(
 export async function middleware(
   request: NextRequest
 ) {
-  const pathname = request.nextUrl.pathname;
+  const pathname =
+    request.nextUrl.pathname;
 
-  let response = NextResponse.next({
-    request,
-  });
+  let response =
+    NextResponse.next({
+      request,
+    });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
+  const supabase =
+    createServerClient(
+      process.env
+        .NEXT_PUBLIC_SUPABASE_URL!,
+      process.env
+        .NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
 
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(
+              ({ name, value }) => {
+                request.cookies.set(
+                  name,
+                  value
+                );
+              }
+            );
 
-          response = NextResponse.next({
-            request,
-          });
+            response =
+              NextResponse.next({
+                request,
+              });
 
-          cookiesToSet.forEach(
-            ({ name, value, options }) => {
-              response.cookies.set(
+            cookiesToSet.forEach(
+              ({
                 name,
                 value,
-                options
-              );
-            }
-          );
+                options,
+              }) => {
+                response.cookies.set(
+                  name,
+                  value,
+                  options
+                );
+              }
+            );
+          },
         },
-      },
-    }
-  );
+      }
+    );
 
   // ตรวจสอบ User จาก Supabase Auth
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth.getUser();
 
   // -----------------------------
   // PUBLIC ROUTES
@@ -185,7 +212,9 @@ export async function middleware(
 
   if (!user || userError) {
     // API ต้องตอบ JSON
-    if (pathname.startsWith("/api/")) {
+    if (
+      pathname.startsWith("/api/")
+    ) {
       return jsonWithCookies(
         response,
         {
@@ -196,7 +225,8 @@ export async function middleware(
       );
     }
 
-    const loginUrl = request.nextUrl.clone();
+    const loginUrl =
+      request.nextUrl.clone();
 
     loginUrl.pathname = "/login";
     loginUrl.search = "";
@@ -226,7 +256,9 @@ export async function middleware(
     !profile ||
     profile.active !== true
   ) {
-    if (pathname.startsWith("/api/")) {
+    if (
+      pathname.startsWith("/api/")
+    ) {
       return jsonWithCookies(
         response,
         {
@@ -244,7 +276,8 @@ export async function middleware(
     );
   }
 
-  const role = profile.role as Role;
+  const role =
+    profile.role as Role;
 
   // -----------------------------
   // MANAGER
@@ -262,27 +295,40 @@ export async function middleware(
   if (role === "admin") {
     // หน้าเว็บที่ Admin เข้าได้
     if (
-      !pathname.startsWith("/api/") &&
-      isAdminAllowedPath(pathname)
+      !pathname.startsWith(
+        "/api/"
+      ) &&
+      isAdminAllowedPath(
+        pathname
+      )
     ) {
       return response;
     }
 
     // API ที่ Admin ใช้ได้
     if (
-      pathname.startsWith("/api/") &&
-      isAdminAllowedApiPath(pathname)
+      pathname.startsWith(
+        "/api/"
+      ) &&
+      isAdminAllowedApiPath(
+        pathname
+      )
     ) {
       return response;
     }
 
     // Admin พยายามเรียก API Manager
-    if (pathname.startsWith("/api/")) {
+    if (
+      pathname.startsWith(
+        "/api/"
+      )
+    ) {
       return jsonWithCookies(
         response,
         {
           ok: false,
-          error: "Manager access required",
+          error:
+            "Manager access required",
         },
         403
       );
@@ -298,7 +344,9 @@ export async function middleware(
   }
 
   // Role อื่นที่ไม่รู้จัก
-  if (pathname.startsWith("/api/")) {
+  if (
+    pathname.startsWith("/api/")
+  ) {
     return jsonWithCookies(
       response,
       {
