@@ -48,7 +48,7 @@ export default function CalculatorPage() {
         <iframe
           title="Royal Partners Insurance Calculator"
           src="/illustrations/royal_partners_illustration_tool.html"
-          sandbox="allow-scripts"
+          sandbox="allow-scripts allow-downloads"
           referrerPolicy="no-referrer"
           style={{
             display: "block",
