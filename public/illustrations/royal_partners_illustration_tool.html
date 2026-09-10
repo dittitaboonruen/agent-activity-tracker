@@ -2215,8 +2215,10 @@ function productCardData(key){
 function buildCISuperCareChartHTML(payYears, sumInsured){
   const years = Array.from({length:payYears},(_,i)=>`<span>${i+1}</span>`).join('');
   const payIcons = Array.from({length:payYears},()=>'<span>▲</span>').join('');
+
   const early = sumInsured * 0.20;
   const full = sumInsured;
+  const remainingAfterEarly = sumInsured * 0.80;
 
   return `
     <div class="sc-chart">
@@ -2226,18 +2228,22 @@ function buildCISuperCareChartHTML(payYears, sumInsured){
         <div class="sc-chart-label">ความคุ้มครองโรคร้ายแรง</div>
         <div class="sc-chart-stack">
           <div class="sc-chart-bar">
-            ความคุ้มครองโรคร้ายแรงระดับต้นถึงระดับปานกลาง 20% ของจำนวนเงินเอาประกันภัย
-            จำกัดโรคร้ายแรงโรคเดียวเท่านั้น (จ่ายเพียงครั้งเดียว)
+            ระดับต้นถึงระดับปานกลาง
+            ${fmt(early)} บาท (20% ของจำนวนเงินเอาประกันภัย)
+            จำกัดโรคร้ายแรงโรคเดียวเท่านั้น และจ่ายเพียงครั้งเดียว
           </div>
+
           <div class="sc-chart-bar dark">
-            ความคุ้มครองโรคร้ายแรงระดับรุนแรง 100% ของจำนวนเงินเอาประกันภัย*
+            ระดับรุนแรง สูงสุด ${fmt(full)} บาท (100%)*
           </div>
         </div>
       </div>
 
       <div class="sc-chart-row">
         <div class="sc-chart-label">ความคุ้มครองชีวิต</div>
-        <div class="sc-chart-bar dark">100% ของจำนวนเงินเอาประกันภัย*</div>
+        <div class="sc-chart-bar dark">
+          สูงสุด ${fmt(full)} บาท (100%)*
+        </div>
       </div>
 
       <div class="sc-chart-row">
@@ -2261,20 +2267,23 @@ function buildCISuperCareChartHTML(payYears, sumInsured){
             <span class="sc-chart-box"></span>
             <span>เงินคืน ณ วันครบกำหนดสัญญา</span>
           </div>
-          <span class="sc-chart-badge">100%*</span>
+          <span class="sc-chart-badge">${fmt(full)} บาท (100%)*</span>
         </div>
       </div>
 
       <div class="sc-chart-footnote">
-        * 100% ของจำนวนเงินเอาประกันภัย หักผลประโยชน์ความคุ้มครองโรคร้ายแรงระดับต้นถึงระดับปานกลาง
-        ที่ได้จ่ายไปแล้ว (ถ้ามี) และกรมธรรม์จะสิ้นผลบังคับทันทีตามเงื่อนไข
+        * หากไม่เคยรับผลประโยชน์ระดับต้นถึงระดับปานกลางมาก่อน:
+        ผลประโยชน์ระดับรุนแรง / เสียชีวิต / ครบกำหนดสัญญา สูงสุด ${fmt(full)} บาท (100%)
+        <br>
+        หากเคยรับผลประโยชน์ระดับต้นถึงระดับปานกลาง ${fmt(early)} บาท (20%) แล้ว:
+        ผลประโยชน์คงเหลือสูงสุด ${fmt(remainingAfterEarly)} บาท (80%)
+        โดยผลประโยชน์รวมทั้งหมดไม่เกิน 100% ของจำนวนเงินเอาประกันภัย ตามเงื่อนไข
       </div>
     </div>
   `;
 }
 
-
-const CI_SUPERCARE_REPORT_VERSION = "1.2.0";
+const CI_SUPERCARE_REPORT_VERSION = "1.2.1";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
