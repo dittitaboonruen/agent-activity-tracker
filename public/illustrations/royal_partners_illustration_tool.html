@@ -3055,7 +3055,7 @@ function buildCardHTML(data, key){
     : new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'});
   return `<div class="card ${data.ci?'ci':''}">
     <div class="card-head">
-      <div class="mark">ROYAL PARTNER</div>
+      <div class="mark"></div>
       <h2>${data.title}</h2>
       <div class="desc">${data.desc}</div>
       <div class="suminsured"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">${fmt(state.sum)} บาท</div></div>
