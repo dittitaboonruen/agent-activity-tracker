@@ -3151,7 +3151,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.1.4";
+const CI_PROCARE_REPORT_VERSION = "1.1.5";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
@@ -3399,7 +3399,7 @@ function buildCIProCareReportHTML(){
       <div class="rp-page-inner">
         <div class="rp-report-head">
           <div>
-            <div class="rp-report-brand">ROYAL PARTNER</div>
+            
             <div class="rp-report-title">${data.product.name}</div>
           </div>
           <div class="rp-report-sum">
@@ -3842,6 +3842,65 @@ async function renderReportPageToCanvas(pageEl){
   });
 }
 
+
+function isAppleTouchDevice(){
+  const ua = navigator.userAgent || '';
+  const iOS = /iPad|iPhone|iPod/i.test(ua);
+  const iPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  return iOS || iPadOS;
+}
+
+async function savePdfCrossDevice(pdf, filename){
+  const blob = pdf.output('blob');
+
+  // iPad/iPhone Safari: download attribute can silently do nothing inside iframe.
+  // Prefer the native Share sheet so the user can choose "Save to Files".
+  if(isAppleTouchDevice() && typeof File !== 'undefined'){
+    try{
+      const file = new File([blob], filename, {type:'application/pdf'});
+
+      if(
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({files:[file]})
+      ){
+        await navigator.share({
+          files:[file],
+          title: filename
+        });
+        return {mode:'share'};
+      }
+    }catch(error){
+      // User cancelling the Share sheet is not a system failure.
+      if(error && error.name === 'AbortError'){
+        return {mode:'cancelled'};
+      }
+      console.warn('iPad PDF share fallback:', error);
+    }
+  }
+
+  // Standard browser download.
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 15000);
+    return {mode:'download'};
+  }catch(error){
+    console.warn('Blob download fallback:', error);
+  }
+
+  // Last fallback for browsers where blob-anchor download is restricted.
+  pdf.save(filename);
+  return {mode:'jspdf-save'};
+}
+
 async function downloadCIProCarePDF(btn){
   if(btn.dataset.busy === '1') return;
 
@@ -3893,7 +3952,7 @@ async function downloadCIProCarePDF(btn){
     const filename =
       `royal-partner-ci-procare-${customerName}-v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`;
 
-    pdf.save(filename);
+    await savePdfCrossDevice(pdf, filename);
 
   }catch(error){
     console.error('CI ProCare PDF export error:', error);
@@ -3956,7 +4015,7 @@ async function downloadCISuperCarePDF(btn){
     const filename =
       `royal-partner-ci-supercare-${customerName}-v${CI_SUPERCARE_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`;
 
-    pdf.save(filename);
+    await savePdfCrossDevice(pdf, filename);
 
   }catch(error){
     console.error('CI SuperCare PDF export error:',error);
@@ -4006,9 +4065,7 @@ async function downloadExcellentPDF(btn){
       ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
       : 'customer';
 
-    pdf.save(
-      `royal-partner-excellent-${customerName}-v${EXCELLENT_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`
-    );
+    await savePdfCrossDevice(pdf, `royal-partner-excellent-${customerName}-v${EXCELLENT_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`);
 
   }catch(error){
     console.error('Excellent PDF export error:',error);
