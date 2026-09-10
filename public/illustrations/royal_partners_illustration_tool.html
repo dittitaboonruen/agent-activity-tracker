@@ -860,6 +860,35 @@
     color:#fff;
   }
 
+
+  /* ---------- CI ProCare optional tax relief column ---------- */
+  .rp-benefit-main.has-tax{
+    grid-template-columns:minmax(0,1.55fr) minmax(118px,.52fr) minmax(118px,.52fr) minmax(150px,.66fr);
+  }
+  .rp-benefit-tax{
+    padding:10px 12px;
+    border-left:1px solid #d9d2bf;
+    background:#fffdf8;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:right;
+  }
+  .rp-benefit-tax .l{
+    font-size:8.8px;
+    line-height:1.35;
+    color:#847c69;
+  }
+  .rp-benefit-tax .v{
+    margin-top:3px;
+    font-size:13.5px;
+    line-height:1.25;
+    font-weight:800;
+    color:#B8985A;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+
 </style>
 </head>
 <body>
@@ -1672,6 +1701,7 @@ function buildCIProCareReportData(){
     tax: {
       rate: state.tax,
       relief: Math.min(lifePremium, 100000) * state.tax,
+      showInBenefits: state.tax > 0,
     },
     calculationMeta: {
       source: 'calcCIProCare',
@@ -1840,7 +1870,7 @@ function buildCIProCareReportHTML(){
           <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
 
           <div class="rp-benefit-block">
-            <div class="rp-benefit-main">
+            <div class="rp-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
               <div class="rp-benefit-desc">
                 <span class="rp-benefit-no">1.1</span>
                 <span class="rp-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
@@ -1858,11 +1888,17 @@ function buildCIProCareReportHTML(){
                 <div class="l">เคลมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.early.maxTotal)} บาท</div>
               </div>
+              ${data.tax.showInBenefits ? `
+                <div class="rp-benefit-tax">
+                  <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                  <div class="v">${fmt(data.tax.relief)} บาท</div>
+                </div>
+              ` : ''}
             </div>
           </div>
 
           <div class="rp-benefit-block">
-            <div class="rp-benefit-main">
+            <div class="rp-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
               <div class="rp-benefit-desc">
                 <span class="rp-benefit-no">1.2</span>
                 <span class="rp-benefit-name">โรคร้ายแรงระดับรุนแรง</span>
@@ -1881,11 +1917,17 @@ function buildCIProCareReportHTML(){
                 <div class="l">เคลมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.severe.maxTotal)} บาท</div>
               </div>
+              ${data.tax.showInBenefits ? `
+                <div class="rp-benefit-tax">
+                  <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                  <div class="v">${fmt(data.tax.relief)} บาท</div>
+                </div>
+              ` : ''}
             </div>
           </div>
 
           <div class="rp-benefit-block">
-            <div class="rp-benefit-main">
+            <div class="rp-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
               <div class="rp-benefit-desc">
                 <span class="rp-benefit-no">1.3</span>
                 <span class="rp-benefit-name">ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</span>
@@ -1902,11 +1944,17 @@ function buildCIProCareReportHTML(){
                 <div class="l">เคลมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.mib.maxTotal)} บาท</div>
               </div>
+              ${data.tax.showInBenefits ? `
+                <div class="rp-benefit-tax">
+                  <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                  <div class="v">${fmt(data.tax.relief)} บาท</div>
+                </div>
+              ` : ''}
             </div>
           </div>
 
           <div class="rp-benefit-block">
-            <div class="rp-benefit-main">
+            <div class="rp-benefit-main ${data.tax.showInBenefits ? 'has-tax' : ''}">
               <div class="rp-benefit-desc">
                 <span class="rp-benefit-no">1.4</span>
                 <span class="rp-benefit-name">การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</span>
@@ -1923,6 +1971,12 @@ function buildCIProCareReportHTML(){
                 <div class="l">สัดส่วนสูงสุด</div>
                 <div class="v">100%</div>
               </div>
+              ${data.tax.showInBenefits ? `
+                <div class="rp-benefit-tax">
+                  <div class="l">ประมาณการลดหย่อนภาษี / ปี<br>(ส่วนเบี้ยชีวิต)</div>
+                  <div class="v">${fmt(data.tax.relief)} บาท</div>
+                </div>
+              ` : ''}
             </div>
 
             <div class="rp-benefit-subrow">
