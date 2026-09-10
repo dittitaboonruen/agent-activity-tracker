@@ -1541,6 +1541,8 @@ function buildCIProCareReportHTML(){
   const totalCIMax = state.sum * 10.00;
 
   return `<div class="rp-report">
+
+    <!-- PART A : หน้าแรก / ภาพรวม -->
     <div class="rp-report-head">
       <div>
         <div class="rp-report-brand">ROYAL PARTNER</div>
@@ -1556,7 +1558,9 @@ function buildCIProCareReportHTML(){
     <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
       <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
       <div style="font-size:15px;font-weight:700;color:#0F1B2E;">
-        ${(state.customer.firstName || state.customer.lastName) ? `${state.customer.firstName} ${state.customer.lastName}`.trim() : '—'}
+        ${(state.customer.firstName || state.customer.lastName)
+          ? `${state.customer.firstName} ${state.customer.lastName}`.trim()
+          : '—'}
       </div>
     </div>
 
@@ -1568,27 +1572,34 @@ function buildCIProCareReportHTML(){
 
     <div class="rp-report-kpis">
       <div class="rp-kpi">
-        <div class="l">เบี้ยประกันภัยปีแรก (สุทธิ)</div>
-        <div class="v">${fmt(r.net)} บาท</div>
-      </div>
-      <div class="rp-kpi critical">
-        <div class="l">ผลประโยชน์โรคร้ายแรงรวมสูงสุด</div>
-        <div class="v">${fmt(totalCIMax)} บาท</div>
+        <div class="l">เบี้ยประกันภัยชีวิต / ปี</div>
+        <div class="v">${fmt(r.life)} บาท</div>
       </div>
       <div class="rp-kpi">
-        <div class="l">กรณีเสียชีวิต / ครบกำหนด</div>
-        <div class="v">≥ ${fmt(state.sum)} บาท</div>
+        <div class="l">เบี้ยประกันภัยโรคร้ายแรง / ปี</div>
+        <div class="v">${fmt(r.ci)} บาท</div>
+      </div>
+      <div class="rp-kpi critical">
+        <div class="l">เบี้ยประกันภัยรวมสุทธิ / ปี</div>
+        <div class="v">${fmt(r.net)} บาท</div>
       </div>
     </div>
 
+    ${buildCIProCareTimelineHTML()}
+
     <div class="rp-section">
-      <div class="rp-section-title">จุดเด่นแบบประกัน</div>
-      <div class="rp-highlight-grid">
-        <div class="rp-highlight"><b>1.</b> แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ ถึงอายุ 99 ปี</div>
-        <div class="rp-highlight"><b>2.</b> คุ้มครองโรคร้ายแรงรวม 62 โรค/การรักษา ครอบคลุมตั้งแต่ระดับต้นถึงระดับรุนแรง</div>
-        <div class="rp-highlight"><b>3.</b> มีผลประโยชน์ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต (MIB)</div>
-        <div class="rp-highlight"><b>4.</b> มีผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง (CCB)</div>
+      <div class="rp-info-box" style="background:#F7F3EA;">
+        <div class="head">หมายเหตุการอ้างอิงผลประโยชน์</div>
+        ผลประโยชน์โรคร้ายแรงระดับต้น–ปานกลาง 40% ต่อครั้ง สูงสุด 5 ครั้ง
+        และระดับรุนแรง 100% ต่อครั้ง สูงสุด 6 ครั้ง
+        รวมผลประโยชน์โรคร้ายแรงสูงสุด 1,000% ของจำนวนเงินเอาประกันภัย
+        โดยตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
       </div>
+    </div>
+
+    <!-- PART B : หน้าสรุปรายละเอียด ต่อท้ายใน report เดียว -->
+    <div class="rp-section" style="padding-top:4px;">
+      <div class="rp-section-title">สรุปรายละเอียดผลประโยชน์</div>
     </div>
 
     <div class="rp-section">
@@ -1679,6 +1690,7 @@ function buildCIProCareReportHTML(){
             <div class="v">100%</div>
           </div>
         </div>
+
         <div class="rp-benefit-subrow">
           <div><b>1.4.1</b> จ่ายครั้งเดียว 10% ของทุนประกัน</div>
           <div class="money">${fmt(ccbLump)} บาท</div>
@@ -1694,7 +1706,12 @@ function buildCIProCareReportHTML(){
       <table class="rp-benefit-table" style="margin-top:8px">
         <tbody>
           <tr>
-            <td><b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br><span style="font-size:9.5px;color:#847c69">800% (1.1–1.2) + 200% (1.3–1.4)</span></td>
+            <td>
+              <b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br>
+              <span style="font-size:9.5px;color:#847c69">
+                800% (1.1–1.2) + 200% (1.3–1.4)
+              </span>
+            </td>
             <td></td>
             <td class="num">${fmt(totalCIMax)} บาท</td>
           </tr>
@@ -1716,15 +1733,15 @@ function buildCIProCareReportHTML(){
       </div>
     </div>
 
-    ${buildCIProCareTimelineHTML()}
-
     <div class="rp-section">
       <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
       <div class="rp-two-col">
         <div class="rp-info-box">
           <div class="head">ระยะเวลาความคุ้มครอง</div>
           แบบประกันภัยหลักคุ้มครองถึงอายุ 99 ปี<br>
-          <span style="color:#847c69">ตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข</span>
+          <span style="color:#847c69">
+            ตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
+          </span>
         </div>
         <div class="rp-info-box">
           <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
@@ -1839,7 +1856,7 @@ function showReportPreview(key){
     <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
       <div class="rp-preview-dialog">
         <div class="rp-preview-toolbar">
-          <strong>${key==='ciprocare'?'ตัวอย่างใบสรุป CI ProCare ฉบับเต็ม':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+          <strong>${key==='ciprocare'?'CI ProCare — ใบสรุปฉบับเต็ม (หน้าแรก + รายละเอียด)':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
           <div class="rp-preview-actions">
             <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
             <button type="button" class="rp-preview-close">ปิด</button>
@@ -1867,7 +1884,7 @@ function exportImage(key, btn){
 function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
-  row.innerHTML = `<button class="btn-export">${key==='ciprocare'?'ดูตัวอย่างใบสรุป 1 หน้า (Royal Partners)':'ดูตัวอย่างภาพสรุป (Royal Partners)'}</button>`;
+  row.innerHTML = `<button class="btn-export">${key==='ciprocare'?'ดูใบสรุปฉบับเต็มและบันทึก PNG':'ดูตัวอย่างภาพสรุป (Royal Partners)'}</button>`;
   panel.appendChild(row);
   row.querySelector('.btn-export').addEventListener('click', e=>exportImage(key, e.target));
 }
