@@ -382,6 +382,60 @@
   }
   .rp-report-foot b{color:#B8985A;}
 
+
+  /* ---------- report preview modal ---------- */
+  .rp-preview-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,27,46,.72);
+    z-index:9999;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:24px 12px;
+    overflow:auto;
+  }
+  .rp-preview-dialog{
+    width:min(860px,100%);
+    background:#F7F3EA;
+    border:1px solid #d9d2bf;
+    box-shadow:0 20px 60px rgba(0,0,0,.30);
+  }
+  .rp-preview-toolbar{
+    position:sticky;
+    top:0;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    background:#0F1B2E;
+    color:#fffdf8;
+  }
+  .rp-preview-toolbar strong{
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    font-size:14px;
+  }
+  .rp-preview-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .rp-preview-actions button{
+    border:none;
+    padding:8px 12px;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .rp-preview-download{background:#B8985A;color:#0F1B2E;}
+  .rp-preview-close{background:#fffdf8;color:#0F1B2E;}
+  .rp-preview-content{
+    padding:18px;
+    overflow:auto;
+  }
+  .rp-preview-content .rp-report{
+    margin:0 auto;
+    transform-origin:top center;
+  }
+
 </style>
 </head>
 <body>
@@ -442,6 +496,7 @@
 <main id="app"></main>
 
 <div id="export-host"></div>
+<div id="report-preview-host"></div>
 
 <footer>เอกสารนี้จัดทำขึ้นเพื่ออธิบายและสร้างความเข้าใจเบื้องต้น เงื่อนไขความคุ้มครองที่แท้จริงให้ยึดตามกรมธรรม์และเอกสารประกอบการเสนอขายจากบริษัทประกันเป็นหลัก</footer>
 
@@ -1107,29 +1162,79 @@ function buildCardHTML(data, key){
   </div>`;
 }
 
-function exportImage(key, btn){
-  if(typeof html2canvas === 'undefined'){ alert('ไม่สามารถโหลดเครื่องมือสร้างภาพได้ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่'); return; }
-  const host = document.getElementById('export-host');
-  host.innerHTML = buildCardHTML(productCardData(key), key);
-  const card = host.querySelector('.card');
-  btn.disabled = true; const oldTxt = btn.textContent; btn.textContent = 'กำลังสร้างภาพ...';
-  html2canvas(card, {scale:2, backgroundColor:'#ffffff'}).then(canvas=>{
+function downloadReportImage(key, reportEl, btn){
+  if(typeof html2canvas === 'undefined'){
+    alert('ไม่สามารถโหลดเครื่องมือสร้างภาพได้ กรุณารีเฟรชหน้าแล้วลองใหม่');
+    return;
+  }
+
+  btn.disabled = true;
+  const oldTxt = btn.textContent;
+  btn.textContent = 'กำลังสร้างภาพ...';
+
+  html2canvas(reportEl, {
+    scale:2,
+    backgroundColor:'#ffffff',
+    useCORS:true
+  }).then(canvas=>{
     const a = document.createElement('a');
     a.download = `royal-partners-${key}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`;
     a.href = canvas.toDataURL('image/png');
     a.click();
-    host.innerHTML = '';
-    btn.disabled = false; btn.textContent = oldTxt;
+    btn.disabled = false;
+    btn.textContent = oldTxt;
   }).catch(err=>{
     console.error(err);
     alert('สร้างภาพไม่สำเร็จ ลองใหม่อีกครั้ง');
-    btn.disabled = false; btn.textContent = oldTxt;
+    btn.disabled = false;
+    btn.textContent = oldTxt;
   });
+}
+
+function closeReportPreview(){
+  document.getElementById('report-preview-host').innerHTML = '';
+}
+
+function showReportPreview(key){
+  const host = document.getElementById('report-preview-host');
+
+  const reportHTML = key==='ciprocare'
+    ? buildCIProCareReportHTML()
+    : buildCardHTML(productCardData(key), key);
+
+  host.innerHTML = `
+    <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
+      <div class="rp-preview-dialog">
+        <div class="rp-preview-toolbar">
+          <strong>ตัวอย่างใบสรุปก่อนบันทึก</strong>
+          <div class="rp-preview-actions">
+            <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
+            <button type="button" class="rp-preview-close">ปิด</button>
+          </div>
+        </div>
+        <div class="rp-preview-content">${reportHTML}</div>
+      </div>
+    </div>`;
+
+  const overlay = host.querySelector('.rp-preview-overlay');
+  const reportEl = host.querySelector('.rp-report, .card');
+  const downloadBtn = host.querySelector('.rp-preview-download');
+  const closeBtn = host.querySelector('.rp-preview-close');
+
+  downloadBtn.addEventListener('click', ()=>downloadReportImage(key, reportEl, downloadBtn));
+  closeBtn.addEventListener('click', closeReportPreview);
+  overlay.addEventListener('click', e=>{
+    if(e.target === overlay) closeReportPreview();
+  });
+}
+
+function exportImage(key, btn){
+  showReportPreview(key);
 }
 function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
-  row.innerHTML = `<button class="btn-export">${key==='ciprocare'?'สร้างใบสรุป 1 หน้า (Royal Partners)':'บันทึกภาพสรุป (แบรนด์ Royal Partners)'}</button>`;
+  row.innerHTML = `<button class="btn-export">${key==='ciprocare'?'ดูตัวอย่างใบสรุป 1 หน้า (Royal Partners)':'ดูตัวอย่างภาพสรุป (Royal Partners)'}</button>`;
   panel.appendChild(row);
   row.querySelector('.btn-export').addEventListener('click', e=>exportImage(key, e.target));
 }
