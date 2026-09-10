@@ -1117,6 +1117,316 @@
     box-shadow:0 0 0 1px rgba(214,102,102,.18);
   }
 
+
+  /* ---------- CI SuperCare report ---------- */
+  .sc-report-page{
+    width:794px;
+    min-height:1123px;
+    max-height:1123px;
+    background:#fffdf8;
+    color:#20262f;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    border:1px solid #d9d2bf;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  .sc-report-inner{
+    min-height:1123px;
+    display:flex;
+    flex-direction:column;
+  }
+  .sc-benefit-grid{
+    margin:10px 18px 0;
+    display:grid;
+    gap:8px;
+  }
+  .sc-benefit-card{
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+  }
+  .sc-benefit-main{
+    display:grid;
+    grid-template-columns:minmax(0,1.6fr) minmax(150px,.55fr) minmax(170px,.65fr);
+  }
+  .sc-benefit-desc{
+    padding:12px 14px;
+  }
+  .sc-benefit-no{
+    font-size:15px;
+    font-weight:800;
+    color:#08734f;
+    margin-right:7px;
+  }
+  .sc-benefit-name{
+    font-size:15px;
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .sc-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:7px;
+  }
+  .sc-tag{
+    font-size:8.5px;
+    padding:3px 6px;
+    border-radius:20px;
+    background:#f0ece2;
+    color:#6b6455;
+    font-weight:700;
+  }
+  .sc-tag.formula{
+    background:#dff4e8;
+    color:#08734f;
+  }
+  .sc-tag.condition{
+    background:#eee3f3;
+    color:#75557c;
+  }
+  .sc-benefit-value{
+    border-left:1px solid #d9d2bf;
+    padding:10px 12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:right;
+  }
+  .sc-benefit-value .l{
+    font-size:9px;
+    color:#847c69;
+    line-height:1.35;
+  }
+  .sc-benefit-value .v{
+    font-size:15px;
+    font-weight:800;
+    color:#08734f;
+    margin-top:4px;
+  }
+  .sc-condition-box{
+    margin:8px 18px 0;
+    padding:10px 12px;
+    border:1px solid #d9d2bf;
+    background:#F7F3EA;
+    font-size:10px;
+    line-height:1.55;
+    color:#4b463d;
+  }
+  .sc-condition-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:7px;
+  }
+  .sc-condition-cell{
+    background:#fffdf8;
+    border:1px solid #e0d9c7;
+    padding:8px 10px;
+  }
+  .sc-condition-cell .l{
+    font-size:8.5px;
+    color:#847c69;
+  }
+  .sc-condition-cell .v{
+    margin-top:3px;
+    font-size:13px;
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .sc-pay-timeline{
+    margin:10px 18px 0;
+    border:1px solid #d9d2bf;
+    padding:10px 12px;
+  }
+  .sc-pay-row{
+    display:grid;
+    grid-template-columns:180px 1fr;
+    gap:10px;
+    align-items:center;
+    margin-bottom:7px;
+  }
+  .sc-pay-label{
+    font-size:10px;
+    font-weight:700;
+    color:#4b463d;
+  }
+  .sc-pay-bar{
+    min-height:30px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    padding:5px 10px;
+    font-size:9.5px;
+    font-weight:800;
+    box-sizing:border-box;
+  }
+  .sc-pay-bar.pay{
+    background:#D4154E;
+    color:#fff;
+  }
+  .sc-pay-bar.cover{
+    background:#4C474A;
+    color:#fff;
+    justify-content:space-between;
+  }
+  .sc-footer-spacer{flex:1 1 auto;}
+
+
+  /* ---------- CI SuperCare brochure-style chart ---------- */
+  .sc-chart{
+    margin:14px 22px 8px;
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    padding:14px 16px 12px;
+    border-radius:14px;
+  }
+  .sc-chart-title{
+    margin:0 0 10px;
+    font-size:13px;
+    font-weight:800;
+    color:#D4154E;
+  }
+  .sc-chart-row{
+    display:grid;
+    grid-template-columns:180px 1fr;
+    gap:12px;
+    align-items:center;
+    margin-bottom:7px;
+  }
+  .sc-chart-label{
+    font-size:11px;
+    line-height:1.35;
+    color:#4b463d;
+    font-weight:700;
+  }
+  .sc-chart-stack{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .sc-chart-bar{
+    min-height:30px;
+    border-radius:0;
+    background:#c9c9cb;
+    color:#3e3b3c;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px 10px;
+    text-align:center;
+    font-size:10px;
+    line-height:1.3;
+    font-weight:700;
+    box-sizing:border-box;
+  }
+  .sc-chart-bar.dark{
+    background:#a8aaad;
+    color:#fff;
+  }
+  .sc-chart-years{
+    min-height:34px;
+    background:#b1005e;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:5px 10px;
+    font-size:11px;
+    font-weight:800;
+  }
+  .sc-chart-year-list{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    white-space:nowrap;
+  }
+  .sc-chart-arrow{
+    flex:1;
+    height:1px;
+    background:#fff;
+    position:relative;
+    min-width:60px;
+  }
+  .sc-chart-arrow:after{
+    content:'';
+    position:absolute;
+    right:-1px;
+    top:-4px;
+    border-left:8px solid #fff;
+    border-top:4px solid transparent;
+    border-bottom:4px solid transparent;
+  }
+  .sc-chart-payicons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    color:#D4154E;
+    font-size:15px;
+    line-height:1;
+  }
+  .sc-chart-maturity{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .sc-chart-check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:10px;
+    color:#4b463d;
+  }
+  .sc-chart-box{
+    width:18px;
+    height:18px;
+    border:2px solid #D4154E;
+    border-radius:3px;
+    background:#fff;
+  }
+  .sc-chart-badge{
+    border:2px solid #D4154E;
+    color:#D4154E;
+    padding:3px 8px;
+    font-size:10px;
+    font-weight:800;
+    background:#fff;
+  }
+  .sc-chart-footnote{
+    margin-top:7px;
+    font-size:8.5px;
+    color:#847c69;
+    line-height:1.45;
+  }
+
+  /* report-sized version */
+  .sc-report-page .sc-chart{
+    margin:8px 18px 6px;
+    padding:9px 10px 8px;
+    border-radius:0;
+  }
+  .sc-report-page .sc-chart-title{font-size:11px;margin-bottom:7px;}
+  .sc-report-page .sc-chart-row{
+    grid-template-columns:165px 1fr;
+    gap:8px;
+    margin-bottom:5px;
+  }
+  .sc-report-page .sc-chart-label{font-size:9px;}
+  .sc-report-page .sc-chart-bar{
+    min-height:24px;
+    font-size:8.5px;
+    padding:3px 6px;
+  }
+  .sc-report-page .sc-chart-years{
+    min-height:27px;
+    font-size:9px;
+    padding:4px 7px;
+  }
+  .sc-report-page .sc-chart-year-list{gap:7px;}
+  .sc-report-page .sc-chart-payicons{gap:3px;font-size:12px;}
+  .sc-report-page .sc-chart-box{width:14px;height:14px;}
+  .sc-report-page .sc-chart-badge{font-size:8.5px;padding:2px 6px;}
+
 </style>
 </head>
 <body>
@@ -1666,25 +1976,33 @@ function renderCIProCareBenefitMap(app){
 }
 
 function viewCISuperCare(app){
-  app.innerHTML = panelShell('ci', 'AIA CI SuperCare', 'คุ้มครองโรคร้ายแรงระดับต้นถึงรุนแรง เลือกระยะชำระเบี้ยได้ 10 หรือ 20 ปี', true);
-  const riderBox = document.createElement('div');
-  riderBox.className = 'rider-row';
-  riderBox.innerHTML = `<div class="rider-chip"><span>ระยะชำระเบี้ย</span>
-    <select id="cisc-pay"><option value="10">10 ปี</option><option value="20" selected>20 ปี</option></select></div>`;
-  app.querySelector('.panel').appendChild(riderBox);
-  riderBox.querySelector('#cisc-pay').onchange = e=>{ state.cisupercare.payPeriod = parseInt(e.target.value); render(); };
+  const pp = state.cisupercare.payPeriod;
+  const r = calcCISuperCare(state.age, state.gender, state.sum, state.tax, pp);
 
-  const r = calcCISuperCare(state.age, state.gender, state.sum, state.tax, state.cisupercare.payPeriod);
+  app.innerHTML = panelShell(
+    'ci',
+    `AIA CI SuperCare ${pp}/99`,
+    `คุ้มครองโรคร้ายแรงระดับต้นถึงระดับรุนแรง ชำระเบี้ย ${pp} ปี คุ้มครองถึงอายุ 99 ปี`,
+    true
+  );
+
   fillSummary(app, [
     {lbl:'เบี้ยประกันภัยชีวิต / ปี', val:fmt(r.life)},
     {lbl:'เบี้ยประกันภัยโรคร้ายแรง / ปี', val:fmt(r.ci)},
-    {lbl:'ส่วนลดทุนสูง / ปี', val:fmt(r.discount)},
     {lbl:'เบี้ยประกันภัยรวมสุทธิ / ปี', val:fmt(r.net), oxblood:true},
   ]);
-  chartAndLedger(app, r.rows, 'premium', 'เบี้ยที่ชำระในแต่ละปี ('+state.cisupercare.payPeriod+' ปีแรก)', [
-    {key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},{key:'premium',label:'เบี้ยที่ชำระ'},{key:'coverage',label:'ทุนคุ้มครอง'},{key:'taxRelief',label:'ลดหย่อนภาษี'},
-  ], state.cisupercare.payPeriod);
-  note(app, 'โรคร้ายแรงระดับต้น-ปานกลาง (18 โรค) จ่ายครั้งเดียว 20% ของทุนประกัน ระดับรุนแรง (44 โรค) หรือเสียชีวิตหรือครบกำหนดสัญญา จ่าย 100% หากเคยเบิกระดับต้น-ปานกลางไปแล้ว จะถูกหักออกก่อนจ่ายส่วนที่เหลือ รวมกันไม่เกิน 100% ของทุนประกัน');
+
+  const panel = app.querySelector('.panel');
+  const chartWrap = document.createElement('div');
+  chartWrap.innerHTML = buildCISuperCareChartHTML(pp, state.sum);
+  panel.appendChild(chartWrap.firstElementChild);
+
+  note(
+    app,
+    'โรคร้ายแรงระดับต้นถึงระดับปานกลาง 18 โรค/การรักษา จ่าย 20% ของจำนวนเงินเอาประกันภัยเพียงครั้งเดียว ' +
+    'โรคร้ายแรงระดับรุนแรง 44 โรค/การรักษา จ่ายสูงสุด 100% โดยหักผลประโยชน์ระดับต้นถึงระดับปานกลางที่จ่ายไปแล้ว (ถ้ามี)'
+  );
+
   addExportButton(app, 'cisupercare');
 }
 
@@ -1798,6 +2116,351 @@ function productCardData(key){
 }
 
 
+
+
+
+
+function buildCISuperCareChartHTML(payYears, sumInsured){
+  const years = Array.from({length:payYears},(_,i)=>`<span>${i+1}</span>`).join('');
+  const payIcons = Array.from({length:payYears},()=>'<span>▲</span>').join('');
+  const early = sumInsured * 0.20;
+  const full = sumInsured;
+
+  return `
+    <div class="sc-chart">
+      <div class="sc-chart-title">ภาพแสดงผลประโยชน์และความคุ้มครองชีวิต</div>
+
+      <div class="sc-chart-row">
+        <div class="sc-chart-label">ความคุ้มครองโรคร้ายแรง</div>
+        <div class="sc-chart-stack">
+          <div class="sc-chart-bar">
+            ความคุ้มครองโรคร้ายแรงระดับต้นถึงระดับปานกลาง 20% ของจำนวนเงินเอาประกันภัย
+            จำกัดโรคร้ายแรงโรคเดียวเท่านั้น (จ่ายเพียงครั้งเดียว)
+          </div>
+          <div class="sc-chart-bar dark">
+            ความคุ้มครองโรคร้ายแรงระดับรุนแรง 100% ของจำนวนเงินเอาประกันภัย*
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-chart-row">
+        <div class="sc-chart-label">ความคุ้มครองชีวิต</div>
+        <div class="sc-chart-bar dark">100% ของจำนวนเงินเอาประกันภัย*</div>
+      </div>
+
+      <div class="sc-chart-row">
+        <div class="sc-chart-label">ระยะเวลาคุ้มครอง</div>
+        <div class="sc-chart-years">
+          <div class="sc-chart-year-list">${years}</div>
+          <span class="sc-chart-arrow"></span>
+          <span>ถึงอายุ 99 ปี</span>
+        </div>
+      </div>
+
+      <div class="sc-chart-row">
+        <div class="sc-chart-label">ระยะเวลาชำระเบี้ยประกันภัย</div>
+        <div class="sc-chart-payicons">${payIcons}</div>
+      </div>
+
+      <div class="sc-chart-row" style="margin-bottom:0">
+        <div class="sc-chart-label"></div>
+        <div class="sc-chart-maturity">
+          <div class="sc-chart-check">
+            <span class="sc-chart-box"></span>
+            <span>เงินคืน ณ วันครบกำหนดสัญญา</span>
+          </div>
+          <span class="sc-chart-badge">100%*</span>
+        </div>
+      </div>
+
+      <div class="sc-chart-footnote">
+        * 100% ของจำนวนเงินเอาประกันภัย หักผลประโยชน์ความคุ้มครองโรคร้ายแรงระดับต้นถึงระดับปานกลาง
+        ที่ได้จ่ายไปแล้ว (ถ้ามี) และกรมธรรม์จะสิ้นผลบังคับทันทีตามเงื่อนไข
+      </div>
+    </div>
+  `;
+}
+
+
+const CI_SUPERCARE_REPORT_VERSION = "1.1.0";
+
+function buildCISuperCareReportData(){
+  const payPeriod = state.cisupercare.payPeriod;
+  const result = calcCISuperCare(
+    state.age,
+    state.gender,
+    state.sum,
+    state.tax,
+    payPeriod
+  );
+
+  const reportDate = state.agent.date
+    ? new Date(state.agent.date + 'T00:00:00').toLocaleDateString(
+        'th-TH',
+        {year:'numeric', month:'long', day:'numeric'}
+      )
+    : new Date().toLocaleDateString(
+        'th-TH',
+        {year:'numeric', month:'long', day:'numeric'}
+      );
+
+  const sumInsured = safeMoney(state.sum);
+  const lifePremium = safeMoney(result.life);
+  const ciPremium = safeMoney(result.ci);
+  const discount = safeMoney(result.discount);
+  const netPremium = safeMoney(result.net);
+
+  return {
+    reportVersion: CI_SUPERCARE_REPORT_VERSION,
+    product: {
+      code:'CI_SUPERCARE',
+      name:`AIA CI SuperCare ${payPeriod}/99`,
+      payYears:payPeriod,
+      coverToAge:99,
+    },
+    customer:{
+      firstName:state.customer.firstName || '',
+      lastName:state.customer.lastName || '',
+      fullName:`${state.customer.firstName || ''} ${state.customer.lastName || ''}`.trim(),
+      age:state.age,
+      gender:state.gender,
+      sumInsured,
+    },
+    premium:{
+      life:lifePremium,
+      ci:ciPremium,
+      discount,
+      net:netPremium,
+    },
+    benefits:{
+      earlyModerate:{
+        percent:20,
+        amount:sumInsured * 0.20,
+        diseases:18,
+        claims:1,
+      },
+      severeDeathMaturity:{
+        percent:100,
+        amountBeforePriorClaim:sumInsured,
+        amountAfterEarlyClaim:sumInsured * 0.80,
+        diseases:44,
+      },
+      totalMaximum:sumInsured,
+    },
+    tax:{
+      rate:state.tax,
+      relief:Math.min(lifePremium,100000) * state.tax,
+      show:state.tax > 0,
+    },
+    agent:{
+      name:state.agent.name || '',
+      phone:state.agent.phone || '',
+      line:state.agent.line || '',
+      reportDate,
+    },
+    calculationMeta:{
+      source:'calcCISuperCare',
+      calculationEngineChanged:false,
+    }
+  };
+}
+
+function validateCISuperCareReportData(data){
+  const errors=[];
+
+  if(!data || typeof data!=='object'){
+    return {ok:false, errors:['ไม่พบข้อมูลรายงาน']};
+  }
+
+  if(!Number.isInteger(data.customer.age) || data.customer.age < 0 || data.customer.age > 99){
+    errors.push('อายุไม่ถูกต้อง');
+  }
+
+  if(!['ชาย','หญิง'].includes(data.customer.gender)){
+    errors.push('เพศไม่ถูกต้อง');
+  }
+
+  if(!isFiniteNumber(data.customer.sumInsured)){
+    errors.push('จำนวนเงินเอาประกันภัยไม่ถูกต้อง');
+  }else if(data.customer.sumInsured < SUM_INSURED_MIN){
+    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 100,000 บาท');
+  }else if(data.customer.sumInsured > SUM_INSURED_MAX){
+    errors.push('จำนวนเงินเอาประกันภัยเกินสูงสุด 50,000,000 บาท');
+  }
+
+  if(![10,20].includes(data.product.payYears)){
+    errors.push('ระยะเวลาชำระเบี้ยไม่ถูกต้อง');
+  }
+
+  [
+    data.premium.life,
+    data.premium.ci,
+    data.premium.discount,
+    data.premium.net,
+    data.benefits.earlyModerate.amount,
+    data.benefits.severeDeathMaturity.amountBeforePriorClaim,
+    data.benefits.severeDeathMaturity.amountAfterEarlyClaim,
+  ].forEach(value=>{
+    if(!isFiniteNumber(value) || value < 0){
+      errors.push('พบตัวเลขในรายงานไม่ถูกต้อง');
+    }
+  });
+
+  return {ok:errors.length===0, errors};
+}
+
+function buildCISuperCareReportHTML(){
+  const data = buildCISuperCareReportData();
+  const validation = validateCISuperCareReportData(data);
+
+  if(!validation.ok){
+    return `<div class="rp-report">
+      <div class="rp-report-error">
+        ไม่สามารถสร้างใบสรุป CI SuperCare ได้<br>
+        ${validation.errors.map(e=>`• ${e}`).join('<br>')}
+      </div>
+    </div>`;
+  }
+
+  const payWidth = data.product.payYears===10 ? 52 : 70;
+
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      <section class="sc-report-page" id="ci-supercare-report-page-1">
+        <div class="sc-report-inner">
+
+          <div class="rp-report-head">
+            <div>
+              <div class="rp-report-brand">ROYAL PARTNER</div>
+              <div class="rp-report-title">${data.product.name}</div>
+            </div>
+            <div class="rp-report-sum">
+              <div class="l">จำนวนเงินเอาประกันภัย</div>
+              <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
+            </div>
+          </div>
+
+          <div style="padding:8px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+            <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
+            <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
+              ${data.customer.fullName || '—'}
+            </div>
+          </div>
+
+          <div class="rp-report-meta">
+            <div class="cell"><div class="l">เพศ</div><div class="v">${data.customer.gender}</div></div>
+            <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
+            <div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">${data.product.payYears} ปี</div></div>
+          </div>
+
+          <div class="rp-report-kpis">
+            <div class="rp-kpi">
+              <div class="l">เบี้ยประกันภัยชีวิต / ปี</div>
+              <div class="v">${fmt(data.premium.life)} บาท</div>
+            </div>
+            <div class="rp-kpi">
+              <div class="l">เบี้ยประกันภัยโรคร้ายแรง / ปี</div>
+              <div class="v">${fmt(data.premium.ci)} บาท</div>
+            </div>
+            <div class="rp-kpi critical">
+              <div class="l">เบี้ยประกันภัยรวมสุทธิ / ปี</div>
+              <div class="v">${fmt(data.premium.net)} บาท</div>
+            </div>
+          </div>
+
+          ${buildCISuperCareChartHTML(data.product.payYears, data.customer.sumInsured)}
+
+          <div class="rp-section">
+            <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
+          </div>
+
+          <div class="sc-benefit-grid">
+            <div class="sc-benefit-card">
+              <div class="sc-benefit-main">
+                <div class="sc-benefit-desc">
+                  <span class="sc-benefit-no">1.1</span>
+                  <span class="sc-benefit-name">โรคร้ายแรงระดับต้น–ปานกลาง</span>
+                  <div class="sc-tags">
+                    <span class="sc-tag formula">20% × 1 ครั้ง = 20%</span>
+                    <span class="sc-tag">${data.benefits.earlyModerate.diseases} โรค/การรักษา</span>
+                    <span class="sc-tag">จ่ายครั้งเดียว</span>
+                  </div>
+                </div>
+                <div class="sc-benefit-value">
+                  <div class="l">รับเงิน</div>
+                  <div class="v">${fmt(data.benefits.earlyModerate.amount)} บาท</div>
+                </div>
+                <div class="sc-benefit-value">
+                  <div class="l">รวมสูงสุดได้</div>
+                  <div class="v">${fmt(data.benefits.earlyModerate.amount)} บาท</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sc-benefit-card">
+              <div class="sc-benefit-main">
+                <div class="sc-benefit-desc">
+                  <span class="sc-benefit-no">1.2</span>
+                  <span class="sc-benefit-name">โรคร้ายแรงระดับรุนแรง / เสียชีวิต / ครบกำหนดสัญญา</span>
+                  <div class="sc-tags">
+                    <span class="sc-tag formula">รวมผลประโยชน์สูงสุด 100%</span>
+                    <span class="sc-tag">${data.benefits.severeDeathMaturity.diseases} โรค/การรักษา</span>
+                    <span class="sc-tag condition">หักผลประโยชน์ 1.1 ที่จ่ายไปแล้ว (ถ้ามี)</span>
+                  </div>
+                </div>
+                <div class="sc-benefit-value">
+                  <div class="l">หากยังไม่เคยรับ 1.1</div>
+                  <div class="v">${fmt(data.benefits.severeDeathMaturity.amountBeforePriorClaim)} บาท</div>
+                </div>
+                <div class="sc-benefit-value">
+                  <div class="l">หากเคยรับ 1.1 แล้ว</div>
+                  <div class="v">${fmt(data.benefits.severeDeathMaturity.amountAfterEarlyClaim)} บาท</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sc-condition-box">
+            <b>หลักการจ่ายผลประโยชน์รวม</b>
+            <div class="sc-condition-row">
+              <div class="sc-condition-cell">
+                <div class="l">กรณีไม่เคยเคลมระดับต้น–ปานกลาง</div>
+                <div class="v">รับสูงสุด ${fmt(data.customer.sumInsured)} บาท (100%)</div>
+              </div>
+              <div class="sc-condition-cell">
+                <div class="l">กรณีเคยรับระดับต้น–ปานกลาง 20%</div>
+                <div class="v">คงเหลือสูงสุด ${fmt(data.benefits.severeDeathMaturity.amountAfterEarlyClaim)} บาท (80%)</div>
+              </div>
+            </div>
+            <div style="margin-top:7px;color:#847c69;">
+              ผลประโยชน์ทั้งหมดรวมกันไม่เกิน 100% ของจำนวนเงินเอาประกันภัย
+            </div>
+          </div>
+<div class="rp-section">
+            <div class="rp-section-title">2 ภาษี</div>
+            <div class="rp-info-box">
+              <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
+              ${data.tax.show ? `
+                ${fmt(data.tax.relief)} บาท<br>
+                <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%</span>
+              ` : `
+                <span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>
+              `}
+            </div>
+          </div>
+
+          <div class="sc-footer-spacer"></div>
+
+          <div class="rp-red-remark">
+            หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+          </div>
+
+          <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
 
 
 const CI_PROCARE_REPORT_VERSION = "1.1.3";
@@ -2556,6 +3219,69 @@ async function downloadCIProCarePDF(btn){
   }
 }
 
+
+async function downloadCISuperCarePDF(btn){
+  if(btn.dataset.busy === '1') return;
+
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('ไม่พบไฟล์ /vendor/jspdf.umd.min.js กรุณาตรวจว่าอัปโหลดและ Deploy แล้ว');
+    return;
+  }
+
+  const page = document.getElementById('ci-supercare-report-page-1');
+
+  if(!page){
+    alert('ไม่พบใบสรุป CI SuperCare');
+    return;
+  }
+
+  const oldTxt = btn.textContent;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  btn.textContent = 'กำลังสร้าง PDF...';
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation:'portrait',
+      unit:'mm',
+      format:'a4',
+      compress:true
+    });
+
+    const canvas = await renderReportPageToCanvas(page);
+    const imgData = canvas.toDataURL('image/jpeg',0.95);
+
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      0,
+      0,
+      210,
+      297,
+      undefined,
+      'FAST'
+    );
+
+    const customerName = (state.customer.firstName || state.customer.lastName)
+      ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
+      : 'customer';
+
+    const filename =
+      `royal-partner-ci-supercare-${customerName}-v${CI_SUPERCARE_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`;
+
+    pdf.save(filename);
+
+  }catch(error){
+    console.error('CI SuperCare PDF export error:',error);
+    alert(error?.message || 'สร้าง PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy = '0';
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
+
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
 }
@@ -2576,6 +3302,16 @@ function showReportPreview(key){
       }
 
       reportHTML = buildCIProCareReportHTML();
+    }else if(key==='cisupercare'){
+      const data = buildCISuperCareReportData();
+      const validation = validateCISuperCareReportData(data);
+
+      if(!validation.ok){
+        alert('ไม่สามารถสร้างใบสรุปได้:\n- ' + validation.errors.join('\n- '));
+        return;
+      }
+
+      reportHTML = buildCISuperCareReportHTML();
     }else{
       reportHTML = buildCardHTML(productCardData(key), key);
     }
@@ -2584,10 +3320,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' ? `
+              ${key==='ciprocare' || key==='cisupercare' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -2606,14 +3342,18 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare'){
+    if(key==='ciprocare' || key==='cisupercare'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
         throw new Error('PDF button is missing');
       }
 
-      pdfBtn.addEventListener('click', ()=>downloadCIProCarePDF(pdfBtn));
+      if(key==='ciprocare'){
+        pdfBtn.addEventListener('click', ()=>downloadCIProCarePDF(pdfBtn));
+      }else{
+        pdfBtn.addEventListener('click', ()=>downloadCISuperCarePDF(pdfBtn));
+      }
     }else{
       const reportEl = host.querySelector('.rp-report, .card');
       const downloadBtn = host.querySelector('.rp-preview-download');
