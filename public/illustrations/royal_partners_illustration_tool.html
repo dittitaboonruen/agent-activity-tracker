@@ -437,6 +437,39 @@
   }
 
 
+
+  /* ---------- CI ProCare benefit map ---------- */
+  .ci-benefitmap{margin:20px 22px 10px; border:1px solid #d9d2bf; background:#fffdf8; padding:16px 16px 14px; border-radius:16px;}
+  .ci-benefitmap h3{margin:0 0 12px; font-size:14px; color:var(--navy); font-weight:700;}
+  .ci-benefitmap .bm-row{display:grid; grid-template-columns:220px 1fr; gap:12px; align-items:center; margin-bottom:8px;}
+  .ci-benefitmap .bm-label{font-size:12px; line-height:1.35; color:#4b463d; font-weight:600;}
+  .ci-benefitmap .bm-track{position:relative; min-height:40px;}
+  .ci-benefitmap .bm-bar{height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 12px; color:#fff; font-weight:700; line-height:1.25; box-sizing:border-box;}
+  .ci-benefitmap .bm-bar.gray{background:#9E9A9B;}
+  .ci-benefitmap .bm-bar.dark{background:#474246;}
+  .ci-benefitmap .bm-tail{position:absolute; right:0; top:0; width:20%; min-width:150px; height:40px; border:1px solid #ddd7ca; border-radius:8px; background:#fff; color:#4b463d; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 10px; font-weight:700; line-height:1.2; box-sizing:border-box;}
+  .ci-benefitmap .bm-timeline{margin-top:6px;}
+  .ci-benefitmap .bm-timeline-track{display:grid; grid-template-columns:220px 1fr; gap:12px; align-items:center;}
+  .ci-benefitmap .bm-years{background:#D4154E; color:#fff; min-height:36px; border-radius:8px; display:flex; align-items:center; padding:0 12px; gap:8px; overflow:hidden; white-space:nowrap; font-weight:700;}
+  .ci-benefitmap .bm-yearlist{display:flex; gap:10px; font-size:12px; letter-spacing:.2px;}
+  .ci-benefitmap .bm-arrow{display:flex; align-items:center; gap:8px; margin-left:12px; font-size:12px;}
+  .ci-benefitmap .bm-arrow .line{flex:1; min-width:48px; height:1px; background:rgba(255,255,255,.85); position:relative;}
+  .ci-benefitmap .bm-arrow .line:after{content:''; position:absolute; right:-1px; top:-3px; border-left:7px solid rgba(255,255,255,.85); border-top:3.5px solid transparent; border-bottom:3.5px solid transparent;}
+  .ci-benefitmap .bm-remark-row{display:grid; grid-template-columns:220px 1fr; gap:12px; align-items:center; margin-top:8px;}
+  .ci-benefitmap .bm-premium-icons{display:flex; flex-wrap:wrap; gap:4px; align-items:center; color:#D4154E; font-weight:700;}
+  .ci-benefitmap .bm-premium-icons span{font-size:16px; line-height:1;}
+  .ci-benefitmap .bm-check-row{display:grid; grid-template-columns:220px 1fr; gap:12px; align-items:center; margin-top:8px;}
+  .ci-benefitmap .bm-checkwrap{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .ci-benefitmap .bm-check{display:flex; align-items:center; gap:8px; color:#4b463d; font-size:12px;}
+  .ci-benefitmap .bm-box{width:18px; height:18px; border:2px solid #d25578; border-radius:5px; background:#fff;}
+  .ci-benefitmap .bm-badge{border:2px solid #d25578; color:#d4154e; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; background:#fff;}
+  @media (max-width:900px){
+    .ci-benefitmap .bm-row,.ci-benefitmap .bm-timeline-track,.ci-benefitmap .bm-remark-row,.ci-benefitmap .bm-check-row{grid-template-columns:1fr;}
+    .ci-benefitmap .bm-tail{position:static; width:100%; min-width:0; margin-top:8px;}
+    .ci-benefitmap .bm-years{flex-direction:column; align-items:flex-start; padding:8px 12px;}
+    .ci-benefitmap .bm-arrow{margin-left:0; width:100%;}
+  }
+
   /* ---------- CI ProCare final-report detail styles ---------- */
   .rp-benefit-block{
     border:1px solid #d9d2bf;
@@ -593,6 +626,134 @@
     font-size:12px;
   }
   .agentbar input[type="date"]{min-width:145px;}
+
+
+  /* ---------- CI ProCare report timeline ---------- */
+  .rp-ci-map{
+    margin:0 18px 14px;
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    padding:12px;
+  }
+  .rp-ci-map-row{
+    display:grid;
+    grid-template-columns:190px 1fr;
+    gap:10px;
+    align-items:center;
+    margin-bottom:7px;
+  }
+  .rp-ci-map-label{
+    font-size:10.5px;
+    line-height:1.35;
+    color:#4b463d;
+    font-weight:700;
+  }
+  .rp-ci-map-track{
+    position:relative;
+    min-height:32px;
+  }
+  .rp-ci-map-bar{
+    min-height:32px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:5px 10px;
+    font-size:10.5px;
+    line-height:1.25;
+    font-weight:700;
+    box-sizing:border-box;
+  }
+  .rp-ci-map-bar.gray{background:#9D9A9A;color:#fff;}
+  .rp-ci-map-bar.dark{background:#4C474A;color:#fff;}
+  .rp-ci-map-tail{
+    position:absolute;
+    right:0;
+    top:0;
+    min-height:32px;
+    width:21%;
+    min-width:130px;
+    border:1px solid #d9d2bf;
+    border-radius:6px;
+    background:#fff;
+    color:#4b463d;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px 8px;
+    font-size:10px;
+    line-height:1.2;
+    font-weight:700;
+    text-align:center;
+    box-sizing:border-box;
+  }
+  .rp-ci-years{
+    background:#D4154E;
+    color:#fff;
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:9.5px;
+    font-weight:700;
+  }
+  .rp-ci-yearline{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .rp-ci-yearline .years{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+  }
+  .rp-ci-yearline .arrowline{
+    flex:1;
+    min-width:48px;
+    height:1px;
+    background:#fff;
+    position:relative;
+    opacity:.85;
+  }
+  .rp-ci-yearline .arrowline:after{
+    content:'';
+    position:absolute;
+    right:-1px;
+    top:-3px;
+    border-left:7px solid #fff;
+    border-top:3.5px solid transparent;
+    border-bottom:3.5px solid transparent;
+  }
+  .rp-ci-payicons{
+    display:flex;
+    gap:3px;
+    flex-wrap:wrap;
+    color:#D4154E;
+    font-size:13px;
+    line-height:1;
+  }
+  .rp-ci-maturity{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .rp-ci-maturity .box{
+    width:16px;
+    height:16px;
+    border:2px solid #D4154E;
+    border-radius:4px;
+    background:#fff;
+  }
+  .rp-ci-maturity .badge{
+    border:1px solid #D4154E;
+    border-radius:5px;
+    color:#D4154E;
+    background:#fff;
+    font-weight:800;
+    padding:3px 8px;
+    font-size:10px;
+  }
 
 </style>
 </head>
@@ -1057,15 +1218,85 @@ function viewCIProCare(app){
   fillSummary(app, [
     {lbl:'เบี้ยประกันภัยชีวิต / ปี', val:fmt(r.life)},
     {lbl:'เบี้ยประกันภัยโรคร้ายแรง / ปี', val:fmt(r.ci)},
-    {lbl:'ส่วนลดทุนสูง / ปี', val:fmt(r.discount)},
     {lbl:'เบี้ยประกันภัยรวมสุทธิ / ปี', val:fmt(r.net), oxblood:true},
   ]);
-  chartAndLedger(app, r.rows, 'minBenefit', 'ผลประโยชน์ขั้นต่ำที่รับประกัน (เบี้ยสะสม vs ทุนประกัน)', [
-    {key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},{key:'premium',label:'เบี้ยที่ชำระ'},{key:'minBenefit',label:'ผลประโยชน์ขั้นต่ำ'},{key:'taxRelief',label:'ลดหย่อนภาษี'},
-  ], 20);
-  note(app, 'ผลประโยชน์โรคร้ายแรงระดับต้น-ปานกลางจ่าย 40%/ครั้ง (สูงสุด 5 ครั้ง) ระดับรุนแรงจ่าย 100%/ครั้ง (สูงสุด 6 ครั้ง) รวมสูงสุด 1,000% ของทุนประกัน หลังอายุ 85 ปี ผลประโยชน์รวมลดเหลือสูงสุด 140% — สิทธิลดหย่อนภาษีคำนวณเฉพาะส่วนเบี้ยชีวิตเท่านั้น');
+  renderCIProCareBenefitMap(app);
+  note(app, 'ผลประโยชน์โรคร้ายแรงระดับต้น-ปานกลางจ่าย 40%/ครั้ง (สูงสุด 5 ครั้ง) ระดับรุนแรงจ่าย 100%/ครั้ง (สูงสุด 6 ครั้ง) รวมสูงสุด 1,000% ของทุนประกัน หลังอายุ 85 ปี ผลประโยชน์รวมลดเหลือสูงสุด 140% — ส่วนลดทุนสูงยังคงนำไปคำนวณตามปกติ แต่ซ่อนจากการแสดงผลหน้าจอ — สิทธิลดหย่อนภาษีคำนวณเฉพาะส่วนเบี้ยชีวิตเท่านั้น');
   addExportButton(app, 'ciprocare');
 }
+
+function renderCIProCareBenefitMap(app){
+  const totalYears = Math.max(1, 99 - state.age);
+  const width80 = Math.max(18, Math.min(100, ((80 - state.age) / totalYears) * 100));
+  const width85 = Math.max(width80, Math.min(100, ((85 - state.age) / totalYears) * 100));
+  const premiumIcons = Array.from({length:20}, ()=>'<span>▲</span>').join('');
+  const ccbLump = state.sum * 0.10;
+  const ccbMonthly = state.sum * 0.015;
+  const ciMax80 = state.sum * 8;
+  const ciMax85Plus = state.sum * 1.4;
+  const mib = state.sum;
+  const deathOrMaturity = state.sum;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'ci-benefitmap';
+  wrap.innerHTML = `
+    <h3>ผลประโยชน์ขั้นต่ำที่รับประกัน</h3>
+
+    <div class="bm-row">
+      <div class="bm-label">ผลประโยชน์การดูแลต่อเนื่อง<br>จากโรคร้ายแรง</div>
+      <div class="bm-track">
+        <div class="bm-bar gray" style="width:${width80}%">${fmt(ccbLump)} บาท และรับ ${fmt(ccbMonthly)} บาท/เดือน ระยะเวลา 60 เดือน</div>
+      </div>
+    </div>
+
+    <div class="bm-row">
+      <div class="bm-label">ผลประโยชน์ความคุ้มครอง<br>โรคร้ายแรง</div>
+      <div class="bm-track">
+        <div class="bm-bar gray" style="width:${width85}%">สูงสุด ${fmt(ciMax80)} บาท</div>
+        <div class="bm-tail">สูงสุด ${fmt(ciMax85Plus)} บาท*</div>
+      </div>
+    </div>
+
+    <div class="bm-row">
+      <div class="bm-label">ผลประโยชน์ภาวะวิกฤต<br>ที่มีผลต่อการดำรงชีวิต</div>
+      <div class="bm-track">
+        <div class="bm-bar gray" style="width:100%">${fmt(mib)} บาท</div>
+      </div>
+    </div>
+
+    <div class="bm-row">
+      <div class="bm-label">ผลประโยชน์กรณีเสียชีวิต</div>
+      <div class="bm-track">
+        <div class="bm-bar dark" style="width:100%">${fmt(deathOrMaturity)} บาท*</div>
+      </div>
+    </div>
+
+    <div class="bm-timeline">
+      <div class="bm-timeline-track">
+        <div class="bm-label">ระยะเวลาการคุ้มครอง</div>
+        <div class="bm-years">
+          <div class="bm-yearlist">${Array.from({length:20}, (_,i)=>`<span>${i+1}</span>`).join('')}</div>
+          <div class="bm-arrow"><span>ถึงอายุ 80 ปี</span><span class="line"></span><span>85 ปี</span><span class="line"></span><span>ถึงอายุ 99 ปี</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bm-remark-row">
+      <div class="bm-label">ระยะเวลาชำระเบี้ยประกันภัย</div>
+      <div class="bm-premium-icons">${premiumIcons}</div>
+    </div>
+
+    <div class="bm-check-row">
+      <div class="bm-label"></div>
+      <div class="bm-checkwrap">
+        <div class="bm-check"><span class="bm-box"></span><span>เงินคืน ณ วันครบกำหนดสัญญา</span></div>
+        <div class="bm-badge">100%*</div>
+      </div>
+    </div>
+  `;
+  app.querySelector('.panel').appendChild(wrap);
+}
+
 function viewCISuperCare(app){
   app.innerHTML = panelShell('ci', 'AIA CI SuperCare', 'คุ้มครองโรคร้ายแรงระดับต้นถึงรุนแรง เลือกระยะชำระเบี้ยได้ 10 หรือ 20 ปี', true);
   const riderBox = document.createElement('div');
@@ -1198,6 +1429,97 @@ function productCardData(key){
   }
 }
 
+
+
+function buildCIProCareTimelineHTML(){
+  const totalYears = Math.max(1, 99 - state.age);
+  const width80 = Math.max(18, Math.min(100, ((80 - state.age) / totalYears) * 100));
+  const width85 = Math.max(width80, Math.min(100, ((85 - state.age) / totalYears) * 100));
+
+  const ccbLump = state.sum * 0.10;
+  const ccbMonthly = state.sum * 0.015;
+  const ciMax80 = state.sum * 8;
+  const ciMax85Plus = state.sum * 1.4;
+  const mib = state.sum;
+  const deathOrMaturity = state.sum;
+  const premiumIcons = Array.from({length:20}, ()=>'<span>▲</span>').join('');
+
+  return `
+    <div class="rp-section">
+      <div class="rp-section-title">ภาพรวมผลประโยชน์และระยะเวลาความคุ้มครอง</div>
+    </div>
+
+    <div class="rp-ci-map">
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ผลประโยชน์การดูแลต่อเนื่อง<br>จากโรคร้ายแรง</div>
+        <div class="rp-ci-map-track">
+          <div class="rp-ci-map-bar gray" style="width:${width80}%">
+            ${fmt(ccbLump)} บาท และ ${fmt(ccbMonthly)} บาท/เดือน × 60 เดือน
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ผลประโยชน์ความคุ้มครอง<br>โรคร้ายแรง</div>
+        <div class="rp-ci-map-track">
+          <div class="rp-ci-map-bar gray" style="width:${width85}%">
+            สูงสุด ${fmt(ciMax80)} บาท
+          </div>
+          <div class="rp-ci-map-tail">สูงสุด ${fmt(ciMax85Plus)} บาท*</div>
+        </div>
+      </div>
+
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ผลประโยชน์ภาวะวิกฤต<br>ที่มีผลต่อการดำรงชีวิต</div>
+        <div class="rp-ci-map-track">
+          <div class="rp-ci-map-bar gray" style="width:100%">
+            ${fmt(mib)} บาท
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ผลประโยชน์กรณีเสียชีวิต</div>
+        <div class="rp-ci-map-track">
+          <div class="rp-ci-map-bar dark" style="width:100%">
+            ${fmt(deathOrMaturity)} บาท*
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ระยะเวลาความคุ้มครอง</div>
+        <div class="rp-ci-years">
+          <div class="rp-ci-yearline">
+            <div class="years">${Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('')}</div>
+            <span class="arrowline"></span>
+            <span>ถึงอายุ 80 ปี</span>
+            <span class="arrowline"></span>
+            <span>85 ปี</span>
+            <span class="arrowline"></span>
+            <span>ถึงอายุ 99 ปี</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-ci-map-row">
+        <div class="rp-ci-map-label">ระยะเวลาชำระเบี้ยประกันภัย</div>
+        <div class="rp-ci-payicons">${premiumIcons}</div>
+      </div>
+
+      <div class="rp-ci-map-row" style="margin-bottom:0">
+        <div class="rp-ci-map-label"></div>
+        <div class="rp-ci-maturity">
+          <div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:#4b463d;">
+            <span class="box"></span>
+            <span>เงินคืน ณ วันครบกำหนดสัญญา</span>
+          </div>
+          <span class="badge">100%*</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function buildCIProCareReportHTML(){
   const r = calcCIProCare(state.age, state.gender, state.sum, state.tax);
@@ -1394,6 +1716,8 @@ function buildCIProCareReportHTML(){
       </div>
     </div>
 
+    ${buildCIProCareTimelineHTML()}
+
     <div class="rp-section">
       <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
       <div class="rp-two-col">
@@ -1515,7 +1839,7 @@ function showReportPreview(key){
     <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
       <div class="rp-preview-dialog">
         <div class="rp-preview-toolbar">
-          <strong>ตัวอย่างใบสรุปก่อนบันทึก</strong>
+          <strong>${key==='ciprocare'?'ตัวอย่างใบสรุป CI ProCare ฉบับเต็ม':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
           <div class="rp-preview-actions">
             <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
             <button type="button" class="rp-preview-close">ปิด</button>
