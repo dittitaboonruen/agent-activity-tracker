@@ -1493,13 +1493,202 @@
     font-variant-numeric:tabular-nums;
   }
 
+
+  /* ---------- Excellent brochure-style chart ---------- */
+  .ex-chart{
+    margin:16px 22px 8px;
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    padding:14px 16px 12px;
+  }
+  .ex-chart-title{
+    margin:0 0 10px;
+    font-size:13px;
+    font-weight:800;
+    color:#D4154E;
+  }
+  .ex-chart-row{
+    display:grid;
+    grid-template-columns:170px 1fr;
+    gap:12px;
+    align-items:center;
+    margin-bottom:7px;
+  }
+  .ex-chart-label{
+    font-size:11px;
+    line-height:1.35;
+    color:#4b463d;
+    font-weight:700;
+  }
+  .ex-cover-track{
+    display:grid;
+    grid-template-columns:10fr 5fr 5fr;
+    min-height:34px;
+  }
+  .ex-cover-seg{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:800;
+    color:#fff;
+    padding:4px 6px;
+    text-align:center;
+  }
+  .ex-cover-seg.s1{background:#a7a5a6;}
+  .ex-cover-seg.s2{background:#858283;}
+  .ex-cover-seg.s3{background:#696667;}
+  .ex-years{
+    min-height:34px;
+    display:grid;
+    grid-template-columns:repeat(20,1fr);
+    background:#D4154E;
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    align-items:center;
+    text-align:center;
+  }
+  .ex-payicons{
+    display:grid;
+    grid-template-columns:repeat(20,1fr);
+    color:#7d7d7d;
+    font-size:14px;
+    line-height:1;
+    text-align:center;
+  }
+  .ex-cashback-track{
+    display:grid;
+    grid-template-columns:repeat(20,1fr);
+    align-items:start;
+    min-height:42px;
+  }
+  .ex-cashback-item{
+    font-size:8.5px;
+    font-weight:800;
+    color:#D4154E;
+    text-align:center;
+    line-height:1.2;
+    white-space:nowrap;
+  }
+  .ex-cashback-badge{
+    display:inline-block;
+    background:#D4154E;
+    color:#fff;
+    padding:3px 4px;
+    margin-bottom:2px;
+  }
+  .ex-cashback-amount{
+    display:block;
+    color:#7A2E2E;
+    font-size:7.5px;
+  }
+
+  /* ---------- Excellent report ---------- */
+  .ex-report-page{
+    width:794px;
+    min-height:1123px;
+    max-height:1123px;
+    background:#fffdf8;
+    color:#20262f;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;
+    border:1px solid #d9d2bf;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  .ex-report-inner{
+    min-height:1123px;
+    display:flex;
+    flex-direction:column;
+  }
+  .ex-report-page .ex-chart{
+    margin:8px 18px 6px;
+    padding:9px 10px 8px;
+  }
+  .ex-report-page .ex-chart-title{font-size:11px;margin-bottom:7px;}
+  .ex-report-page .ex-chart-row{
+    grid-template-columns:145px 1fr;
+    gap:8px;
+    margin-bottom:5px;
+  }
+  .ex-report-page .ex-chart-label{font-size:9px;}
+  .ex-report-page .ex-cover-track{min-height:27px;}
+  .ex-report-page .ex-cover-seg{font-size:8.5px;}
+  .ex-report-page .ex-years{min-height:27px;font-size:8px;}
+  .ex-report-page .ex-payicons{font-size:11px;}
+  .ex-report-page .ex-cashback-track{min-height:34px;}
+  .ex-report-page .ex-cashback-item{font-size:7px;}
+  .ex-report-page .ex-cashback-amount{font-size:6.5px;}
+
+  .ex-plan-grid-report{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:8px 18px 0;
+  }
+  .ex-plan-card{
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+  }
+  .ex-plan-title{
+    background:#0F1B2E;
+    color:#fff;
+    padding:7px 9px;
+    font-size:10.5px;
+    font-weight:800;
+    border-left:3px solid #B8985A;
+  }
+  .ex-mini-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:7.8px;
+  }
+  .ex-mini-table th{
+    background:#F7F3EA;
+    color:#0F1B2E;
+    padding:4px 4px;
+    border-bottom:1px solid #d9d2bf;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .ex-mini-table th:first-child,
+  .ex-mini-table td:first-child{text-align:center;}
+  .ex-mini-table td{
+    padding:4px 4px;
+    border-bottom:1px solid #eee7d7;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .ex-mini-table tr:last-child td{border-bottom:none;}
+  .ex-mini-table .accent{font-weight:800;color:#D4154E;}
+  .ex-summary-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin:8px 18px 0;
+  }
+  .ex-summary-box{
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    padding:8px 10px;
+  }
+  .ex-summary-box .l{font-size:8.5px;color:#847c69;}
+  .ex-summary-box .v{
+    margin-top:3px;
+    font-size:14px;
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .ex-summary-box.em .v{color:#7A2E2E;}
+  .ex-footer-spacer{flex:1 1 auto;}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="brand">
-    <span class="mark">ROYAL PARTNER</span>
+    <span class="mark">แบบประกัน</span>
     <span class="sub">เครื่องมือประกอบการเสนอขาย — AIA (ไม่ใช่เอกสารสัญญา ใช้เพื่อความเข้าใจเบื้องต้นเท่านั้น)</span>
   </div>
   <div class="inputs">
@@ -1903,18 +2092,52 @@ function syncTabActive(){
 /* ---------- per-tab views ---------- */
 function viewExcellent(app){
   const r = calcExcellent(state.age, state.sum, state.tax);
-  app.innerHTML = panelShell('savings', 'AIA Excellent (Non Par)', 'ออมเงินสบาย ๆ ตรงเป้าหมายทางการเงิน พร้อมความคุ้มครองชีวิตที่มั่นคง — ชำระเบี้ย 20 ปี คุ้มครอง 20 ปี');
+
+  app.innerHTML = panelShell(
+    'savings',
+    'AIA Excellent (Non Par)',
+    'ชำระเบี้ย 20 ปี คุ้มครอง 20 ปี พร้อมเงินคืนตามช่วงเวลาและความคุ้มครองชีวิตที่เพิ่มขึ้น'
+  );
+
   fillSummary(app, [
     {lbl:'เบี้ยประกันภัยสุทธิต่อปี', val:fmt(r.net)},
-    {lbl:'ส่วนลดทุนสูง / ปี', val:fmt(r.discount)},
     {lbl:'เงินคืนรวมระหว่างสัญญา', val:fmt(state.sum*0.4)+' (40%)'},
     {lbl:'เงินครบกำหนดสัญญา (ปีที่ 20)', val:fmt(state.sum*3)+' (300%)'},
   ]);
-  chartAndLedger(app, r.rows, 'coverage', 'ทุนคุ้มครองชีวิตที่เพิ่มขึ้นเป็นขั้นบันได', [
-    {key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},{key:'premium',label:'เบี้ยที่ชำระ'},
-    {key:'cashback',label:'เงินคืน'},{key:'coverage',label:'ทุนคุ้มครองชีวิต'},{key:'taxRelief',label:'ลดหย่อนภาษี'},
-  ], undefined, calcExcellentRPU(state.age, state.sum, r.net));
-  note(app, 'เบี้ยต่อทุน 1,000 บาท ค้นจากอัตราเดียวกันทั้งชายและหญิง หักส่วนลดทุนสูง (ทุน ≥ 250,000 บาท ลด 1 บาท/พัน) ทุนคุ้มครอง 1 เท่า (ปี 1-10) → 2 เท่า (ปี 11-15) → 3 เท่า (ปี 16-20) เงินคืน 10% ทุกปีที่ 4, 8, 12, 16 ครบสัญญารับ 300% — Plan B (RPU) เผยแพร่เฉพาะกรณีหยุดชำระที่ปีที่ 6-10 เท่านั้น');
+
+  const panel = app.querySelector('.panel');
+
+  const chartWrap = document.createElement('div');
+  chartWrap.innerHTML = buildExcellentChartHTML(state.sum);
+  panel.appendChild(chartWrap.firstElementChild);
+
+  // Preserve existing Plan A + Plan B data and rendering logic.
+  const shown = r.rows.filter(row=>row.year<=20);
+  const cols = [
+    {key:'year',label:'ปีที่'},
+    {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยที่ชำระ'},
+    {key:'cashback',label:'เงินคืน'},
+    {key:'coverage',label:'ทุนคุ้มครองชีวิต'},
+    {key:'taxRelief',label:'ลดหย่อนภาษี'},
+  ];
+  const gridWrap = document.createElement('div');
+  panel.appendChild(gridWrap);
+  const tmp = document.createElement('div');
+  renderLedger(tmp, shown.map((row,i)=>({...row,maturity:i===shown.length-1})), cols);
+  renderPlanB(
+    gridWrap,
+    calcExcellentRPU(state.age, state.sum, r.net),
+    tmp.innerHTML
+  );
+
+  note(
+    app,
+    'ทุนคุ้มครองชีวิต 100% (ปี 1–10) → 200% (ปี 11–15) → 300% (ปี 16–20) ' +
+    'เงินคืน 10% ในปีที่ 4, 8, 12 และ 16 และครบกำหนดสัญญาปีที่ 20 รับ 300% ' +
+    'Plan B ยังคงใช้มูลค่าเงินสำเร็จ (RPU) ตามข้อมูลเดิมของระบบ'
+  );
+
   addExportButton(app, 'excellent');
 }
 function viewPay25(app){
@@ -2282,6 +2505,322 @@ function buildCISuperCareChartHTML(payYears, sumInsured){
     </div>
   `;
 }
+
+
+const EXCELLENT_REPORT_VERSION = "1.0.0";
+
+function buildExcellentChartHTML(sumInsured){
+  const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
+  const payIcons = Array.from({length:20},()=>'<span>▲</span>').join('');
+  const ten = sumInsured * 0.10;
+  const maturity = sumInsured * 3;
+
+  const cashbackSlots = Array.from({length:20},(_,i)=>{
+    const y = i+1;
+    if([4,8,12,16].includes(y)){
+      return `<div class="ex-cashback-item" style="grid-column:${y}">
+        <span class="ex-cashback-badge">10%</span>
+        <span class="ex-cashback-amount">${fmt(ten)} บาท</span>
+      </div>`;
+    }
+    if(y===20){
+      return `<div class="ex-cashback-item" style="grid-column:20">
+        <span class="ex-cashback-badge">300%</span>
+        <span class="ex-cashback-amount">${fmt(maturity)} บาท</span>
+      </div>`;
+    }
+    return '';
+  }).join('');
+
+  return `
+    <div class="ex-chart">
+      <div class="ex-chart-title">ภาพแสดงผลประโยชน์และความคุ้มครองของแบบประกันหลัก</div>
+
+      <div class="ex-chart-row">
+        <div class="ex-chart-label">ความคุ้มครองชีวิต</div>
+        <div class="ex-cover-track">
+          <div class="ex-cover-seg s1">100% • ${fmt(sumInsured)} บาท</div>
+          <div class="ex-cover-seg s2">200% • ${fmt(sumInsured*2)} บาท</div>
+          <div class="ex-cover-seg s3">300% • ${fmt(sumInsured*3)} บาท</div>
+        </div>
+      </div>
+
+      <div class="ex-chart-row">
+        <div class="ex-chart-label">ระยะเวลาคุ้มครอง</div>
+        <div class="ex-years">${years}</div>
+      </div>
+
+      <div class="ex-chart-row">
+        <div class="ex-chart-label">ระยะเวลาชำระเบี้ยประกันภัย</div>
+        <div class="ex-payicons">${payIcons}</div>
+      </div>
+
+      <div class="ex-chart-row" style="margin-bottom:0">
+        <div class="ex-chart-label">เงินคืน*</div>
+        <div class="ex-cashback-track">${cashbackSlots}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildExcellentReportData(){
+  const result = calcExcellent(state.age, state.sum, state.tax);
+  const rpuRows = calcExcellentRPU(state.age, state.sum, result.net);
+  const sumInsured = safeMoney(state.sum);
+  const taxRelief = Math.min(safeMoney(result.net),100000) * state.tax;
+
+  return {
+    reportVersion:EXCELLENT_REPORT_VERSION,
+    product:{
+      code:'EXCELLENT',
+      name:'AIA Excellent (Non Par)',
+      payYears:20,
+      coverYears:20,
+    },
+    customer:{
+      firstName:state.customer.firstName || '',
+      lastName:state.customer.lastName || '',
+      fullName:`${state.customer.firstName || ''} ${state.customer.lastName || ''}`.trim(),
+      age:state.age,
+      gender:state.gender,
+      sumInsured,
+    },
+    premium:{
+      gross:safeMoney(result.gross),
+      discount:safeMoney(result.discount),
+      net:safeMoney(result.net),
+      total20:safeMoney(result.net) * 20,
+    },
+    benefits:{
+      coverage100:sumInsured,
+      coverage200:sumInsured*2,
+      coverage300:sumInsured*3,
+      cashbackEach:sumInsured*0.10,
+      cashbackYears:[4,8,12,16],
+      cashbackTotal:sumInsured*0.40,
+      maturity:sumInsured*3,
+    },
+    planA:result.rows,
+    planB:rpuRows,
+    tax:{
+      rate:state.tax,
+      relief:taxRelief,
+      show:state.tax > 0,
+    }
+  };
+}
+
+function validateExcellentReportData(data){
+  const errors=[];
+
+  if(!data || typeof data!=='object'){
+    return {ok:false, errors:['ไม่พบข้อมูลรายงาน']};
+  }
+
+  if(!Number.isInteger(data.customer.age) || data.customer.age < 0){
+    errors.push('อายุไม่ถูกต้อง');
+  }
+
+  if(!isFiniteNumber(data.customer.sumInsured)){
+    errors.push('จำนวนเงินเอาประกันภัยไม่ถูกต้อง');
+  }else if(data.customer.sumInsured < SUM_INSURED_MIN){
+    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 100,000 บาท');
+  }else if(data.customer.sumInsured > SUM_INSURED_MAX){
+    errors.push('จำนวนเงินเอาประกันภัยเกินสูงสุด 50,000,000 บาท');
+  }
+
+  [
+    data.premium.net,
+    data.premium.total20,
+    data.benefits.coverage100,
+    data.benefits.coverage200,
+    data.benefits.coverage300,
+    data.benefits.cashbackEach,
+    data.benefits.maturity,
+  ].forEach(v=>{
+    if(!isFiniteNumber(v) || v < 0) errors.push('พบตัวเลขในรายงานไม่ถูกต้อง');
+  });
+
+  return {ok:errors.length===0, errors};
+}
+
+function buildExcellentPlanATable(data){
+  const milestoneYears = [1,4,8,10,11,12,15,16,20];
+
+  const rows = milestoneYears.map(displayYear=>{
+    const idx = displayYear===20 ? 20 : displayYear-1;
+    const r = data.planA[idx];
+    if(!r) return '';
+
+    let cashback = '—';
+    if([4,8,12,16].includes(displayYear)) cashback = `${fmt(data.benefits.cashbackEach)} (10%)`;
+    if(displayYear===20) cashback = `${fmt(data.benefits.maturity)} (300%)`;
+
+    const coverage =
+      displayYear<=10 ? data.benefits.coverage100 :
+      displayYear<=15 ? data.benefits.coverage200 :
+      data.benefits.coverage300;
+
+    return `<tr>
+      <td>${displayYear}</td>
+      <td>${data.customer.age + displayYear - 1}</td>
+      <td>${displayYear<=20 ? fmt(data.premium.net) : '—'}</td>
+      <td class="${cashback!=='—'?'accent':''}">${cashback}</td>
+      <td>${fmt(coverage)}</td>
+    </tr>`;
+  }).join('');
+
+  return `<table class="ex-mini-table">
+    <thead>
+      <tr>
+        <th>ปีที่</th>
+        <th>อายุ</th>
+        <th>เบี้ย/ปี</th>
+        <th>เงินคืน/ผลประโยชน์</th>
+        <th>คุ้มครองชีวิต</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function buildExcellentPlanBTable(data){
+  const rows = data.planB.map(r=>`<tr>
+    <td>${r.stopYear}</td>
+    <td>${fmt(r.totalPaid)}</td>
+    <td class="accent">${fmt(r.rpuValue)}</td>
+    <td>${fmt(r.diff)}</td>
+  </tr>`).join('');
+
+  return `<table class="ex-mini-table">
+    <thead>
+      <tr>
+        <th>หยุดปีที่</th>
+        <th>เบี้ยรวม</th>
+        <th>มูลค่าเงินสำเร็จ</th>
+        <th>ส่วนต่าง</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function buildExcellentReportHTML(){
+  const data = buildExcellentReportData();
+  const validation = validateExcellentReportData(data);
+
+  if(!validation.ok){
+    return `<div class="rp-report">
+      <div class="rp-report-error">
+        ไม่สามารถสร้างใบสรุป Excellent ได้<br>
+        ${validation.errors.map(e=>`• ${e}`).join('<br>')}
+      </div>
+    </div>`;
+  }
+
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      <section class="ex-report-page" id="excellent-report-page-1">
+        <div class="ex-report-inner">
+
+          <div class="rp-report-head">
+            <div>
+              <div class="rp-report-brand">แบบประกัน</div>
+              <div class="rp-report-title">Excellent</div>
+            </div>
+            <div class="rp-report-sum">
+              <div class="l">จำนวนเงินเอาประกันภัย</div>
+              <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
+            </div>
+          </div>
+
+          <div style="padding:8px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+            <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
+            <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
+              ${data.customer.fullName || '—'}
+            </div>
+          </div>
+
+          <div class="rp-report-meta">
+            <div class="cell"><div class="l">เพศ</div><div class="v">${data.customer.gender}</div></div>
+            <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
+            <div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">20 ปี</div></div>
+          </div>
+
+          <div class="ex-summary-row">
+            <div class="ex-summary-box">
+              <div class="l">เบี้ยประกันภัยสุทธิ / ปี</div>
+              <div class="v">${fmt(data.premium.net)} บาท</div>
+            </div>
+            <div class="ex-summary-box">
+              <div class="l">เบี้ยรวมตลอด 20 ปี</div>
+              <div class="v">${fmt(data.premium.total20)} บาท</div>
+            </div>
+            <div class="ex-summary-box em">
+              <div class="l">เงินครบกำหนดสัญญา</div>
+              <div class="v">${fmt(data.benefits.maturity)} บาท</div>
+            </div>
+          </div>
+
+          ${buildExcellentChartHTML(data.customer.sumInsured)}
+
+          <div class="rp-section">
+            <div class="rp-section-title">1 ผลประโยชน์แบบ Plan A</div>
+          </div>
+
+          <div class="ex-plan-grid-report">
+            <div class="ex-plan-card" style="grid-column:1 / -1;">
+              <div class="ex-plan-title">Plan A — ชำระเบี้ยเต็มสัญญา</div>
+              ${buildExcellentPlanATable(data)}
+            </div>
+          </div>
+
+          <div class="rp-section">
+            <div class="rp-section-title">2 ผลประโยชน์แบบ Plan B</div>
+          </div>
+
+          <div class="ex-plan-grid-report">
+            <div class="ex-plan-card" style="grid-column:1 / -1;">
+              <div class="ex-plan-title">Plan B — หยุดชำระก่อนกำหนด (มูลค่าเงินสำเร็จ / RPU)</div>
+              ${buildExcellentPlanBTable(data)}
+            </div>
+          </div>
+
+          <div class="rp-section">
+            <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
+            <div class="rp-two-col">
+              <div class="rp-info-box">
+                <div class="head">ระยะเวลาความคุ้มครอง</div>
+                ชำระเบี้ย 20 ปี และคุ้มครอง 20 ปี<br>
+                <span style="color:#847c69">
+                  ความคุ้มครองชีวิต 100% → 200% → 300% ตามช่วงปีของสัญญา
+                </span>
+              </div>
+              <div class="rp-info-box">
+                <div class="head">ประมาณการลดหย่อนภาษี</div>
+                ${data.tax.show ? `
+                  ${fmt(data.tax.relief)} บาท/ปี<br>
+                  <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%</span>
+                ` : `
+                  <span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>
+                `}
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-footer-spacer"></div>
+
+          <div class="rp-red-remark">
+            หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+          </div>
+
+          <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
 
 const CI_SUPERCARE_REPORT_VERSION = "1.2.1";
 
@@ -3396,6 +3935,58 @@ async function downloadCISuperCarePDF(btn){
   }
 }
 
+
+async function downloadExcellentPDF(btn){
+  if(btn.dataset.busy === '1') return;
+
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('ไม่พบไฟล์ /vendor/jspdf.umd.min.js กรุณาตรวจว่าอัปโหลดและ Deploy แล้ว');
+    return;
+  }
+
+  const page = document.getElementById('excellent-report-page-1');
+  if(!page){
+    alert('ไม่พบใบสรุป Excellent');
+    return;
+  }
+
+  const oldTxt = btn.textContent;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  btn.textContent = 'กำลังสร้าง PDF...';
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation:'portrait',
+      unit:'mm',
+      format:'a4',
+      compress:true
+    });
+
+    const canvas = await renderReportPageToCanvas(page);
+    const imgData = canvas.toDataURL('image/jpeg',0.95);
+
+    pdf.addImage(imgData,'JPEG',0,0,210,297,undefined,'FAST');
+
+    const customerName = (state.customer.firstName || state.customer.lastName)
+      ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
+      : 'customer';
+
+    pdf.save(
+      `royal-partner-excellent-${customerName}-v${EXCELLENT_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`
+    );
+
+  }catch(error){
+    console.error('Excellent PDF export error:',error);
+    alert(error?.message || 'สร้าง PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy = '0';
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
+
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
 }
@@ -3426,6 +4017,16 @@ function showReportPreview(key){
       }
 
       reportHTML = buildCISuperCareReportHTML();
+    }else if(key==='excellent'){
+      const data = buildExcellentReportData();
+      const validation = validateExcellentReportData(data);
+
+      if(!validation.ok){
+        alert('ไม่สามารถสร้างใบสรุปได้:\n- ' + validation.errors.join('\n- '));
+        return;
+      }
+
+      reportHTML = buildExcellentReportHTML();
     }else{
       reportHTML = buildCardHTML(productCardData(key), key);
     }
@@ -3434,10 +4035,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -3456,7 +4057,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -3465,8 +4066,10 @@ function showReportPreview(key){
 
       if(key==='ciprocare'){
         pdfBtn.addEventListener('click', ()=>downloadCIProCarePDF(pdfBtn));
-      }else{
+      }else if(key==='cisupercare'){
         pdfBtn.addEventListener('click', ()=>downloadCISuperCarePDF(pdfBtn));
+      }else{
+        pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
       }
     }else{
       const reportEl = host.querySelector('.rp-report, .card');
@@ -3496,7 +4099,11 @@ function exportImage(key, btn){
 function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
-  row.innerHTML = `<button class="btn-export">${key==='ciprocare'?'ดูใบสรุปฉบับเต็มและบันทึก PNG':'ดูตัวอย่างภาพสรุป (Royal Partners)'}</button>`;
+  row.innerHTML = `<button class="btn-export">${
+      key==='ciprocare' || key==='cisupercare' || key==='excellent'
+        ? 'ดูใบสรุปฉบับเต็ม'
+        : 'ดูตัวอย่างภาพสรุป'
+    }</button>`;
   panel.appendChild(row);
   row.querySelector('.btn-export').addEventListener('click', e=>exportImage(key, e.target));
 }
