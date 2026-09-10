@@ -67,12 +67,12 @@ export default function AgentPortalPage() {
       external: true,
     },
     {
-      icon: "🧮",
-      title: "Insurance Calculator",
-      description:
-        "คำนวณแบบประกันและจัดทำใบสรุปประกอบการเสนอขาย",
-      href: "/agent/calculators",
-      external: false,
+  icon: "🧮",
+  title: "ข้อเสนอแบบประกัน",
+  description:
+    "คำนวณแบบประกันและจัดทำใบสรุปประกอบการเสนอขาย",
+  href: "/agent/calculators",
+  external: false,
     },
   ];
 
