@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Royal Partners | เครื่องมือเสนอขายกรมธรรม์</title>
+<title>เครื่องมือเสนอขายกรมธรรม์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1705,6 +1705,25 @@
   }
   .rp-ci-display-note b{color:#0F1B2E;}
 
+
+  .sc-display-note{
+    margin:8px 22px 0;
+    padding:9px 11px;
+    border:1px solid #d9d2bf;
+    background:#F7F3EA;
+    color:#4b463d;
+    font-size:10.5px;
+    line-height:1.5;
+  }
+  .sc-display-note b{color:#0F1B2E;}
+
+  .sc-report-page .sc-display-note{
+    margin:6px 18px 0;
+    padding:7px 9px;
+    font-size:8.5px;
+    line-height:1.4;
+  }
+
 </style>
 </head>
 <body>
@@ -2347,13 +2366,12 @@ function viewCISuperCare(app){
   chartWrap.innerHTML = buildCISuperCareChartHTML(pp, state.sum);
   panel.appendChild(chartWrap.firstElementChild);
 
-  note(
-    app,
-    'โรคร้ายแรงระดับต้นถึงระดับปานกลาง 18 โรค/การรักษา จ่าย 20% ของจำนวนเงินเอาประกันภัยเพียงครั้งเดียว ' +
-    'โรคร้ายแรงระดับรุนแรง 44 โรค/การรักษา จ่ายสูงสุด 100% โดยหักผลประโยชน์ระดับต้นถึงระดับปานกลางที่จ่ายไปแล้ว (ถ้ามี)'
-  );
-
-  addExportButton(app, 'cisupercare');
+  const displayNote = document.createElement('div');
+  displayNote.className = 'sc-display-note';
+  displayNote.innerHTML =
+    '<b>ข้อมูลเพิ่มเติม:</b> เบี้ยประกันคงที่ • ถ้าไม่เป็นโรคร้าย มีมูลค่าเวนคืนให้ (ตามปีนั้นๆ)';
+  panel.appendChild(displayNote);
+addExportButton(app, 'cisupercare');
 }
 
 /* ---------- shared render helpers ---------- */
@@ -2760,7 +2778,6 @@ function buildExcellentReportHTML(){
 
           <div class="rp-report-head">
             <div>
-              <div class="rp-report-brand">แบบประกัน</div>
               <div class="rp-report-title">Excellent</div>
             </div>
             <div class="rp-report-sum">
@@ -2857,7 +2874,7 @@ function buildExcellentReportHTML(){
 }
 
 
-const CI_SUPERCARE_REPORT_VERSION = "1.2.1";
+const CI_SUPERCARE_REPORT_VERSION = "1.2.2";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
@@ -3007,7 +3024,6 @@ function buildCISuperCareReportHTML(){
 
           <div class="rp-report-head">
             <div>
-              <div class="rp-report-brand">ROYAL PARTNER</div>
               <div class="rp-report-title">${data.product.name}</div>
             </div>
             <div class="rp-report-sum">
@@ -3045,6 +3061,11 @@ function buildCISuperCareReportHTML(){
           </div>
 
           ${buildCISuperCareChartHTML(data.product.payYears, data.customer.sumInsured)}
+
+          <div class="sc-display-note">
+            <b>ข้อมูลเพิ่มเติม:</b>
+            เบี้ยประกันคงที่ • ถ้าไม่เป็นโรคร้าย มีมูลค่าเวนคืนให้ (ตามปีนั้นๆ)
+          </div>
 
           <div class="rp-section">
             <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
@@ -3652,7 +3673,7 @@ function buildCardHTML(data, key){
     </div>
     <div class="card-foot">
       <div class="agent">
-        <b>${state.agent.name || 'ตัวแทนประกันชีวิต Royal Partners'}</b><br>
+        <b>${state.agent.name || 'ตัวแทนประกันชีวิต'}</b><br>
         ${state.agent.phone ? 'โทร. '+state.agent.phone : ''} ${state.agent.line ? '&nbsp;&nbsp;LINE: '+state.agent.line : ''}
       </div>
       <div class="date">จัดทำเมื่อ<br>${reportDate}</div>
