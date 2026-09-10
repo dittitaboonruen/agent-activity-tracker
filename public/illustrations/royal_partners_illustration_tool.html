@@ -1975,11 +1975,16 @@ function buildCardHTML(data, key){
   </div>`;
 }
 
-function downloadReportImage(key, reportEl, btn){
+async function downloadReportImage(key, reportEl, btn){
   if(btn.dataset.busy === '1') return;
 
   if(typeof html2canvas === 'undefined'){
     alert('ไม่พบไฟล์สร้าง PNG (/vendor/html2canvas.min.js) กรุณาตรวจว่าไฟล์ถูกอัปโหลดและ Deploy แล้ว');
+    return;
+  }
+
+  if(!reportEl || reportEl.offsetWidth <= 0 || reportEl.offsetHeight <= 0){
+    alert('ไม่พบพื้นที่ใบสรุปสำหรับสร้างภาพ กรุณาปิด Preview แล้วเปิดใหม่');
     return;
   }
 
@@ -1990,34 +1995,66 @@ function downloadReportImage(key, reportEl, btn){
   btn.textContent = 'กำลังสร้างภาพ...';
 
   try{
-    html2canvas(reportEl, {
-      scale:2,
-      backgroundColor:'#ffffff',
-      useCORS:true,
-      logging:false
-    }).then(canvas=>{
-      const a = document.createElement('a');
-      const versionSuffix = key==='ciprocare'
-        ? `-v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}`
-        : '';
+    // รอ font เท่าที่จำเป็น แต่ไม่ปล่อยให้ค้างไม่สิ้นสุด
+    if(document.fonts && document.fonts.ready){
+      await Promise.race([
+        document.fonts.ready,
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    }
 
-      a.download = `royal-partner-${key}${versionSuffix}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-    }).catch(err=>{
-      console.error('Report export error:', err);
-      alert('สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
-    }).finally(()=>{
-      btn.dataset.busy = '0';
-      btn.disabled = false;
-      btn.textContent = oldTxt;
+    const canvas = await html2canvas(reportEl, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: false,
+      allowTaint: false,
+      imageTimeout: 5000,
+      logging: false,
+      removeContainer: true
     });
+
+    const blob = await new Promise((resolve, reject)=>{
+      canvas.toBlob(result=>{
+        if(result) resolve(result);
+        else reject(new Error('Canvas toBlob returned null'));
+      }, 'image/png', 1);
+    });
+
+    const versionSuffix = key==='ciprocare'
+      ? `-v${CI_PROCARE_REPORT_VERSION.replaceAll('.','-')}`
+      : '';
+
+    const filename =
+      `royal-partner-${key}${versionSuffix}-${state.age}${state.gender==='ชาย'?'M':'F'}-${Date.now()}.png`;
+
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = objectUrl;
+    a.download = filename;
+    a.style.display = 'none';
+
+    // บาง browser ต้องให้ anchor อยู่ใน DOM ก่อนจึงยอม download
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // หน่วงการ revoke เพื่อไม่ตัด download ก่อน browser เริ่มอ่าน blob
+    setTimeout(()=>URL.revokeObjectURL(objectUrl), 10000);
+
   }catch(error){
     console.error('Report export error:', error);
+
+    const message =
+      error && error.message
+        ? `สร้างภาพไม่สำเร็จ: ${error.message}`
+        : 'สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+
+    alert(message);
+  }finally{
     btn.dataset.busy = '0';
     btn.disabled = false;
     btn.textContent = oldTxt;
-    alert('สร้างภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
   }
 }
 
