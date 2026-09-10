@@ -889,6 +889,117 @@
     font-variant-numeric:tabular-nums;
   }
 
+
+  /* ---------- CI ProCare compact single-page A4 ---------- */
+  .rp-report-pages{
+    gap:0 !important;
+    padding:0 !important;
+  }
+  .rp-report-page{
+    width:794px;
+    min-height:1123px;
+    max-height:1123px;
+    overflow:hidden;
+  }
+  .rp-page-inner{
+    min-height:1123px;
+    max-height:1123px;
+  }
+  .rp-report-head{
+    padding:14px 18px 12px !important;
+  }
+  .rp-report-title{
+    font-size:24px !important;
+    margin-top:2px !important;
+  }
+  .rp-report-sub{
+    display:none !important;
+  }
+  .rp-report-meta .cell{
+    padding:9px 14px !important;
+  }
+  .rp-report-kpis{
+    gap:8px !important;
+    padding:10px 18px !important;
+  }
+  .rp-kpi{
+    padding:10px 12px !important;
+  }
+  .rp-kpi .v{
+    font-size:18px !important;
+  }
+  .rp-section{
+    padding-left:18px !important;
+    padding-right:18px !important;
+    margin-top:10px !important;
+  }
+  .rp-section-title{
+    padding:8px 12px !important;
+    font-size:12px !important;
+  }
+  .rp-ci-map{
+    margin:0 18px 8px !important;
+    padding:9px !important;
+  }
+  .rp-ci-map-row{
+    margin-bottom:5px !important;
+  }
+  .rp-ci-map-bar,
+  .rp-ci-map-tail{
+    min-height:28px !important;
+    font-size:9.5px !important;
+  }
+  .rp-benefit-block{
+    margin-bottom:6px !important;
+  }
+  .rp-benefit-main{
+    min-height:58px !important;
+  }
+  .rp-benefit-desc{
+    padding:8px 10px !important;
+  }
+  .rp-benefit-name{
+    font-size:13px !important;
+  }
+  .rp-benefit-tag{
+    font-size:8px !important;
+    padding:2px 5px !important;
+  }
+  .rp-benefit-amount,
+  .rp-benefit-tax{
+    padding:8px 9px !important;
+  }
+  .rp-benefit-amount .v,
+  .rp-benefit-tax .v{
+    font-size:12px !important;
+  }
+  .rp-benefit-subrow{
+    min-height:26px !important;
+    font-size:8.8px !important;
+    padding-top:4px !important;
+    padding-bottom:4px !important;
+  }
+  .rp-benefit-table{
+    font-size:9px !important;
+  }
+  .rp-two-col{
+    gap:8px !important;
+  }
+  .rp-info-box{
+    padding:9px 10px !important;
+    font-size:9.5px !important;
+    line-height:1.45 !important;
+  }
+  .rp-red-remark{
+    margin:8px 18px 10px !important;
+    padding:7px 10px !important;
+    font-size:9px !important;
+  }
+  .rp-page-number{
+    padding:4px 18px 6px !important;
+    font-size:8px !important;
+  }
+
 </style>
 </head>
 <body>
@@ -1567,7 +1678,7 @@ function productCardData(key){
 
 
 
-const CI_PROCARE_REPORT_VERSION = "1.0.0";
+const CI_PROCARE_REPORT_VERSION = "1.1.0";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
@@ -1816,9 +1927,6 @@ function buildCIProCareReportHTML(){
           <div>
             <div class="rp-report-brand">ROYAL PARTNER</div>
             <div class="rp-report-title">${data.product.name}</div>
-            <div class="rp-report-sub">
-              สรุปประกอบการเรียนการสอน • แบบประกันภัยหลักคุ้มครองชีวิตและโรคร้ายแรงตลอดชีพ
-            </div>
           </div>
           <div class="rp-report-sum">
             <div class="l">จำนวนเงินเอาประกันภัย</div>
@@ -1826,9 +1934,9 @@ function buildCIProCareReportHTML(){
           </div>
         </div>
 
-        <div style="padding:10px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
-          <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
-          <div style="font-size:15px;font-weight:700;color:#0F1B2E;">
+        <div style="padding:8px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+          <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
+          <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
             ${data.customer.fullName || '—'}
           </div>
         </div>
@@ -1857,16 +1965,6 @@ function buildCIProCareReportHTML(){
         ${buildCIProCareTimelineHTML(data)}
 
         <div class="rp-section">
-          <div class="rp-info-box" style="background:#F7F3EA;">
-            <div class="head">หมายเหตุการอ้างอิงผลประโยชน์</div>
-            ผลประโยชน์โรคร้ายแรงระดับต้น–ปานกลาง 40% ต่อครั้ง สูงสุด 5 ครั้ง
-            และระดับรุนแรง 100% ต่อครั้ง สูงสุด 6 ครั้ง
-            รวมผลประโยชน์โรคร้ายแรงสูงสุด 1,000% ของจำนวนเงินเอาประกันภัย
-            โดยตั้งแต่อายุ 85–99 ปี ผลประโยชน์โรคร้ายแรงสูงสุดเป็น 140% ของทุนประกัน ตามเงื่อนไข
-          </div>
-        </div>
-
-        <div class="rp-section" style="padding-top:4px;">
           <div class="rp-section-title">1 ผลประโยชน์คุ้มครองโรคร้ายแรง</div>
 
           <div class="rp-benefit-block">
@@ -1885,7 +1983,7 @@ function buildCIProCareReportHTML(){
                 <div class="v">${fmt(data.benefits.early.perClaim)} บาท</div>
               </div>
               <div class="rp-benefit-amount">
-                <div class="l">เคลมสูงสุดได้</div>
+                <div class="l">รวมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.early.maxTotal)} บาท</div>
               </div>
               ${data.tax.showInBenefits ? `
@@ -1914,7 +2012,7 @@ function buildCIProCareReportHTML(){
                 <div class="v">${fmt(data.benefits.severe.perClaim)} บาท</div>
               </div>
               <div class="rp-benefit-amount">
-                <div class="l">เคลมสูงสุดได้</div>
+                <div class="l">รวมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.severe.maxTotal)} บาท</div>
               </div>
               ${data.tax.showInBenefits ? `
@@ -1941,7 +2039,7 @@ function buildCIProCareReportHTML(){
                 <div class="v">${fmt(data.benefits.mib.perClaim)} บาท</div>
               </div>
               <div class="rp-benefit-amount">
-                <div class="l">เคลมสูงสุดได้</div>
+                <div class="l">รวมสูงสุดได้</div>
                 <div class="v">${fmt(data.benefits.mib.maxTotal)} บาท</div>
               </div>
               ${data.tax.showInBenefits ? `
@@ -1991,12 +2089,12 @@ function buildCIProCareReportHTML(){
             </div>
           </div>
 
-          <table class="rp-benefit-table" style="margin-top:8px">
+          <table class="rp-benefit-table" style="margin-top:6px">
             <tbody>
               <tr>
                 <td>
                   <b>รวมผลประโยชน์โรคร้ายแรงสูงสุด</b><br>
-                  <span style="font-size:9.5px;color:#847c69">
+                  <span style="font-size:8.5px;color:#847c69">
                     800% (1.1–1.2) + 200% (1.3–1.4)
                   </span>
                 </td>
@@ -2007,55 +2105,8 @@ function buildCIProCareReportHTML(){
           </table>
         </div>
 
-        <div class="rp-page-footer-spacer"></div>
-        <div class="rp-page-number">หน้า 1 / 2 • Report v${data.reportVersion}</div>
-      </div>
-    </section>`;
-
-  const page2 = `
-    <section class="rp-report-page" id="ci-procare-report-page-2" data-page="2">
-      <div class="rp-page-inner">
-
-        <div class="rp-report-head">
-          <div>
-            <div class="rp-report-brand">ROYAL PARTNER</div>
-            <div class="rp-report-title">${data.product.name}</div>
-            <div class="rp-report-sub">สรุปรายละเอียดผลประโยชน์ • ต่อจากหน้า 1</div>
-          </div>
-          <div class="rp-report-sum">
-            <div class="l">จำนวนเงินเอาประกันภัย</div>
-            <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
-          </div>
-        </div>
-
         <div class="rp-section">
-          <div class="rp-section-title">2 ผลประโยชน์กรณีเสียชีวิต</div>
-          <div class="rp-info-box">
-            <div class="rp-death-lines">
-              <div class="row">
-                <span>สัญญาหลัก</span>
-                <strong>อย่างน้อย ${fmt(data.death.mainContract)} บาท</strong>
-              </div>
-              ${data.death.riderContract !== null ? `
-                <div class="row">
-                  <span>สัญญาเพิ่มเติม</span>
-                  <strong>${fmt(data.death.riderContract)} บาท</strong>
-                </div>` : ''}
-              <div class="row">
-                <span>รวม</span>
-                <strong>อย่างน้อย ${fmt(data.death.total)} บาท</strong>
-              </div>
-            </div>
-            <div style="margin-top:7px;font-size:9.5px;color:#847c69;line-height:1.55">
-              ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขของแบบประกันภัยหลัก AIA CI ProCare
-              โดยบริษัทจะพิจารณาจำนวนที่มากกว่าตามเงื่อนไขในกรมธรรม์
-              และหักผลประโยชน์ที่ได้จ่ายไปแล้ว (ถ้ามี)
-            </div>
-          </div>
-        </div>
-
-        <div class="rp-section">
-          <div class="rp-section-title">3 ระยะเวลาความคุ้มครองและภาษี</div>
+          <div class="rp-section-title">2 ระยะเวลาความคุ้มครองและภาษี</div>
           <div class="rp-two-col">
             <div class="rp-info-box">
               <div class="head">ระยะเวลาความคุ้มครอง</div>
@@ -2066,62 +2117,31 @@ function buildCIProCareReportHTML(){
             </div>
             <div class="rp-info-box">
               <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
-              ${fmt(data.tax.relief)} บาท<br>
-              <span style="color:#847c69">
-                คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="rp-section">
-          <div class="rp-section-title">4 ข้อมูลลูกค้าและตัวแทน</div>
-          <div class="rp-two-col">
-            <div class="rp-info-box">
-              <div class="head">ข้อมูลลูกค้า</div>
-              ชื่อ–นามสกุล: <b>${data.customer.fullName || '—'}</b><br>
-              เพศ: <b>${data.customer.gender}</b><br>
-              อายุ: <b>${data.customer.age} ปี</b><br>
-              ทุนประกัน: <b>${fmt(data.customer.sumInsured)} บาท</b>
-            </div>
-            <div class="rp-info-box">
-              <div class="head">ข้อมูลตัวแทน</div>
-              ชื่อตัวแทน: <b>${data.agent.name || 'ตัวแทน Royal Partner'}</b><br>
-              เบอร์โทร: <b>${data.agent.phone || '—'}</b><br>
-              LINE: <b>${data.agent.line || '—'}</b><br>
-              วันที่: <b>${data.agent.reportDate}</b>
+              ${data.tax.showInBenefits ? `
+                ${fmt(data.tax.relief)} บาท<br>
+                <span style="color:#847c69">
+                  คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%
+                </span>
+              ` : `
+                <span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>
+              `}
             </div>
           </div>
         </div>
 
         <div class="rp-page-footer-spacer"></div>
 
-        <div class="rp-agent-row">
-          <div class="cell">ตัวแทน<b>${data.agent.name || 'ตัวแทน Royal Partner'}</b></div>
-          <div class="cell">โทร.<b>${data.agent.phone || '—'}</b></div>
-          <div class="cell">LINE<b>${data.agent.line || '—'}</b></div>
-          <div class="cell">วันที่<b>${data.agent.reportDate}</b></div>
-        </div>
-
         <div class="rp-red-remark">
           หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
         </div>
 
-        <div class="rp-report-foot">
-          <b>คำชี้แจง:</b> เอกสารนี้จัดทำขึ้นเพื่อประกอบการเรียนการสอนและสร้างความเข้าใจเบื้องต้นเท่านั้น
-          ตัวเลขที่แสดงอ้างอิงจากข้อมูลที่กรอกในเครื่องมือและผลการคำนวณของระบบ
-          เงื่อนไข ความคุ้มครอง ข้อยกเว้น เบี้ยประกันภัย และสิทธิประโยชน์ที่แท้จริง
-          ให้ยึดตามกรมธรรม์ เอกสารประกอบการเสนอขาย และเงื่อนไขของบริษัทประกันภัย
-        </div>
-
-        <div class="rp-page-number">หน้า 2 / 2 • Report v${data.reportVersion}</div>
+        <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
       </div>
     </section>`;
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
       ${page1}
-      ${page2}
     </div>
   </div>`;
 }
@@ -2357,10 +2377,9 @@ async function downloadCIProCarePDF(btn){
   }
 
   const page1 = document.getElementById('ci-procare-report-page-1');
-  const page2 = document.getElementById('ci-procare-report-page-2');
 
-  if(!page1 || !page2){
-    alert('ไม่พบใบสรุป CI ProCare ครบทั้ง 2 หน้า');
+  if(!page1){
+    alert('ไม่พบใบสรุป CI ProCare');
     return;
   }
 
@@ -2379,31 +2398,19 @@ async function downloadCIProCarePDF(btn){
       compress:true
     });
 
-    const pages = [page1, page2];
+    const canvas = await renderReportPageToCanvas(page1);
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-    for(let i=0; i<pages.length; i++){
-      btn.textContent = `กำลังสร้าง PDF ${i+1}/2...`;
-
-      const canvas = await renderReportPageToCanvas(pages[i]);
-
-      // JPEG เหมาะกับรายงาน 2 หน้าและช่วยลดขนาดไฟล์ PDF
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-      if(i > 0){
-        pdf.addPage('a4', 'portrait');
-      }
-
-      pdf.addImage(
-        imgData,
-        'JPEG',
-        0,
-        0,
-        210,
-        297,
-        undefined,
-        'FAST'
-      );
-    }
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      0,
+      0,
+      210,
+      297,
+      undefined,
+      'FAST'
+    );
 
     const customerName = (state.customer.firstName || state.customer.lastName)
       ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
@@ -2452,11 +2459,11 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 2 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
               ${key==='ciprocare' ? `
-                <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF 2 หน้า</button>
+                <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
               `}
