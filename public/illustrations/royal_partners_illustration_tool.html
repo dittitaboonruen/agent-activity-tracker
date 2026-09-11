@@ -1821,6 +1821,80 @@
     }
   }
 
+
+  /* ---------- QR + Payment media (v31) ---------- */
+  .rp-resource-payment-image{
+    width:100%;
+    height:74px;
+    border:1px solid #e5decd;
+    background:#fff;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .rp-resource-payment-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+    display:block;
+  }
+
+  .rp-resource-card[data-resource-type="payment"]{
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+  .rp-resource-copy.payment-copy{
+    min-width:0;
+  }
+
+  .compact-report .rp-resource-grid{
+    grid-template-columns:180px minmax(0,1fr);
+    gap:6px;
+  }
+  .compact-report .rp-resource-card{
+    min-height:76px;
+    padding:6px;
+  }
+  .compact-report .rp-resource-card[data-resource-type="brochure"]{
+    grid-template-columns:56px 1fr;
+    gap:6px;
+  }
+  .compact-report .rp-resource-qr{
+    width:56px;
+    height:56px;
+  }
+  .compact-report .rp-resource-qr img{
+    width:52px;
+    height:52px;
+  }
+  .compact-report .rp-resource-payment-image{
+    height:56px;
+  }
+  .compact-report .rp-resource-copy .kicker{
+    font-size:6.5px;
+  }
+  .compact-report .rp-resource-copy .name{
+    font-size:8px;
+  }
+  .compact-report .rp-resource-copy .desc{
+    font-size:6.5px;
+  }
+  .compact-report .rp-resource-copy .version{
+    font-size:6px;
+  }
+
+  .rp-front-resource-section .rp-resource-payment-image{
+    height:126px;
+  }
+
+  @media (max-width:680px){
+    .compact-report .rp-resource-grid{
+      grid-template-columns:1fr;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -2327,6 +2401,13 @@ function viewCIProCare(app){
     {lbl:'เบี้ยประกันภัยรวมสุทธิ / ปี', val:fmt(r.net), oxblood:true},
   ]);
   renderCIProCareBenefitMap(app);
+
+  const resourceHTML = buildFrontResourceSection('ciprocare');
+  if(resourceHTML){
+    const resourceWrap = document.createElement('div');
+    resourceWrap.innerHTML = resourceHTML;
+    app.querySelector('.panel').appendChild(resourceWrap.firstElementChild);
+  }
   note(app, 'ผลประโยชน์โรคร้ายแรงระดับต้น-ปานกลางจ่าย 40%/ครั้ง (สูงสุด 5 ครั้ง) ระดับรุนแรงจ่าย 100%/ครั้ง (สูงสุด 6 ครั้ง) รวมสูงสุด 1,000% ของทุนประกัน หลังอายุ 85 ปี ผลประโยชน์รวมลดเหลือสูงสุด 140% — ส่วนลดทุนสูงยังคงนำไปคำนวณตามปกติ แต่ซ่อนจากการแสดงผลหน้าจอ — สิทธิลดหย่อนภาษีคำนวณเฉพาะส่วนเบี้ยชีวิตเท่านั้น');
   addExportButton(app, 'ciprocare');
 }
@@ -2678,11 +2759,12 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
       active: false,
     },
     payment: {
-      title: 'รูปแบบการชำระเบี้ย',
+      title: 'รูปแบบการชำระเงิน',
       targetUrl: '',
       qrImagePath: '',
-      version: '',
-      active: false,
+      imagePath: '/report-assets/payment/aia-installment-2026-09.png',
+      version: '2026-09',
+      active: true,
     },
   },
 
@@ -2784,15 +2866,22 @@ function normalizeProductResourceKey(productKey, options = {}){
 
 function isSafeResourceItem(item){
   if(!item || item.active !== true) return false;
-  if(typeof item.qrImagePath !== 'string' || !item.qrImagePath.trim()) return false;
 
-  // QR image should be same-origin for reliable html2canvas/PDF rendering.
-  const qrPath = item.qrImagePath.trim();
-  if(!qrPath.startsWith('/')) return false;
+  const qrPath =
+    typeof item.qrImagePath === 'string'
+      ? item.qrImagePath.trim()
+      : '';
 
-  // targetUrl is optional because the QR PNG already contains
-  // the brochure destination. Add targetUrl later if the card
-  // should also be clickable.
+  const imagePath =
+    typeof item.imagePath === 'string'
+      ? item.imagePath.trim()
+      : '';
+
+  // At least one same-origin visual asset must exist.
+  if(!qrPath && !imagePath) return false;
+  if(qrPath && !qrPath.startsWith('/')) return false;
+  if(imagePath && !imagePath.startsWith('/')) return false;
+
   if(item.targetUrl != null && typeof item.targetUrl !== 'string') return false;
 
   return true;
@@ -2826,7 +2915,7 @@ function escapeResourceHtml(value){
     .replaceAll("'",'&#039;');
 }
 
-function buildReportResourceCard(type, item){
+function buildReportResourceCard(type, item, compact = false){
   if(!item) return '';
 
   const label = type === 'brochure'
@@ -2835,15 +2924,23 @@ function buildReportResourceCard(type, item){
 
   const desc = type === 'brochure'
     ? 'สแกน QR Code เพื่อดูรายละเอียดแบบประกัน'
-    : 'สแกน QR Code เพื่อดูรูปแบบและช่องทางการชำระเบี้ย';
+    : 'ดูรูปแบบและช่องทางการชำระเงิน';
 
   const hasLink =
     typeof item.targetUrl === 'string' &&
     item.targetUrl.trim().length > 0;
 
+  const hasQr =
+    typeof item.qrImagePath === 'string' &&
+    item.qrImagePath.trim().length > 0;
+
+  const hasImage =
+    typeof item.imagePath === 'string' &&
+    item.imagePath.trim().length > 0;
+
   const openTag = hasLink
     ? `<a
-        class="rp-resource-card"
+        class="rp-resource-card ${compact ? 'compact' : ''}"
         href="${escapeResourceHtml(item.targetUrl.trim())}"
         target="_blank"
         rel="noopener noreferrer"
@@ -2851,48 +2948,75 @@ function buildReportResourceCard(type, item){
         style="text-decoration:none;color:inherit;"
       >`
     : `<div
-        class="rp-resource-card"
+        class="rp-resource-card ${compact ? 'compact' : ''}"
         data-resource-type="${escapeResourceHtml(type)}"
       >`;
 
   const closeTag = hasLink ? '</a>' : '</div>';
 
-  return `
-    ${openTag}
-      <div class="rp-resource-qr">
-        <img
-          src="${escapeResourceHtml(item.qrImagePath)}"
-          alt="QR ${escapeResourceHtml(item.title)}"
-          loading="eager"
-          decoding="sync"
-          onerror="this.closest('.rp-resource-card').classList.add('rp-resource-empty')"
-        >
-      </div>
+  if(type === 'payment' && hasImage){
+    return `
+      ${openTag}
+        <div class="rp-resource-payment-image">
+          <img
+            src="${escapeResourceHtml(item.imagePath)}"
+            alt="${escapeResourceHtml(item.title)}"
+            loading="eager"
+            decoding="sync"
+            onerror="this.closest('.rp-resource-card').classList.add('rp-resource-empty')"
+          >
+        </div>
+        <div class="rp-resource-copy payment-copy">
+          <div class="kicker">${label}</div>
+          <div class="name">${escapeResourceHtml(item.title)}</div>
+          <div class="desc">${desc}</div>
+          ${item.version
+            ? `<div class="version">Version: ${escapeResourceHtml(item.version)}</div>`
+            : ''}
+        </div>
+      ${closeTag}
+    `;
+  }
 
-      <div class="rp-resource-copy">
-        <div class="kicker">${label}</div>
-        <div class="name">${escapeResourceHtml(item.title)}</div>
-        <div class="desc">${desc}</div>
-        ${item.version
-          ? `<div class="version">Version: ${escapeResourceHtml(item.version)}</div>`
-          : ''}
-      </div>
-    ${closeTag}
-  `;
+  if(type === 'brochure' && hasQr){
+    return `
+      ${openTag}
+        <div class="rp-resource-qr">
+          <img
+            src="${escapeResourceHtml(item.qrImagePath)}"
+            alt="QR ${escapeResourceHtml(item.title)}"
+            loading="eager"
+            decoding="sync"
+            onerror="this.closest('.rp-resource-card').classList.add('rp-resource-empty')"
+          >
+        </div>
+
+        <div class="rp-resource-copy">
+          <div class="kicker">${label}</div>
+          <div class="name">${escapeResourceHtml(item.title)}</div>
+          <div class="desc">${desc}</div>
+          ${item.version
+            ? `<div class="version">Version: ${escapeResourceHtml(item.version)}</div>`
+            : ''}
+        </div>
+      ${closeTag}
+    `;
+  }
+
+  return '';
 }
 
 function buildReportResourceSection(productKey, options = {}){
   const resources = getProductResources(productKey, options);
 
-  const cards = [
-    buildReportResourceCard('brochure', resources.brochure),
-    buildReportResourceCard('payment', resources.payment),
-  ].filter(Boolean).join('');
+  const brochureCard = buildReportResourceCard('brochure', resources.brochure, true);
+  const paymentCard = buildReportResourceCard('payment', resources.payment, true);
 
+  const cards = [brochureCard, paymentCard].filter(Boolean).join('');
   if(!cards) return '';
 
   return `
-    <div class="rp-resource-section">
+    <div class="rp-resource-section compact-report">
       <div class="rp-resource-title">เอกสารเพิ่มเติม</div>
       <div class="rp-resource-grid">
         ${cards}
@@ -2904,11 +3028,10 @@ function buildReportResourceSection(productKey, options = {}){
 function buildFrontResourceSection(productKey, options = {}){
   const resources = getProductResources(productKey, options);
 
-  const cards = [
-    buildReportResourceCard('brochure', resources.brochure),
-    buildReportResourceCard('payment', resources.payment),
-  ].filter(Boolean).join('');
+  const brochureCard = buildReportResourceCard('brochure', resources.brochure, false);
+  const paymentCard = buildReportResourceCard('payment', resources.payment, false);
 
+  const cards = [brochureCard, paymentCard].filter(Boolean).join('');
   if(!cards) return '';
 
   return `
@@ -3569,7 +3692,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.2.1";
+const CI_PROCARE_REPORT_VERSION = "1.3.0";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
