@@ -1895,6 +1895,127 @@
     }
   }
 
+
+  /* ---------- CI ProCare summary resources v33 ---------- */
+  #ci-procare-report-page-1 .rp-resource-section.compact-report{
+    margin:5px 18px 0;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-title{
+    padding:5px 8px;
+    font-size:8.5px;
+    line-height:1.15;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-grid{
+    display:grid;
+    grid-template-columns:150px minmax(0,1fr);
+    gap:7px;
+    margin-top:5px;
+    align-items:stretch;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-card{
+    min-height:0;
+    padding:6px;
+    border-radius:5px;
+    overflow:hidden;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-card[data-resource-type="brochure"]{
+    display:grid;
+    grid-template-columns:92px 1fr;
+    gap:7px;
+    align-items:center;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-qr{
+    width:92px;
+    height:92px;
+    padding:5px;
+    overflow:visible;
+    background:#fff;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-qr img{
+    width:80px;
+    height:80px;
+    object-fit:contain;
+    display:block;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-card[data-resource-type="payment"]{
+    display:block;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-payment-image{
+    width:100%;
+    height:92px;
+    padding:2px;
+    overflow:hidden;
+    background:#fff;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-payment-image img{
+    width:100%;
+    height:100%;
+    object-fit:contain !important;
+    object-position:center;
+    display:block;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-copy.payment-copy{
+    display:none;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-copy .kicker{
+    font-size:6.2px;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-copy .name{
+    font-size:8.2px;
+    line-height:1.2;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-copy .desc{
+    font-size:6.5px;
+    line-height:1.25;
+  }
+
+  #ci-procare-report-page-1 .compact-report .rp-resource-copy .version{
+    font-size:5.8px;
+  }
+
+  /* Tighten CI ProCare report only so QR + payment + note stay on one A4 page */
+  #ci-procare-report-page-1 .rp-section{
+    margin-top:4px;
+  }
+
+  #ci-procare-report-page-1 .rp-section-title{
+    margin-bottom:3px;
+  }
+
+  #ci-procare-report-page-1 .rp-benefit-block{
+    margin-bottom:3px;
+  }
+
+  #ci-procare-report-page-1 .rp-page-footer-spacer{
+    flex:0 0 2px;
+    min-height:2px;
+  }
+
+  #ci-procare-report-page-1 .rp-red-remark{
+    margin-top:3px;
+    padding:4px 6px;
+    font-size:7.4px;
+    line-height:1.25;
+  }
+
+  #ci-procare-report-page-1 .rp-page-number{
+    margin-top:2px;
+    font-size:6.5px;
+  }
+
 </style>
 </head>
 <body>
@@ -2402,12 +2523,6 @@ function viewCIProCare(app){
   ]);
   renderCIProCareBenefitMap(app);
 
-  const resourceHTML = buildFrontResourceSection('ciprocare');
-  if(resourceHTML){
-    const resourceWrap = document.createElement('div');
-    resourceWrap.innerHTML = resourceHTML;
-    app.querySelector('.panel').appendChild(resourceWrap.firstElementChild);
-  }
   note(app, 'ผลประโยชน์โรคร้ายแรงระดับต้น-ปานกลางจ่าย 40%/ครั้ง (สูงสุด 5 ครั้ง) ระดับรุนแรงจ่าย 100%/ครั้ง (สูงสุด 6 ครั้ง) รวมสูงสุด 1,000% ของทุนประกัน หลังอายุ 85 ปี ผลประโยชน์รวมลดเหลือสูงสุด 140% — ส่วนลดทุนสูงยังคงนำไปคำนวณตามปกติ แต่ซ่อนจากการแสดงผลหน้าจอ — สิทธิลดหย่อนภาษีคำนวณเฉพาะส่วนเบี้ยชีวิตเท่านั้น');
   addExportButton(app, 'ciprocare');
 }
@@ -2924,8 +3039,8 @@ function buildReportResourceCard(type, item, compact = false){
     : 'PAYMENT GUIDE';
 
   const desc = type === 'brochure'
-    ? 'สแกน QR Code เพื่อดูรายละเอียดแบบประกัน'
-    : 'ดูรูปแบบและช่องทางการชำระเงิน';
+    ? 'สแกนเพื่อเปิด Brochure'
+    : 'รูปแบบและช่องทางการชำระเงิน';
 
   const hasLink =
     typeof item.targetUrl === 'string' &&
@@ -3693,7 +3808,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.3.1";
+const CI_PROCARE_REPORT_VERSION = "1.4.0";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
