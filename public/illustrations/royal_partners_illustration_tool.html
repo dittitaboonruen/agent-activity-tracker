@@ -1724,6 +1724,103 @@
     line-height:1.4;
   }
 
+
+  /* ---------- Shared report QR/resource component ---------- */
+  .rp-resource-section{
+    margin:8px 18px 0;
+  }
+  .rp-resource-title{
+    background:#0F1B2E;
+    color:#fff;
+    border-left:3px solid #B8985A;
+    padding:7px 10px;
+    font-size:10.5px;
+    font-weight:800;
+  }
+  .rp-resource-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin-top:7px;
+  }
+  .rp-resource-card{
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    padding:8px 9px;
+    display:grid;
+    grid-template-columns:72px 1fr;
+    gap:9px;
+    align-items:center;
+    min-height:88px;
+  }
+  .rp-resource-qr{
+    width:72px;
+    height:72px;
+    border:1px solid #e5decd;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .rp-resource-qr img{
+    width:68px;
+    height:68px;
+    object-fit:contain;
+    display:block;
+  }
+  .rp-resource-copy .kicker{
+    font-size:7.8px;
+    color:#B8985A;
+    font-weight:800;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .rp-resource-copy .name{
+    margin-top:2px;
+    font-size:10px;
+    line-height:1.35;
+    font-weight:800;
+    color:#0F1B2E;
+  }
+  .rp-resource-copy .desc{
+    margin-top:3px;
+    font-size:8px;
+    line-height:1.4;
+    color:#847c69;
+  }
+  .rp-resource-copy .version{
+    margin-top:3px;
+    font-size:7px;
+    color:#a39b88;
+  }
+  .rp-resource-empty{
+    display:none !important;
+  }
+
+  /* front-end / non-report size */
+  .rp-front-resource-section{
+    margin:12px 22px 4px;
+  }
+  .rp-front-resource-section .rp-resource-card{
+    min-height:102px;
+    grid-template-columns:84px 1fr;
+  }
+  .rp-front-resource-section .rp-resource-qr{
+    width:84px;
+    height:84px;
+  }
+  .rp-front-resource-section .rp-resource-qr img{
+    width:80px;
+    height:80px;
+  }
+
+  @media (max-width:680px){
+    .rp-resource-grid{
+      grid-template-columns:1fr;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -2560,7 +2657,303 @@ function buildCISuperCareChartHTML(payYears, sumInsured){
 }
 
 
-const EXCELLENT_REPORT_VERSION = "1.0.0";
+
+/* ==========================================================
+   Shared Product Resource Registry
+   ----------------------------------------------------------
+   Purpose:
+   - Single source for brochure/payment QR metadata
+   - Separate from every insurance calculation function
+   - Safe fail: missing URLs/assets => no QR block, report still works
+   - For PDF stability use SAME-ORIGIN static QR images in /public
+   ========================================================== */
+
+const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
+  excellent: {
+    brochure: {
+      title: 'Brochure Excellent',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+
+  ciprocare: {
+    brochure: {
+      title: 'Brochure AIA CI ProCare',
+      targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-procare/2026-09/ci-procare-2026-09.pdf',
+      qrImagePath: '/report-assets/qr/ci-procare-brochure.png',
+      version: '2026-09',
+      active: true,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+
+  cisupercare_10: {
+    brochure: {
+      title: 'Brochure AIA CI SuperCare 10/99',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+
+  cisupercare_20: {
+    brochure: {
+      title: 'Brochure AIA CI SuperCare 20/99',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+
+  pay25: {
+    brochure: {
+      title: 'Brochure 15 Pay 25',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+
+  pay20life: {
+    brochure: {
+      title: 'Brochure 20Pay Life',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+  },
+});
+
+function normalizeProductResourceKey(productKey, options = {}){
+  if(productKey === 'cisupercare'){
+    return Number(options.payYears) === 10
+      ? 'cisupercare_10'
+      : 'cisupercare_20';
+  }
+
+  return productKey;
+}
+
+function isSafeResourceItem(item){
+  if(!item || item.active !== true) return false;
+  if(typeof item.qrImagePath !== 'string' || !item.qrImagePath.trim()) return false;
+
+  // QR image should be same-origin for reliable html2canvas/PDF rendering.
+  const qrPath = item.qrImagePath.trim();
+  if(!qrPath.startsWith('/')) return false;
+
+  // targetUrl is optional because the QR PNG already contains
+  // the brochure destination. Add targetUrl later if the card
+  // should also be clickable.
+  if(item.targetUrl != null && typeof item.targetUrl !== 'string') return false;
+
+  return true;
+}
+
+function getProductResources(productKey, options = {}){
+  const key = normalizeProductResourceKey(productKey, options);
+  const entry = PRODUCT_RESOURCE_REGISTRY[key];
+
+  if(!entry){
+    return {
+      key,
+      brochure:null,
+      payment:null,
+    };
+  }
+
+  return {
+    key,
+    brochure:isSafeResourceItem(entry.brochure) ? entry.brochure : null,
+    payment:isSafeResourceItem(entry.payment) ? entry.payment : null,
+  };
+}
+
+function escapeResourceHtml(value){
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
+function buildReportResourceCard(type, item){
+  if(!item) return '';
+
+  const label = type === 'brochure'
+    ? 'PRODUCT BROCHURE'
+    : 'PAYMENT GUIDE';
+
+  const desc = type === 'brochure'
+    ? 'สแกน QR Code เพื่อดูรายละเอียดแบบประกัน'
+    : 'สแกน QR Code เพื่อดูรูปแบบและช่องทางการชำระเบี้ย';
+
+  const hasLink =
+    typeof item.targetUrl === 'string' &&
+    item.targetUrl.trim().length > 0;
+
+  const openTag = hasLink
+    ? `<a
+        class="rp-resource-card"
+        href="${escapeResourceHtml(item.targetUrl.trim())}"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-resource-type="${escapeResourceHtml(type)}"
+        style="text-decoration:none;color:inherit;"
+      >`
+    : `<div
+        class="rp-resource-card"
+        data-resource-type="${escapeResourceHtml(type)}"
+      >`;
+
+  const closeTag = hasLink ? '</a>' : '</div>';
+
+  return `
+    ${openTag}
+      <div class="rp-resource-qr">
+        <img
+          src="${escapeResourceHtml(item.qrImagePath)}"
+          alt="QR ${escapeResourceHtml(item.title)}"
+          loading="eager"
+          decoding="sync"
+          onerror="this.closest('.rp-resource-card').classList.add('rp-resource-empty')"
+        >
+      </div>
+
+      <div class="rp-resource-copy">
+        <div class="kicker">${label}</div>
+        <div class="name">${escapeResourceHtml(item.title)}</div>
+        <div class="desc">${desc}</div>
+        ${item.version
+          ? `<div class="version">Version: ${escapeResourceHtml(item.version)}</div>`
+          : ''}
+      </div>
+    ${closeTag}
+  `;
+}
+
+function buildReportResourceSection(productKey, options = {}){
+  const resources = getProductResources(productKey, options);
+
+  const cards = [
+    buildReportResourceCard('brochure', resources.brochure),
+    buildReportResourceCard('payment', resources.payment),
+  ].filter(Boolean).join('');
+
+  if(!cards) return '';
+
+  return `
+    <div class="rp-resource-section">
+      <div class="rp-resource-title">เอกสารเพิ่มเติม</div>
+      <div class="rp-resource-grid">
+        ${cards}
+      </div>
+    </div>
+  `;
+}
+
+function buildFrontResourceSection(productKey, options = {}){
+  const resources = getProductResources(productKey, options);
+
+  const cards = [
+    buildReportResourceCard('brochure', resources.brochure),
+    buildReportResourceCard('payment', resources.payment),
+  ].filter(Boolean).join('');
+
+  if(!cards) return '';
+
+  return `
+    <div class="rp-resource-section rp-front-resource-section">
+      <div class="rp-resource-title">เอกสารเพิ่มเติม</div>
+      <div class="rp-resource-grid">
+        ${cards}
+      </div>
+    </div>
+  `;
+}
+
+async function waitForReportResourceImages(root, timeoutMs = 2500){
+  if(!root) return;
+
+  const images = Array.from(
+    root.querySelectorAll('.rp-resource-card img')
+  );
+
+  if(!images.length) return;
+
+  const waitOne = (img) => new Promise(resolve => {
+    if(img.complete){
+      resolve();
+      return;
+    }
+
+    const done = () => {
+      img.removeEventListener('load', done);
+      img.removeEventListener('error', done);
+      resolve();
+    };
+
+    img.addEventListener('load', done, {once:true});
+    img.addEventListener('error', done, {once:true});
+  });
+
+  await Promise.race([
+    Promise.all(images.map(waitOne)),
+    new Promise(resolve => setTimeout(resolve, timeoutMs)),
+  ]);
+}
+
+
+const EXCELLENT_REPORT_VERSION = "1.1.0";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
@@ -2860,6 +3253,8 @@ function buildExcellentReportHTML(){
             </div>
           </div>
 
+          ${buildReportResourceSection('excellent')}
+
           <div class="ex-footer-spacer"></div>
 
           <div class="rp-red-remark">
@@ -2874,7 +3269,7 @@ function buildExcellentReportHTML(){
 }
 
 
-const CI_SUPERCARE_REPORT_VERSION = "1.2.2";
+const CI_SUPERCARE_REPORT_VERSION = "1.3.0";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
@@ -3158,6 +3553,8 @@ function buildCISuperCareReportHTML(){
             </div>
           </div>
 
+          ${buildReportResourceSection('cisupercare', {payYears:data.product.payYears})}
+
           <div class="sc-footer-spacer"></div>
 
           <div class="rp-red-remark">
@@ -3172,7 +3569,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.1.5";
+const CI_PROCARE_REPORT_VERSION = "1.2.1";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
@@ -3624,6 +4021,8 @@ function buildCIProCareReportHTML(){
           </div>
         </div>
 
+        ${buildReportResourceSection('ciprocare')}
+
         <div class="rp-page-footer-spacer"></div>
 
         <div class="rp-red-remark">
@@ -3849,6 +4248,10 @@ async function renderReportPageToCanvas(pageEl){
       new Promise(resolve => setTimeout(resolve, 2500))
     ]);
   }
+
+  // QR/resource assets are optional. Wait briefly if present,
+  // but never block report creation indefinitely.
+  await waitForReportResourceImages(pageEl, 2500);
 
   return await html2canvas(pageEl, {
     scale:2,
