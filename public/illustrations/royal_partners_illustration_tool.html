@@ -2759,12 +2759,12 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
       active: false,
     },
     payment: {
-      title: 'รูปแบบการชำระเงิน',
+      title: 'รูปแบบการชำระเบี้ย',
       targetUrl: '',
       qrImagePath: '',
-      imagePath: '/report-assets/payment/aia-installment-2026-09.png',
-      version: '2026-09',
-      active: true,
+      imagePath: '',
+      version: '',
+      active: false,
     },
   },
 
@@ -2777,11 +2777,12 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
       active: true,
     },
     payment: {
-      title: 'รูปแบบการชำระเบี้ย',
+      title: 'รูปแบบการชำระเงิน',
       targetUrl: '',
       qrImagePath: '',
-      version: '',
-      active: false,
+      imagePath: '/report-assets/payment/aia-installment-2026-09.png',
+      version: '2026-09',
+      active: true,
     },
   },
 
@@ -3692,7 +3693,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.3.0";
+const CI_PROCARE_REPORT_VERSION = "1.3.1";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
