@@ -4380,6 +4380,386 @@
     max-height:2px !important;
   }
 
+
+  /* ==========================================================
+     v50 — 15 Pay 25 latest formula + Excellent-style A4 summary
+     Keeps existing navy / gold / cream visual language.
+     ========================================================== */
+
+  .p25-chart{
+    margin:14px 22px 8px;
+    padding:13px 14px 12px;
+    background:#f2f2f2;
+    border:1px solid #d9d2bf;
+  }
+
+  .p25-chart-title{
+    color:#c2185b;
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:8px;
+  }
+
+  .p25-chart-row{
+    display:grid;
+    grid-template-columns:135px minmax(0,1fr);
+    gap:8px;
+    align-items:center;
+    margin-bottom:5px;
+  }
+
+  .p25-chart-label{
+    font-size:10.5px;
+    font-weight:700;
+    color:#555;
+  }
+
+  .p25-cover-track,
+  .p25-years,
+  .p25-payicons,
+  .p25-cashback-track{
+    display:grid;
+    grid-template-columns:repeat(25,minmax(0,1fr));
+    gap:1px;
+  }
+
+  .p25-cover-track{
+    background:#c9c9cc;
+    padding:1px;
+  }
+
+  .p25-cover-seg{
+    min-height:31px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    background:#b4b4b8;
+    font-size:10px;
+    font-weight:800;
+  }
+
+  .p25-cover-seg.s1{grid-column:1 / span 11;}
+  .p25-cover-seg.s2{grid-column:12 / span 1;}
+  .p25-cover-seg.s3{grid-column:13 / span 1;}
+  .p25-cover-seg.s4{grid-column:14 / span 1;}
+  .p25-cover-seg.s5{grid-column:15 / span 11;}
+
+  .p25-years span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:20px;
+    background:#d4154e;
+    color:#fff;
+    font-size:7.5px;
+    font-weight:700;
+  }
+
+  .p25-payicons span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:16px;
+    color:#8f8f92;
+    font-size:10px;
+  }
+
+  .p25-payicons span.empty{color:transparent;}
+
+  .p25-cashback-track span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:17px;
+    font-size:7px;
+    font-weight:700;
+  }
+
+  .p25-cashback-track span.fill{
+    background:#d4154e;
+    color:#fff;
+  }
+
+  .p25-cashback-track span.maturity{
+    background:#9d9da1;
+    color:#fff;
+  }
+
+  #pay25-report-page-1 .p25-chart{
+    margin:5px 12px 4px !important;
+    padding:7px 8px 6px !important;
+  }
+
+  #pay25-report-page-1 .p25-chart-title{
+    font-size:8.4px !important;
+    margin-bottom:4px !important;
+  }
+
+  #pay25-report-page-1 .p25-chart-row{
+    grid-template-columns:105px minmax(0,1fr) !important;
+    gap:5px !important;
+    margin-bottom:3px !important;
+  }
+
+  #pay25-report-page-1 .p25-chart-label{
+    font-size:6.4px !important;
+  }
+
+  #pay25-report-page-1 .p25-cover-seg{
+    min-height:22px !important;
+    font-size:6.4px !important;
+  }
+
+  #pay25-report-page-1 .p25-years span{
+    min-height:15px !important;
+    font-size:5.2px !important;
+  }
+
+  #pay25-report-page-1 .p25-payicons span{
+    min-height:12px !important;
+    font-size:7px !important;
+  }
+
+  #pay25-report-page-1 .p25-cashback-track span{
+    min-height:14px !important;
+    font-size:5px !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-grid-report{
+    margin:5px 12px 0 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1.18fr) minmax(0,0.82fr) !important;
+    gap:7px !important;
+    align-items:stretch !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-card{
+    border:1px solid #d9d2bf !important;
+    background:#fffdf8 !important;
+    min-width:0 !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-title{
+    padding:5px 7px !important;
+    background:#f4ecda !important;
+    color:#0F1B2E !important;
+    font-size:7.7px !important;
+    font-weight:800 !important;
+    line-height:1.2 !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table,
+  #pay25-report-page-1 .p25-planb-table{
+    width:100% !important;
+    border-collapse:collapse !important;
+    table-layout:fixed !important;
+    line-height:1.08 !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table{
+    font-size:5.1px !important;
+  }
+
+  #pay25-report-page-1 .p25-planb-table{
+    font-size:6.2px !important;
+    height:100% !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table th,
+  #pay25-report-page-1 .p25-mini-table td,
+  #pay25-report-page-1 .p25-planb-table th,
+  #pay25-report-page-1 .p25-planb-table td{
+    border:1px solid #e5dece !important;
+    padding:1.7px 2px !important;
+    vertical-align:middle !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table th,
+  #pay25-report-page-1 .p25-planb-table th{
+    background:#fbf7ed !important;
+    color:#0F1B2E !important;
+    font-weight:800 !important;
+    text-align:center !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table td:nth-child(1),
+  #pay25-report-page-1 .p25-mini-table td:nth-child(2),
+  #pay25-report-page-1 .p25-planb-table td:nth-child(1){
+    text-align:center !important;
+  }
+
+  #pay25-report-page-1 .p25-mini-table td:nth-child(n+3),
+  #pay25-report-page-1 .p25-planb-table td:nth-child(n+2){
+    text-align:right !important;
+    font-variant-numeric:tabular-nums !important;
+  }
+
+  #pay25-report-page-1 .p25-planb-table tbody tr{
+    height:68px !important;
+  }
+
+  #pay25-report-page-1 .p25-planb-table .em{
+    color:#84652f !important;
+    font-weight:800 !important;
+  }
+
+  #pay25-report-page-1 .p25-section2{
+    margin:5px 12px 0 !important;
+  }
+
+  #pay25-report-page-1 .p25-section2-layout{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 102px !important;
+    gap:6px !important;
+  }
+
+  #pay25-report-page-1 .p25-section2-info{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:5px !important;
+  }
+
+  #pay25-report-page-1 .p25-section2 .rp-info-box{
+    min-height:62px !important;
+    padding:5px 7px !important;
+    font-size:6.2px !important;
+    line-height:1.3 !important;
+  }
+
+  #pay25-report-page-1 .p25-section2-brochure{
+    border:1px solid #d9d2bf !important;
+    background:#fffdf8 !important;
+    min-height:62px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:4px !important;
+  }
+
+  #pay25-report-page-1 .p25-section2-brochure-title{
+    font-size:6.7px !important;
+    font-weight:800 !important;
+    margin-bottom:3px !important;
+  }
+
+  #pay25-report-page-1 .p25-brochure-placeholder{
+    color:#847c69 !important;
+    font-size:6px !important;
+    text-align:center !important;
+  }
+
+  #pay25-report-page-1 .p25-payment-wide{
+    width:100% !important;
+    aspect-ratio:1095 / 161 !important;
+    padding:3px !important;
+    border:1px solid #d9d2bf !important;
+    background:#fff !important;
+    overflow:hidden !important;
+  }
+
+  #pay25-report-page-1 .p25-payment-wide img{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    object-fit:contain !important;
+  }
+
+
+  /* ==========================================================
+     v51 — Excellent readability rebalance
+     ========================================================== */
+  #excellent-report-page-1 .ex-summary-box{
+    min-height:56px !important;
+    padding:9px 11px !important;
+  }
+
+  #excellent-report-page-1 .ex-summary-box .l{
+    font-size:8px !important;
+    line-height:1.25 !important;
+    margin-bottom:4px !important;
+  }
+
+  #excellent-report-page-1 .ex-summary-box .v{
+    font-size:16px !important;
+    line-height:1.1 !important;
+  }
+
+  #excellent-report-page-1 .ex-plan-title{
+    font-size:9.2px !important;
+    min-height:34px !important;
+    padding:7px 9px !important;
+  }
+
+  #excellent-report-page-1 .ex-mini-table{
+    font-size:6.55px !important;
+  }
+
+  #excellent-report-page-1 .ex-mini-table th{
+    font-size:6.7px !important;
+    padding:5px 3px !important;
+  }
+
+  #excellent-report-page-1 .ex-mini-table td{
+    font-size:6.55px !important;
+    padding:4.2px 3px !important;
+    height:19px !important;
+  }
+
+  #excellent-report-page-1 .ex-planb-table{
+    font-size:7px !important;
+  }
+
+  #excellent-report-page-1 .ex-planb-table th{
+    font-size:6.8px !important;
+    padding:6px 3px !important;
+  }
+
+  #excellent-report-page-1 .ex-planb-table td{
+    font-size:7px !important;
+    padding:8px 3px !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3 .rp-info-box{
+    min-height:78px !important;
+    padding:8px 10px !important;
+    font-size:7.8px !important;
+    line-height:1.4 !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3 .rp-info-box .head{
+    font-size:8.5px !important;
+    margin-bottom:4px !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3-layout{
+    grid-template-columns:minmax(0,1fr) 116px !important;
+    gap:8px !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3-brochure{
+    min-height:78px !important;
+    padding:5px !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3-brochure-title{
+    font-size:8px !important;
+  }
+
+  #excellent-report-page-1 .rp-ex-section3-brochure img{
+    width:76px !important;
+    height:76px !important;
+  }
+
+  /* Pay25 three-card summary after removing total-premium card */
+  #pay25-report-page-1 .ex-summary-row{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+
 </style>
 </head>
 <body>
@@ -4479,7 +4859,19 @@ function seqLookup(rows, age, colIdx){
   return rows[a-lo][colIdx];
 }
 function excellentRate(age){ const a=Math.max(0,Math.min(age,75)); return CORE.excellent.rate[String(a)]; }
-function pay25Rate(age){ const a=Math.max(0,Math.min(age,70)); return CORE.pay25.rate[String(a)]; }
+
+const PAY25_LATEST = Object.freeze({
+  premiumByAge:[80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,80500,81500,81500,81500,81500,81500,82500,82500,82500,82500,82500,84500,84500,84500,84500,84500,86500,86500,86500,86500,86500,88500,88500,88500,88500,88500,88500,88500,88500,88500,88500,89500,91500,92500,93500,94500],
+  rpuMale:[[516,640,734,825,913],[518,642,735,826,914],[517,641,735,826,913],[519,641,735,825,913],[519,641,734,825,913],[518,642,735,825,913],[518,642,735,826,914],[518,642,735,826,914],[517,641,735,825,913],[517,641,734,824,912],[517,641,733,823,912],[517,639,732,823,911],[517,639,732,823,911],[516,639,732,823,911],[515,638,732,821,911],[514,637,730,821,911],[514,637,730,821,911],[514,636,730,821,911],[514,636,730,821,910],[514,636,730,820,910],[514,636,729,820,910],[514,636,729,821,910],[513,635,730,821,909],[513,637,730,821,910],[513,636,730,820,910],[512,636,729,821,910],[514,635,730,821,911],[513,637,730,820,910],[513,636,729,821,909],[512,635,729,821,910],[513,635,730,820,910],[513,636,729,821,910],[512,635,730,820,909],[511,634,729,821,910],[512,635,728,820,909],[512,634,728,820,909],[511,635,727,819,910],[511,633,728,819,908],[510,634,728,819,909],[511,632,726,819,908],[510,633,726,818,908],[510,633,726,817,908],[508,632,726,818,909],[508,630,725,818,908],[508,630,725,817,908],[508,631,725,817,907],[507,630,724,817,908],[506,628,724,817,908],[505,628,723,816,907],[505,628,723,815,907],[504,627,721,815,907],[503,626,721,814,907],[503,626,721,813,907],[502,624,720,813,907],[502,623,718,811,906],[500,622,716,810,904],[498,620,715,808,903],[497,618,712,806,902],[494,615,710,804,899],[492,612,706,801,897],[488,607,702,797,893],[485,604,698,792,888],[481,599,693,787,884],[476,594,687,782,878],[472,589,681,775,872],[467,582,674,769,866],[460,574,666,760,858],[454,567,658,751,850],[446,559,649,742,840],[439,549,639,731,830],[431,539,628,720,818]],
+  rpuFemale:[[517,639,733,824,912],[518,641,735,824,912],[518,641,735,824,912],[518,641,735,826,912],[518,641,735,826,912],[518,641,735,825,912],[518,641,735,825,914],[518,641,734,825,913],[518,641,734,825,913],[518,641,734,825,913],[518,641,734,825,913],[518,641,734,825,913],[518,641,734,825,913],[518,641,734,825,913],[518,640,734,825,913],[518,640,734,825,913],[518,640,734,825,913],[518,640,734,825,913],[518,640,734,825,913],[518,640,734,825,913],[517,640,734,825,913],[517,640,734,824,913],[517,640,733,824,912],[517,640,733,824,912],[517,639,733,824,912],[517,639,733,824,912],[517,641,734,823,913],[517,641,734,825,913],[516,640,734,825,913],[518,640,733,824,912],[518,640,733,824,912],[517,639,733,823,913],[517,641,734,825,913],[517,640,734,824,912],[516,640,733,824,913],[517,639,732,825,913],[517,640,734,824,912],[516,640,733,823,913],[516,639,732,824,912],[517,640,733,823,913],[516,639,732,824,913],[515,640,733,824,912],[516,639,733,823,912],[515,639,733,823,912],[516,639,732,823,914],[516,640,733,825,913],[516,639,733,824,914],[516,639,732,825,913],[516,638,733,825,915],[515,639,733,825,915],[516,639,733,825,916],[515,639,733,826,916],[515,639,733,826,916],[515,639,733,825,917],[516,639,733,826,917],[515,639,733,826,917],[515,638,731,825,918],[513,636,731,825,917],[512,635,729,823,916],[510,634,729,821,914],[510,631,726,819,913],[508,629,723,817,910],[505,626,720,813,907],[502,622,716,810,903],[498,618,712,805,900],[494,613,707,799,895],[490,607,700,793,888],[484,601,693,786,882],[478,592,684,778,874],[471,584,675,768,865],[463,575,665,759,855]],
+  stopYears:[7,8,9,10],
+});
+
+function pay25Rate(age){
+  const a = Math.max(0, Math.min(70, Math.round(Number(age)||0)));
+  return PAY25_LATEST.premiumByAge[a] || PAY25_LATEST.premiumByAge[PAY25_LATEST.premiumByAge.length-1];
+}
+
 const fmt = n => Math.round(n).toLocaleString('th-TH');
 
 
@@ -4575,7 +4967,7 @@ function calcExcellentPlanBTerm(age, gender, sum, term){
 
   // Workbook L13:
   // cashback received before stop year only.
-  const cashbackCount = [4,8,12,16].filter(y => y < stopYear).length;
+  const cashbackCount = [4,8,12,16].filter(y => y <= stopYear).length;
   const cashback = sumInsured * 0.10 * cashbackCount;
 
   // Workbook L14:
@@ -4604,23 +4996,54 @@ function calcExcellentPlanBTerm(age, gender, sum, term){
 }
 
 function calcPay25(age, sum, tax){
-  const rate = pay25Rate(age);
-  const gross = rate*(sum/1000);
-  const discount = (sum<300000?0:sum<600000?1:1.5)*(sum/1000);
-  const net = gross-discount;
-  const rows=[];
-  for(let y=0;y<=25;y++){
-    const premium = y<=14? net : null;
+  const issueAge = Math.max(0, Math.min(70, Math.round(Number(age)||0)));
+  const sumInsured = Math.max(0, Number(sum)||0);
+  const taxRate = Math.max(0, Number(tax)||0);
+
+  // Latest source:
+  // annual premium = premium rate per 1,000,000 × SI / 1,000,000
+  const premiumRate = pay25Rate(issueAge);
+  const premium = premiumRate * (sumInsured / 1000000);
+
+  const rows = [];
+  for(let year=1; year<=25; year++){
+    const paying = year <= 15;
+
     let cashback = null;
-    if(y>=1 && y<=23) cashback = sum*0.01;
-    if(y===25) cashback = sum*1.21;
-    const mult = y<=11?1.00:y===12?1.10:y===13?1.15:y===14?1.25:1.35;
-    const coverage = sum*mult;
-    const taxRelief = y<=14? Math.min(premium,100000)*tax : 0;
-    rows.push({year:y, age:age+y, premium, cashback, coverage, taxRelief});
+    if(year === 25){
+      cashback = sumInsured * 1.21;
+    }else if(year >= 2){
+      cashback = sumInsured * 0.01;
+    }
+
+    let mult = 1;
+    if(year <= 11) mult = 1;
+    else if(year === 12) mult = 1.10;
+    else if(year === 13) mult = 1.15;
+    else if(year === 14) mult = 1.25;
+    else mult = 1.35;
+
+    rows.push({
+      year,
+      age:issueAge + (year-1),
+      premium:paying ? premium : null,
+      cashback,
+      coverage:sumInsured * mult,
+      taxRelief:paying ? Math.min(premium,100000) * taxRate : null,
+    });
   }
-  return {gross,discount,net,rows,payYears:15,coverYears:25};
+
+  return {
+    premium,
+    net:premium,
+    gross:premium,
+    discount:0,
+    rows,
+    payYears:15,
+    coverYears:25,
+  };
 }
+
 function calc20PayLife(age, gender, sum, tax){
   const colIdx = gender==='ชาย'?1:2;
   const rate = seqLookup(PL20.main, age, colIdx);
@@ -4804,20 +5227,38 @@ function calcExcellentRPU(age, gender, sum){
   });
 }
 
-function calcPay25RPU(age, gender, sum, netPremium){
-  const table = CORE.pay25.rpu;
-  const lo = table[0][0], hi = table[table.length-1][0];
-  const a = Math.max(lo, Math.min(age, hi));
-  const row = table[a-lo];
-  const offset = gender==='ชาย' ? 1 : 6;
-  const stopYears = [6,7,8,9,10];
-  return stopYears.map((sy,i)=>{
-    const rpuRate = row[offset+i];
-    const rpuValue = (rpuRate||0) * (sum/1000);
-    const totalPaid = netPremium * sy;
-    return {stopYear:sy, totalPaid, rpuValue, diff: rpuValue-totalPaid};
+function calcPay25RPU(age, gender, sum, annualPremium){
+  const issueAge = Math.max(0, Math.min(70, Math.round(Number(age)||0)));
+  const sumInsured = Math.max(0, Number(sum)||0);
+  const premium = Math.max(0, Number(annualPremium)||0);
+  const table = gender === 'หญิง' ? PAY25_LATEST.rpuFemale : PAY25_LATEST.rpuMale;
+
+  return PAY25_LATEST.stopYears.map(stopYear=>{
+    const idx = stopYear - 6; // year 7 -> index 1 in [y6..y10]
+    const row = table[issueAge] || table[table.length-1];
+    const rpuRate = row[idx] || 0;
+    const rpuValue = rpuRate * (sumInsured/1000);
+
+    // Latest XLSX: cashback included in Plan B calculation
+    // = 1% × SI × MAX(0, stopYear - 2)
+    const cashback = sumInsured * 0.01 * Math.max(0, stopYear-2);
+    const totalReceived = rpuValue + cashback;
+    const totalPaid = premium * stopYear;
+    const diff = totalReceived - totalPaid;
+    const returnPct = totalPaid > 0 ? diff / totalPaid : null;
+
+    return {
+      stopYear,
+      totalPaid,
+      rpuValue,
+      cashback,
+      totalReceived,
+      diff,
+      returnPct,
+    };
   });
 }
+
 function renderPlanB(container, rpuRows, planALedgerHTML){
   container.innerHTML = `<div class="plan-grid">
     <div class="ledger-wrap"><h3>Plan A — ชำระเบี้ยเต็มสัญญา</h3><div class="planA-el"></div></div>
@@ -4858,7 +5299,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
     opts: { healthhappyPlan:0, hcSmoker:0, hcUnits:1, lcPlan:'Lady Care', aiType:'AI', aiClass:1, aiRcc:false, hhkidsPlan:0, hhkidsTier:'10,000', icPlan:'แผน 120 ล้านบาท', icDeductible:'ไม่มี (First Dollar)', icTerritory:'ทั่วโลก' }
   },
   cisupercare: { payPeriod:20 },
-  excellent: { subtab:'planA', planBTerm:7 }
+  excellent: { subtab:'planA', planBTerm:7 },
+  pay25: { subtab:'planA', planBTerm:7 }
 };
 
 const TABS = [
@@ -4956,7 +5398,13 @@ function viewExcellent(app){
 
     renderLedger(
       ledger.querySelector('.ledger-el'),
-      r.rows.map(row=>({...row,maturity:row.year===20})),
+      r.rows
+        .filter(row=>row.year>=1 && row.year<=20)
+        .map(row=>({
+          ...row,
+          age:state.age + (row.year-1),
+          maturity:row.year===20,
+        })),
       cols
     );
   }else{
@@ -5010,20 +5458,104 @@ function viewExcellent(app){
 
 function viewPay25(app){
   const r = calcPay25(state.age, state.sum, state.tax);
-  app.innerHTML = panelShell('savings', 'AIA Endowment 15/25 (15 Pay 25)', 'จ่ายเบี้ยเบา ๆ กำหนดเป้าหมายการออมระยะพอดี — ชำระเบี้ย 15 ปี คุ้มครอง 25 ปี');
+  const planBRows = calcPay25RPU(state.age, state.gender, state.sum, r.premium);
+
+  app.innerHTML = panelShell(
+    'savings',
+    'AIA Endowment 15/25 (15 Pay 25)',
+    'ชำระเบี้ย 15 ปี คุ้มครอง 25 ปี พร้อมเงินคืนรายปีและความคุ้มครองชีวิตที่เพิ่มขึ้นตามช่วงปี'
+  );
+
   fillSummary(app, [
-    {lbl:'เบี้ยประกันภัยสุทธิต่อปี', val:fmt(r.net)},
-    {lbl:'ส่วนลดทุนสูง / ปี', val:fmt(r.discount)},
-    {lbl:'เงินคืนรวมระหว่างสัญญา', val:fmt(state.sum*0.23)+' (23%)'},
-    {lbl:'เงินครบกำหนดสัญญา (ปีที่ 25)', val:fmt(state.sum*1.21)+' (121%)'},
+    {lbl:'เบี้ยประกันภัยต่อปี', val:fmt(r.premium)},
+    {lbl:'เงินคืนรายปีรวม ปีที่ 2–24', val:fmt(state.sum*0.23)+' (23%)'},
+    {lbl:'เงินครบกำหนดสัญญา ปีที่ 25', val:fmt(state.sum*1.21)+' (121%)'},
   ]);
-  chartAndLedger(app, r.rows, 'coverage', 'ทุนคุ้มครองชีวิตที่เพิ่มขึ้นเป็นขั้นบันได', [
-    {key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},{key:'premium',label:'เบี้ยที่ชำระ'},
-    {key:'cashback',label:'เงินคืน'},{key:'coverage',label:'ทุนคุ้มครองชีวิต'},{key:'taxRelief',label:'ลดหย่อนภาษี'},
-  ], undefined, calcPay25RPU(state.age, state.gender, state.sum, r.net));
-  note(app, 'เบี้ยต่อทุน 1,000 บาท อัตราเดียวกันทั้งชายและหญิง หักส่วนลดทุนสูง (300,000-599,999 บาท ลด 1 บาท/พัน, ≥600,000 บาท ลด 1.5 บาท/พัน) ทุนคุ้มครอง 100% (ปี 1-11) → 110%/115%/125% (ปี 12-14) → 135% (ปี 15-25) เงินคืน 1% ทุกปีตั้งแต่ปีที่ 1-23 ครบสัญญาปีที่ 25 รับ 121% — Plan B (RPU) เพศชาย/หญิงแยกอัตรากัน เผยแพร่เฉพาะกรณีหยุดชำระที่ปีที่ 6-10 เท่านั้น (ไม่ใช่เอกสารเสนอขายทางการฉบับล่าสุด โปรดตรวจทานกับอัตราปัจจุบันก่อนใช้จริง)');
+
+  const panel = app.querySelector('.panel');
+
+  const chartWrap = document.createElement('div');
+  chartWrap.innerHTML = buildPay25ChartHTML();
+  panel.appendChild(chartWrap.firstElementChild);
+
+  const tabs = document.createElement('div');
+  tabs.className = 'ex-ui-tabs';
+  tabs.innerHTML = `
+    <button class="ex-ui-tab ${state.pay25.subtab==='planA'?'active':''}" data-p25-tab="planA">
+      Plan A — ชำระ 15 ปี คุ้มครองถึงปีที่ 25
+    </button>
+    <button class="ex-ui-tab ${state.pay25.subtab==='planB'?'active':''}" data-p25-tab="planB">
+      Plan B — หยุดชำระเบี้ยก่อนกำหนด (RPU)
+    </button>
+  `;
+  panel.appendChild(tabs);
+
+  tabs.querySelectorAll('[data-p25-tab]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.pay25.subtab = btn.dataset.p25Tab;
+      render();
+    };
+  });
+
+  const body = document.createElement('div');
+  body.className = 'ex-ui-body';
+  panel.appendChild(body);
+
+  if(state.pay25.subtab === 'planA'){
+    const ledger = document.createElement('div');
+    ledger.className = 'ledger-wrap ex-ui-ledger';
+    ledger.innerHTML = '<h3>Plan A — ตารางชำระเบี้ยและผลประโยชน์</h3><div class="ledger-el"></div>';
+    body.appendChild(ledger);
+
+    renderLedger(ledger.querySelector('.ledger-el'), r.rows, [
+      {key:'year',label:'ปีที่'},
+      {key:'age',label:'อายุ'},
+      {key:'premium',label:'เบี้ยที่ชำระ'},
+      {key:'cashback',label:'เงินคืน/ครบสัญญา'},
+      {key:'coverage',label:'กรณีเสียชีวิต'},
+      {key:'taxRelief',label:'ลดหย่อนภาษี'},
+    ]);
+  }else{
+    const selected = planBRows.find(x=>x.stopYear===state.pay25.planBTerm) || planBRows[0];
+
+    body.innerHTML = `
+      <div class="ex-planb-control">
+        <div>
+          <div class="ex-planb-label">ปีที่ต้องการหยุดชำระ</div>
+          <div class="ex-planb-help">ข้อมูลจริงจากไฟล์ล่าสุดสำหรับปีที่ 7–10</div>
+        </div>
+        <select id="pay25-planb-term" class="ex-planb-select">
+          ${PAY25_LATEST.stopYears.map(y=>`
+            <option value="${y}" ${y===state.pay25.planBTerm?'selected':''}>ปีที่ ${y}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="ex-planb-summary">
+        <div class="ex-planb-line"><span>1. มูลค่าใช้เงินสำเร็จ (RPU)</span><b>${fmt(selected.rpuValue)} บาท</b></div>
+        <div class="ex-planb-line"><span>2. เงินคืนรายปีที่นับรวม</span><b>${fmt(selected.cashback)} บาท</b></div>
+        <div class="ex-planb-line total"><span>3. รวมเงินคืนที่ได้รับ</span><b>${fmt(selected.totalReceived)} บาท</b></div>
+        <div class="ex-planb-line"><span>4. เบี้ยรวมที่จ่ายไป</span><b>${fmt(selected.totalPaid)} บาท</b></div>
+        <div class="ex-planb-line"><span>5. ส่วนต่างที่ได้รับ</span><b>${fmt(selected.diff)} บาท</b></div>
+        <div class="ex-planb-line final">
+          <span>6. ผลตอบแทนส่วนต่างที่ได้รับ (%)</span>
+          <b>${selected.returnPct===null?'—':(selected.returnPct*100).toFixed(1)+'%'}</b>
+        </div>
+      </div>
+    `;
+
+    const termSelect = body.querySelector('#pay25-planb-term');
+    if(termSelect){
+      termSelect.onchange = ()=>{
+        state.pay25.planBTerm = Number(termSelect.value);
+        render();
+      };
+    }
+  }
+
   addExportButton(app, 'pay25');
 }
+
 function view20PayLife(app){
   const r = calc20PayLife(state.age, state.gender, state.sum, state.tax);
   app.innerHTML = panelShell('savings', 'AIA 20Pay Life (Non Par)', 'ชำระเบี้ย 20 ปี คุ้มครองยาวถึงอายุ 99 ปี พร้อมสัญญาเพิ่มเติมให้เลือกแนบได้หลากหลาย');
@@ -5256,13 +5788,13 @@ function productCardData(key){
   }
   if(key==='pay25'){
     const r = calcPay25(state.age, sum, tax);
-    return { title:'AIA Endowment 15/25 (15 Pay 25)', desc:'จ่ายเบี้ยเบา ๆ กำหนดเป้าหมายการออมระยะพอดี ชำระ 15 ปี คุ้มครอง 25 ปี', ci:false,
-      premiumLabel:'เบี้ยประกันภัยปีแรก (สุทธิ)', premiumValue:r.net,
+    return { title:'AIA Endowment 15/25 (15 Pay 25)', desc:'ชำระเบี้ย 15 ปี คุ้มครอง 25 ปี พร้อมเงินคืนรายปีและความคุ้มครองชีวิตที่เพิ่มขึ้นตามช่วงปี', ci:false,
+      premiumLabel:'เบี้ยประกันภัยต่อปี', premiumValue:r.premium,
       benefits:[
         {t:'ทุนคุ้มครองชีวิต ปีที่ 1-11 (100%)', n:fmt(sum)},
-        {t:'ทุนคุ้มครองชีวิต ปีที่ 12-14 (110-125%)', n:fmt(sum*1.1)+' - '+fmt(sum*1.25)},
+        {t:'ปีที่ 12 / 13 / 14', n:'110% / 115% / 125%'},
         {t:'ทุนคุ้มครองชีวิต ปีที่ 15-25 (135%)', n:fmt(sum*1.35)},
-        {t:'เงินคืนรวมระหว่างสัญญา (23%)', n:fmt(sum*0.23)},
+        {t:'เงินคืน 1% ปีที่ 2-24 รวม', n:fmt(sum*0.23)},
         {t:'เงินครบกำหนดสัญญา ปีที่ 25 (121%)', n:fmt(sum*1.21)},
       ]};
   }
@@ -5463,10 +5995,10 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
   pay25: {
     brochure: {
       title: 'Brochure 15 Pay 25',
-      targetUrl: '',
-      qrImagePath: '',
-      version: '',
-      active: false,
+      targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/15pay25/2026-09/15pay25-2026-09.pdf',
+      qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAEvUlEQVR4nO2dS46kRhCGvzBItQSpD9BHgRv4SCMfyTeAo9QBRoJlS6DwIp/1mJnFFLjd/nNRVUDWp0T6lRkRGQHm/G6b//htBIghhhhiiCGGGGKIIUZhWGwtNq4tzH28bNYDc7hgFs6Na+o/vngcYojxvLXha5gA1jeA3RiWvWX4+21zVoPBAbqtBfbWWZsNAHvdOMQQ46fN3d0ZFmBYmuD9+0Tj7ksTLrgv6ZBuI/6icQZ39+mz3IsY/x+GTzRu3xawEfCpc7ex27Cx22BIF44ehxhi1K29OzbYDboPg26LK/vcf29hfdtg7Y8Zhxhi/LTFdd/d4/LuHpZ38srO4BvQufvU3fTTui/GqYzZzMx6CP7+cL1Em5W1BdaLM1xb7Nu1xUb24O6/fhxiiPG8+V2buo34kefT0G7O1f/4LPcixtdl5HV/i8dhFk0+U2rZ1fe4+McIgXQqximMG50mJVYSzbGqEKGa8i9f0lwsnYpxOKOaIoN/FH4lJyl4T7kxhC5bUqx0KsYpDJKDnz6Gpamm1zh3lhhAt8HgG8Xpl07FOJ5xo1PiZBl0miXqvkARsPuNkSCdinE8I+m08uOzv9/lQ5q45HsWcLYPpFMxjmfUflSZMcOkukR1UiL+JNNUfpQYZzLyyp63ooA4dy55Fl1ybkpxpkB+lBgnM+b3LaSZBlt0ft+wMe302xis193M+t3CbBst2hePQwwxnraQh2LQbtAtGDQb85/gsLWw9jjsLcPSA+vFje5768O1TVsDn+VexPi6jPs8lJJhGpwpz2Gq+JHbovxTMU5j1Pv71a7+kq93nmzR5O+Hw/Jf6VSMwxlJa+XEs83T5GA96yedinE8o5pPkxxjIKo6d7u1X8lWOhXjZMZuMdc0ePnZ3w/lp00oPonz6RqrAGx8/TjEEOOHjFD+TInuX1v8rz66VQz+YT6tLTZS+mUz4HPdixhfkVHvmwIpdJ+2TOO5vDNVpfm56k7EOI1R5/WF+D05VlVtSpEyUVM/7ZuKcSajyogqVfslYz+V7kORaJVcJZ2KcQ6jyuuLwdEuBvGjOoGq1DQnUpX/SqdiHM94qI8KydI5ua9od3pMm5ZOxTiJUduiU6raTzuoKbIazYDGk2kAKRAgnYpxKmM3hmsLw7Ib6WFoFh/VB4SY6jffYhBruLYPjFeMQwwxnrU4YwJptS9m6EOydJXoP8mPEuM8Rl2Sn7dM03N7qMpKq5SqIdkDWvfFOIlRxflTyxLNMahSfBIuQE6fkk7FOINxk4eyRBHWqaclmy8FrFR3IsbpjFv7NLccP40Bq7pcKn0ofirGaYyHetPKAlhyp1zTnw3XFGeVTsU4g3H/vL764eddzj/1XA2dik/QvqkYJzKyHwVEVz+5/0ORbZ473etYlXQqxkmMhzq+/DC+UrhHCJ1SbFbt74txLuMH7zvpNu5yTe8kqvxTMc5k3L9HAmg2g4vb3GPQLTD3S7wwGwShztaofl+Mf4tRR6O6jVILVb0Dxfrdwmt6jhuHGGI8Y3QpiDq/f8Q8FNZLdpzAxvWSFv9rC6x6j4QYpzGe+vtVkdRtMopXNVM5lCX7VIzDGea/7vOLNn+WexFDDDHEEEMMMcQQ47/P+Achm3P5PM0lxgAAAABJRU5ErkJggg==',
+      version: '2026-09',
+      active: true,
     },
     payment: {
       title: 'รูปแบบการชำระเบี้ย',
@@ -5725,7 +6257,7 @@ async function waitForReportResourceImages(root, timeoutMs = 2500){
 }
 
 
-const EXCELLENT_REPORT_VERSION = "2.3.1";
+const EXCELLENT_REPORT_VERSION = "2.4.0";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
@@ -5776,6 +6308,50 @@ function buildExcellentChartHTML(sumInsured){
       <div class="ex-chart-row" style="margin-bottom:0">
         <div class="ex-chart-label">เงินคืน*</div>
         <div class="ex-cashback-track">${cashbackSlots}</div>
+      </div>
+    </div>
+  `;
+}
+
+
+function buildPay25ChartHTML(){
+  const years = Array.from({length:25}, (_,i)=>`<span>${i+1}</span>`).join('');
+  const payIcons = Array.from({length:25}, (_,i)=>`<span class="${i<15?'':'empty'}">▲</span>`).join('');
+  const cashback = Array.from({length:25}, (_,i)=>{
+    const year = i+1;
+    if(year>=2 && year<=24) return '<span class="fill">1%</span>';
+    if(year===25) return '<span class="maturity">121%</span>';
+    return '<span></span>';
+  }).join('');
+
+  return `
+    <div class="p25-chart">
+      <div class="p25-chart-title">ภาพแสดงผลประโยชน์และความคุ้มครองของแบบประกันหลัก</div>
+
+      <div class="p25-chart-row">
+        <div class="p25-chart-label">ความคุ้มครองชีวิต</div>
+        <div class="p25-cover-track">
+          <div class="p25-cover-seg s1">100%</div>
+          <div class="p25-cover-seg s2">110%</div>
+          <div class="p25-cover-seg s3">115%</div>
+          <div class="p25-cover-seg s4">125%</div>
+          <div class="p25-cover-seg s5">135%</div>
+        </div>
+      </div>
+
+      <div class="p25-chart-row">
+        <div class="p25-chart-label">ระยะเวลาคุ้มครอง</div>
+        <div class="p25-years">${years}</div>
+      </div>
+
+      <div class="p25-chart-row">
+        <div class="p25-chart-label">ระยะเวลาชำระเบี้ยประกันภัย</div>
+        <div class="p25-payicons">${payIcons}</div>
+      </div>
+
+      <div class="p25-chart-row" style="margin-bottom:0">
+        <div class="p25-chart-label">เงินคืน*</div>
+        <div class="p25-cashback-track">${cashback}</div>
       </div>
     </div>
   `;
@@ -5886,7 +6462,7 @@ function buildExcellentPlanATable(data){
 
       return `<tr>
         <td>${r.year}</td>
-        <td>${r.age}</td>
+        <td>${data.customer.age + (r.year-1)}</td>
         <td>${r.premium===null?'—':fmt(r.premium)}</td>
         <td class="${benefit!=='—'?'accent':''}">${benefit}</td>
         <td>${fmt(r.coverage)}</td>
@@ -5942,32 +6518,6 @@ function buildExcellentPlanBTable(data){
     </table>
   </div>`;
 }
-
-function buildExcellentSection3HTML(data){
-  const rows = data.planB.map(r=>`<tr>
-    <td>${r.stopYear}</td>
-    <td>${fmt(r.totalPaid)}</td>
-    <td>${fmt(r.rpuValue)}</td>
-    <td>${fmt(r.cashback)}</td>
-    <td>${fmt(r.immediateCash)}</td>
-    <td class="em">${fmt(r.totalReceived)}</td>
-  </tr>`).join('');
-
-  return `<table class="ex-planb-table">
-    <thead>
-      <tr>
-        <th>ส่งเบี้ย</th>
-        <th>เบี้ยรวม</th>
-        <th>RPU</th>
-        <th>เงินคืน</th>
-        <th>คืนทันที</th>
-        <th>รวมรับ</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
 
 function buildExcellentSection3HTML(data){
   const resources = getProductResources('excellent');
@@ -6132,6 +6682,251 @@ function buildExcellentReportHTML(){
 
 
           <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
+
+
+const PAY25_REPORT_VERSION = "1.1.0";
+
+function buildPay25ReportData(){
+  const result = calcPay25(state.age, state.sum, state.tax);
+  const planB = calcPay25RPU(state.age, state.gender, state.sum, result.premium);
+  const sumInsured = safeMoney(state.sum);
+
+  return {
+    reportVersion:PAY25_REPORT_VERSION,
+    product:{
+      code:'PAY25',
+      name:'AIA Endowment 15/25 (15 Pay 25)',
+      payYears:15,
+      coverYears:25,
+    },
+    customer:{
+      firstName:state.customer.firstName || '',
+      lastName:state.customer.lastName || '',
+      fullName:`${state.customer.firstName || ''} ${state.customer.lastName || ''}`.trim(),
+      age:state.age,
+      gender:state.gender,
+      sumInsured,
+    },
+    premium:{
+      annual:safeMoney(result.premium),
+      total15:safeMoney(result.premium)*15,
+    },
+    benefits:{
+      cashbackTotal:sumInsured*0.23,
+      maturity:sumInsured*1.21,
+    },
+    planA:result.rows,
+    planB,
+    tax:{
+      rate:state.tax,
+      relief:Math.min(safeMoney(result.premium),100000)*state.tax,
+      show:state.tax>0,
+    },
+  };
+}
+
+function validatePay25ReportData(data){
+  const errors=[];
+  if(!data || typeof data!=='object') return {ok:false,errors:['ไม่พบข้อมูลรายงาน']};
+  if(!Number.isInteger(data.customer.age) || data.customer.age<0 || data.customer.age>70) errors.push('อายุไม่ถูกต้อง');
+  if(!isFiniteNumber(data.customer.sumInsured) || data.customer.sumInsured<SUM_INSURED_MIN || data.customer.sumInsured>SUM_INSURED_MAX){
+    errors.push('จำนวนเงินเอาประกันภัยไม่ถูกต้อง');
+  }
+  if(!isFiniteNumber(data.premium.annual) || data.premium.annual<0) errors.push('เบี้ยประกันภัยไม่ถูกต้อง');
+  return {ok:errors.length===0,errors};
+}
+
+function buildPay25PlanATable(data){
+  const rows = data.planA.map(r=>{
+    const benefit = r.year===25
+      ? `${fmt(r.cashback)} (121%)`
+      : (r.cashback ? `${fmt(r.cashback)} (1%)` : '—');
+
+    return `<tr>
+      <td>${r.year}</td>
+      <td>${r.age}</td>
+      <td>${r.premium===null?'—':fmt(r.premium)}</td>
+      <td class="${benefit!=='—'?'accent':''}">${benefit}</td>
+      <td>${fmt(r.coverage)}</td>
+    </tr>`;
+  }).join('');
+
+  return `<table class="p25-mini-table">
+    <thead>
+      <tr>
+        <th>ปี</th>
+        <th>อายุ</th>
+        <th>เบี้ย/ปี</th>
+        <th>เงินคืน</th>
+        <th>กรณีเสียชีวิต</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function buildPay25PlanBTable(data){
+  const rows = data.planB.map(r=>`<tr>
+    <td>${r.stopYear}</td>
+    <td>${fmt(r.rpuValue)}</td>
+    <td>${fmt(r.cashback)}</td>
+    <td>${fmt(r.totalPaid)}</td>
+    <td class="em">${fmt(r.diff)}</td>
+    <td>${r.returnPct===null?'—':(r.returnPct*100).toFixed(1)+'%'}</td>
+  </tr>`).join('');
+
+  return `<table class="p25-planb-table">
+    <thead>
+      <tr>
+        <th>ส่งเบี้ย/ปี</th>
+        <th>RPU</th>
+        <th>เงินคืน</th>
+        <th>เบี้ยรวมที่ส่งมา</th>
+        <th>ส่วนต่าง</th>
+        <th>%</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function buildPay25Section2HTML(data){
+  const resources = getProductResources('pay25');
+  const brochure = resources.brochure;
+  const payment = GLOBAL_REPORT_PAYMENT;
+
+  const brochureHTML = brochure
+    ? `
+      <div class="p25-section2-brochure">
+        <div class="p25-section2-brochure-title">Brochure</div>
+        <a href="${escapeResourceHtml(brochure.targetUrl||'#')}" target="_blank" rel="noopener noreferrer">
+          <img src="${escapeResourceHtml(brochure.qrImagePath)}" alt="QR Brochure 15 Pay 25" loading="eager" decoding="sync" style="width:66px;height:66px;object-fit:contain;background:#fff">
+        </a>
+      </div>
+    `
+    : `
+      <div class="p25-section2-brochure">
+        <div class="p25-section2-brochure-title">Brochure</div>
+        <div class="p25-brochure-placeholder">รอเพิ่ม QR Brochure</div>
+      </div>
+    `;
+
+  return `
+    <div class="rp-section p25-section2">
+      <div class="rp-section-title">2 ระยะเวลาความคุ้มครองและภาษี</div>
+
+      <div class="p25-section2-layout">
+        <div class="p25-section2-info">
+          <div class="rp-info-box">
+            <div class="head">ระยะเวลาความคุ้มครอง</div>
+            ชำระเบี้ย 15 ปี และคุ้มครอง 25 ปี<br>
+            <span style="color:#847c69">ความคุ้มครองชีวิต 100% → 110% → 115% → 125% → 135%</span>
+          </div>
+
+          <div class="rp-info-box">
+            <div class="head">ประมาณการลดหย่อนภาษี</div>
+            ${data.tax.show ? `
+              ${fmt(data.tax.relief)} บาท/ปี<br>
+              <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%</span>
+            ` : `<span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>`}
+          </div>
+        </div>
+
+        ${brochureHTML}
+      </div>
+
+      <div class="rp-red-remark rp-red-remark-before-payment">
+        หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+      </div>
+
+      <div class="p25-payment-wide">
+        <img
+          src="${escapeResourceHtml(payment.imagePath)}"
+          alt="${escapeResourceHtml(payment.title || 'รูปแบบการชำระเงิน')}"
+          loading="eager"
+          decoding="sync"
+        >
+      </div>
+    </div>
+  `;
+}
+
+function buildPay25ReportHTML(){
+  const data = buildPay25ReportData();
+  const validation = validatePay25ReportData(data);
+
+  if(!validation.ok){
+    return `<div class="rp-report"><div class="rp-report-error">ไม่สามารถสร้างใบสรุป 15 Pay 25 ได้<br>${validation.errors.map(e=>`• ${e}`).join('<br>')}</div></div>`;
+  }
+
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      <section class="ex-report-page" id="pay25-report-page-1">
+        <div class="ex-report-inner">
+
+          <div class="rp-report-head">
+            <div><div class="rp-report-title">15 Pay 25</div></div>
+            <div class="rp-report-sum">
+              <div class="l">จำนวนเงินเอาประกันภัย</div>
+              <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
+            </div>
+          </div>
+
+          <div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+            <div style="font-size:8px;color:#847c69;">ชื่อลูกค้า</div>
+            <div style="font-size:12px;font-weight:700;color:#0F1B2E;">${data.customer.fullName || '—'}</div>
+          </div>
+
+          <div class="rp-report-meta">
+            <div class="cell"><div class="l">เพศ</div><div class="v">${data.customer.gender}</div></div>
+            <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
+            <div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">15 ปี</div></div>
+          </div>
+
+          <div class="ex-summary-row">
+            <div class="ex-summary-box">
+              <div class="l">เบี้ยประกันภัยต่อปี</div>
+              <div class="v">${fmt(data.premium.annual)} บาท</div>
+            </div>
+            <div class="ex-summary-box">
+              <div class="l">เงินคืนรายปีรวม ปีที่ 2–24</div>
+              <div class="v">${fmt(data.benefits.cashbackTotal)} บาท</div>
+            </div>
+            <div class="ex-summary-box em">
+              <div class="l">ครบกำหนดสัญญา ปีที่ 25</div>
+              <div class="v">${fmt(data.benefits.maturity)} บาท</div>
+            </div>
+          </div>
+
+          ${buildPay25ChartHTML()}
+
+          <div class="rp-section">
+            <div class="rp-section-title">1 ผลประโยชน์แบบ Plan A และ Plan B</div>
+          </div>
+
+          <div class="p25-plan-grid-report">
+            <div class="p25-plan-card">
+              <div class="p25-plan-title">Plan A — ชำระเบี้ย 15 ปี คุ้มครองถึงปีที่ 25</div>
+              ${buildPay25PlanATable(data)}
+            </div>
+
+            <div class="p25-plan-card">
+              <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU ปีที่ 7–10)</div>
+              ${buildPay25PlanBTable(data)}
+            </div>
+          </div>
+
+          ${buildPay25Section2HTML(data)}
+
+          <div class="ex-footer-spacer"></div>
+          <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+
         </div>
       </section>
     </div>
@@ -7498,6 +8293,51 @@ async function downloadExcellentPDF(btn){
   }
 }
 
+
+async function downloadPay25PDF(btn){
+  if(btn.dataset.busy === '1') return;
+
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('ไม่พบไฟล์ /vendor/jspdf.umd.min.js กรุณาตรวจว่าอัปโหลดและ Deploy แล้ว');
+    return;
+  }
+
+  const page = document.getElementById('pay25-report-page-1');
+  if(!page){
+    alert('ไม่พบใบสรุป 15 Pay 25');
+    return;
+  }
+
+  const oldTxt = btn.textContent;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  btn.textContent = 'กำลังสร้าง PDF...';
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const canvas = await renderReportPageToCanvas(page);
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData,'PNG',0,0,210,297,undefined,'FAST');
+
+    const customerName = (state.customer.firstName || state.customer.lastName)
+      ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
+      : 'customer';
+
+    await savePdfCrossDevice(
+      pdf,
+      `royal-partner-pay25-${customerName}-v${PAY25_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`
+    );
+  }catch(error){
+    console.error('15 Pay 25 PDF export error:',error);
+    alert(error?.message || 'สร้าง PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy = '0';
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
+
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
 }
@@ -7538,6 +8378,16 @@ function showReportPreview(key){
       }
 
       reportHTML = buildExcellentReportHTML();
+    }else if(key==='pay25'){
+      const data = buildPay25ReportData();
+      const validation = validatePay25ReportData(data);
+
+      if(!validation.ok){
+        alert('ไม่สามารถสร้างใบสรุปได้:\n- ' + validation.errors.join('\n- '));
+        return;
+      }
+
+      reportHTML = buildPay25ReportHTML();
     }else{
       reportHTML = buildCardHTML(productCardData(key), key);
     }
@@ -7546,10 +8396,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -7568,7 +8418,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare' || key==='excellent'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -7579,8 +8429,10 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadCIProCarePDF(pdfBtn));
       }else if(key==='cisupercare'){
         pdfBtn.addEventListener('click', ()=>downloadCISuperCarePDF(pdfBtn));
-      }else{
+      }else if(key==='excellent'){
         pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
+      }else{
+        pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
       }
     }else{
       const reportEl = host.querySelector('.rp-report, .card');
@@ -7611,7 +8463,7 @@ function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
   row.innerHTML = `<button class="btn-export">${
-      key==='ciprocare' || key==='cisupercare' || key==='excellent'
+      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25'
         ? 'ดูใบสรุปฉบับเต็ม'
         : 'ดูตัวอย่างภาพสรุป'
     }</button>`;
