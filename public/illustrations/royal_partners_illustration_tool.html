@@ -2568,6 +2568,50 @@
     font-size:6.5px !important;
   }
 
+
+  /* ---------- v39: disclaimer directly above Payment ---------- */
+  .rp-red-remark-before-payment{
+    margin:5px 0 4px !important;
+    padding:4px 8px !important;
+    border:1px solid #e3bcbc !important;
+    border-radius:5px !important;
+    background:#fff1f1 !important;
+    color:#8b2e2e !important;
+    font-size:8.2px !important;
+    line-height:1.3 !important;
+    font-weight:600 !important;
+  }
+
+  .rp-resource-payment-row{
+    width:100%;
+  }
+
+  .rp-resource-payment-row .rp-resource-card[data-resource-type="payment"]{
+    width:100% !important;
+    display:block !important;
+    padding:4px !important;
+  }
+
+  .rp-resource-payment-row .rp-resource-payment-image{
+    width:100% !important;
+    aspect-ratio:1095 / 161 !important;
+    height:auto !important;
+  }
+
+  /* Brochure uses its own compact column; payment sits on the full row below. */
+  .compact-report .rp-resource-grid{
+    grid-template-columns:165px !important;
+  }
+
+  .card .rp-resource-grid{
+    grid-template-columns:190px !important;
+  }
+
+  #ci-procare-report-page-1 .rp-ci-section2 .rp-red-remark-before-payment{
+    margin-top:5px !important;
+    margin-bottom:4px !important;
+  }
+
 </style>
 </head>
 <body>
@@ -3693,6 +3737,13 @@ function buildReportResourceSection(productKey, options = {}){
       <div class="rp-resource-title">เอกสารประกอบ</div>
       <div class="rp-resource-grid">
         ${buildBrochureSlot(productKey, resources.brochure, options, true)}
+      </div>
+
+      <div class="rp-red-remark rp-red-remark-before-payment">
+        หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+      </div>
+
+      <div class="rp-resource-payment-row">
         ${buildPaymentCard(resources.payment, true)}
       </div>
     </div>
@@ -3707,6 +3758,13 @@ function buildFrontResourceSection(productKey, options = {}){
       <div class="rp-resource-title">เอกสารประกอบ</div>
       <div class="rp-resource-grid">
         ${buildBrochureSlot(productKey, resources.brochure, options, false)}
+      </div>
+
+      <div class="rp-red-remark rp-red-remark-before-payment">
+        หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+      </div>
+
+      <div class="rp-resource-payment-row">
         ${buildPaymentCard(resources.payment, false)}
       </div>
     </div>
@@ -3745,7 +3803,7 @@ async function waitForReportResourceImages(root, timeoutMs = 2500){
 }
 
 
-const EXCELLENT_REPORT_VERSION = "1.2.0";
+const EXCELLENT_REPORT_VERSION = "1.3.0";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
@@ -3970,12 +4028,7 @@ function buildExcellentReportHTML(){
               <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
             </div>
           </div>
-
-          <div class="rp-red-remark rp-red-remark-top">
-            หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-          </div>
-
-          <div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
             <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
             <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
               ${data.customer.fullName || '—'}
@@ -4062,7 +4115,7 @@ function buildExcellentReportHTML(){
 }
 
 
-const CI_SUPERCARE_REPORT_VERSION = "1.4.0";
+const CI_SUPERCARE_REPORT_VERSION = "1.5.0";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
@@ -4219,12 +4272,7 @@ function buildCISuperCareReportHTML(){
               <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
             </div>
           </div>
-
-          <div class="rp-red-remark rp-red-remark-top">
-            หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-          </div>
-
-          <div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
             <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
             <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
               ${data.customer.fullName || '—'}
@@ -4363,7 +4411,7 @@ function buildCISuperCareReportHTML(){
 }
 
 
-const CI_PROCARE_REPORT_VERSION = "1.8.0";
+const CI_PROCARE_REPORT_VERSION = "1.9.0";
 
 function isFiniteNumber(value){
   return typeof value === 'number' && Number.isFinite(value);
@@ -4666,6 +4714,10 @@ function buildCIProCareSection2HTML(data){
         ${brochureHTML}
       </div>
 
+      <div class="rp-red-remark rp-red-remark-before-payment">
+        หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+      </div>
+
       ${paymentHTML}
     </div>
   `;
@@ -4697,12 +4749,7 @@ function buildCIProCareReportHTML(){
             <div class="v">${fmt(data.customer.sumInsured)} บาท</div>
           </div>
         </div>
-
-        <div class="rp-red-remark rp-red-remark-top">
-          หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-        </div>
-
-        <div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
           <div style="font-size:9px;color:#847c69;">ชื่อลูกค้า</div>
           <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
             ${data.customer.fullName || '—'}
@@ -4901,10 +4948,7 @@ function buildCardHTML(data, key){
       <div class="desc">${data.desc}</div>
       <div class="suminsured"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">${fmt(state.sum)} บาท</div></div>
     </div>
-    <div class="card-top-remark">
-      หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-    </div>
-    <div style="padding:8px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
+<div style="padding:8px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
       <div style="font-size:10px;color:#847c69;">ชื่อลูกค้า</div>
       <div style="font-size:14px;font-weight:700;color:#0F1B2E;">
         ${(state.customer.firstName || state.customer.lastName) ? `${state.customer.firstName} ${state.customer.lastName}`.trim() : '—'}
