@@ -2612,113 +2612,6 @@
     margin-bottom:4px !important;
   }
 
-
-  /* ---------- v40: CI SuperCare summary = CI ProCare structure ---------- */
-  #ci-supercare-report-page-1 .rp-sc-section2{
-    margin-top:4px !important;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-layout{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 132px;
-    gap:7px;
-    align-items:stretch;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-info{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2 .rp-info-box{
-    min-height:82px;
-    padding:6px 8px !important;
-    font-size:8.2px !important;
-    line-height:1.35 !important;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2 .rp-info-box .head{
-    font-size:9px !important;
-    line-height:1.2 !important;
-    margin-bottom:3px;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-brochure{
-    border:1px solid #d9d2bf;
-    background:#fffdf8;
-    padding:5px;
-    min-height:82px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-brochure-title{
-    font-size:9.5px;
-    line-height:1.1;
-    font-weight:800;
-    color:#0F1B2E;
-    margin-bottom:3px;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-brochure-link{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:100%;
-    text-decoration:none;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2-brochure img{
-    width:92px;
-    height:92px;
-    object-fit:contain;
-    display:block;
-    background:#fff;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-payment-wide{
-    margin-top:4px;
-    border:1px solid #d9d2bf;
-    background:#fff;
-    padding:3px;
-    width:100%;
-    aspect-ratio:1095 / 161;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-payment-wide img{
-    width:100%;
-    height:100%;
-    object-fit:contain !important;
-    object-position:center center !important;
-    display:block;
-  }
-
-  #ci-supercare-report-page-1 .rp-sc-section2 .rp-red-remark-before-payment{
-    margin-top:5px !important;
-    margin-bottom:4px !important;
-  }
-
-  /* tighten only presentation spacing so the report remains one-page */
-  #ci-supercare-report-page-1 .sc-condition-box{
-    margin-bottom:3px !important;
-  }
-
-  #ci-supercare-report-page-1 .sc-benefit-grid{
-    gap:4px !important;
-  }
-
-  #ci-supercare-report-page-1 .sc-benefit-card{
-    margin-bottom:2px !important;
-  }
-
 </style>
 </head>
 <body>
@@ -3613,20 +3506,36 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
 
   cisupercare_10: {
     brochure: {
-    title: 'Brochure AIA CI SuperCare',
-    targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-supercare/2026-09/ci-supercare-2026-09.pdf',
-    qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAE10lEQVR4nO2dUW7jOAyGf64N5FEGeoAcxblZ0SPtDeyj5AAD2I8FbHAfSEpKpi1mMI422/31UKSx/EEGCIr8SSui+NMx//XHCIAMMsgggwwyyCCDDDIKQ3z0kMvaA/MAyAWAyAAAaw+5rCI2+bLG/MvB6yCDjE+GqqpiVFXVpVNV3aBT2qCqGzAugE4AVJdOgbQh5sVt07M8Cxnfn7G6dxQZOjUHKkOnOqFTAJ1iHnbRKe4Tkf4R6yCDjF9h6ATf8lUX/4QxPCsQVx+9DjLI+JIxXrOfxC6Yh91CUQCd3lx97DrIIOMDRlJ1V5reBUgbMA+dRaDV9Pns8yx6PX4dZJDxBWMWkcjtT4rxelJ5vfYA1h4Yl07lAkBerz3kguJjD14HGWR8OGwbLy5TgXdRrACA3T0r0rtgHjpgHjpoPf+odZBBxpfDBaalU9XF86ifRlL1ZEpdsDKZiroUGS0ZOlW+023SzdHC0F30bYAVAADkOPbgdZBBxifDFPspqdaavo3NxCmzXaQNXg8w26U/JaMZI9uk1rn9uLh+qlMKwxzDOm0yUtxHOyWjGWP13N4c6Hx2i5XXZRer+ZsQoHm3x859n4zGDIs707uJUzqtkj+dzHdiPoeJzsMuwHoyrerpnoWM78zYBbOcIvhM6lV9AG6Y49Kpvg1e7vfM6/h1kEHGR8ODzMVLTBaQTjn4rELTlPWriE+ZR5HRiIGwug1hhJ7W279Titw+u1cTB2inZDRk1BqU2WRlmHCLRbmQ8jzqUmS0Y1R2ap17Y1FNUXdHRz0qD9ajyGjHqPRT388Ru/1YCgA5Fri1WNopGY0YVX0/vum8bjqVSZFCVfOKe6WdkvFwRpXvRz2q00qXcreZtap051lpp2Q0ZFgBau0Rmf8urqSuPVAEU/OnuTx1+DrIIOPDkV8j2ftI9fdesb6ojH+/bOU7jMsecy3z/yF63DrIIOPL4fppEaKWm+4T/y5HAMuNYMV9n4w2jLpPum7u6yLLL2J/2kLiL7fRTslowqjqUdHPX/IoRIdflUfdZP60UzLaMKJPOjvQUiP1CCAUKlcDUPlYv/dZnoWM78vI+36pPZVCab5Q+lCqVhXaKRnNGHXdNO/2tRddgBKaeqFq8W5/7vtkNGLkhCiq+lVun180yb1+d6+m0E7JaMS4yaNuj+qzd6Fu8v2q/y+bLe2UjFYM1WsuMa1+CKrqsvsZfq/XU+RWdr7ULuD7UWQ0ZHyinyaNY6QW4D4+za+a0p+S0Yhx8150PhRFyyfNaX0k+KikK9opGU0YWT9FZEUA7nWpKWnVehot0tSlyGjGqPJ9L94nl/1LU3/dzZfHyH2fjHaMup+/KP5TvpwVKtdU2X9Kxr/BsL6+yNy7DfPQbQLkP+vLhnlYVJC6+LO+bHbOxHHrIIOMX2CMqhoHSm1Q1XfRKZ8sbVOuvTVQV2eiHr4OMsj4khG/d1KdwD8usIOm6/nrSe27/LMSz/csZPwvGH6CT7yGkrOntAHz+eeM6pmfhYxvypBL2iCvutkn3+gB6NsQVah52MV+ZeJx6yCDjJtRFZZc3c+SVKVG1YdN3BWlmO+T0YyRf+/E/Kmco21/HgA79XS8nvTuZrkcvQ4yyPhwyL3t/f6Yn+VZyCCDDDLIIIMMMsj47zP+AXKVuSnwosPXAAAAAElFTkSuQmCC',
-    version: '2026-09',
-    active: true,
+      title: 'Brochure AIA CI SuperCare 10/99',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
   },
 
   cisupercare_20: {
     brochure: {
-    title: 'Brochure AIA CI SuperCare',
-    targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-supercare/2026-09/ci-supercare-2026-09.pdf',
-    qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAE10lEQVR4nO2dUW7jOAyGf64N5FEGeoAcxblZ0SPtDeyj5AAD2I8FbHAfSEpKpi1mMI422/31UKSx/EEGCIr8SSui+NMx//XHCIAMMsgggwwyyCCDDDIKQ3z0kMvaA/MAyAWAyAAAaw+5rCI2+bLG/MvB6yCDjE+GqqpiVFXVpVNV3aBT2qCqGzAugE4AVJdOgbQh5sVt07M8Cxnfn7G6dxQZOjUHKkOnOqFTAJ1iHnbRKe4Tkf4R6yCDjF9h6ATf8lUX/4QxPCsQVx+9DjLI+JIxXrOfxC6Yh91CUQCd3lx97DrIIOMDRlJ1V5reBUgbMA+dRaDV9Pns8yx6PX4dZJDxBWMWkcjtT4rxelJ5vfYA1h4Yl07lAkBerz3kguJjD14HGWR8OGwbLy5TgXdRrACA3T0r0rtgHjpgHjpoPf+odZBBxpfDBaalU9XF86ifRlL1ZEpdsDKZiroUGS0ZOlW+023SzdHC0F30bYAVAADkOPbgdZBBxifDFPspqdaavo3NxCmzXaQNXg8w26U/JaMZI9uk1rn9uLh+qlMKwxzDOm0yUtxHOyWjGWP13N4c6Hx2i5XXZRer+ZsQoHm3x859n4zGDIs707uJUzqtkj+dzHdiPoeJzsMuwHoyrerpnoWM78zYBbOcIvhM6lV9AG6Y49Kpvg1e7vfM6/h1kEHGR8ODzMVLTBaQTjn4rELTlPWriE+ZR5HRiIGwug1hhJ7W279Titw+u1cTB2inZDRk1BqU2WRlmHCLRbmQ8jzqUmS0Y1R2ap17Y1FNUXdHRz0qD9ajyGjHqPRT388Ru/1YCgA5Fri1WNopGY0YVX0/vum8bjqVSZFCVfOKe6WdkvFwRpXvRz2q00qXcreZtap051lpp2Q0ZFgBau0Rmf8urqSuPVAEU/OnuTx1+DrIIOPDkV8j2ftI9fdesb6ojH+/bOU7jMsecy3z/yF63DrIIOPL4fppEaKWm+4T/y5HAMuNYMV9n4w2jLpPum7u6yLLL2J/2kLiL7fRTslowqjqUdHPX/IoRIdflUfdZP60UzLaMKJPOjvQUiP1CCAUKlcDUPlYv/dZnoWM78vI+36pPZVCab5Q+lCqVhXaKRnNGHXdNO/2tRddgBKaeqFq8W5/7vtkNGLkhCiq+lVun180yb1+d6+m0E7JaMS4yaNuj+qzd6Fu8v2q/y+bLe2UjFYM1WsuMa1+CKrqsvsZfq/XU+RWdr7ULuD7UWQ0ZHyinyaNY6QW4D4+za+a0p+S0Yhx8150PhRFyyfNaX0k+KikK9opGU0YWT9FZEUA7nWpKWnVehot0tSlyGjGqPJ9L94nl/1LU3/dzZfHyH2fjHaMup+/KP5TvpwVKtdU2X9Kxr/BsL6+yNy7DfPQbQLkP+vLhnlYVJC6+LO+bHbOxHHrIIOMX2CMqhoHSm1Q1XfRKZ8sbVOuvTVQV2eiHr4OMsj4khG/d1KdwD8usIOm6/nrSe27/LMSz/csZPwvGH6CT7yGkrOntAHz+eeM6pmfhYxvypBL2iCvutkn3+gB6NsQVah52MV+ZeJx6yCDjJtRFZZc3c+SVKVG1YdN3BWlmO+T0YyRf+/E/Kmco21/HgA79XS8nvTuZrkcvQ4yyPhwyL3t/f6Yn+VZyCCDDDLIIIMMMsj47zP+AXKVuSnwosPXAAAAAElFTkSuQmCC',
-    version: '2026-09',
-    active: true,
+      title: 'Brochure AIA CI SuperCare 20/99',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
+    payment: {
+      title: 'รูปแบบการชำระเบี้ย',
+      targetUrl: '',
+      qrImagePath: '',
+      version: '',
+      active: false,
+    },
   },
 
   pay25: {
@@ -4206,7 +4115,7 @@ function buildExcellentReportHTML(){
 }
 
 
-const CI_SUPERCARE_REPORT_VERSION = "1.7.0";
+const CI_SUPERCARE_REPORT_VERSION = "1.5.0";
 
 function buildCISuperCareReportData(){
   const payPeriod = state.cisupercare.payPeriod;
@@ -4332,98 +4241,6 @@ function validateCISuperCareReportData(data){
   });
 
   return {ok:errors.length===0, errors};
-}
-
-
-function buildCISuperCareSection2HTML(data){
-  const resources = getProductResources(
-    'cisupercare',
-    {payYears:data.product.payYears}
-  );
-
-  const brochure = resources.brochure;
-  const payment = resources.payment || (isSafeResourceItem(GLOBAL_REPORT_PAYMENT) ? GLOBAL_REPORT_PAYMENT : null);
-
-  const brochureHTML = brochure
-    ? `
-      <div class="rp-sc-section2-brochure">
-        <div class="rp-sc-section2-brochure-title">Brochure</div>
-        <a
-          href="${escapeResourceHtml(brochure.targetUrl || '#')}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="rp-sc-section2-brochure-link"
-          aria-label="เปิด Brochure ${escapeResourceHtml(data.product.name)}"
-        >
-          <img
-            src="${escapeResourceHtml(brochure.qrImagePath)}"
-            alt="QR Brochure ${escapeResourceHtml(data.product.name)}"
-            loading="eager"
-            decoding="sync"
-            onerror="this.closest('.rp-sc-section2-brochure').classList.add('rp-resource-empty')"
-          >
-        </a>
-      </div>
-    `
-    : `
-      <div class="rp-sc-section2-brochure rp-brochure-placeholder">
-        <div class="rp-sc-section2-brochure-title">Brochure</div>
-        <div class="rp-brochure-placeholder-name">${escapeResourceHtml(data.product.name)}</div>
-        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR Brochure</div>
-      </div>
-    `;
-
-  const paymentHTML = payment && payment.imagePath
-    ? `
-      <div class="rp-sc-payment-wide">
-        <img
-          src="${escapeResourceHtml(payment.imagePath)}"
-          alt="${escapeResourceHtml(payment.title || 'รูปแบบการชำระเงิน')}"
-          loading="eager"
-          decoding="sync"
-          onerror="this.closest('.rp-sc-payment-wide').classList.add('rp-resource-empty')"
-        >
-      </div>
-    `
-    : '';
-
-  return `
-    <div class="rp-section rp-sc-section2">
-      <div class="rp-section-title">2 ระยะเวลาความคุ้มครองและภาษี</div>
-
-      <div class="rp-sc-section2-layout">
-        <div class="rp-sc-section2-info">
-          <div class="rp-info-box">
-            <div class="head">ระยะเวลาความคุ้มครอง</div>
-            คุ้มครองถึงอายุ ${data.product.coverToAge} ปี<br>
-            <span style="color:#847c69">
-              ระยะชำระเบี้ย ${data.product.payYears} ปี
-            </span>
-          </div>
-
-          <div class="rp-info-box">
-            <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
-            ${data.tax.show ? `
-              ${fmt(data.tax.relief)} บาท<br>
-              <span style="color:#847c69">
-                คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%
-              </span>
-            ` : `
-              <span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>
-            `}
-          </div>
-        </div>
-
-        ${brochureHTML}
-      </div>
-
-      <div class="rp-red-remark rp-red-remark-before-payment">
-        หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
-      </div>
-
-      ${paymentHTML}
-    </div>
-  `;
 }
 
 function buildCISuperCareReportHTML(){
@@ -4568,7 +4385,20 @@ function buildCISuperCareReportHTML(){
               ผลประโยชน์ทั้งหมดรวมกันไม่เกิน 100% ของจำนวนเงินเอาประกันภัย
             </div>
           </div>
-          ${buildCISuperCareSection2HTML(data)}
+<div class="rp-section">
+            <div class="rp-section-title">2 ภาษี</div>
+            <div class="rp-info-box">
+              <div class="head">ประมาณการลดหย่อนภาษีจากส่วนเบี้ยชีวิต</div>
+              ${data.tax.show ? `
+                ${fmt(data.tax.relief)} บาท<br>
+                <span style="color:#847c69">คำนวณตามฐานภาษี ${Math.round(data.tax.rate*100)}%</span>
+              ` : `
+                <span style="color:#847c69">ไม่ได้เลือกฐานภาษี</span>
+              `}
+            </div>
+          </div>
+
+          ${buildReportResourceSection('cisupercare', {payYears:data.product.payYears})}
 
           <div class="sc-footer-spacer"></div>
 
