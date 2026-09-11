@@ -4986,8 +4986,12 @@ function viewExcellent(app){
         <div class="ex-planb-line"><span>3. เงินจ่ายคืนทันที</span><b>${fmt(planB.immediateCash)} บาท</b></div>
         <div class="ex-planb-line total"><span>4. รวมเงินคืนที่ได้รับ</span><b>${fmt(planB.totalReceived)} บาท</b></div>
         <div class="ex-planb-line"><span>5. เบี้ยรวมที่จ่ายไป</span><b>${fmt(planB.paidTotal)} บาท</b></div>
+        <div class="ex-planb-line">
+          <span>6. ผลตอบแทนส่วนต่างที่ได้รับ</span>
+          <b>${fmt(planB.totalReceived - planB.paidTotal)} บาท</b>
+        </div>
         <div class="ex-planb-line final">
-          <span>ผลตอบแทนส่วนต่างที่ได้รับ (%)</span>
+          <span>7. ผลตอบแทนส่วนต่างที่ได้รับ (%)</span>
           <b>${planB.returnPct===null?'—':(planB.returnPct*100).toFixed(1)+'%'}</b>
         </div>
       </div>
@@ -5721,7 +5725,7 @@ async function waitForReportResourceImages(root, timeoutMs = 2500){
 }
 
 
-const EXCELLENT_REPORT_VERSION = "2.3.0";
+const EXCELLENT_REPORT_VERSION = "2.3.1";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
@@ -5936,7 +5940,6 @@ function buildExcellentPlanBTable(data){
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="ex-planb-footnote">ผลกำไร = RPU + เงินคืน + เงินจ่ายคืนทันที - เบี้ยรวมที่ส่งมา</div>
   </div>`;
 }
 
