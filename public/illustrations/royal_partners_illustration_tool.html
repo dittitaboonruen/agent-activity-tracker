@@ -5340,6 +5340,174 @@
     font-size:7px;
   }
 
+
+  /* ==========================================================
+     v59 — 20 Pay Life medical benefit detail page (A4 page 2)
+     ========================================================== */
+
+  #pay20life-report-page-2 .rp-report-head{
+    padding:11px 16px 9px !important;
+  }
+
+  #pay20life-report-page-2 .rp-report-title{
+    font-size:18px !important;
+  }
+
+  #pay20life-report-page-2 .rp-report-sum .v{
+    font-size:10px !important;
+    max-width:210px;
+  }
+
+  .pl20-medical-subtitle{
+    margin-top:3px;
+    font-size:7px;
+    color:#e7d49d;
+  }
+
+  .pl20-medical-intro{
+    margin:8px 12px 5px;
+    border:1px solid #dfd7c6;
+    background:#fffaf1;
+    padding:6px 8px;
+    color:#756b58;
+    font-size:7px;
+    line-height:1.35;
+  }
+
+  .pl20-medical-cards{
+    margin:0 12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+
+  .pl20-medical-card{
+    border:1px solid #d9d2bf;
+    background:#fffdf8;
+    min-width:0;
+  }
+
+  .pl20-medical-card-head{
+    min-height:39px;
+    padding:6px 7px;
+    background:#f4ecda;
+    border-bottom:1px solid #d9d2bf;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:7px;
+  }
+
+  .pl20-medical-name{
+    color:#0F1B2E;
+    font-size:8.4px;
+    line-height:1.2;
+    font-weight:800;
+  }
+
+  .pl20-medical-plan{
+    margin-top:2px;
+    color:#847c69;
+    font-size:6.5px;
+    font-weight:600;
+  }
+
+  .pl20-medical-premium{
+    text-align:right;
+    flex:0 0 auto;
+  }
+
+  .pl20-medical-premium span{
+    display:block;
+    color:#8a806c;
+    font-size:5.8px;
+  }
+
+  .pl20-medical-premium strong{
+    display:block;
+    margin-top:1px;
+    color:#84652f;
+    font-size:7.4px;
+  }
+
+  .pl20-medical-limit{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:5px 7px;
+    border-bottom:1px solid #e7e1d4;
+    font-size:6.5px;
+  }
+
+  .pl20-medical-limit span{color:#857c68;}
+  .pl20-medical-limit strong{
+    color:#0F1B2E;
+    font-size:7.2px;
+  }
+
+  .pl20-medical-benefit-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .pl20-medical-benefit{
+    min-height:48px;
+    padding:6px 7px;
+    border-right:1px solid #e7e1d4;
+    border-bottom:1px solid #e7e1d4;
+  }
+
+  .pl20-medical-benefit:nth-child(2n){border-right:0;}
+
+  .pl20-medical-benefit.wide{
+    grid-column:1 / -1;
+    border-right:0;
+    min-height:41px;
+  }
+
+  .pl20-medical-benefit span{
+    display:block;
+    color:#8a806c;
+    font-size:6px;
+    line-height:1.2;
+  }
+
+  .pl20-medical-benefit strong{
+    display:block;
+    margin-top:3px;
+    color:#0F1B2E;
+    font-size:7.4px;
+    line-height:1.25;
+    font-weight:800;
+  }
+
+  .pl20-medical-extra{
+    padding:5px 7px 6px;
+    color:#756b58;
+    background:#fbf8f0;
+    font-size:5.9px;
+    line-height:1.3;
+  }
+
+  .pl20-medical-note{
+    margin:7px 12px 0;
+    border:1px solid #e5c7c7;
+    background:#fff3f3;
+    color:#8b4b4b;
+    padding:5px 7px;
+    font-size:5.8px;
+    line-height:1.3;
+  }
+
+  #pay20life-report-page-2 .rp-page-number{
+    margin-top:auto;
+  }
+
+  @media(max-width:760px){
+    .pl20-medical-cards{grid-template-columns:1fr;}
+  }
+
 </style>
 </head>
 <body>
@@ -7546,7 +7714,179 @@ function buildExcellentReportHTML(){
 
 
 
-const PAY20LIFE_REPORT_VERSION = "1.5.0";
+const PAY20LIFE_REPORT_VERSION = "1.6.0";
+
+
+const PL20_MEDICAL_BENEFITS = Object.freeze({
+  healthhappy: [
+    {plan:'แผน 1 ล้านบาท', limit:'1,000,000 บาท/ปี', room:'1,500 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'1,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 5 ล้านบาท', limit:'5,000,000 บาท/ปี', room:'3,000 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'2,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 15 ล้านบาท', limit:'15,000,000 บาท/ปี', room:'6,000 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'4,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 25 ล้านบาท', limit:'25,000,000 บาท/ปี', room:'9,000 บาท/วัน', homeMed:'เหมาจ่ายตามจริง', physician:'6,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+  ],
+
+  happykids: [
+    {plan:'แผน 1 ล้านบาท', limit:'1,000,000 บาท/ปี', room:'1,500 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'1,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 5 ล้านบาท', limit:'5,000,000 บาท/ปี', room:'3,000 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'2,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 15 ล้านบาท', limit:'15,000,000 บาท/ปี', room:'6,000 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'4,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    {plan:'แผน 25 ล้านบาท', limit:'25,000,000 บาท/ปี', room:'9,000 บาท/วัน', homeMed:'20,000 บาท/ครั้ง (ไม่เกิน 7 วัน)', physician:'6,000 บาท/วัน', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+  ],
+
+  healthsaver: {
+    200000:{plan:'แผน 200,000 บาท', limit:'200,000 บาท', room:'1,500 บาท/วัน', homeMed:'5,000 บาท/ครั้ง', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ภายใต้วงเงินของแผน'},
+    300000:{plan:'แผน 300,000 บาท', limit:'300,000 บาท', room:'2,000 บาท/วัน', homeMed:'5,000 บาท/ครั้ง', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ภายใต้วงเงินของแผน'},
+    400000:{plan:'แผน 400,000 บาท', limit:'400,000 บาท', room:'3,000 บาท/วัน', homeMed:'5,000 บาท/ครั้ง', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ภายใต้วงเงินของแผน'},
+    500000:{plan:'แผน 500,000 บาท', limit:'500,000 บาท', room:'4,000 บาท/วัน', homeMed:'5,000 บาท/ครั้ง', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ภายใต้วงเงินของแผน'},
+  },
+
+  infinitecare: {
+    'แผน 60 ล้านบาท':{plan:'แผน 60 ล้านบาท', limit:'60,000,000 บาท/ปี', room:'12,000 บาท/วัน', homeMed:'เหมาจ่ายตามจริง (ไม่เกิน 30 วัน)', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+    'แผน 120 ล้านบาท':{plan:'แผน 120 ล้านบาท', limit:'120,000,000 บาท/ปี', room:'25,000 บาท/วัน', homeMed:'เหมาจ่ายตามจริง (ไม่เกิน 30 วัน)', physician:'เหมาจ่ายตามจริง', other:'เหมาจ่ายตามจริง ตามวงเงินและเงื่อนไข'},
+  },
+});
+
+function build20PayLifeMedicalSummaryData(){
+  const rs=state.paylife20.riders;
+  const op=state.paylife20.opts;
+  const cards=[];
+
+  if(rs.healthhappy){
+    const item=PL20_MEDICAL_BENEFITS.healthhappy[Number(op.healthhappyPlan)||0];
+    if(item){
+      cards.push({
+        key:'healthhappy',
+        name:'AIA Health Happy',
+        premium:riderHealthHappy(state.age,state.gender,op.healthhappyPlan),
+        ...item,
+        extra:'ICU: เหมาจ่ายตามจริง • ความคุ้มครองโรคร้ายแรงเพิ่มเป็น 2 เท่า ตามเงื่อนไข'
+      });
+    }
+  }
+
+  if(rs.hhkids){
+    const item=PL20_MEDICAL_BENEFITS.happykids[Number(op.hhkidsPlan)||0];
+    if(item){
+      cards.push({
+        key:'hhkids',
+        name:'AIA Health Happy Kids',
+        premium:riderHealthHappyKids(state.age,state.gender,op.hhkidsPlan,op.hhkidsTier),
+        ...item,
+        extra:`ความรับผิดส่วนแรก ${op.hhkidsTier} บาท/ปี • ICU เหมาจ่ายตามจริง`
+      });
+    }
+  }
+
+  if(rs.healthsaver){
+    const item=PL20_MEDICAL_BENEFITS.healthsaver[Number(op.hsPlan)];
+    if(item){
+      cards.push({
+        key:'healthsaver',
+        name:'AIA Health Saver',
+        premium:riderHealthSaver(state.age,state.gender,op.hsPlan),
+        ...item,
+        extra:`ICU: 6 เท่าของค่าห้อง • วงเงินตรวจวินิจฉัย/บำบัดรักษาต่อการนอน รพ. ตามแผน`
+      });
+    }
+  }
+
+  if(rs.infinitecare){
+    const item=PL20_MEDICAL_BENEFITS.infinitecare[op.icPlan];
+    if(item){
+      cards.push({
+        key:'infinitecare',
+        name:'AIA Infinite Care',
+        premium:riderInfiniteCare(
+          state.age,
+          state.gender,
+          op.icPlan,
+          op.icDed||'ไม่มี (First Dollar)',
+          op.icTerritory
+        ),
+        ...item,
+        extra:`${op.icDed||'ไม่มี (First Dollar)'} • อาณาเขต ${op.icTerritory} • ICU เหมาจ่ายตามจริง`
+      });
+    }
+  }
+
+  return cards;
+}
+
+function build20PayLifeMedicalPageHTML(){
+  const cards=build20PayLifeMedicalSummaryData();
+  if(!cards.length) return '';
+
+  return `
+    <section class="ex-report-page pl20-medical-page" id="pay20life-report-page-2">
+      <div class="ex-report-inner">
+        <div class="rp-report-head">
+          <div>
+            <div class="rp-report-title">รายละเอียดความคุ้มครองสุขภาพ</div>
+            <div class="pl20-medical-subtitle">เฉพาะสัญญาเพิ่มเติมสุขภาพที่เลือก</div>
+          </div>
+          <div class="rp-report-sum">
+            <div class="l">ผู้เอาประกันภัย</div>
+            <div class="v">${state.customer.firstName || state.customer.lastName ? `${escapeResourceHtml(state.customer.firstName||'')} ${escapeResourceHtml(state.customer.lastName||'')}`.trim() : '—'}</div>
+          </div>
+        </div>
+
+        <div class="pl20-medical-intro">
+          ตัวเลขด้านล่างเปลี่ยนตามแผนที่เลือกในหน้าคำนวณ โดยแยกเฉพาะรายการสำคัญ:
+          ค่าห้อง / ค่ายาและเวชภัณฑ์กลับบ้าน / ค่าแพทย์ประจำวัน / รายการหลักอื่นที่เหมาจ่ายตามจริง
+        </div>
+
+        <div class="pl20-medical-cards">
+          ${cards.map(card=>`
+            <section class="pl20-medical-card">
+              <div class="pl20-medical-card-head">
+                <div>
+                  <div class="pl20-medical-name">${card.name}</div>
+                  <div class="pl20-medical-plan">${card.plan}</div>
+                </div>
+                <div class="pl20-medical-premium">
+                  <span>เบี้ยปีปัจจุบัน</span>
+                  <strong>${fmt20(card.premium)} บาท</strong>
+                </div>
+              </div>
+
+              <div class="pl20-medical-limit">
+                <span>วงเงิน/แผน</span>
+                <strong>${card.limit}</strong>
+              </div>
+
+              <div class="pl20-medical-benefit-grid">
+                <div class="pl20-medical-benefit">
+                  <span>ค่าห้อง / วัน</span>
+                  <strong>${card.room}</strong>
+                </div>
+                <div class="pl20-medical-benefit">
+                  <span>ค่ายาและเวชภัณฑ์กลับบ้าน</span>
+                  <strong>${card.homeMed}</strong>
+                </div>
+                <div class="pl20-medical-benefit">
+                  <span>ค่าแพทย์ประจำวัน</span>
+                  <strong>${card.physician}</strong>
+                </div>
+                <div class="pl20-medical-benefit wide">
+                  <span>รายการหลักอื่น</span>
+                  <strong>${card.other}</strong>
+                </div>
+              </div>
+
+              <div class="pl20-medical-extra">${card.extra}</div>
+            </section>
+          `).join('')}
+        </div>
+
+        <div class="pl20-medical-note">
+          หมายเหตุ: เป็นสรุปผลประโยชน์สำคัญเพื่อประกอบการนำเสนอเท่านั้น
+          การจ่ายผลประโยชน์จริงเป็นไปตามเงื่อนไข ข้อยกเว้น วงเงินรวม และกรมธรรม์ที่บริษัทออกให้
+        </div>
+
+        <div class="rp-page-number">หน้า 2 / 2 • Report v${PAY20LIFE_REPORT_VERSION}</div>
+      </div>
+    </section>
+  `;
+}
 
 function build20PayLifeReportData(){
   const result=calc20PayLife(state.age,state.gender,state.sum,state.tax);
@@ -7875,6 +8215,9 @@ function build20PayLifeReportHTML(){
   const validation=validate20PayLifeReportData(data);
   if(!validation.ok) return `<div class="rp-report"><div class="rp-report-error">${validation.errors.join('<br>')}</div></div>`;
 
+  const medicalPageHTML=build20PayLifeMedicalPageHTML();
+  const totalPages=medicalPageHTML ? 2 : 1;
+
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
       <section class="ex-report-page" id="pay20life-report-page-1">
@@ -7916,9 +8259,10 @@ function build20PayLifeReportHTML(){
 
           ${build20PayLifeSection2HTML(data)}
           <div class="ex-footer-spacer"></div>
-          <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+          <div class="rp-page-number">หน้า 1 / ${totalPages} • Report v${data.reportVersion}</div>
         </div>
       </section>
+      ${medicalPageHTML}
     </div>
   </div>`;
 }
@@ -9583,20 +9927,43 @@ async function downloadPay25PDF(btn){
 
 async function download20PayLifePDF(btn){
   if(btn.dataset.busy==='1') return;
-  const page=document.getElementById('pay20life-report-page-1');
-  if(!page){alert('ไม่พบใบสรุป 20Pay Life');return;}
+
+  const pages=[
+    document.getElementById('pay20life-report-page-1'),
+    document.getElementById('pay20life-report-page-2')
+  ].filter(Boolean);
+
+  if(!pages.length){
+    alert('ไม่พบใบสรุป 20Pay Life');
+    return;
+  }
+
   const old=btn.textContent;
-  btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
+  btn.dataset.busy='1';
+  btn.disabled=true;
+  btn.textContent='กำลังสร้าง PDF...';
+
   try{
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const canvas=await renderReportPageToCanvas(page);
-    pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
-    await savePdfCrossDevice(pdf,`royal-partner-20paylife-v${PAY20LIFE_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`);
+
+    for(let i=0;i<pages.length;i++){
+      if(i>0) pdf.addPage('a4','portrait');
+      const canvas=await renderReportPageToCanvas(pages[i]);
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
+
+    await savePdfCrossDevice(
+      pdf,
+      `royal-partner-20paylife-v${PAY20LIFE_REPORT_VERSION.replaceAll('.','-')}-${Date.now()}.pdf`
+    );
   }catch(error){
-    console.error(error);alert(error?.message||'สร้าง PDF ไม่สำเร็จ');
+    console.error(error);
+    alert(error?.message||'สร้าง PDF ไม่สำเร็จ');
   }finally{
-    btn.dataset.busy='0';btn.disabled=false;btn.textContent=old;
+    btn.dataset.busy='0';
+    btn.disabled=false;
+    btn.textContent=old;
   }
 }
 
