@@ -21,7 +21,6 @@ type Access =
   | {
       ok: true;
       supabase: Awaited<ReturnType<typeof createClient>>;
-      userId: string;
       role: "manager" | "admin";
     }
   | {
@@ -52,6 +51,7 @@ async function getAccess(): Promise<Access> {
 
   if (profileError) {
     console.error("[agent-master] profile query failed");
+
     return {
       ok: false,
       response: errorResponse("ไม่สามารถตรวจสอบสิทธิ์ได้", 500),
@@ -72,12 +72,15 @@ async function getAccess(): Promise<Access> {
   return {
     ok: true,
     supabase,
-    userId: user.id,
     role: profile.role,
   };
 }
 
-/* อ่านทะเบียนด้วยบัญชีผู้ล็อกอิน เพื่อให้ RLS ทำงาน */
+/*
+ * ทะเบียนกลาง:
+ * Manager และ Admin ที่ active อ่านตัวแทนทุกคนที่ active ได้
+ * ไม่ใช้ manager_user_id กรองใน endpoint นี้
+ */
 export async function GET() {
   try {
     const access = await getAccess();
@@ -86,23 +89,19 @@ export async function GET() {
       return access.response;
     }
 
-    let query = access.supabase
+    const { data, error } = await access.supabase
       .from("agent_master")
       .select("*")
-      .eq("active", true);
-
-    // จำกัดซ้ำใน API เพื่อป้องกันเพิ่มเติมจาก RLS
-    if (access.role === "manager") {
-      query = query.eq("manager_user_id", access.userId);
-    }
-
-    const { data, error } = await query.order("agent_name", {
-      ascending: true,
-    });
+      .eq("active", true)
+      .order("agent_name", { ascending: true });
 
     if (error) {
       console.error("[agent-master] GET query failed");
-      return errorResponse("ไม่สามารถโหลดรายชื่อตัวแทนได้", 500);
+
+      return errorResponse(
+        "ไม่สามารถโหลดรายชื่อตัวแทนได้",
+        500
+      );
     }
 
     return NextResponse.json(
@@ -111,6 +110,7 @@ export async function GET() {
     );
   } catch {
     console.error("[agent-master] GET unexpected error");
+
     return errorResponse(
       "เกิดข้อผิดพลาดในการโหลดรายชื่อตัวแทน",
       500
@@ -118,7 +118,7 @@ export async function GET() {
   }
 }
 
-/* เพิ่ม / แก้ทะเบียน: เฉพาะ Admin */
+/* เพิ่ม / แก้ทะเบียน: เฉพาะ Admin ที่ active */
 export async function POST(request: NextRequest) {
   const rate = checkRateLimit(request);
 
@@ -177,7 +177,9 @@ export async function POST(request: NextRequest) {
         : "";
 
     const active =
-      typeof data.active === "boolean" ? data.active : true;
+      typeof data.active === "boolean"
+        ? data.active
+        : true;
 
     if (!agentName) {
       return errorResponse("กรุณาระบุชื่อตัวแทน", 400);
@@ -191,7 +193,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("ข้อมูลยาวเกินกำหนด", 400);
     }
 
-    // ใช้ Secret Key เฉพาะงานเขียน หลังตรวจว่าเป็น Admin แล้ว
+    // ใช้ Secret Key เฉพาะงานเขียน หลังตรวจสิทธิ์ Admin แล้ว
     const supabase = getSupabaseClient();
 
     const payload = {
@@ -206,7 +208,9 @@ export async function POST(request: NextRequest) {
       ? supabase
           .from("agent_master")
           .upsert(payload, { onConflict: "agent_code" })
-      : supabase.from("agent_master").insert(payload);
+      : supabase
+          .from("agent_master")
+          .insert(payload);
 
     const { data: saved, error } = await query
       .select()
@@ -214,15 +218,26 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("[agent-master] POST query failed");
-      return errorResponse("ไม่สามารถบันทึกตัวแทนได้", 500);
+
+      return errorResponse(
+        "ไม่สามารถบันทึกตัวแทนได้",
+        500
+      );
     }
 
     return NextResponse.json(
-      { success: true, agent: saved },
-      { status: 201, headers: NO_STORE_HEADERS }
+      {
+        success: true,
+        agent: saved,
+      },
+      {
+        status: 201,
+        headers: NO_STORE_HEADERS,
+      }
     );
   } catch {
     console.error("[agent-master] POST unexpected error");
+
     return errorResponse(
       "เกิดข้อผิดพลาดในการบันทึกตัวแทน",
       500
