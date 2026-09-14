@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -16,37 +17,100 @@ function errorResponse(message: string, status: number) {
   );
 }
 
-/* GET AGENTS */
+type Access =
+  | {
+      ok: true;
+      supabase: Awaited<ReturnType<typeof createClient>>;
+      userId: string;
+      role: "manager" | "admin";
+    }
+  | {
+      ok: false;
+      response: NextResponse;
+    };
+
+async function getAccess(): Promise<Access> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return {
+      ok: false,
+      response: errorResponse("กรุณาเข้าสู่ระบบ", 401),
+    };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("role, active")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("[agent-master] profile query failed");
+    return {
+      ok: false,
+      response: errorResponse("ไม่สามารถตรวจสอบสิทธิ์ได้", 500),
+    };
+  }
+
+  if (
+    !profile ||
+    profile.active !== true ||
+    (profile.role !== "manager" && profile.role !== "admin")
+  ) {
+    return {
+      ok: false,
+      response: errorResponse("คุณไม่มีสิทธิ์ใช้งานส่วนนี้", 403),
+    };
+  }
+
+  return {
+    ok: true,
+    supabase,
+    userId: user.id,
+    role: profile.role,
+  };
+}
+
+/* อ่านทะเบียนด้วยบัญชีผู้ล็อกอิน เพื่อให้ RLS ทำงาน */
 export async function GET() {
   try {
-    const supabase = getSupabaseClient();
+    const access = await getAccess();
 
-    const { data, error } = await supabase
+    if (!access.ok) {
+      return access.response;
+    }
+
+    let query = access.supabase
       .from("agent_master")
       .select("*")
-      .eq("active", true)
-      .order("agent_name", { ascending: true });
+      .eq("active", true);
+
+    // จำกัดซ้ำใน API เพื่อป้องกันเพิ่มเติมจาก RLS
+    if (access.role === "manager") {
+      query = query.eq("manager_user_id", access.userId);
+    }
+
+    const { data, error } = await query.order("agent_name", {
+      ascending: true,
+    });
 
     if (error) {
-      console.error("[agent-master] GET error:", error);
-
-      return errorResponse(
-        "ไม่สามารถโหลดรายชื่อตัวแทนได้",
-        500
-      );
+      console.error("[agent-master] GET query failed");
+      return errorResponse("ไม่สามารถโหลดรายชื่อตัวแทนได้", 500);
     }
 
     return NextResponse.json(
-      {
-        agents: data ?? [],
-      },
-      {
-        headers: NO_STORE_HEADERS,
-      }
+      { agents: data ?? [] },
+      { headers: NO_STORE_HEADERS }
     );
-  } catch (error) {
-    console.error("[agent-master] GET unexpected error:", error);
-
+  } catch {
+    console.error("[agent-master] GET unexpected error");
     return errorResponse(
       "เกิดข้อผิดพลาดในการโหลดรายชื่อตัวแทน",
       500
@@ -54,7 +118,7 @@ export async function GET() {
   }
 }
 
-/* ADD / UPDATE AGENT */
+/* เพิ่ม / แก้ทะเบียน: เฉพาะ Admin */
 export async function POST(request: NextRequest) {
   const rate = checkRateLimit(request);
 
@@ -65,113 +129,100 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: unknown;
-
   try {
-    body = await request.json();
-  } catch {
-    return errorResponse(
-      "ข้อมูลที่ส่งมาไม่ถูกต้อง",
-      400
-    );
-  }
+    const access = await getAccess();
 
-  if (typeof body !== "object" || body === null) {
-    return errorResponse(
-      "ข้อมูลที่ส่งมาไม่ถูกต้อง",
-      400
-    );
-  }
-
-  const data = body as Record<string, unknown>;
-
-  const agentCode =
-    typeof data.agentCode === "string"
-      ? data.agentCode.trim()
-      : "";
-
-  const agentName =
-    typeof data.agentName === "string"
-      ? data.agentName.trim()
-      : "";
-
-  const agentNickname =
-    typeof data.agentNickname === "string"
-      ? data.agentNickname.trim()
-      : "";
-
-  const active =
-    typeof data.active === "boolean"
-      ? data.active
-      : true;
-
-  if (!agentName) {
-    return errorResponse(
-      "กรุณาระบุชื่อตัวแทน",
-      400
-    );
-  }
-
-  try {
-    const supabase = getSupabaseClient();
-
-    let query;
-
-    if (agentCode) {
-      query = supabase
-        .from("agent_master")
-        .upsert(
-          {
-            agent_code: agentCode,
-            agent_name: agentName,
-            agent_nickname: agentNickname || null,
-            active,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "agent_code",
-          }
-        )
-        .select()
-        .single();
-    } else {
-      query = supabase
-        .from("agent_master")
-        .insert({
-          agent_code: null,
-          agent_name: agentName,
-          agent_nickname: agentNickname || null,
-          active,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+    if (!access.ok) {
+      return access.response;
     }
 
-    const { data: saved, error } = await query;
-
-    if (error) {
-      console.error("[agent-master] POST error:", error);
-
+    if (access.role !== "admin") {
       return errorResponse(
-        "ไม่สามารถบันทึกตัวแทนได้",
-        500
+        "เฉพาะผู้ดูแลระบบเท่านั้นที่จัดการทะเบียนตัวแทนได้",
+        403
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        agent: saved,
-      },
-      {
-        status: 201,
-        headers: NO_STORE_HEADERS,
-      }
-    );
-  } catch (error) {
-    console.error("[agent-master] POST unexpected error:", error);
+    let body: unknown;
 
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse("ข้อมูลที่ส่งมาไม่ถูกต้อง", 400);
+    }
+
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      Array.isArray(body)
+    ) {
+      return errorResponse("ข้อมูลที่ส่งมาไม่ถูกต้อง", 400);
+    }
+
+    const data = body as Record<string, unknown>;
+
+    const agentCode =
+      typeof data.agentCode === "string"
+        ? data.agentCode.trim()
+        : "";
+
+    const agentName =
+      typeof data.agentName === "string"
+        ? data.agentName.trim()
+        : "";
+
+    const agentNickname =
+      typeof data.agentNickname === "string"
+        ? data.agentNickname.trim()
+        : "";
+
+    const active =
+      typeof data.active === "boolean" ? data.active : true;
+
+    if (!agentName) {
+      return errorResponse("กรุณาระบุชื่อตัวแทน", 400);
+    }
+
+    if (
+      agentCode.length > 100 ||
+      agentName.length > 200 ||
+      agentNickname.length > 200
+    ) {
+      return errorResponse("ข้อมูลยาวเกินกำหนด", 400);
+    }
+
+    // ใช้ Secret Key เฉพาะงานเขียน หลังตรวจว่าเป็น Admin แล้ว
+    const supabase = getSupabaseClient();
+
+    const payload = {
+      agent_code: agentCode || null,
+      agent_name: agentName,
+      agent_nickname: agentNickname || null,
+      active,
+      updated_at: new Date().toISOString(),
+    };
+
+    const query = agentCode
+      ? supabase
+          .from("agent_master")
+          .upsert(payload, { onConflict: "agent_code" })
+      : supabase.from("agent_master").insert(payload);
+
+    const { data: saved, error } = await query
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[agent-master] POST query failed");
+      return errorResponse("ไม่สามารถบันทึกตัวแทนได้", 500);
+    }
+
+    return NextResponse.json(
+      { success: true, agent: saved },
+      { status: 201, headers: NO_STORE_HEADERS }
+    );
+  } catch {
+    console.error("[agent-master] POST unexpected error");
     return errorResponse(
       "เกิดข้อผิดพลาดในการบันทึกตัวแทน",
       500
@@ -179,14 +230,31 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function methodNotAllowed() {
+  return NextResponse.json(
+    { error: "Method not allowed." },
+    {
+      status: 405,
+      headers: {
+        ...NO_STORE_HEADERS,
+        Allow: "GET, POST",
+      },
+    }
+  );
+}
+
 export async function PUT() {
-  return errorResponse("Method not allowed.", 405);
+  return methodNotAllowed();
 }
 
 export async function PATCH() {
-  return errorResponse("Method not allowed.", 405);
+  return methodNotAllowed();
 }
 
 export async function DELETE() {
-  return errorResponse("Method not allowed.", 405);
+  return methodNotAllowed();
+}
+
+export async function OPTIONS() {
+  return methodNotAllowed();
 }
