@@ -4760,6 +4760,39 @@
     grid-template-columns:repeat(3,1fr) !important;
   }
 
+
+  /* ---------- v52: 15 Pay 25 Plan A total summary ---------- */
+  #pay25-report-page-1 .p25-plan-card-stack{
+    display:flex !important;
+    flex-direction:column !important;
+    height:100% !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-total-box{
+    margin-top:6px !important;
+    border:1px solid #d9d2bf !important;
+    background:#fffaf3 !important;
+    padding:7px 9px !important;
+    min-height:44px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-total-box .t{
+    font-size:7px !important;
+    color:#8a7d63 !important;
+    line-height:1.2 !important;
+    margin-bottom:2px !important;
+  }
+
+  #pay25-report-page-1 .p25-plan-total-box .v{
+    font-size:11.6px !important;
+    font-weight:800 !important;
+    color:#7A2E2E !important;
+    line-height:1.1 !important;
+  }
+
 </style>
 </head>
 <body>
@@ -6690,7 +6723,7 @@ function buildExcellentReportHTML(){
 
 
 
-const PAY25_REPORT_VERSION = "1.1.0";
+const PAY25_REPORT_VERSION = "1.2.0";
 
 function buildPay25ReportData(){
   const result = calcPay25(state.age, state.sum, state.tax);
@@ -6720,6 +6753,7 @@ function buildPay25ReportData(){
     benefits:{
       cashbackTotal:sumInsured*0.23,
       maturity:sumInsured*1.21,
+      totalReceivedContract:sumInsured*1.44,
     },
     planA:result.rows,
     planB,
@@ -6757,18 +6791,25 @@ function buildPay25PlanATable(data){
     </tr>`;
   }).join('');
 
-  return `<table class="p25-mini-table">
-    <thead>
-      <tr>
-        <th>ปี</th>
-        <th>อายุ</th>
-        <th>เบี้ย/ปี</th>
-        <th>เงินคืน</th>
-        <th>กรณีเสียชีวิต</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+  return `<div class="p25-plan-card-stack">
+    <table class="p25-mini-table">
+      <thead>
+        <tr>
+          <th>ปี</th>
+          <th>อายุ</th>
+          <th>เบี้ย/ปี</th>
+          <th>เงินคืน</th>
+          <th>กรณีเสียชีวิต</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <div class="p25-plan-total-box">
+      <div class="t">เงินคืน + เงินครบกำหนดสัญญารวม</div>
+      <div class="v">${fmt(data.benefits.totalReceivedContract)} บาท</div>
+    </div>
+  </div>`;
 }
 
 function buildPay25PlanBTable(data){
