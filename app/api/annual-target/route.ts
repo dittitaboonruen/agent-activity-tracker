@@ -9,7 +9,10 @@ const NO_STORE_HEADERS = {
   "Cache-Control": "no-store, max-age=0",
 };
 
-function errorResponse(message: string, status: number) {
+function errorResponse(
+  message: string,
+  status: number
+) {
   return NextResponse.json(
     { error: message },
     {
@@ -20,11 +23,66 @@ function errorResponse(message: string, status: number) {
 }
 
 /* =========================
+   AGENT MASTER RESOLVER
+========================= */
+
+async function resolveAgentByName(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  agentName: string
+) {
+  const { data, error } = await supabase
+    .from("agent_master")
+    .select("id, agent_name, agent_code")
+    .eq("agent_name", agentName)
+    .limit(2);
+
+  if (error) {
+    console.error(
+      "[annual-target] Agent lookup error:",
+      error
+    );
+
+    return {
+      agent: null,
+      error: "ไม่สามารถตรวจสอบข้อมูลตัวแทนได้",
+      status: 500,
+    };
+  }
+
+  if (!data || data.length === 0) {
+    return {
+      agent: null,
+      error:
+        "ไม่พบชื่อตัวแทนใน Agent Master กรุณาตรวจสอบชื่อให้ตรงกับข้อมูลในระบบ",
+      status: 404,
+    };
+  }
+
+  if (data.length > 1) {
+    return {
+      agent: null,
+      error:
+        "พบชื่อตัวแทนซ้ำใน Agent Master กรุณาติดต่อผู้ดูแลระบบ",
+      status: 409,
+    };
+  }
+
+  return {
+    agent: data[0],
+    error: null,
+    status: 200,
+  };
+}
+
+/* =========================
    GET TARGET
 ========================= */
 
-export async function GET(request: NextRequest) {
-  const params = request.nextUrl.searchParams;
+export async function GET(
+  request: NextRequest
+) {
+  const params =
+    request.nextUrl.searchParams;
 
   const agent =
     params.get("agent")?.trim() || "";
@@ -44,30 +102,103 @@ export async function GET(request: NextRequest) {
     const supabase =
       getSupabaseClient();
 
-    let query = supabase
-      .from("agent_targets")
-      .select("*")
-      .eq("target_year", year)
-      .order(
-        "agent_name",
-        { ascending: true }
+    /*
+     * ถ้าไม่ได้ระบุ Agent
+     * โหลด Target ทั้งหมดของปีนั้น
+     */
+    if (!agent) {
+      const {
+        data,
+        error,
+      } = await supabase
+        .from("agent_targets")
+        .select("*")
+        .eq("target_year", year)
+        .order(
+          "agent_name",
+          { ascending: true }
+        );
+
+      if (error) {
+        console.error(
+          "[annual-target] GET all error:",
+          error
+        );
+
+        return errorResponse(
+          "ไม่สามารถโหลดข้อมูลเป้าหมายได้",
+          500
+        );
+      }
+
+      return NextResponse.json(
+        {
+          targets:
+            data ?? [],
+        },
+        {
+          headers:
+            NO_STORE_HEADERS,
+        }
+      );
+    }
+
+    /*
+     * ถ้าระบุ Agent
+     * resolve Agent Master ก่อน
+     */
+    const resolved =
+      await resolveAgentByName(
+        supabase,
+        agent
       );
 
-    if (agent) {
-      query = query.eq(
-        "agent_name",
-        agent
+    if (!resolved.agent) {
+      /*
+       * สำหรับ GET:
+       * ถ้าชื่อยังไม่อยู่ใน Master
+       * ส่ง target = null
+       * เพื่อให้หน้าเว็บไม่พัง
+       */
+      if (resolved.status === 404) {
+        return NextResponse.json(
+          {
+            target: null,
+            agentFound: false,
+          },
+          {
+            headers:
+              NO_STORE_HEADERS,
+          }
+        );
+      }
+
+      return errorResponse(
+        resolved.error ||
+          "ไม่สามารถตรวจสอบตัวแทนได้",
+        resolved.status
       );
     }
 
     const {
       data,
       error,
-    } = await query;
+    } = await supabase
+      .from("agent_targets")
+      .select("*")
+      .eq(
+        "agent_id",
+        resolved.agent.id
+      )
+      .eq(
+        "target_year",
+        year
+      )
+      .limit(1);
 
     if (error) {
       console.error(
-        "[annual-target] GET error:",
+        "[annual-target] GET target error:",
         error
       );
 
@@ -77,23 +208,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (agent) {
-      return NextResponse.json(
-        {
-          target:
-            data?.[0] ?? null,
-        },
-        {
-          headers:
-            NO_STORE_HEADERS,
-        }
-      );
-    }
-
     return NextResponse.json(
       {
-        targets:
-          data ?? [],
+        target:
+          data?.[0] ?? null,
+
+        agentFound: true,
+
+        agent: {
+          id:
+            resolved.agent.id,
+          agent_name:
+            resolved.agent.agent_name,
+          agent_code:
+            resolved.agent.agent_code,
+        },
       },
       {
         headers:
@@ -220,6 +349,34 @@ export async function POST(
     const supabase =
       getSupabaseClient();
 
+    /*
+     * ตรวจว่าตัวแทนมีอยู่จริง
+     * ใน Agent Master
+     */
+    const resolved =
+      await resolveAgentByName(
+        supabase,
+        agentName
+      );
+
+    if (!resolved.agent) {
+      return errorResponse(
+        resolved.error ||
+          "ไม่พบข้อมูลตัวแทน",
+        resolved.status
+      );
+    }
+
+    /*
+     * ใช้ชื่อจาก Agent Master
+     * เป็นชื่อมาตรฐานเสมอ
+     */
+    const canonicalAgentName =
+      resolved.agent.agent_name;
+
+    const agentId =
+      resolved.agent.id;
+
     const {
       data:
         savedTarget,
@@ -228,8 +385,11 @@ export async function POST(
       .from("agent_targets")
       .upsert(
         {
+          agent_id:
+            agentId,
+
           agent_name:
-            agentName,
+            canonicalAgentName,
 
           target_year:
             targetYear,
@@ -256,7 +416,7 @@ export async function POST(
 
     if (error) {
       console.error(
-        "[annual-target] Supabase error:",
+        "[annual-target] Supabase save error:",
         error
       );
 
@@ -269,8 +429,18 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
+
         target:
           savedTarget,
+
+        agent: {
+          id:
+            agentId,
+          agent_name:
+            canonicalAgentName,
+          agent_code:
+            resolved.agent.agent_code,
+        },
       },
       {
         status: 201,
@@ -280,7 +450,7 @@ export async function POST(
     );
   } catch (error) {
     console.error(
-      "[annual-target] Unexpected error:",
+      "[annual-target] Unexpected save error:",
       error
     );
 
@@ -367,6 +537,24 @@ export async function DELETE(
     const supabase =
       getSupabaseClient();
 
+    /*
+     * resolve Agent Master ก่อน
+     * เพื่อไม่ลบด้วยชื่ออย่างเดียว
+     */
+    const resolved =
+      await resolveAgentByName(
+        supabase,
+        agentName
+      );
+
+    if (!resolved.agent) {
+      return errorResponse(
+        resolved.error ||
+          "ไม่พบข้อมูลตัวแทน",
+        resolved.status
+      );
+    }
+
     const {
       data: deleted,
       error,
@@ -374,8 +562,8 @@ export async function DELETE(
       .from("agent_targets")
       .delete()
       .eq(
-        "agent_name",
-        agentName
+        "agent_id",
+        resolved.agent.id
       )
       .eq(
         "target_year",
@@ -408,6 +596,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         success: true,
+
         deletedCount:
           deleted.length,
       },
@@ -428,6 +617,10 @@ export async function DELETE(
     );
   }
 }
+
+/* =========================
+   BLOCK OTHER METHODS
+========================= */
 
 export async function PUT() {
   return errorResponse(
