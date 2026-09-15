@@ -35,6 +35,7 @@ const ADMIN_ALLOWED_PATHS = [
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
+  "/api/monthly-performance",
 ];
 
 function pathMatches(
@@ -119,9 +120,15 @@ function isActivityDashboardPath(
 function isMonthlyPerformancePath(
   pathname: string
 ) {
-  return pathMatches(
-    pathname,
-    "/dashboard/performance"
+  return (
+    pathMatches(
+      pathname,
+      "/dashboard/performance"
+    ) ||
+    pathMatches(
+      pathname,
+      "/api/monthly-performance"
+    )
   );
 }
 
@@ -451,6 +458,10 @@ export async function middleware(
   */
 
   if (role === "admin") {
+    /*
+      หน้าเว็บที่ Admin เข้าได้
+    */
+
     if (
       !pathname.startsWith(
         "/api/"
@@ -462,6 +473,10 @@ export async function middleware(
       return response;
     }
 
+    /*
+      API ที่ Admin ใช้ได้
+    */
+
     if (
       pathname.startsWith(
         "/api/"
@@ -472,6 +487,11 @@ export async function middleware(
     ) {
       return response;
     }
+
+    /*
+      Admin เรียก API
+      ที่ไม่ได้รับอนุญาต
+    */
 
     if (
       pathname.startsWith(
@@ -488,6 +508,11 @@ export async function middleware(
         403
       );
     }
+
+    /*
+      Admin เปิดหน้า
+      ที่ไม่ได้รับอนุญาต
+    */
 
     return redirectWithCookies(
       request,
