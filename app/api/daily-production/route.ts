@@ -134,7 +134,9 @@ export async function GET(
 
   try {
     const access =
-      await getDashboardAccess();
+      await getDashboardAccess(
+        "daily-production"
+      );
 
     const supabase =
       getSupabaseClient();
@@ -375,7 +377,9 @@ export async function POST(
 
   try {
     const access =
-      await getDashboardAccess();
+      await getDashboardAccess(
+        "daily-production"
+      );
 
     if (
       !canAccessAgent(
@@ -521,7 +525,9 @@ export async function DELETE(
 
   try {
     const access =
-      await getDashboardAccess();
+      await getDashboardAccess(
+        "daily-production"
+      );
 
     if (
       !access.canSeeAll &&
