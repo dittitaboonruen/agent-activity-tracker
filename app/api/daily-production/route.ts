@@ -1,12 +1,30 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  NextResponse,
+  type NextRequest,
+} from "next/server";
 
-export const dynamic = "force-dynamic";
+import {
+  getSupabaseClient,
+} from "@/lib/supabase";
+
+import {
+  DashboardAccessError,
+  type DashboardAccess,
+  getDashboardAccess,
+} from "@/lib/dashboard-access";
+
+import {
+  checkRateLimit,
+} from "@/lib/rate-limit";
+
+export const dynamic =
+  "force-dynamic";
+
 export const revalidate = 0;
 
 const NO_STORE_HEADERS = {
-  "Cache-Control": "no-store, max-age=0",
+  "Cache-Control":
+    "no-store, max-age=0",
 };
 
 function errorResponse(
@@ -21,6 +39,161 @@ function errorResponse(
         NO_STORE_HEADERS,
     }
   );
+}
+
+function normalizeIdentity(
+  value:
+    | string
+    | null
+    | undefined
+) {
+  return (value ?? "")
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase(
+      "th-TH"
+    );
+}
+
+function canAccessAgent(
+  access: DashboardAccess,
+  agentName:
+    | string
+    | null
+    | undefined,
+  agentCode?:
+    | string
+    | null
+) {
+  if (access.canSeeAll) {
+    return true;
+  }
+
+  const normalizedName =
+    normalizeIdentity(
+      agentName
+    );
+
+  const normalizedCode =
+    normalizeIdentity(
+      agentCode
+    );
+
+  return (
+    Boolean(
+      normalizedName &&
+        access.agentNames.has(
+          normalizedName
+        )
+    ) ||
+    Boolean(
+      normalizedCode &&
+        access.agentCodes.has(
+          normalizedCode
+        )
+    )
+  );
+}
+
+function accessErrorResponse(
+  error: unknown
+) {
+  if (
+    error instanceof
+    DashboardAccessError
+  ) {
+    return errorResponse(
+      error.message,
+      error.status
+    );
+  }
+
+  console.error(
+    "[daily-production] unexpected error:",
+    error
+  );
+
+  return errorResponse(
+    "เกิดข้อผิดพลาดในการดำเนินการ",
+    500
+  );
+}
+
+/* =========================
+   GET PRODUCTION
+========================= */
+
+export async function GET(
+  request: NextRequest
+) {
+  const date =
+    request.nextUrl.searchParams
+      .get("date")
+      ?.trim() || "";
+
+  try {
+    const access =
+      await getDashboardAccess();
+
+    const supabase =
+      getSupabaseClient();
+
+    let query = supabase
+      .from("daily_production")
+      .select("*")
+      .order("agent_code", {
+        ascending: true,
+      });
+
+    if (date) {
+      query = query.eq(
+        "production_date",
+        date
+      );
+    }
+
+    const {
+      data,
+      error,
+    } = await query;
+
+    if (error) {
+      console.error(
+        "[daily-production] GET error:",
+        error
+      );
+
+      return errorResponse(
+        "ไม่สามารถโหลด Production ได้",
+        500
+      );
+    }
+
+    const visibleRows =
+      (data ?? []).filter(
+        (row) =>
+          canAccessAgent(
+            access,
+            row.agent_name,
+            row.agent_code
+          )
+      );
+
+    return NextResponse.json(
+      {
+        rows: visibleRows,
+      },
+      {
+        headers:
+          NO_STORE_HEADERS,
+      }
+    );
+  } catch (error) {
+    return accessErrorResponse(
+      error
+    );
+  }
 }
 
 /* =========================
@@ -201,6 +374,22 @@ export async function POST(
   }
 
   try {
+    const access =
+      await getDashboardAccess();
+
+    if (
+      !canAccessAgent(
+        access,
+        agentName,
+        agentCode
+      )
+    ) {
+      return errorResponse(
+        "คุณไม่มีสิทธิ์บันทึกข้อมูลของตัวแทนคนนี้",
+        403
+      );
+    }
+
     const supabase =
       getSupabaseClient();
 
@@ -208,17 +397,14 @@ export async function POST(
       data: saved,
       error,
     } = await supabase
-      .from(
-        "daily_production"
-      )
+      .from("daily_production")
       .upsert(
         {
           production_date:
             productionDate,
 
           agent_code:
-            agentCode ||
-            null,
+            agentCode || null,
 
           agent_name:
             agentName,
@@ -255,7 +441,8 @@ export async function POST(
             note || null,
 
           updated_at:
-            new Date().toISOString(),
+            new Date()
+              .toISOString(),
         },
         {
           onConflict:
@@ -267,7 +454,7 @@ export async function POST(
 
     if (error) {
       console.error(
-        "[daily-production] Supabase error:",
+        "[daily-production] POST error:",
         error
       );
 
@@ -280,8 +467,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        production:
-          saved,
+        production: saved,
       },
       {
         status: 201,
@@ -290,89 +476,8 @@ export async function POST(
       }
     );
   } catch (error) {
-    console.error(
-      "[daily-production] unexpected error:",
+    return accessErrorResponse(
       error
-    );
-
-    return errorResponse(
-      "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
-      500
-    );
-  }
-}
-
-/* =========================
-   GET PRODUCTION
-========================= */
-
-export async function GET(
-  request: NextRequest
-) {
-  const date =
-    request.nextUrl.searchParams
-      .get("date")
-      ?.trim() || "";
-
-  try {
-    const supabase =
-      getSupabaseClient();
-
-    let query = supabase
-      .from(
-        "daily_production"
-      )
-      .select("*")
-      .order(
-        "agent_code",
-        {
-          ascending: true,
-        }
-      );
-
-    if (date) {
-      query = query.eq(
-        "production_date",
-        date
-      );
-    }
-
-    const {
-      data,
-      error,
-    } = await query;
-
-    if (error) {
-      console.error(
-        "[daily-production] GET error:",
-        error
-      );
-
-      return errorResponse(
-        "ไม่สามารถโหลด Production ได้",
-        500
-      );
-    }
-
-    return NextResponse.json(
-      {
-        rows:
-          data ?? [],
-      },
-      {
-        headers:
-          NO_STORE_HEADERS,
-      }
-    );
-  } catch (error) {
-    console.error(
-      "[daily-production] GET unexpected error:",
-      error
-    );
-
-    return errorResponse(
-      "เกิดข้อผิดพลาดในการโหลดข้อมูล",
-      500
     );
   }
 }
@@ -415,18 +520,37 @@ export async function DELETE(
   }
 
   try {
+    const access =
+      await getDashboardAccess();
+
+    if (
+      !access.canSeeAll &&
+      !agent
+    ) {
+      return errorResponse(
+        "เฉพาะ Admin เท่านั้นที่สามารถลบ Production ทั้งวันได้",
+        403
+      );
+    }
+
+    if (
+      agent &&
+      !canAccessAgent(
+        access,
+        agent
+      )
+    ) {
+      return errorResponse(
+        "คุณไม่มีสิทธิ์ลบข้อมูลของตัวแทนคนนี้",
+        403
+      );
+    }
+
     const supabase =
       getSupabaseClient();
 
-    /*
-      ถ้ามี agent = ลบเฉพาะคน
-      ถ้าไม่มี agent = ลบทั้งวัน
-    */
-
     let query = supabase
-      .from(
-        "daily_production"
-      )
+      .from("daily_production")
       .delete()
       .eq(
         "production_date",
@@ -443,7 +567,8 @@ export async function DELETE(
     const {
       data: deleted,
       error,
-    } = await query.select();
+    } =
+      await query.select();
 
     if (error) {
       console.error(
@@ -485,14 +610,8 @@ export async function DELETE(
       }
     );
   } catch (error) {
-    console.error(
-      "[daily-production] DELETE unexpected error:",
+    return accessErrorResponse(
       error
-    );
-
-    return errorResponse(
-      "เกิดข้อผิดพลาดในการลบข้อมูล",
-      500
     );
   }
 }
