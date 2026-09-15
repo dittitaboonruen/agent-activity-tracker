@@ -35,9 +35,6 @@ const ADMIN_ALLOWED_PATHS = [
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
-
-  // API ชั่วคราวสำหรับเปลี่ยนอีเมล
-  "/api/admin/rename-auth-emails",
 ];
 
 function pathMatches(
