@@ -12,9 +12,14 @@ export type DashboardRole =
   | "admin"
   | "manager";
 
+export type DashboardArea =
+  | "activity"
+  | "monthly-performance";
+
 export interface DashboardAccess {
   userId: string;
   role: DashboardRole;
+  unitId: number | null;
   canSeeAll: boolean;
   agentNames: Set<string>;
   agentCodes: Set<string>;
@@ -51,8 +56,10 @@ function normalizeIdentity(
     );
 }
 
-export async function getDashboardAccess():
-  Promise<DashboardAccess> {
+export async function getDashboardAccess(
+  area: DashboardArea =
+    "activity"
+): Promise<DashboardAccess> {
   const supabase =
     createClient();
 
@@ -74,7 +81,14 @@ export async function getDashboardAccess():
     error: profileError,
   } = await supabase
     .from("user_profiles")
-    .select("role, active")
+    .select(`
+      role,
+      active,
+      unit_id,
+      can_view_activity_dashboard,
+      can_view_monthly_performance,
+      can_view_all_data
+    `)
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -111,15 +125,44 @@ export async function getDashboardAccess():
     role !== "manager"
   ) {
     throw new DashboardAccessError(
-      "บัญชีนี้ไม่มีสิทธิ์เข้าดู Dashboard",
+      "บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน",
       403
     );
   }
 
-  if (role === "admin") {
+  const unitId =
+    typeof profile.unit_id ===
+      "number"
+      ? profile.unit_id
+      : null;
+
+  /*
+    MONTHLY PERFORMANCE
+
+    ผู้ที่ได้รับสิทธิ์
+    จะเห็นข้อมูลทั้งหมด
+  */
+
+  if (
+    area ===
+    "monthly-performance"
+  ) {
+    if (
+      profile
+        .can_view_monthly_performance !==
+      true
+    ) {
+      throw new DashboardAccessError(
+        "บัญชีนี้ไม่มีสิทธิ์ดู Monthly Performance",
+        403
+      );
+    }
+
     return {
       userId: user.id,
-      role: "admin",
+      role:
+        role as DashboardRole,
+      unitId,
       canSeeAll: true,
       agentNames:
         new Set<string>(),
@@ -128,19 +171,73 @@ export async function getDashboardAccess():
     };
   }
 
+  /*
+    ACTIVITY DASHBOARD
+  */
+
+  if (
+    profile
+      .can_view_activity_dashboard !==
+    true
+  ) {
+    throw new DashboardAccessError(
+      "บัญชีนี้ไม่มีสิทธิ์ดู Activity Dashboard",
+      403
+    );
+  }
+
+  /*
+    Training หรือผู้ที่ได้รับ
+    can_view_all_data
+    เห็นทุกหน่วย
+  */
+
+  if (
+    profile.can_view_all_data ===
+    true
+  ) {
+    return {
+      userId: user.id,
+      role:
+        role as DashboardRole,
+      unitId,
+      canSeeAll: true,
+      agentNames:
+        new Set<string>(),
+      agentCodes:
+        new Set<string>(),
+    };
+  }
+
+  /*
+    Manager ทั่วไป
+    ต้องมีหน่วยก่อน
+  */
+
+  if (unitId === null) {
+    throw new DashboardAccessError(
+      "บัญชีนี้ยังไม่ได้กำหนดหน่วย",
+      403
+    );
+  }
+
+  /*
+    โหลดตัวแทนทั้งหมด
+    ที่อยู่ในหน่วยเดียวกับผู้ใช้
+  */
+
   const {
     data: agents,
     error: agentsError,
   } = await supabase
     .from("agent_master")
-    .select(
-      "agent_code, agent_name, jotform_agent_name"
-    )
+    .select(`
+      agent_code,
+      agent_name,
+      jotform_agent_name
+    `)
     .eq("active", true)
-    .eq(
-      "manager_user_id",
-      user.id
-    );
+    .eq("unit_id", unitId);
 
   if (agentsError) {
     console.error(
@@ -149,7 +246,7 @@ export async function getDashboardAccess():
     );
 
     throw new DashboardAccessError(
-      "ไม่สามารถตรวจสอบรายชื่อตัวแทนได้",
+      "ไม่สามารถโหลดตัวแทนในหน่วยได้",
       500
     );
   }
@@ -182,7 +279,9 @@ export async function getDashboardAccess():
 
   return {
     userId: user.id,
-    role: "manager",
+    role:
+      role as DashboardRole,
+    unitId,
     canSeeAll: false,
     agentNames,
     agentCodes,
