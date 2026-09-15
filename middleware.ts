@@ -132,6 +132,21 @@ function isMonthlyPerformancePath(
   );
 }
 
+function isDailyProductionPath(
+  pathname: string
+) {
+  return (
+    pathMatches(
+      pathname,
+      "/admin/production"
+    ) ||
+    pathMatches(
+      pathname,
+      "/api/daily-production"
+    )
+  );
+}
+
 function redirectWithCookies(
   request: NextRequest,
   response: NextResponse,
@@ -364,7 +379,8 @@ export async function middleware(
       unit_id,
       can_view_activity_dashboard,
       can_view_monthly_performance,
-      can_view_all_data
+      can_view_all_data,
+      can_manage_daily_production
     `)
     .eq(
       "user_id",
@@ -442,6 +458,27 @@ export async function middleware(
       request,
       response,
       "บัญชีนี้ไม่มีสิทธิ์ดู Monthly Performance"
+    );
+  }
+
+  /*
+    Daily Production
+
+    เพิ่ม แก้ไข และลบได้เฉพาะ NewAgent
+  */
+
+  if (
+    isDailyProductionPath(
+      pathname
+    ) &&
+    profile
+      .can_manage_daily_production !==
+      true
+  ) {
+    return denyAccess(
+      request,
+      response,
+      "บัญชีนี้ไม่มีสิทธิ์จัดการ Daily Production"
     );
   }
 
