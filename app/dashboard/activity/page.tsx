@@ -5,6 +5,11 @@ import {
   fetchJotformSubmissions,
 } from "@/lib/jotform";
 
+import {
+  filterSubmissionsForAccess,
+  getDashboardAccess,
+} from "@/lib/dashboard-access";
+
 import type {
   JotformApiResponse,
 } from "@/types";
@@ -12,10 +17,14 @@ import type {
 export const dynamic =
   "force-dynamic";
 
-async function getInitialData(): Promise<
-  JotformApiResponse | null
-> {
+export const revalidate = 0;
+
+async function getInitialData():
+  Promise<JotformApiResponse | null> {
   try {
+    const access =
+      await getDashboardAccess();
+
     const {
       submissions,
       fetchedAtUTC,
@@ -23,10 +32,20 @@ async function getInitialData(): Promise<
       await fetchJotformSubmissions();
 
     return {
-      submissions,
+      submissions:
+        filterSubmissionsForAccess(
+          submissions,
+          access
+        ),
+
       fetchedAtUTC,
     };
-  } catch {
+  } catch (error) {
+    console.error(
+      "[activity-dashboard] initial data error:",
+      error
+    );
+
     return null;
   }
 }
@@ -38,22 +57,15 @@ export default async function ActivityDashboardPage() {
   return (
     <div
       style={{
-        minHeight:
-          "100vh",
-
-        background:
-          "var(--bg)",
-
-        padding:
-          "18px 20px 0",
+        minHeight: "100vh",
+        background: "var(--bg)",
+        padding: "18px 20px 0",
       }}
     >
       <PageTopBar />
 
       <Dashboard
-        initialData={
-          initialData
-        }
+        initialData={initialData}
       />
     </div>
   );
