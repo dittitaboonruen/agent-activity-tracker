@@ -14,7 +14,8 @@ export type DashboardRole =
 
 export type DashboardArea =
   | "activity"
-  | "monthly-performance";
+  | "monthly-performance"
+  | "daily-production";
 
 export interface DashboardAccess {
   userId: string;
@@ -87,9 +88,13 @@ export async function getDashboardAccess(
       unit_id,
       can_view_activity_dashboard,
       can_view_monthly_performance,
-      can_view_all_data
+      can_view_all_data,
+      can_manage_daily_production
     `)
-    .eq("user_id", user.id)
+    .eq(
+      "user_id",
+      user.id
+    )
     .maybeSingle();
 
   if (profileError) {
@@ -135,6 +140,42 @@ export async function getDashboardAccess(
       "number"
       ? profile.unit_id
       : null;
+
+  /*
+    DAILY PRODUCTION
+
+    เพิ่ม แก้ไข และลบได้เฉพาะ
+    ผู้ที่ได้รับสิทธิ์
+    can_manage_daily_production
+  */
+
+  if (
+    area ===
+    "daily-production"
+  ) {
+    if (
+      profile
+        .can_manage_daily_production !==
+      true
+    ) {
+      throw new DashboardAccessError(
+        "บัญชีนี้ไม่มีสิทธิ์จัดการ Daily Production",
+        403
+      );
+    }
+
+    return {
+      userId: user.id,
+      role:
+        role as DashboardRole,
+      unitId,
+      canSeeAll: true,
+      agentNames:
+        new Set<string>(),
+      agentCodes:
+        new Set<string>(),
+    };
+  }
 
   /*
     MONTHLY PERFORMANCE
@@ -236,8 +277,14 @@ export async function getDashboardAccess(
       agent_name,
       jotform_agent_name
     `)
-    .eq("active", true)
-    .eq("unit_id", unitId);
+    .eq(
+      "active",
+      true
+    )
+    .eq(
+      "unit_id",
+      unitId
+    );
 
   if (agentsError) {
     console.error(
@@ -254,14 +301,17 @@ export async function getDashboardAccess(
   const agentNames =
     new Set<string>(
       (agents ?? [])
-        .flatMap((agent) => [
-          agent.agent_name,
-          agent.jotform_agent_name,
-        ])
-        .map((value) =>
-          normalizeIdentity(
-            value
-          )
+        .flatMap(
+          (agent) => [
+            agent.agent_name,
+            agent.jotform_agent_name,
+          ]
+        )
+        .map(
+          (value) =>
+            normalizeIdentity(
+              value
+            )
         )
         .filter(Boolean)
     );
@@ -269,10 +319,11 @@ export async function getDashboardAccess(
   const agentCodes =
     new Set<string>(
       (agents ?? [])
-        .map((agent) =>
-          normalizeIdentity(
-            agent.agent_code
-          )
+        .map(
+          (agent) =>
+            normalizeIdentity(
+              agent.agent_code
+            )
         )
         .filter(Boolean)
     );
