@@ -101,6 +101,30 @@ function isAdminAllowedApiPath(
   );
 }
 
+function isActivityDashboardPath(
+  pathname: string
+) {
+  return (
+    pathMatches(
+      pathname,
+      "/dashboard/activity"
+    ) ||
+    pathMatches(
+      pathname,
+      "/api/jotform"
+    )
+  );
+}
+
+function isMonthlyPerformancePath(
+  pathname: string
+) {
+  return pathMatches(
+    pathname,
+    "/dashboard/performance"
+  );
+}
+
 function redirectWithCookies(
   request: NextRequest,
   response: NextResponse,
@@ -161,6 +185,32 @@ function jsonWithCookies(
     );
 
   return jsonResponse;
+}
+
+function denyAccess(
+  request: NextRequest,
+  response: NextResponse,
+  message: string
+) {
+  if (
+    request.nextUrl.pathname
+      .startsWith("/api/")
+  ) {
+    return jsonWithCookies(
+      response,
+      {
+        ok: false,
+        error: message,
+      },
+      403
+    );
+  }
+
+  return redirectWithCookies(
+    request,
+    response,
+    "/"
+  );
 }
 
 export async function middleware(
@@ -225,8 +275,7 @@ export async function middleware(
     );
 
   /*
-    ตรวจสอบ User
-    จาก Supabase Auth
+    ตรวจสอบ Supabase User
   */
 
   const {
@@ -236,7 +285,7 @@ export async function middleware(
     await supabase.auth.getUser();
 
   /*
-    PUBLIC ROUTES
+    Public Routes
   */
 
   if (
@@ -263,7 +312,7 @@ export async function middleware(
   }
 
   /*
-    NOT LOGGED IN
+    ยังไม่ได้ Login
   */
 
   if (
@@ -294,7 +343,7 @@ export async function middleware(
   }
 
   /*
-    LOAD USER PROFILE
+    โหลดสิทธิ์จาก user_profiles
   */
 
   const {
@@ -302,9 +351,14 @@ export async function middleware(
     error: profileError,
   } = await supabase
     .from("user_profiles")
-    .select(
-      "role, active"
-    )
+    .select(`
+      role,
+      active,
+      unit_id,
+      can_view_activity_dashboard,
+      can_view_monthly_performance,
+      can_view_all_data
+    `)
     .eq(
       "user_id",
       user.id
@@ -316,6 +370,109 @@ export async function middleware(
     !profile ||
     profile.active !== true
   ) {
+    return denyAccess(
+      request,
+      response,
+      "บัญชีนี้ยังไม่ได้รับอนุญาต"
+    );
+  }
+
+  const role =
+    profile.role as Role;
+
+  if (
+    role !== "manager" &&
+    role !== "admin"
+  ) {
+    return denyAccess(
+      request,
+      response,
+      "บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน"
+    );
+  }
+
+  /*
+    Activity Dashboard
+
+    NewAgent เข้าไม่ได้
+    Training เห็นทั้งหมด
+    Manager อื่นเห็นตามหน่วย
+  */
+
+  if (
+    isActivityDashboardPath(
+      pathname
+    ) &&
+    profile
+      .can_view_activity_dashboard !==
+      true
+  ) {
+    return denyAccess(
+      request,
+      response,
+      "บัญชีนี้ไม่มีสิทธิ์ดู Activity Dashboard"
+    );
+  }
+
+  /*
+    Monthly Performance
+
+    อนุญาตเฉพาะ:
+    - NewAgent
+    - Executive
+    - Training
+  */
+
+  if (
+    isMonthlyPerformancePath(
+      pathname
+    ) &&
+    profile
+      .can_view_monthly_performance !==
+      true
+  ) {
+    return denyAccess(
+      request,
+      response,
+      "บัญชีนี้ไม่มีสิทธิ์ดู Monthly Performance"
+    );
+  }
+
+  /*
+    Manager
+  */
+
+  if (role === "manager") {
+    return response;
+  }
+
+  /*
+    Admin
+  */
+
+  if (role === "admin") {
+    if (
+      !pathname.startsWith(
+        "/api/"
+      ) &&
+      isAdminAllowedPath(
+        pathname
+      )
+    ) {
+      return response;
+    }
+
+    if (
+      pathname.startsWith(
+        "/api/"
+      ) &&
+      isAdminAllowedApiPath(
+        pathname
+      )
+    ) {
+      return response;
+    }
+
     if (
       pathname.startsWith(
         "/api/"
@@ -335,118 +492,14 @@ export async function middleware(
     return redirectWithCookies(
       request,
       response,
-      "/login"
-    );
-  }
-
-  const role =
-    profile.role as Role;
-
-  /*
-    MANAGER
-  */
-
-  if (
-    role === "manager"
-  ) {
-    return response;
-  }
-
-  /*
-    ADMIN
-  */
-
-  if (
-    role === "admin"
-  ) {
-    /*
-      หน้าเว็บที่ Admin เข้าได้
-    */
-
-    if (
-      !pathname.startsWith(
-        "/api/"
-      ) &&
-      isAdminAllowedPath(
-        pathname
-      )
-    ) {
-      return response;
-    }
-
-    /*
-      API ที่ Admin ใช้ได้
-    */
-
-    if (
-      pathname.startsWith(
-        "/api/"
-      ) &&
-      isAdminAllowedApiPath(
-        pathname
-      )
-    ) {
-      return response;
-    }
-
-    /*
-      Admin เรียก API
-      ที่ไม่ได้รับอนุญาต
-    */
-
-    if (
-      pathname.startsWith(
-        "/api/"
-      )
-    ) {
-      return jsonWithCookies(
-        response,
-        {
-          ok: false,
-
-          error:
-            "Manager access required",
-        },
-        403
-      );
-    }
-
-    /*
-      Admin เปิดหน้า
-      ที่ไม่ได้รับอนุญาต
-    */
-
-    return redirectWithCookies(
-      request,
-      response,
       "/"
     );
   }
 
-  /*
-    UNKNOWN ROLE
-  */
-
-  if (
-    pathname.startsWith(
-      "/api/"
-    )
-  ) {
-    return jsonWithCookies(
-      response,
-      {
-        ok: false,
-        error:
-          "Access denied",
-      },
-      403
-    );
-  }
-
-  return redirectWithCookies(
+  return denyAccess(
     request,
     response,
-    "/login"
+    "Access denied"
   );
 }
 
