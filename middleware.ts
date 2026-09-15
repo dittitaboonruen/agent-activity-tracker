@@ -1,7 +1,15 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import {
+  createServerClient,
+} from "@supabase/ssr";
 
-type Role = "manager" | "admin";
+import {
+  NextResponse,
+  type NextRequest,
+} from "next/server";
+
+type Role =
+  | "manager"
+  | "admin";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -27,6 +35,9 @@ const ADMIN_ALLOWED_PATHS = [
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
+
+  // API ชั่วคราวสำหรับเปลี่ยนอีเมล
+  "/api/admin/rename-auth-emails",
 ];
 
 function pathMatches(
@@ -39,31 +50,57 @@ function pathMatches(
 
   return (
     pathname === allowedPath ||
-    pathname.startsWith(`${allowedPath}/`)
+    pathname.startsWith(
+      `${allowedPath}/`
+    )
   );
 }
 
-function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some((path) =>
-    pathMatches(pathname, path)
+function isPublicPath(
+  pathname: string
+) {
+  return PUBLIC_PATHS.some(
+    (path) =>
+      pathMatches(
+        pathname,
+        path
+      )
   );
 }
 
-function isPublicApiPath(pathname: string) {
-  return PUBLIC_API_PATHS.some((path) =>
-    pathMatches(pathname, path)
+function isPublicApiPath(
+  pathname: string
+) {
+  return PUBLIC_API_PATHS.some(
+    (path) =>
+      pathMatches(
+        pathname,
+        path
+      )
   );
 }
 
-function isAdminAllowedPath(pathname: string) {
-  return ADMIN_ALLOWED_PATHS.some((path) =>
-    pathMatches(pathname, path)
+function isAdminAllowedPath(
+  pathname: string
+) {
+  return ADMIN_ALLOWED_PATHS.some(
+    (path) =>
+      pathMatches(
+        pathname,
+        path
+      )
   );
 }
 
-function isAdminAllowedApiPath(pathname: string) {
-  return ADMIN_ALLOWED_API_PATHS.some((path) =>
-    pathMatches(pathname, path)
+function isAdminAllowedApiPath(
+  pathname: string
+) {
+  return ADMIN_ALLOWED_API_PATHS.some(
+    (path) =>
+      pathMatches(
+        pathname,
+        path
+      )
   );
 }
 
@@ -72,48 +109,59 @@ function redirectWithCookies(
   response: NextResponse,
   pathname: string
 ) {
-  const url = request.nextUrl.clone();
+  const url =
+    request.nextUrl.clone();
 
   url.pathname = pathname;
   url.search = "";
 
   const redirectResponse =
-    NextResponse.redirect(url);
+    NextResponse.redirect(
+      url
+    );
 
   response.cookies
     .getAll()
-    .forEach((cookie) => {
-      redirectResponse.cookies.set(
-        cookie.name,
-        cookie.value,
-        cookie
-      );
-    });
+    .forEach(
+      (cookie) => {
+        redirectResponse.cookies.set(
+          cookie.name,
+          cookie.value,
+          cookie
+        );
+      }
+    );
 
   return redirectResponse;
 }
 
 function jsonWithCookies(
   response: NextResponse,
-  body: Record<string, unknown>,
+  body: Record<
+    string,
+    unknown
+  >,
   status: number
 ) {
-  const jsonResponse = NextResponse.json(
-    body,
-    {
-      status,
-    }
-  );
+  const jsonResponse =
+    NextResponse.json(
+      body,
+      {
+        status,
+      }
+    );
 
   response.cookies
     .getAll()
-    .forEach((cookie) => {
-      jsonResponse.cookies.set(
-        cookie.name,
-        cookie.value,
-        cookie
-      );
-    });
+    .forEach(
+      (cookie) => {
+        jsonResponse.cookies.set(
+          cookie.name,
+          cookie.value,
+          cookie
+        );
+      }
+    );
 
   return jsonResponse;
 }
@@ -141,9 +189,14 @@ export async function middleware(
             return request.cookies.getAll();
           },
 
-          setAll(cookiesToSet) {
+          setAll(
+            cookiesToSet
+          ) {
             cookiesToSet.forEach(
-              ({ name, value }) => {
+              ({
+                name,
+                value,
+              }) => {
                 request.cookies.set(
                   name,
                   value
@@ -174,23 +227,29 @@ export async function middleware(
       }
     );
 
-  // ตรวจสอบ User จาก Supabase Auth
+  /*
+    ตรวจสอบ User
+    จาก Supabase Auth
+  */
+
   const {
     data: { user },
     error: userError,
   } =
     await supabase.auth.getUser();
 
-  // -----------------------------
-  // PUBLIC ROUTES
-  // -----------------------------
+  /*
+    PUBLIC ROUTES
+  */
 
   if (
-    isPublicPath(pathname) ||
-    isPublicApiPath(pathname)
+    isPublicPath(
+      pathname
+    ) ||
+    isPublicApiPath(
+      pathname
+    )
   ) {
-    // ถ้า Login อยู่แล้วและเปิด /login
-    // ให้กลับ Performance Hub
     if (
       pathname === "/login" &&
       user &&
@@ -206,49 +265,53 @@ export async function middleware(
     return response;
   }
 
-  // -----------------------------
-  // NOT LOGGED IN
-  // -----------------------------
+  /*
+    NOT LOGGED IN
+  */
 
-  if (!user || userError) {
-    // API ต้องตอบ JSON
+  if (
+    !user ||
+    userError
+  ) {
     if (
-      pathname.startsWith("/api/")
+      pathname.startsWith(
+        "/api/"
+      )
     ) {
       return jsonWithCookies(
         response,
         {
           ok: false,
-          error: "Unauthorized",
+          error:
+            "Unauthorized",
         },
         401
       );
     }
 
-    const loginUrl =
-      request.nextUrl.clone();
-
-    loginUrl.pathname = "/login";
-    loginUrl.search = "";
-
     return redirectWithCookies(
       request,
       response,
-      loginUrl.pathname
+      "/login"
     );
   }
 
-  // -----------------------------
-  // LOAD USER ROLE
-  // -----------------------------
+  /*
+    LOAD USER PROFILE
+  */
 
   const {
     data: profile,
     error: profileError,
   } = await supabase
     .from("user_profiles")
-    .select("role, active")
-    .eq("user_id", user.id)
+    .select(
+      "role, active"
+    )
+    .eq(
+      "user_id",
+      user.id
+    )
     .maybeSingle();
 
   if (
@@ -257,13 +320,16 @@ export async function middleware(
     profile.active !== true
   ) {
     if (
-      pathname.startsWith("/api/")
+      pathname.startsWith(
+        "/api/"
+      )
     ) {
       return jsonWithCookies(
         response,
         {
           ok: false,
-          error: "Access denied",
+          error:
+            "Access denied",
         },
         403
       );
@@ -279,21 +345,27 @@ export async function middleware(
   const role =
     profile.role as Role;
 
-  // -----------------------------
-  // MANAGER
-  // เข้าได้ทุก Back Office
-  // -----------------------------
+  /*
+    MANAGER
+  */
 
-  if (role === "manager") {
+  if (
+    role === "manager"
+  ) {
     return response;
   }
 
-  // -----------------------------
-  // ADMIN
-  // -----------------------------
+  /*
+    ADMIN
+  */
 
-  if (role === "admin") {
-    // หน้าเว็บที่ Admin เข้าได้
+  if (
+    role === "admin"
+  ) {
+    /*
+      หน้าเว็บที่ Admin เข้าได้
+    */
+
     if (
       !pathname.startsWith(
         "/api/"
@@ -305,7 +377,10 @@ export async function middleware(
       return response;
     }
 
-    // API ที่ Admin ใช้ได้
+    /*
+      API ที่ Admin ใช้ได้
+    */
+
     if (
       pathname.startsWith(
         "/api/"
@@ -317,7 +392,11 @@ export async function middleware(
       return response;
     }
 
-    // Admin พยายามเรียก API Manager
+    /*
+      Admin เรียก API
+      ที่ไม่ได้รับอนุญาต
+    */
+
     if (
       pathname.startsWith(
         "/api/"
@@ -327,6 +406,7 @@ export async function middleware(
         response,
         {
           ok: false,
+
           error:
             "Manager access required",
         },
@@ -334,8 +414,11 @@ export async function middleware(
       );
     }
 
-    // Admin พยายามเปิดหน้า Manager
-    // ให้กลับหน้า Home
+    /*
+      Admin เปิดหน้า
+      ที่ไม่ได้รับอนุญาต
+    */
+
     return redirectWithCookies(
       request,
       response,
@@ -343,15 +426,21 @@ export async function middleware(
     );
   }
 
-  // Role อื่นที่ไม่รู้จัก
+  /*
+    UNKNOWN ROLE
+  */
+
   if (
-    pathname.startsWith("/api/")
+    pathname.startsWith(
+      "/api/"
+    )
   ) {
     return jsonWithCookies(
       response,
       {
         ok: false,
-        error: "Access denied",
+        error:
+          "Access denied",
       },
       403
     );
