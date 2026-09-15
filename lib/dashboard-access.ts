@@ -1,7 +1,12 @@
 import "server-only";
 
-import type { Submission } from "@/types";
-import { createClient } from "@/lib/supabase/server";
+import type {
+  Submission,
+} from "@/types";
+
+import {
+  createClient,
+} from "@/lib/supabase/server";
 
 export type DashboardRole =
   | "admin"
@@ -23,28 +28,39 @@ export class DashboardAccessError extends Error {
     status: number
   ) {
     super(message);
+
+    this.name =
+      "DashboardAccessError";
+
     this.status = status;
   }
 }
 
 function normalizeIdentity(
-  value: string | null | undefined
+  value:
+    | string
+    | null
+    | undefined
 ) {
   return (value ?? "")
     .normalize("NFKC")
     .trim()
     .replace(/\s+/g, " ")
-    .toLocaleLowerCase("th-TH");
+    .toLocaleLowerCase(
+      "th-TH"
+    );
 }
 
 export async function getDashboardAccess():
   Promise<DashboardAccess> {
-  const supabase = createClient();
+  const supabase =
+    createClient();
 
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth.getUser();
 
   if (userError || !user) {
     throw new DashboardAccessError(
@@ -74,7 +90,10 @@ export async function getDashboardAccess():
     );
   }
 
-  if (!profile || profile.active !== true) {
+  if (
+    !profile ||
+    profile.active !== true
+  ) {
     throw new DashboardAccessError(
       "บัญชีนี้ยังไม่ได้รับอนุญาต",
       403
@@ -83,7 +102,9 @@ export async function getDashboardAccess():
 
   const role = String(
     profile.role ?? ""
-  ).toLowerCase();
+  )
+    .trim()
+    .toLowerCase();
 
   if (
     role !== "admin" &&
@@ -100,8 +121,10 @@ export async function getDashboardAccess():
       userId: user.id,
       role: "admin",
       canSeeAll: true,
-      agentNames: new Set(),
-      agentCodes: new Set(),
+      agentNames:
+        new Set<string>(),
+      agentCodes:
+        new Set<string>(),
     };
   }
 
@@ -110,9 +133,14 @@ export async function getDashboardAccess():
     error: agentsError,
   } = await supabase
     .from("agent_master")
-    .select("agent_code, agent_name")
+    .select(
+      "agent_code, agent_name, jotform_agent_name"
+    )
     .eq("active", true)
-    .eq("manager_user_id", user.id);
+    .eq(
+      "manager_user_id",
+      user.id
+    );
 
   if (agentsError) {
     console.error(
@@ -126,22 +154,23 @@ export async function getDashboardAccess():
     );
   }
 
-  return {
-    userId: user.id,
-    role: "manager",
-    canSeeAll: false,
-
-    agentNames: new Set(
+  const agentNames =
+    new Set<string>(
       (agents ?? [])
-        .map((agent) =>
+        .flatMap((agent) => [
+          agent.agent_name,
+          agent.jotform_agent_name,
+        ])
+        .map((value) =>
           normalizeIdentity(
-            agent.agent_name
+            value
           )
         )
         .filter(Boolean)
-    ),
+    );
 
-    agentCodes: new Set(
+  const agentCodes =
+    new Set<string>(
       (agents ?? [])
         .map((agent) =>
           normalizeIdentity(
@@ -149,7 +178,14 @@ export async function getDashboardAccess():
           )
         )
         .filter(Boolean)
-    ),
+    );
+
+  return {
+    userId: user.id,
+    role: "manager",
+    canSeeAll: false,
+    agentNames,
+    agentCodes,
   };
 }
 
