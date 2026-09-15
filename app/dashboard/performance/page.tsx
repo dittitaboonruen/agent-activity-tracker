@@ -1,44 +1,1514 @@
-async function loadData() {
-  setLoading(true);
-  setError("");
+"use client";
 
-  try {
-    const response = await fetch(
-      "/api/monthly-performance",
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import PageTopBar from "@/components/PageTopBar";
+
+type DailyProduction = {
+  production_date: string;
+  agent_code: string | null;
+  agent_name: string;
+  agent_nickname: string | null;
+
+  aia_case_submitted: number;
+  aia_case_approved: number;
+  aia_fyp_submitted: number;
+  aia_fyp_approved: number;
+  aia_fyc_approved: number;
+
+  pa_case: number;
+  pa_fyp: number;
+  pa_fyc: number;
+};
+
+type AgentSummary = {
+  code: string;
+  name: string;
+  nickname: string;
+
+  monthlyAiaCaseSubmitted: number;
+  monthlyAiaCaseApproved: number;
+  monthlyAiaFypSubmitted: number;
+  monthlyAiaFypApproved: number;
+  monthlyAiaFycApproved: number;
+
+  ytdAiaCaseApproved: number;
+  ytdAiaFypApproved: number;
+  ytdAiaFycApproved: number;
+
+  monthlyPaCase: number;
+  monthlyPaFyp: number;
+  monthlyPaFyc: number;
+
+  ytdPaCase: number;
+  ytdPaFyp: number;
+  ytdPaFyc: number;
+
+  approvedMonths: number;
+};
+
+function currentBangkokYearMonth() {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
       {
-        cache: "no-store",
+        timeZone:
+          "Asia/Bangkok",
+        year: "numeric",
+        month: "2-digit",
       }
+    ).formatToParts(
+      new Date()
     );
 
-    const data =
-      await response.json();
+  return {
+    year:
+      parts.find(
+        (part) =>
+          part.type ===
+          "year"
+      )?.value ?? "",
 
-    if (!response.ok) {
+    month:
+      parts.find(
+        (part) =>
+          part.type ===
+          "month"
+      )?.value ?? "",
+  };
+}
+
+function money(
+  value: number
+) {
+  return value.toLocaleString(
+    "en-US",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
+}
+
+export default function PerformanceDashboardPage() {
+  const initial =
+    currentBangkokYearMonth();
+
+  const [
+    year,
+    setYear,
+  ] = useState(
+    initial.year
+  );
+
+  const [
+    month,
+    setMonth,
+  ] = useState(
+    initial.month
+  );
+
+  const [
+    rows,
+    setRows,
+  ] = useState<
+    DailyProduction[]
+  >([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  async function loadData() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/monthly-performance",
+          {
+            cache:
+              "no-store",
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        setRows([]);
+
+        setError(
+          data.error ||
+            "ไม่สามารถโหลดข้อมูล Monthly Performance ได้"
+        );
+
+        return;
+      }
+
+      setRows(
+        data.rows ?? []
+      );
+    } catch (error) {
+      console.error(
+        "[monthly-performance-page] load error:",
+        error
+      );
+
       setRows([]);
 
       setError(
-        data.error ||
-          "ไม่สามารถโหลดข้อมูล Monthly Performance ได้"
+        "เกิดข้อผิดพลาดในการโหลด Monthly Performance"
       );
-
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    setRows(
-      data.rows ?? []
-    );
-  } catch (error) {
-    console.error(
-      "[monthly-performance-page] load error:",
-      error
-    );
-
-    setRows([]);
-
-    setError(
-      "เกิดข้อผิดพลาดในการโหลด Monthly Performance"
-    );
-  } finally {
-    setLoading(false);
   }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const summary =
+    useMemo(() => {
+      const selectedMonth =
+        `${year}-${month}`;
+
+      const ytdStart =
+        `${year}-01-01`;
+
+      const ytdEnd =
+        `${year}-${month}-31`;
+
+      const monthRows =
+        rows.filter(
+          (row) =>
+            row.production_date.startsWith(
+              selectedMonth
+            )
+        );
+
+      const ytdRows =
+        rows.filter(
+          (row) =>
+            row.production_date >=
+              ytdStart &&
+            row.production_date <=
+              ytdEnd
+        );
+
+      const agentNames =
+        Array.from(
+          new Set(
+            ytdRows
+              .map(
+                (row) =>
+                  row.agent_name
+              )
+              .filter(Boolean)
+          )
+        ).sort();
+
+      return agentNames.map(
+        (
+          agentName
+        ): AgentSummary => {
+          const monthly =
+            monthRows.filter(
+              (row) =>
+                row.agent_name ===
+                agentName
+            );
+
+          const ytd =
+            ytdRows.filter(
+              (row) =>
+                row.agent_name ===
+                agentName
+            );
+
+          const latestInfo =
+            [...ytd].sort(
+              (a, b) =>
+                b.production_date.localeCompare(
+                  a.production_date
+                )
+            )[0] ?? null;
+
+          const approvedMonthSet =
+            new Set(
+              ytd
+                .filter(
+                  (row) =>
+                    Number(
+                      row.aia_case_approved ??
+                        0
+                    ) > 0
+                )
+                .map(
+                  (row) =>
+                    row.production_date.slice(
+                      0,
+                      7
+                    )
+                )
+            );
+
+          return {
+            code:
+              latestInfo
+                ?.agent_code ??
+              "",
+
+            name:
+              agentName,
+
+            nickname:
+              latestInfo
+                ?.agent_nickname ??
+              "",
+
+            monthlyAiaCaseSubmitted:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_case_submitted ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyAiaCaseApproved:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_case_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyAiaFypSubmitted:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_fyp_submitted ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyAiaFypApproved:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_fyp_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyAiaFycApproved:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_fyc_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdAiaCaseApproved:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_case_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdAiaFypApproved:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_fyp_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdAiaFycApproved:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.aia_fyc_approved ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyPaCase:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_case ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyPaFyp:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_fyp ??
+                      0
+                  ),
+                0
+              ),
+
+            monthlyPaFyc:
+              monthly.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_fyc ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdPaCase:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_case ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdPaFyp:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_fyp ??
+                      0
+                  ),
+                0
+              ),
+
+            ytdPaFyc:
+              ytd.reduce(
+                (
+                  sum,
+                  row
+                ) =>
+                  sum +
+                  Number(
+                    row.pa_fyc ??
+                      0
+                  ),
+                0
+              ),
+
+            approvedMonths:
+              approvedMonthSet.size,
+          };
+        }
+      );
+    }, [
+      rows,
+      year,
+      month,
+    ]);
+
+  const totals =
+    useMemo(() => {
+      return summary.reduce(
+        (
+          accumulator,
+          row
+        ) => ({
+          monthlyAiaCaseSubmitted:
+            accumulator
+              .monthlyAiaCaseSubmitted +
+            row.monthlyAiaCaseSubmitted,
+
+          monthlyAiaCaseApproved:
+            accumulator
+              .monthlyAiaCaseApproved +
+            row.monthlyAiaCaseApproved,
+
+          monthlyAiaFypSubmitted:
+            accumulator
+              .monthlyAiaFypSubmitted +
+            row.monthlyAiaFypSubmitted,
+
+          monthlyAiaFypApproved:
+            accumulator
+              .monthlyAiaFypApproved +
+            row.monthlyAiaFypApproved,
+
+          monthlyAiaFycApproved:
+            accumulator
+              .monthlyAiaFycApproved +
+            row.monthlyAiaFycApproved,
+
+          ytdAiaCaseApproved:
+            accumulator
+              .ytdAiaCaseApproved +
+            row.ytdAiaCaseApproved,
+
+          ytdAiaFypApproved:
+            accumulator
+              .ytdAiaFypApproved +
+            row.ytdAiaFypApproved,
+
+          ytdAiaFycApproved:
+            accumulator
+              .ytdAiaFycApproved +
+            row.ytdAiaFycApproved,
+
+          monthlyPaCase:
+            accumulator
+              .monthlyPaCase +
+            row.monthlyPaCase,
+
+          monthlyPaFyp:
+            accumulator
+              .monthlyPaFyp +
+            row.monthlyPaFyp,
+
+          monthlyPaFyc:
+            accumulator
+              .monthlyPaFyc +
+            row.monthlyPaFyc,
+
+          ytdPaCase:
+            accumulator
+              .ytdPaCase +
+            row.ytdPaCase,
+
+          ytdPaFyp:
+            accumulator
+              .ytdPaFyp +
+            row.ytdPaFyp,
+
+          ytdPaFyc:
+            accumulator
+              .ytdPaFyc +
+            row.ytdPaFyc,
+        }),
+        {
+          monthlyAiaCaseSubmitted:
+            0,
+
+          monthlyAiaCaseApproved:
+            0,
+
+          monthlyAiaFypSubmitted:
+            0,
+
+          monthlyAiaFypApproved:
+            0,
+
+          monthlyAiaFycApproved:
+            0,
+
+          ytdAiaCaseApproved:
+            0,
+
+          ytdAiaFypApproved:
+            0,
+
+          ytdAiaFycApproved:
+            0,
+
+          monthlyPaCase:
+            0,
+
+          monthlyPaFyp:
+            0,
+
+          monthlyPaFyc:
+            0,
+
+          ytdPaCase:
+            0,
+
+          ytdPaFyp:
+            0,
+
+          ytdPaFyc:
+            0,
+        }
+      );
+    }, [summary]);
+
+  return (
+    <main
+      style={{
+        minHeight:
+          "100vh",
+
+        background:
+          "var(--rp-page-gradient), var(--bg)",
+
+        color:
+          "var(--cream)",
+
+        padding:
+          "24px 18px 60px",
+
+        transition:
+          "background .2s ease, color .2s ease",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1900,
+          margin:
+            "0 auto",
+        }}
+      >
+        <PageTopBar />
+
+        {/* HEADER */}
+
+        <div
+          style={{
+            marginBottom:
+              26,
+          }}
+        >
+          <div
+            style={{
+              color:
+                "var(--gold)",
+
+              fontSize: 12,
+
+              fontWeight:
+                800,
+
+              letterSpacing:
+                2,
+            }}
+          >
+            ROYAL PARTNER · PERFORMANCE
+          </div>
+
+          <h1
+            style={{
+              fontSize: 34,
+
+              margin:
+                "8px 0",
+
+              color:
+                "var(--cream)",
+            }}
+          >
+            Monthly Performance
+          </h1>
+
+          <div
+            style={{
+              color:
+                "var(--cream-muted)",
+            }}
+          >
+            สรุปผลงานรายเดือน · YTD
+          </div>
+        </div>
+
+        {/* FILTER */}
+
+        <div
+          style={{
+            background:
+              "var(--surface)",
+
+            border:
+              "1px solid var(--hairline)",
+
+            borderRadius:
+              14,
+
+            padding: 14,
+
+            display:
+              "flex",
+
+            gap: 12,
+
+            flexWrap:
+              "wrap",
+
+            marginBottom:
+              22,
+          }}
+        >
+          <select
+            value={month}
+            onChange={(
+              event
+            ) =>
+              setMonth(
+                event.target
+                  .value
+              )
+            }
+            style={
+              filterStyle
+            }
+          >
+            {[
+              [
+                "01",
+                "มกราคม",
+              ],
+              [
+                "02",
+                "กุมภาพันธ์",
+              ],
+              [
+                "03",
+                "มีนาคม",
+              ],
+              [
+                "04",
+                "เมษายน",
+              ],
+              [
+                "05",
+                "พฤษภาคม",
+              ],
+              [
+                "06",
+                "มิถุนายน",
+              ],
+              [
+                "07",
+                "กรกฎาคม",
+              ],
+              [
+                "08",
+                "สิงหาคม",
+              ],
+              [
+                "09",
+                "กันยายน",
+              ],
+              [
+                "10",
+                "ตุลาคม",
+              ],
+              [
+                "11",
+                "พฤศจิกายน",
+              ],
+              [
+                "12",
+                "ธันวาคม",
+              ],
+            ].map(
+              ([
+                value,
+                label,
+              ]) => (
+                <option
+                  key={
+                    value
+                  }
+                  value={
+                    value
+                  }
+                >
+                  {
+                    label
+                  }
+                </option>
+              )
+            )}
+          </select>
+
+          <select
+            value={year}
+            onChange={(
+              event
+            ) =>
+              setYear(
+                event.target
+                  .value
+              )
+            }
+            style={
+              filterStyle
+            }
+          >
+            {[
+              "2025",
+              "2026",
+              "2027",
+              "2028",
+              "2029",
+              "2030",
+            ].map(
+              (value) => (
+                <option
+                  key={
+                    value
+                  }
+                  value={
+                    value
+                  }
+                >
+                  {Number(
+                    value
+                  ) + 543}
+                </option>
+              )
+            )}
+          </select>
+
+          <button
+            type="button"
+            onClick={
+              loadData
+            }
+            disabled={
+              loading
+            }
+            style={{
+              ...filterStyle,
+
+              opacity:
+                loading
+                  ? 0.6
+                  : 1,
+            }}
+          >
+            {loading
+              ? "กำลังโหลด..."
+              : "↻ รีเฟรช"}
+          </button>
+        </div>
+
+        {loading && (
+          <div
+            style={{
+              marginBottom:
+                16,
+
+              color:
+                "var(--cream-muted)",
+            }}
+          >
+            กำลังโหลดข้อมูล...
+          </div>
+        )}
+
+        {error && (
+          <div
+            style={{
+              marginBottom:
+                16,
+
+              padding:
+                "12px 14px",
+
+              border:
+                "1px solid var(--rp-danger-border)",
+
+              borderRadius:
+                10,
+
+              color:
+                "var(--rp-danger)",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* MONTHLY SUMMARY */}
+
+        <div
+          style={{
+            display:
+              "grid",
+
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(180px,1fr))",
+
+            gap: 12,
+
+            marginBottom:
+              22,
+          }}
+        >
+          <SummaryCard
+            label="AIA Case อนุมัติ"
+            value={
+              totals
+                .monthlyAiaCaseApproved
+                .toLocaleString()
+            }
+          />
+
+          <SummaryCard
+            label="AIA FYP อนุมัติ"
+            value={money(
+              totals
+                .monthlyAiaFypApproved
+            )}
+          />
+
+          <SummaryCard
+            label="AIA FYC อนุมัติ"
+            value={money(
+              totals
+                .monthlyAiaFycApproved
+            )}
+          />
+
+          <SummaryCard
+            label="PA Case"
+            value={
+              totals
+                .monthlyPaCase
+                .toLocaleString()
+            }
+          />
+
+          <SummaryCard
+            label="PA FYP"
+            value={money(
+              totals
+                .monthlyPaFyp
+            )}
+          />
+
+          <SummaryCard
+            label="PA FYC"
+            value={money(
+              totals
+                .monthlyPaFyc
+            )}
+          />
+        </div>
+
+        {/* TABLE */}
+
+        <div
+          style={{
+            background:
+              "var(--surface)",
+
+            border:
+              "1px solid var(--hairline)",
+
+            borderRadius:
+              16,
+
+            overflow:
+              "hidden",
+          }}
+        >
+          <div
+            style={{
+              overflowX:
+                "auto",
+            }}
+          >
+            <table
+              style={{
+                width:
+                  "100%",
+
+                minWidth:
+                  1900,
+
+                borderCollapse:
+                  "collapse",
+              }}
+            >
+              <thead>
+                <tr
+                  style={{
+                    background:
+                      "var(--rp-soft-gold)",
+                  }}
+                >
+                  <HeaderCell>
+                    No.
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Code
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Nick Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYC อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA Case YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA FYP YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA FYC YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Approved Months
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA Case
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYP
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYC
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA Case YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYP YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYC YTD
+                  </HeaderCell>
+                </tr>
+              </thead>
+
+              <tbody>
+                {summary.length ===
+                0 ? (
+                  <tr>
+                    <td
+                      colSpan={
+                        19
+                      }
+                      style={{
+                        padding:
+                          30,
+
+                        textAlign:
+                          "center",
+
+                        color:
+                          "var(--cream-faint)",
+                      }}
+                    >
+                      ยังไม่มี Production ในช่วงเวลาที่เลือก
+                    </td>
+                  </tr>
+                ) : (
+                  <>
+                    {summary.map(
+                      (
+                        row,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            row.name
+                          }
+                          style={{
+                            borderTop:
+                              "1px solid var(--hairline-soft)",
+                          }}
+                        >
+                          <Cell>
+                            {index +
+                              1}
+                          </Cell>
+
+                          <Cell>
+                            {row.code ||
+                              "-"}
+                          </Cell>
+
+                          <Cell>
+                            {
+                              row.name
+                            }
+                          </Cell>
+
+                          <Cell>
+                            {row.nickname ||
+                              "-"}
+                          </Cell>
+
+                          <NumberCell>
+                            {
+                              row.monthlyAiaCaseSubmitted
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.monthlyAiaCaseApproved
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.monthlyAiaFypSubmitted
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.monthlyAiaFypApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.monthlyAiaFycApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.ytdAiaCaseApproved
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.ytdAiaFypApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.ytdAiaFycApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.approvedMonths
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.monthlyPaCase
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.monthlyPaFyp
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.monthlyPaFyc
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.ytdPaCase
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.ytdPaFyp
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row.ytdPaFyc
+                            )}
+                          </NumberCell>
+                        </tr>
+                      )
+                    )}
+
+                    <tr
+                      style={{
+                        background:
+                          "var(--rp-soft-gold)",
+
+                        borderTop:
+                          "1px solid var(--gold)",
+
+                        fontWeight:
+                          800,
+                      }}
+                    >
+                      <Cell>
+                        รวม
+                      </Cell>
+
+                      <Cell />
+                      <Cell />
+                      <Cell />
+
+                      <NumberCell>
+                        {
+                          totals.monthlyAiaCaseSubmitted
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals.monthlyAiaCaseApproved
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.monthlyAiaFypSubmitted
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.monthlyAiaFypApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.monthlyAiaFycApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals.ytdAiaCaseApproved
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.ytdAiaFypApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.ytdAiaFycApproved
+                        )}
+                      </NumberCell>
+
+                      <Cell>
+                        -
+                      </Cell>
+
+                      <NumberCell>
+                        {
+                          totals.monthlyPaCase
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.monthlyPaFyp
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.monthlyPaFyc
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals.ytdPaCase
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.ytdPaFyp
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals.ytdPaFyc
+                        )}
+                      </NumberCell>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
 }
+
+function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        background:
+          "var(--surface)",
+
+        border:
+          "1px solid var(--hairline)",
+
+        borderRadius:
+          14,
+
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          color:
+            "var(--cream-faint)",
+
+          fontSize: 12,
+
+          marginBottom:
+            7,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          color:
+            "var(--gold-bright)",
+
+          fontSize: 21,
+
+          fontWeight:
+            800,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function HeaderCell({
+  children,
+}: {
+  children:
+    React.ReactNode;
+}) {
+  return (
+    <th
+      style={{
+        padding:
+          "13px 10px",
+
+        color:
+          "var(--gold-bright)",
+
+        fontSize: 12,
+
+        textAlign:
+          "left",
+
+        whiteSpace:
+          "nowrap",
+      }}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Cell({
+  children,
+}: {
+  children?:
+    React.ReactNode;
+}) {
+  return (
+    <td
+      style={{
+        padding:
+          "11px 10px",
+
+        fontSize: 13,
+
+        color:
+          "var(--cream)",
+
+        whiteSpace:
+          "nowrap",
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+function NumberCell({
+  children,
+}: {
+  children:
+    React.ReactNode;
+}) {
+  return (
+    <td
+      style={{
+        padding:
+          "11px 10px",
+
+        fontSize: 13,
+
+        color:
+          "var(--cream)",
+
+        textAlign:
+          "right",
+
+        whiteSpace:
+          "nowrap",
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+const filterStyle = {
+  background:
+    "var(--surface-alt)",
+
+  color:
+    "var(--cream)",
+
+  border:
+    "1px solid var(--hairline)",
+
+  borderRadius:
+    9,
+
+  padding:
+    "10px 12px",
+
+  fontSize: 14,
+
+  cursor:
+    "pointer",
+};
