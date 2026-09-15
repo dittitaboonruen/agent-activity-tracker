@@ -14,6 +14,20 @@ export default function AnnualTargetPage() {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  function formatNumberInput(value: string) {
+    const digitsOnly = value.replace(/\D/g, "");
+
+    if (!digitsOnly) {
+      return "";
+    }
+
+    return Number(digitsOnly).toLocaleString("en-US");
+  }
+
+  function parseNumberInput(value: string) {
+    return Number(value.replace(/,/g, ""));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -29,9 +43,9 @@ export default function AnnualTargetPage() {
         body: JSON.stringify({
           agentName,
           targetYear: currentYear - 543,
-          targetFyp: Number(targetFyp.replace(/,/g, "")),
-          targetFyc: Number(targetFyc.replace(/,/g, "")),
-          targetCase: Number(targetCase),
+          targetFyp: parseNumberInput(targetFyp),
+          targetFyc: parseNumberInput(targetFyc),
+          targetCase: parseNumberInput(targetCase),
         }),
       });
 
@@ -177,7 +191,9 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetFyp}
-              onChange={(e) => setTargetFyp(e.target.value)}
+              onChange={(e) =>
+                setTargetFyp(formatNumberInput(e.target.value))
+              }
               required
               inputMode="numeric"
               placeholder="เช่น 1,200,000"
@@ -188,7 +204,9 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetFyc}
-              onChange={(e) => setTargetFyc(e.target.value)}
+              onChange={(e) =>
+                setTargetFyc(formatNumberInput(e.target.value))
+              }
               required
               inputMode="numeric"
               placeholder="เช่น 300,000"
@@ -199,7 +217,9 @@ export default function AnnualTargetPage() {
             <input
               style={inputStyle}
               value={targetCase}
-              onChange={(e) => setTargetCase(e.target.value)}
+              onChange={(e) =>
+                setTargetCase(formatNumberInput(e.target.value))
+              }
               required
               inputMode="numeric"
               placeholder="เช่น 36"
