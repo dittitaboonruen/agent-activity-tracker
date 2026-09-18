@@ -6324,23 +6324,23 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
     },
     opts: {
       healthhappyPlan:0,
-      mpSi:1000000,
-      tpdSi:1000000,
-      ciplusSi:1000000,
-      ctuSi:400000,
+      mpSi:0,
+      tpdSi:0,
+      ciplusSi:0,
+      ctuSi:0,
       hcSmoker:0,
-      hcUnits:10,
-      cfcUnits:30,
+      hcUnits:0,
+      cfcUnits:0,
       lcPlan:'Lady Care',
-      lcSi:1000000,
+      lcSi:0,
       aiClass:1,
-      aiSi:1000000,
+      aiSi:0,
       aiRcc:false,
       addClass:1,
-      addSi:1000000,
+      addSi:0,
       addRcc:false,
       adbClass:1,
-      adbSi:1000000,
+      adbSi:0,
       adbRcc:false,
       hhkidsPlan:0,
       hhkidsTier:'10,000',
@@ -6349,7 +6349,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
       icTerritory:'ทั่วโลก',
       hsPlan:300000,
       hbClass:1,
-      hbDaily:1000
+      hbDaily:0
     }
   },
   cisupercare: { payPeriod:20 },
@@ -7838,7 +7838,7 @@ function buildExcellentReportHTML(){
 
 
 
-const PAY20LIFE_REPORT_VERSION = "1.7.0";
+const PAY20LIFE_REPORT_VERSION = "1.7.1";
 
 
 const PL20_MEDICAL_BENEFITS = Object.freeze({
@@ -7986,7 +7986,7 @@ const PL20_MEDICAL_BENEFITS = Object.freeze({
         'รังสีรักษา/เวชศาสตร์นิวเคลียร์/เคมีบำบัด'
       ],
       other:[
-        'เลือกรับผิดส่วนแรก 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
+        'เลือก Deduct 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
         'โรคร้ายแรงตามเงื่อนไข เพิ่มวงเงินเป็น 2 เท่า ต่อเนื่องรวม 4 ปีกรมธรรม์',
         'เมื่ออายุครบ 11 ปี เปลี่ยนเป็น Health Happy แบบคุ้มครองตั้งแต่บาทแรกโดยอัตโนมัติ'
       ]
@@ -8014,7 +8014,7 @@ const PL20_MEDICAL_BENEFITS = Object.freeze({
         'รังสีรักษา/เวชศาสตร์นิวเคลียร์/เคมีบำบัด'
       ],
       other:[
-        'เลือกรับผิดส่วนแรก 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
+        'เลือก Deduct 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
         'โรคร้ายแรงตามเงื่อนไข เพิ่มวงเงินเป็น 2 เท่า ต่อเนื่องรวม 4 ปีกรมธรรม์',
         'เมื่ออายุครบ 11 ปี เปลี่ยนเป็น Health Happy แบบคุ้มครองตั้งแต่บาทแรกโดยอัตโนมัติ'
       ]
@@ -8042,7 +8042,7 @@ const PL20_MEDICAL_BENEFITS = Object.freeze({
         'รังสีรักษา/เวชศาสตร์นิวเคลียร์/เคมีบำบัด'
       ],
       other:[
-        'เลือกรับผิดส่วนแรก 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
+        'เลือก Deduct 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
         'โรคร้ายแรงตามเงื่อนไข เพิ่มวงเงินเป็น 2 เท่า ต่อเนื่องรวม 4 ปีกรมธรรม์',
         'เมื่ออายุครบ 11 ปี เปลี่ยนเป็น Health Happy แบบคุ้มครองตั้งแต่บาทแรกโดยอัตโนมัติ'
       ]
@@ -8070,7 +8070,7 @@ const PL20_MEDICAL_BENEFITS = Object.freeze({
         'รังสีรักษา/เวชศาสตร์นิวเคลียร์/เคมีบำบัด'
       ],
       other:[
-        'เลือกรับผิดส่วนแรก 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
+        'เลือก Deduct 10,000 หรือ 30,000 บาท/ปีกรมธรรม์',
         'โรคร้ายแรงตามเงื่อนไข เพิ่มวงเงินเป็น 2 เท่า ต่อเนื่องรวม 4 ปีกรมธรรม์',
         'เมื่ออายุครบ 11 ปี เปลี่ยนเป็น Health Happy แบบคุ้มครองตั้งแต่บาทแรกโดยอัตโนมัติ'
       ]
@@ -8289,7 +8289,7 @@ function build20PayLifeMedicalSummaryData(){
       'AIA Health Happy Kids',
       riderHealthHappyKids(state.age,state.gender,op.hhkidsPlan,op.hhkidsTier),
       item,
-      `ความรับผิดส่วนแรก ${op.hhkidsTier} บาท/ปีกรมธรรม์`
+      `Deduct ${op.hhkidsTier} บาท/ปีกรมธรรม์`
     );
   }
 
@@ -8483,7 +8483,7 @@ function build20PayLifeRiderDetailRows(){
     push(
       'AIA Health Happy Kids',
       RIDER_PLANS[op.hhkidsPlan] || '—',
-      `ร่วมจ่าย ${op.hhkidsTier} บาท`,
+      `Deduct ${op.hhkidsTier} บาท`,
       v,
       ['อายุ 15 วัน–10 ปี และปรับเป็นแผนผู้ใหญ่อัตโนมัติเมื่อครบ 11 ปี']
     );
@@ -10657,7 +10657,7 @@ function riderControlsHTML(){
         ${toggle('hhkids','AIA Health Happy Kids')}
         <div class="pl20-rider-options">
           <select data-rider-opt="hhkidsPlan">${RIDER_PLANS.map((p,i)=>`<option value="${i}" ${selected(op.hhkidsPlan,i)}>${p}</option>`).join('')}</select>
-          <select data-rider-opt="hhkidsTier"><option value="10,000" ${selected(op.hhkidsTier,'10,000')}>หัก 10,000</option><option value="30,000" ${selected(op.hhkidsTier,'30,000')}>หัก 30,000</option></select>
+          <select data-rider-opt="hhkidsTier"><option value="10,000" ${selected(op.hhkidsTier,'10,000')}>Deduct 10,000</option><option value="30,000" ${selected(op.hhkidsTier,'30,000')}>Deduct 30,000</option></select>
         </div>
       </div>
       <div class="pl20-rider-card">
