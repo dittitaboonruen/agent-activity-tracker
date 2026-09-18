@@ -38,7 +38,7 @@ export default function LoginPage() {
 
       setIsError(false);
       setMessage(
-        "ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกดลิงก์เพื่อเข้าสู่ Performance Hub"
+        "ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกดลิงก์เพื่อเข้าสู่ Royal Partner Performance Hub"
       );
     } catch (error) {
       setIsError(true);
@@ -93,11 +93,11 @@ export default function LoginPage() {
           <h1
             style={{
               margin: 0,
-              fontSize: 38,
+              fontSize: 34,
               lineHeight: 1.1,
             }}
           >
-            Performance Hub
+            Royal Partner Performance Hub
           </h1>
 
           <p
