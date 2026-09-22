@@ -4142,7 +4142,7 @@
   }
 
   #excellent-report-page-1 .rp-ex-section3-layout{
-    grid-template-columns:minmax(0,1fr) 102px !important;
+    grid-template-columns:minmax(0,1fr) 118px !important;
     gap:6px !important;
   }
 
@@ -4633,9 +4633,14 @@
   #pay25-report-page-1 .p25-section2-brochure{
     border:1px solid #d9d2bf !important;
     background:#fffdf8 !important;
-    min-height:62px !important;
+    min-height:96px !important;
     display:flex !important;
     flex-direction:column !important;
+    justify-content:center !important;
+    align-items:center !important;
+    overflow:hidden !important;
+    padding:4px !important;
+    box-sizing:border-box !important;
     align-items:center !important;
     justify-content:center !important;
     padding:4px !important;
@@ -7087,7 +7092,7 @@ const GLOBAL_REPORT_PAYMENT = Object.freeze({
 const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
   excellent: {
     brochure: {
-      title: 'Brochure Excellent',
+      title: 'โบรชัวร์ Excellent',
       targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/excellent/2026-09/excellent-2026-09.pdf',
       qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAEzElEQVR4nO2dTW7jOBCFX40EeEndwEeRbjBHCnKkvoF0lBygAXEpQELNolgk5U4naLRNeIzHVRTTHyjgoVh/pEXxt2P5568RABlkkEEGGWSQQQYZZBSGpNFDZDgEiD2wDIBMUfxRRGzyFH3+dOd1kEHGl4xRVVVXQGcAMoXN1GmPct1E3nQHluEQndGpqqqeGfdYBxlkfMmI2TrGiwLoVCYcIhM6BeJF9X0A0hQAItI/Yh1kkPHZ6G+eBeGnADh6IKyQ5bqJIg4C4KIADsj44/7rIIOMP2OYPQVU1+SpihlVHFJb0UevgwwyfmUEVZ3tz0OSWGNvjisQNlHVPfmxMwB7vP86yCDjC8YiIiIDgHHtzJ5Kck17APGiMrl2ZTLLmsL/p3sXMl6QYdv4qXh6iCIeAoRNgLADCDsUEf7Xef7TvAsZr8uAJZhGVcW4Iu/snaWp0gg7dA47AHTuH4T0NZ2f5V3IeF1G0mkym6pl39fZoqfOBGzaTWKF+Qc2qFMyHs5A0lqRY9hdhK5E1+45ux92UKdkNGIkranuKJqs5QgAo/q+P9q8PX+NOiWjBaMSHIrzOa7+6QygsqzJqJ7ESp2S0Y5xpAxpzqTq7JESFu9NUdVNZIo9LIn1gHWQQcZno9hJey6RP8xTBaxBxcL/UD7lvk9GM0at07NEdS6WFXVegPs+Gc0ZrrVQh/VmNgGgJKJU184TpoE6JaMto7KnSZNuStO+r6remOpTismlTslowzjptChRUxK1ZFJPCatUraJOyWjEyPv+yXaWPV5XoOz23j7lmayROiWjKSNeNDVNXXfIFDbROXoPlR2Nss6pHt78f7BfioxWjKoKVRnL2gPIOQDkqmqV8ac9JaMlI+woxhLAIRg/sgF17zWlBGKP1PV393WQQcbvGfouIiWxL29rp1iGTkv/KUbdvDu6BP13XgcZZPxmeAjvY1zrDJX/L7f5hdIvxTiKjGaMKs9fOqHdKy0pKaQPLNRfcy2VOiWjCSP3n3pb1OxxlOvUJ6bu1Fy8Yj2KjHaMat+vJGpFKWTt5hbpEv6P5fjps7wLGa/LqPd9y+mvRaduXvNAqa9Sp2Q0ZORzfDlwCnU7tPf1ZQ/AT/RV4qVOyXg4o/JP036eA6dyoi87qS7NXGSlTsloygiqWK47dMYht319yzU18lkr/xT7Txn3WAcZZHzD0DlePEMaRey0iZnXj1SUwnL11BXsNr8HrIMMMn4ZbhljvwvCT1HEAUDYe13+XWGl0fEH4EXSo1fEQ3SRfC3Ks7wLGa/LqM+bnvNNxQOt8vxj5Z8yf0pGM8YpjvIMVRX050KVh/+lRZo6JaMZo85LZXtarkfxcWrzsxFY3yejGaNOhGoRYe45GX3fT9rVIlb2n5LRmFF+78SGpf3hv3ySr+tPvX7sPyWjMaO6V7KUnZLzuSIfiNpP1/cVT4H2lIwmjHzuBMDNtXyVfxr2dLav9KSWU9PUKRnNGTqHzfL3+j7kVqmPi4rkn44yT/XjktIET/suZLwyI/8U39ua/iMTyrW9AMb1SNWqR66DDDKqceufzsh3n1Sz6o7pm14/7vtkPJ5xPh+Vs6bZIT3f2W/fyDqlf0pGI4bo93O+GcuzvAsZZJBBBhlkkEEGGf9/xn+HYP7dtsYIKgAAAABJRU5ErkJggg==',
       version: '2026-09',
@@ -7105,7 +7110,7 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
 
   ciprocare: {
     brochure: {
-      title: 'Brochure AIA CI ProCare',
+      title: 'โบรชัวร์ AIA CI ProCare',
       targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-procare/2026-09/ci-procare-2026-09.pdf',
       qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnwAAAJ8AQAAAABMlkH7AAAErUlEQVR4nO2dTXLkIAyFn6ayxzeY+x8rNxAn0CwESLK756dqUjiux6LjxvirZvEiJIQshv/a+o//ywMIJJBAAgkkkEACCSSQQAIJJHAbUFY7AABd0EWOcYEuInEhB3yYHJcHv8+UCSTwWcCP8bep/5X5KYB1sWayOpsJELGyftjlwe8wZQIJfDhw2VY5YAqzoVpToJnp6HRbjC7XB7/6FxJIIIHv28e7G9MWqzSTLmgmTd0WL9Ms0yh/5S8kkEAC/6a91TIA6we6DOVOQ+x/LBbVp3b/KRNI4COBoeXkCAuaCYBmcOPbFIBbZwDoR3aca7bJ/adMIIGPBvYRjQaGhNFsxasByDGlfUB+WtzND37pLySQQAJ/14ZdPmdy+tK6i/UR5rI1LK267frgN5gygQQ+EggzM7NhizFC1mg2Ytf11ur0/hXr9mszM73/lAkk8JHApOXQI8zieo0Z/QogJB9ib9QygQRuBBYtA8P4+rWb3RB11rvfUlyG3X/KBBL4SGCyuVrtbFYxEIvqKvkw09QygQTuBBazG/7vsraK8JeBtcwe0tYgcI1NIIFbgVOJiETNbHmzvc6ra6QFdhlDLRNI4B4gijztrOJsqcOPVrwYzzU2gQTuBIaWS/g69cQ+lCaTDdBfJpDAOwFfnHm0fGiiH2toZGJ3sXnIQtopW+T+UyaQwEcCU+RK67Vi7UxFyEsRhljH4yu+TbtMIIH7gHVPyluKdPnXSAZLS3HUKDfX2AQSuBVYN5GTy3yKXa/OHAFbCSQR/qKWCSRwD7CmdXkLYUbsOgbrOaWkqJ5aJpDAPcB6UCJ/vru7+rWml9AuE0jgDYCm8DPI60jyMMrzzOMqBTZ85y65B7Hp/G2mTCCBzwKOPSnxikDpnLJX3ZRmSOU3bQ6WWSbITzR/5S8kkEAC/6qVVfRqySPO/SviHVFu71fGsQkkcC8wBa5TohcQ+8hjXNV1hL5TfJtaJpDAfcCzhV0GepXFzjUKUA9T4CJqaplAAjcBa42gGqkuY3R+qVvM8UktE0jgTmBK4sq7S1oHtWKXcSpN0Iz+MoEE3gRoOnadXLBeNTcU+jmq5o5hbpQ/ZT0LgO+GI5DArcDqL7diZyPe1VK6SD7X3MJ3pl0mkMCtwLLGXr5zjmaH2JM3HXqnv0wggbcAnusPrM5xoXU3ajrO8R9Aa7ibWiaQwD3Asr98za/GadPZsmwvpfyoZQIJ3AasdrkV4zvaEnV1nMstxrEJJHAzsJxfLntPGuvn6xYV8vJbM+f+UyaQwEcCS12gMLvJCp/TOK/52I37ywQSuB1Y1tgvdK0AyjK73Lr419QygQRuAr7Ox851/LyzuNLrkZzPSbtMIIE7gfUNMqe0kLzr9NtrgHaZQAL3At/bX50jTnXAdD6lZwi1TCCBtwWaGboMOXexT/FU7ZG8Pd1nEWE+NoEEbgV+vLsx6/8cXgXIX2Yhs16QeRGwpvPrMY33/adMIIGPBIaWV/zLC3/5W2kE8Roam3W9ysto/GvU3b3/lAkk8JHAF3Fs5FxNBYCza6xp9zn10F8mkMB9QLE/j/mX1u8/ZQIJJJBAAgkkkEACCSSQQAIJ/GP7BQmH4FM7SmlnAAAAAElFTkSuQmCC',
       version: '2026-09',
@@ -7123,7 +7128,7 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
 
   cisupercare_10: {
     brochure: {
-      title: 'Brochure AIA CI SuperCare',
+      title: 'โบรชัวร์ AIA CI SuperCare',
       targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-supercare/2026-09/ci-supercare-2026-09..pdf',
       qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAE0ElEQVR4nO2dXWrsOBCFT40MebQhC+iluHcWsqTZgbWULCAgPzbY1DyoSpKTvrmB263pyRw9NG1b/pChKNevLIo/HfGvP0YAZJBBBhlkkEEGGWSQURliY4Cc1wHAKiJnACITAKwD5LyK5Mnn1eefb7wOMsj4xVBVVcyqqpqCqupWzm3AnABdAKimoMC4wef5bcujPAsZP5/RKNCgiDIAcQqqC4ICCIo47aKL3yciwz3WQQYZ32Hogl3kJe2imgA5A6iaFYCfu/M6yCDjS8b8NgAYNwDYBXHasykKIKhd7bEOMsi4whhVdQEgctqgrxPyex+zapsJiCebp6rbPdZBBhlXR3aIbATFnL7x4/PpR5HRh5Ff41VlajwVPTlexCyA8SKIUwDiFKDt/FutgwwyvhwWYEpBVROgi1sAjdrEWMJUOWplwSnqUzI6MVyfrrsoxi0fyqz7oFgBBfYBwD5onN6BOL3DpiwXueE6yCDjG4x4Uq2pKAAW0wfWAQCCyhlAtk/zHfKkR8Yt1kEGGdeHlpF9+5qFqmaA+isfgKeiMPp9fO+TcXdGI6e6wIzUrErnhDbEn139klXNGVTKKRldGGhEdBndU8qHWWxLELVeHU2z0o8ioxPD00tjArC6yTmnZ0idFKf3AfMCRZySp/vPO/0oMnoxDrVRqmoGaYIdNqbpWOJXbp9Sn5LRiXHwo7yuDyUz1bzj7cd8K8opGf8CI0675Z7iBADYRV+nXeQlV51epE1PYRcPWN14HWSQcX2YMk3VZ/KM04K2OroxDcod1KdkdGIUOUX2483L1xJ0Glvr9YPEUk7J6MRo4lLtuWTdJjbchWryUY3n9SjPQsbPZZQ6FLjGRK06DW2OCmPVp+0/yikZvRj6elI112i8CADrO6n5fV2wi+nTXAfA/D4Z/Rnu75skPlnhSXHw5SWVm7wm1UyDh3sWMn4co9TzF7szAbUNxc8VC6CxT+lHkdGN0dZJZ3+/Sd6berVz+ao1qXgai3JKRg/GofopHTJOViVVevZqFqp2SlFOyejCaONSxbevYSqPqaJEA1B0LPUpGd0YH/ft8aCTNuWojT61uj41I0Epp2R0YTR500+SCBS3qpXOWu1PfUpGJ0ZJj24uesVILZVTLqKqh5c/KKdkdGf4ZnyvJ4+LRhlKc/QucvZtfLJ9mjMDt18HGWRcGVacN78NG+LZkk2C8X2QOT1vAgAyvz2pAEFl/nsAgF28YfpW6yCDjC9HE+efPdPfRKhKW19jn5ZWU773yejKMFt0HSwGFaeDiJrYtvl97n9KRk9GiZ/CvaJ6yYP93mhS9u05dEhTn5Jxf8Zxj/Pg+0f4dlM2ajVfGczvk9GR0e4zodpmS/NoclQl+z8r60/J6Muwjc/sKGwAwiZxCpsAYROszxvilFQwBv9Zn7dc+ne7dZBBxjcYljct3zbRi6hqbTCFbYg+p73dE/Xm6yCDjC8Z/r0T74v2EUWkPV6fNJ9rdkd9tGch4//AGDfbNDJOOHhP4wbE02eP6oGfhYyfwjj08XmvfhMDQAnsl2Lpeo5+FBmdGJ++x7cATZVU03n6cb8+T0pRTsm4P+PT905K2f6HWr9m/9OF+pSMzgzR38/5zYiP8ixkkEEGGWSQQQYZZPz3Gf8ACNHEndgliEkAAAAASUVORK5CYII=',
       version: '2026-09',
@@ -7132,7 +7137,7 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
   },
   cisupercare_20: {
     brochure: {
-      title: 'Brochure AIA CI SuperCare',
+      title: 'โบรชัวร์ AIA CI SuperCare',
       targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/ci-supercare/2026-09/ci-supercare-2026-09..pdf',
       qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAE0ElEQVR4nO2dXWrsOBCFT40MebQhC+iluHcWsqTZgbWULCAgPzbY1DyoSpKTvrmB263pyRw9NG1b/pChKNevLIo/HfGvP0YAZJBBBhlkkEEGGWSQURliY4Cc1wHAKiJnACITAKwD5LyK5Mnn1eefb7wOMsj4xVBVVcyqqpqCqupWzm3AnABdAKimoMC4wef5bcujPAsZP5/RKNCgiDIAcQqqC4ICCIo47aKL3yciwz3WQQYZ32Hogl3kJe2imgA5A6iaFYCfu/M6yCDjS8b8NgAYNwDYBXHasykKIKhd7bEOMsi4whhVdQEgctqgrxPyex+zapsJiCebp6rbPdZBBhlXR3aIbATFnL7x4/PpR5HRh5Ff41VlajwVPTlexCyA8SKIUwDiFKDt/FutgwwyvhwWYEpBVROgi1sAjdrEWMJUOWplwSnqUzI6MVyfrrsoxi0fyqz7oFgBBfYBwD5onN6BOL3DpiwXueE6yCDjG4x4Uq2pKAAW0wfWAQCCyhlAtk/zHfKkR8Yt1kEGGdeHlpF9+5qFqmaA+isfgKeiMPp9fO+TcXdGI6e6wIzUrErnhDbEn139klXNGVTKKRldGGhEdBndU8qHWWxLELVeHU2z0o8ioxPD00tjArC6yTmnZ0idFKf3AfMCRZySp/vPO/0oMnoxDrVRqmoGaYIdNqbpWOJXbp9Sn5LRiXHwo7yuDyUz1bzj7cd8K8opGf8CI0675Z7iBADYRV+nXeQlV51epE1PYRcPWN14HWSQcX2YMk3VZ/KM04K2OroxDcod1KdkdGIUOUX2483L1xJ0Glvr9YPEUk7J6MRo4lLtuWTdJjbchWryUY3n9SjPQsbPZZQ6FLjGRK06DW2OCmPVp+0/yikZvRj6elI112i8CADrO6n5fV2wi+nTXAfA/D4Z/Rnu75skPlnhSXHw5SWVm7wm1UyDh3sWMn4co9TzF7szAbUNxc8VC6CxT+lHkdGN0dZJZ3+/Sd6berVz+ao1qXgai3JKRg/GofopHTJOViVVevZqFqp2SlFOyejCaONSxbevYSqPqaJEA1B0LPUpGd0YH/ft8aCTNuWojT61uj41I0Epp2R0YTR500+SCBS3qpXOWu1PfUpGJ0ZJj24uesVILZVTLqKqh5c/KKdkdGf4ZnyvJ4+LRhlKc/QucvZtfLJ9mjMDt18HGWRcGVacN78NG+LZkk2C8X2QOT1vAgAyvz2pAEFl/nsAgF28YfpW6yCDjC9HE+efPdPfRKhKW19jn5ZWU773yejKMFt0HSwGFaeDiJrYtvl97n9KRk9GiZ/CvaJ6yYP93mhS9u05dEhTn5Jxf8Zxj/Pg+0f4dlM2ajVfGczvk9GR0e4zodpmS/NoclQl+z8r60/J6Muwjc/sKGwAwiZxCpsAYROszxvilFQwBv9Zn7dc+ne7dZBBxjcYljct3zbRi6hqbTCFbYg+p73dE/Xm6yCDjC8Z/r0T74v2EUWkPV6fNJ9rdkd9tGch4//AGDfbNDJOOHhP4wbE02eP6oGfhYyfwjj08XmvfhMDQAnsl2Lpeo5+FBmdGJ++x7cATZVU03n6cb8+T0pRTsm4P+PT905K2f6HWr9m/9OF+pSMzgzR38/5zYiP8ixkkEEGGWSQQQYZZPz3Gf8ACNHEndgliEkAAAAASUVORK5CYII=',
       version: '2026-09',
@@ -7141,9 +7146,9 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
   },
   pay25: {
     brochure: {
-      title: 'Brochure 15 Pay 25',
+      title: 'โบรชัวร์ 15 Pay 25',
       targetUrl: 'https://oqahsjdvncuravncqbze.supabase.co/storage/v1/object/public/brochures/15pay25/2026-09/15pay25-2026-09.pdf',
-      qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAEvUlEQVR4nO2dS46kRhCGvzBItQSpD9BHgRv4SCMfyTeAo9QBRoJlS6DwIp/1mJnFFLjd/nNRVUDWp0T6lRkRGQHm/G6b//htBIghhhhiiCGGGGKIIUZhWGwtNq4tzH28bNYDc7hgFs6Na+o/vngcYojxvLXha5gA1jeA3RiWvWX4+21zVoPBAbqtBfbWWZsNAHvdOMQQ46fN3d0ZFmBYmuD9+0Tj7ksTLrgv6ZBuI/6icQZ39+mz3IsY/x+GTzRu3xawEfCpc7ex27Cx22BIF44ehxhi1K29OzbYDboPg26LK/vcf29hfdtg7Y8Zhxhi/LTFdd/d4/LuHpZ38srO4BvQufvU3fTTui/GqYzZzMx6CP7+cL1Em5W1BdaLM1xb7Nu1xUb24O6/fhxiiPG8+V2buo34kefT0G7O1f/4LPcixtdl5HV/i8dhFk0+U2rZ1fe4+McIgXQqximMG50mJVYSzbGqEKGa8i9f0lwsnYpxOKOaIoN/FH4lJyl4T7kxhC5bUqx0KsYpDJKDnz6Gpamm1zh3lhhAt8HgG8Xpl07FOJ5xo1PiZBl0miXqvkARsPuNkSCdinE8I+m08uOzv9/lQ5q45HsWcLYPpFMxjmfUflSZMcOkukR1UiL+JNNUfpQYZzLyyp63ooA4dy55Fl1ybkpxpkB+lBgnM+b3LaSZBlt0ft+wMe302xis193M+t3CbBst2hePQwwxnraQh2LQbtAtGDQb85/gsLWw9jjsLcPSA+vFje5768O1TVsDn+VexPi6jPs8lJJhGpwpz2Gq+JHbovxTMU5j1Pv71a7+kq93nmzR5O+Hw/Jf6VSMwxlJa+XEs83T5GA96yedinE8o5pPkxxjIKo6d7u1X8lWOhXjZMZuMdc0ePnZ3w/lp00oPonz6RqrAGx8/TjEEOOHjFD+TInuX1v8rz66VQz+YT6tLTZS+mUz4HPdixhfkVHvmwIpdJ+2TOO5vDNVpfm56k7EOI1R5/WF+D05VlVtSpEyUVM/7ZuKcSajyogqVfslYz+V7kORaJVcJZ2KcQ6jyuuLwdEuBvGjOoGq1DQnUpX/SqdiHM94qI8KydI5ua9od3pMm5ZOxTiJUduiU6raTzuoKbIazYDGk2kAKRAgnYpxKmM3hmsLw7Ib6WFoFh/VB4SY6jffYhBruLYPjFeMQwwxnrU4YwJptS9m6EOydJXoP8mPEuM8Rl2Sn7dM03N7qMpKq5SqIdkDWvfFOIlRxflTyxLNMahSfBIuQE6fkk7FOINxk4eyRBHWqaclmy8FrFR3IsbpjFv7NLccP40Bq7pcKn0ofirGaYyHetPKAlhyp1zTnw3XFGeVTsU4g3H/vL764eddzj/1XA2dik/QvqkYJzKyHwVEVz+5/0ORbZ473etYlXQqxkmMhzq+/DC+UrhHCJ1SbFbt74txLuMH7zvpNu5yTe8kqvxTMc5k3L9HAmg2g4vb3GPQLTD3S7wwGwShztaofl+Mf4tRR6O6jVILVb0Dxfrdwmt6jhuHGGI8Y3QpiDq/f8Q8FNZLdpzAxvWSFv9rC6x6j4QYpzGe+vtVkdRtMopXNVM5lCX7VIzDGea/7vOLNn+WexFDDDHEEEMMMcQQ47/P+Achm3P5PM0lxgAAAABJRU5ErkJggg==',
+      qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAtwAAALcAQAAAAD80lrEAAAF/ElEQVR4nO2dTW71NgxFr4rO7R1k/8vKDuQVsAP9kbTbAnlJ8Pz5CMGDLdMHgQbEFUnRxfRj4/jr59gScODAgQMHDhw4cODAgQMHDhz4W8PLHLtKKTpK++0Xko71qNm3C0llV9kz5Nf+c+DAgb8lXGZmZtpsXVS1i/bXb5vluJY0DSYnQMys3ndZgAMH/m1wpzfUNUn73WxpleZJmks5in0Wq2r+5wLyRywLcODAvzT+vpwtzXW0a2nlqY9dkn8kyY6izcpWT5j7Lgtw4MC/H14+TNKUH02ZNMVSdidaqppcaZZTuvw3/PsGcODA3xm+dIsTJ8WOYk6xFElH0VYllbFRKuPXmphJEOnOywIcOPBvgh89wyNJm5UPaxKl7CoflnXLuOi/U+d4yK/958CBA39HeNctXm/YUZp06ffHSjebmzHJmtlR2qPT8YH7Lgtw4MBfHT1tXN1MHX/jUU49DxuNxHSb7zkjctDAgQP39S113NbocDY3Y85sFL2sMpj2qArfAhz44+HZjazJ2lNCy9tUzWqWpXOGY1l6Znmh+y4LcODAXx3TEyR90n3FvNUSML5kV9Of+D0UvgU48KfDnW5x5bXebyxPYitYOy37zqiuvZVj3ndZgAMH/uoIPsHFTKYa6WZjQyQFbxNiMs4A3wIc+LPhIZY7RYi0anGnYgl7nxpjMs4REW8BDhy4FIIkipsgeUfhzbw4sWhWyRMBBw5cOuWg5WMpNaaYY7zF54xScAbdAhz44+FX8ZbNsnqpOaKywr/xwox4C3DgwCVfBeddR5Xkyl1qt5QrjfNx3QAh3gIcOHAfb6n9VpIPz6ZIS9I2FyV21PwDBw78tCdaamQ8TZHb4ENmTEYrneRczX2XBThw4N8Dt8/SfcVn8WeL+tMqtZ7bqRe367ewEtCt0eVv/efAgQN/S/jp1KFcOGVlfEIgJRwgspyYRrcABw5cpx4LU6v02xh18Z38lU4E+NPT+BbgwJ8Oz724exOo1lj72Euab50tjz304pZaA8zxro237rsswIEDf3W4EK35eKyvsE3F/yExlGK57hfdAhz4g+Eh45Oq/dMOKByI9mUw/l1f4oJvAQ78ufBT+YrlEO6FhknRFV29i28BDvzR8KVb0mRoKDfPRLenddik5lHzKXsi4MCfDs9VcDn2si3XMVVKajq33q3koIEDB95HcB1TfsSzzzZDuLG7y5r3WyH2RMCBAz/tidaOJoVTrsr7fdO5i5Yv+BbgwJ8Lz/ug0EthWzImSJeocMKuqjomvgU48OfCV+1c0fo24iyZ67fjY9Btpmx1fgZ63vavRTf7bnzfZQEOHPirw8db+kyVFCRK7FQZP7M4jxTN+bmlQrcAB/5cuNvgbKec8imcG3JDLiDTB7VzwIEDH2NFWs45oBlmcca+cK4Zh3iLkYMGDhy4FGO56TMiU5ZM57PeipZSzhnhW4ADfzY8K5DVXlvhiFA3rmvr1KdicYtEDho4cOBS0i0+KluDOJnOJIViwtdDpgG6BTjwp8Pzd5z1LyplBlJ8tiiHf70BvgU48EfDU2f+fDIopZvDIeh6oWdi2//7Lgtw4MBfHStOUiWFc4hS3By5uEo4H725SEsVugU4cOCzLteOvbSAyVGk0Zeylddupla1exQ7dleXW0yroaXa5Cjl/fn/HDhw4O8Mj5+JT7nmIUja9XrF7ZtCrYt7C90CHPiz4ac8ke/lUsNGaSWpqyu+9cGZ1PUF3wIc+HPhF6rDd5wLNXLukX9rRoNnW110C3Dgj4ePc9DjmHPRCLmMQMo41NxnpB6NMWfQbKxxjjJc1X2XBThw4K+OpTp00ed/2dTxwhYS0/lYNPUtwIEDl3TpW5Qz0T6cEp5OG7dR4jwRcODAz99VlHo2ue2MTGpfUbR2O/Y7dpS2M/KZ67Y5KiujdN9lAQ4c+Itj+RZ/znlETvay1VHrYjr2/vjY++RyKVZO/ufOywIcOPBXx2V1ipRz0JfX3jI112VPBBz4s+HF/t/mq+O477IABw4cOHDgwIEDBw4cOHDgwIF/efwDXfixCoupppUAAAAASUVORK5CYII=',
       version: '2026-09',
       active: true,
     },
@@ -7158,7 +7163,7 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
 
   pay20life: {
     brochure: {
-      title: 'Brochure 20Pay Life',
+      title: 'โบรชัวร์ 20Pay Life',
       targetUrl: '',
       qrImagePath: '',
       version: '',
@@ -7264,9 +7269,9 @@ function buildBrochureSlot(productKey, brochure, options = {}, compact = false){
   if(!brochure){
     return `
       <div class="rp-resource-card rp-brochure-placeholder ${compact ? 'compact' : ''}" data-resource-type="brochure">
-        <div class="rp-brochure-placeholder-title">Brochure</div>
+        <div class="rp-brochure-placeholder-title">โบรชัวร์</div>
         <div class="rp-brochure-placeholder-name">${escapeResourceHtml(productLabel)}</div>
-        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR Brochure</div>
+        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR โบรชัวร์</div>
       </div>
     `;
   }
@@ -7293,7 +7298,7 @@ function buildBrochureSlot(productKey, brochure, options = {}, compact = false){
       <div class="rp-resource-qr">
         <img
           src="${escapeResourceHtml(brochure.qrImagePath)}"
-          alt="QR ${escapeResourceHtml(brochure.title || productLabel)}"
+          alt="QR โบรชัวร์ ${escapeResourceHtml(brochure.title || productLabel)}"
           loading="eager"
           decoding="sync"
           onerror="this.closest('.rp-resource-card').classList.add('rp-resource-empty')"
@@ -7301,9 +7306,9 @@ function buildBrochureSlot(productKey, brochure, options = {}, compact = false){
       </div>
 
       <div class="rp-resource-copy">
-        <div class="kicker">BROCHURE</div>
+        <div class="kicker">โบรชัวร์</div>
         <div class="name">${escapeResourceHtml(brochure.title || productLabel)}</div>
-        <div class="desc">สแกนเพื่อเปิด Brochure</div>
+        <div class="desc">สแกนเพื่อเปิดโบรชัวร์</div>
         ${brochure.version
           ? `<div class="version">Version: ${escapeResourceHtml(brochure.version)}</div>`
           : ''}
@@ -7404,7 +7409,7 @@ async function waitForReportResourceImages(root, timeoutMs = 2500){
 }
 
 
-const EXCELLENT_REPORT_VERSION = "2.4.0";
+const EXCELLENT_REPORT_VERSION = "2.4.1";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
@@ -7674,17 +7679,17 @@ function buildExcellentSection3HTML(data){
   const brochureHTML = brochure
     ? `
       <div class="rp-ex-section3-brochure">
-        <div class="rp-ex-section3-brochure-title">Brochure</div>
+        <div class="rp-ex-section3-brochure-title">โบรชัวร์</div>
         <a
           href="${escapeResourceHtml(brochure.targetUrl || '#')}"
           target="_blank"
           rel="noopener noreferrer"
           class="rp-ex-section3-brochure-link"
-          aria-label="เปิด Brochure Excellent"
+          aria-label="เปิดโบรชัวร์ Excellent"
         >
           <img
             src="${escapeResourceHtml(brochure.qrImagePath)}"
-            alt="QR Brochure Excellent"
+            alt="QR โบรชัวร์ Excellent"
             loading="eager"
             decoding="sync"
             onerror="this.closest('.rp-ex-section3-brochure').classList.add('rp-resource-empty')"
@@ -7694,9 +7699,9 @@ function buildExcellentSection3HTML(data){
     `
     : `
       <div class="rp-ex-section3-brochure rp-brochure-placeholder">
-        <div class="rp-ex-section3-brochure-title">Brochure</div>
+        <div class="rp-ex-section3-brochure-title">โบรชัวร์</div>
         <div class="rp-brochure-placeholder-name">Excellent</div>
-        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR Brochure</div>
+        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR โบรชัวร์</div>
       </div>
     `;
 
@@ -8784,7 +8789,7 @@ function build20PayLifeReportHTML(){
 }
 
 
-const PAY25_REPORT_VERSION = "1.2.0";
+const PAY25_REPORT_VERSION = "1.2.3";
 
 function buildPay25ReportData(){
   const result = calcPay25(state.age, state.sum, state.tax);
@@ -8906,16 +8911,16 @@ function buildPay25Section2HTML(data){
   const brochureHTML = brochure
     ? `
       <div class="p25-section2-brochure">
-        <div class="p25-section2-brochure-title">Brochure</div>
+        <div class="p25-section2-brochure-title">โบรชัวร์</div><div style="font-size:5px;color:#847c69;margin-bottom:2px;line-height:1.2;text-align:center">สแกนเพื่อเปิดเอกสาร</div>
         <a href="${escapeResourceHtml(brochure.targetUrl||'#')}" target="_blank" rel="noopener noreferrer">
-          <img src="${escapeResourceHtml(brochure.qrImagePath)}" alt="QR Brochure 15 Pay 25" loading="eager" decoding="sync" style="width:66px;height:66px;object-fit:contain;background:#fff">
+          <img src="${escapeResourceHtml(brochure.qrImagePath)}" alt="QR โบรชัวร์ 15 Pay 25" loading="eager" decoding="sync" style="width:82px;height:82px;object-fit:contain;background:#fff;padding:2px;box-sizing:border-box;display:block;margin:0 auto">
         </a>
       </div>
     `
     : `
       <div class="p25-section2-brochure">
-        <div class="p25-section2-brochure-title">Brochure</div>
-        <div class="p25-brochure-placeholder">รอเพิ่ม QR Brochure</div>
+        <div class="p25-section2-brochure-title">โบรชัวร์</div>
+        <div class="p25-brochure-placeholder">รอเพิ่ม QR โบรชัวร์</div>
       </div>
     `;
 
@@ -9177,17 +9182,17 @@ function buildCISuperCareSection2HTML(data){
   const brochureHTML = brochure
     ? `
       <div class="rp-sc-section2-brochure">
-        <div class="rp-sc-section2-brochure-title">Brochure</div>
+        <div class="rp-sc-section2-brochure-title">โบรชัวร์</div>
         <a
           href="${escapeResourceHtml(brochure.targetUrl || '#')}"
           target="_blank"
           rel="noopener noreferrer"
           class="rp-sc-section2-brochure-link"
-          aria-label="เปิด Brochure ${escapeResourceHtml(data.product.name)}"
+          aria-label="เปิดโบรชัวร์ ${escapeResourceHtml(data.product.name)}"
         >
           <img
             src="${escapeResourceHtml(brochure.qrImagePath)}"
-            alt="QR Brochure ${escapeResourceHtml(data.product.name)}"
+            alt="QR โบรชัวร์ ${escapeResourceHtml(data.product.name)}"
             loading="eager"
             decoding="sync"
             onerror="this.closest('.rp-sc-section2-brochure').classList.add('rp-resource-empty')"
@@ -9197,9 +9202,9 @@ function buildCISuperCareSection2HTML(data){
     `
     : `
       <div class="rp-sc-section2-brochure rp-brochure-placeholder">
-        <div class="rp-sc-section2-brochure-title">Brochure</div>
+        <div class="rp-sc-section2-brochure-title">โบรชัวร์</div>
         <div class="rp-brochure-placeholder-name">${escapeResourceHtml(data.product.name)}</div>
-        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR Brochure</div>
+        <div class="rp-brochure-placeholder-text">รอเพิ่ม QR โบรชัวร์</div>
       </div>
     `;
 
@@ -9647,17 +9652,17 @@ function buildCIProCareSection2HTML(data){
   const brochureHTML = brochure
     ? `
       <div class="rp-ci-section2-brochure">
-        <div class="rp-ci-section2-brochure-title">Brochure</div>
+        <div class="rp-ci-section2-brochure-title">โบรชัวร์</div>
         <a
           href="${escapeResourceHtml(brochure.targetUrl || '#')}"
           target="_blank"
           rel="noopener noreferrer"
           class="rp-ci-section2-brochure-link"
-          aria-label="เปิด Brochure AIA CI ProCare"
+          aria-label="เปิดโบรชัวร์ AIA CI ProCare"
         >
           <img
             src="${escapeResourceHtml(brochure.qrImagePath)}"
-            alt="QR Brochure AIA CI ProCare"
+            alt="QR โบรชัวร์ AIA CI ProCare"
             loading="eager"
             decoding="sync"
             onerror="this.closest('.rp-ci-section2-brochure').style.display='none'"
