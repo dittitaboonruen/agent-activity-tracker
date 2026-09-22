@@ -1,9 +1,17 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 
 type Theme = "morning" | "night";
+
+type CardItem = {
+  icon: string;
+  title: string;
+  description: string;
+  href: string;
+  external: boolean;
+  locked: boolean;
+};
 
 const ACTIVITY_FORM_URL =
   "https://form.jotform.com/262221782679061";
@@ -16,7 +24,10 @@ export default function AgentPortalPage() {
       "agent-dev-theme"
     ) as Theme | null;
 
-    if (saved === "morning" || saved === "night") {
+    if (
+      saved === "morning" ||
+      saved === "night"
+    ) {
       setTheme(saved);
     }
   }, []);
@@ -38,26 +49,52 @@ export default function AgentPortalPage() {
   const isMorning = theme === "morning";
 
   const colors = {
-    background: isMorning ? "#F5EFE4" : "#0D0B08",
-    card: isMorning ? "#FFFDF8" : "#17130E",
-    text: isMorning ? "#2C241A" : "#F4E8D0",
-    muted: isMorning ? "#756A5A" : "#A89B86",
+    background: isMorning
+      ? "#F5EFE4"
+      : "#0D0B08",
+
+    card: isMorning
+      ? "#FFFDF8"
+      : "#17130E",
+
+    text: isMorning
+      ? "#2C241A"
+      : "#F4E8D0",
+
+    muted: isMorning
+      ? "#756A5A"
+      : "#A89B86",
+
     gold: "#C9A24B",
-    border: isMorning ? "#E3D3B2" : "#4A3B1E",
+
+    border: isMorning
+      ? "#E3D3B2"
+      : "#4A3B1E",
+
     softGold: isMorning
       ? "rgba(201,162,75,0.10)"
       : "rgba(201,162,75,0.07)",
+
+    lockedBackground: isMorning
+      ? "#F1EBDD"
+      : "#14110D",
+
+    lockedText: isMorning
+      ? "#9B8F7C"
+      : "#746B5E",
   };
 
-  const cards = [
+  const cards: CardItem[] = [
     {
-      icon: "🎯",
+      icon: "🔒",
       title: "Annual Target 2569",
       description:
         "ตั้งเป้าหมาย FYP / FYC / CASE ประจำปี",
       href: "/annual-target",
       external: false,
+      locked: true,
     },
+
     {
       icon: "📝",
       title: "Activity Form",
@@ -65,14 +102,17 @@ export default function AgentPortalPage() {
         "บันทึกกิจกรรมตัวแทนประจำวัน",
       href: ACTIVITY_FORM_URL,
       external: true,
+      locked: false,
     },
+
     {
-  icon: "🧮",
-  title: "ข้อเสนอแบบประกัน",
-  description:
-    "คำนวณแบบประกันและจัดทำใบสรุปประกอบการเสนอขาย",
-  href: "/agent/calculators",
-  external: false,
+      icon: "🧮",
+      title: "ข้อเสนอแบบประกัน",
+      description:
+        "คำนวณแบบประกันและจัดทำใบสรุปประกอบการเสนอขาย",
+      href: "/agent/calculators",
+      external: false,
+      locked: false,
     },
   ];
 
@@ -94,11 +134,15 @@ export default function AgentPortalPage() {
           padding: "34px 22px 70px",
         }}
       >
-        {/* HEADER */}
+        {/* =========================
+            HEADER
+        ========================== */}
+
         <header
           style={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent:
+              "space-between",
             alignItems: "flex-start",
             gap: 24,
             flexWrap: "wrap",
@@ -121,7 +165,8 @@ export default function AgentPortalPage() {
             <h1
               style={{
                 margin: 0,
-                fontSize: "clamp(36px, 6vw, 56px)",
+                fontSize:
+                  "clamp(36px, 6vw, 56px)",
                 lineHeight: 1.05,
                 letterSpacing: "-1px",
               }}
@@ -138,11 +183,15 @@ export default function AgentPortalPage() {
                 lineHeight: 1.6,
               }}
             >
-              เครื่องมือสำหรับตัวแทน Royal Partner
+              เครื่องมือสำหรับตัวแทน
+              Royal Partner
             </p>
           </div>
 
-          {/* THEME */}
+          {/* =========================
+              THEME SWITCH
+          ========================== */}
+
           <div
             style={{
               display: "flex",
@@ -155,16 +204,20 @@ export default function AgentPortalPage() {
           >
             <button
               type="button"
-              onClick={() => changeTheme("morning")}
+              onClick={() =>
+                changeTheme("morning")
+              }
               style={{
                 border: 0,
                 borderRadius: 999,
                 padding: "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
+
                 background: isMorning
                   ? colors.gold
                   : "transparent",
+
                 color: isMorning
                   ? "#18120A"
                   : colors.muted,
@@ -175,16 +228,20 @@ export default function AgentPortalPage() {
 
             <button
               type="button"
-              onClick={() => changeTheme("night")}
+              onClick={() =>
+                changeTheme("night")
+              }
               style={{
                 border: 0,
                 borderRadius: 999,
                 padding: "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
+
                 background: !isMorning
                   ? colors.gold
                   : "transparent",
+
                 color: !isMorning
                   ? "#18120A"
                   : colors.muted,
@@ -195,7 +252,10 @@ export default function AgentPortalPage() {
           </div>
         </header>
 
-        {/* INTRO */}
+        {/* =========================
+            INTRO
+        ========================== */}
+
         <section
           style={{
             padding: "22px 24px",
@@ -224,7 +284,8 @@ export default function AgentPortalPage() {
               marginBottom: 7,
             }}
           >
-            เริ่มต้นใช้งานได้จาก 3 เมนูด้านล่าง
+            เริ่มต้นใช้งานได้จาก 3
+            เมนูด้านล่าง
           </div>
 
           <div
@@ -234,105 +295,342 @@ export default function AgentPortalPage() {
               lineHeight: 1.6,
             }}
           >
-            ตั้งเป้าหมายประจำปี บันทึกกิจกรรมประจำวัน
+            ตั้งเป้าหมายประจำปี
+            บันทึกกิจกรรมประจำวัน
             และคำนวณแบบประกันเพื่อประกอบการเสนอขาย
           </div>
         </section>
 
-        {/* CARDS */}
+        {/* =========================
+            CARDS
+        ========================== */}
+
         <div
           style={{
             display: "grid",
+
             gridTemplateColumns:
               "repeat(auto-fit, minmax(260px, 1fr))",
+
             gap: 18,
           }}
         >
-          {cards.map((card) => (
-            <a
-              key={card.title}
-              href={card.href}
-              target={
-                card.external ? "_blank" : undefined
-              }
-              rel={
-                card.external
-                  ? "noopener noreferrer"
-                  : undefined
-              }
-              style={{
-                textDecoration: "none",
-                color: colors.text,
-                background: colors.card,
-                border: `1px solid ${colors.border}`,
-                borderRadius: 20,
-                padding: 24,
-                minHeight: 220,
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: isMorning
-                  ? "0 12px 30px rgba(74,55,30,.06)"
-                  : "0 14px 30px rgba(0,0,0,.12)",
-              }}
-            >
-              <div
+          {cards.map((card) => {
+            /*
+             * =========================
+             * LOCKED CARD
+             * =========================
+             *
+             * ใช้ div แทน <a>
+             * เพื่อไม่ให้มี navigation
+             * ไปยัง /annual-target
+             */
+
+            if (card.locked) {
+              return (
+                <div
+                  key={card.title}
+                  aria-disabled="true"
+                  style={{
+                    color:
+                      colors.lockedText,
+
+                    background:
+                      colors.lockedBackground,
+
+                    border:
+                      `1px solid ${colors.border}`,
+
+                    borderRadius: 20,
+
+                    padding: 24,
+
+                    minHeight: 220,
+
+                    display: "flex",
+
+                    flexDirection:
+                      "column",
+
+                    boxShadow: isMorning
+                      ? "0 12px 30px rgba(74,55,30,.04)"
+                      : "0 14px 30px rgba(0,0,0,.08)",
+
+                    cursor:
+                      "not-allowed",
+
+                    opacity: 0.72,
+
+                    position:
+                      "relative",
+                  }}
+                >
+                  {/* STATUS BADGE */}
+
+                  <div
+                    style={{
+                      position:
+                        "absolute",
+
+                      top: 18,
+                      right: 18,
+
+                      padding:
+                        "6px 10px",
+
+                      borderRadius:
+                        999,
+
+                      background:
+                        colors.softGold,
+
+                      color:
+                        colors.gold,
+
+                      fontSize: 11,
+
+                      fontWeight:
+                        800,
+                    }}
+                  >
+                    🔒 LOCKED
+                  </div>
+
+                  {/* ICON */}
+
+                  <div
+                    style={{
+                      width: 56,
+                      height: 56,
+
+                      borderRadius: 16,
+
+                      background:
+                        colors.softGold,
+
+                      display: "flex",
+
+                      alignItems:
+                        "center",
+
+                      justifyContent:
+                        "center",
+
+                      fontSize: 28,
+
+                      marginBottom: 22,
+                    }}
+                  >
+                    {card.icon}
+                  </div>
+
+                  {/* TITLE */}
+
+                  <div
+                    style={{
+                      fontSize: 22,
+
+                      fontWeight: 800,
+
+                      marginBottom: 9,
+                    }}
+                  >
+                    {card.title}
+                  </div>
+
+                  {/* DESCRIPTION */}
+
+                  <div
+                    style={{
+                      color:
+                        colors.lockedText,
+
+                      fontSize: 14,
+
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {card.description}
+                  </div>
+
+                  {/* LOCK MESSAGE */}
+
+                  <div
+                    style={{
+                      marginTop: "auto",
+
+                      paddingTop: 24,
+
+                      color:
+                        colors.gold,
+
+                      fontSize: 13,
+
+                      fontWeight: 800,
+                    }}
+                  >
+                    🔒
+                    ยังไม่เปิดใช้งาน
+                  </div>
+                </div>
+              );
+            }
+
+            /*
+             * =========================
+             * ACTIVE CARD
+             * =========================
+             */
+
+            return (
+              <a
+                key={card.title}
+                href={card.href}
+                target={
+                  card.external
+                    ? "_blank"
+                    : undefined
+                }
+                rel={
+                  card.external
+                    ? "noopener noreferrer"
+                    : undefined
+                }
                 style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  background: colors.softGold,
+                  textDecoration:
+                    "none",
+
+                  color:
+                    colors.text,
+
+                  background:
+                    colors.card,
+
+                  border:
+                    `1px solid ${colors.border}`,
+
+                  borderRadius:
+                    20,
+
+                  padding: 24,
+
+                  minHeight:
+                    220,
+
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 28,
-                  marginBottom: 22,
-                }}
-              >
-                {card.icon}
-              </div>
 
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 800,
-                  marginBottom: 9,
-                }}
-              >
-                {card.title}
-              </div>
+                  flexDirection:
+                    "column",
 
-              <div
-                style={{
-                  color: colors.muted,
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                }}
-              >
-                {card.description}
-              </div>
+                  boxShadow:
+                    isMorning
+                      ? "0 12px 30px rgba(74,55,30,.06)"
+                      : "0 14px 30px rgba(0,0,0,.12)",
 
-              <div
-                style={{
-                  marginTop: "auto",
-                  paddingTop: 24,
-                  color: colors.gold,
-                  fontSize: 13,
-                  fontWeight: 800,
+                  cursor:
+                    "pointer",
+
+                  transition:
+                    "transform .2s ease, box-shadow .2s ease",
                 }}
               >
-                เปิดใช้งาน →
-              </div>
-            </a>
-          ))}
+                {/* ICON */}
+
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+
+                    borderRadius: 16,
+
+                    background:
+                      colors.softGold,
+
+                    display: "flex",
+
+                    alignItems:
+                      "center",
+
+                    justifyContent:
+                      "center",
+
+                    fontSize: 28,
+
+                    marginBottom: 22,
+                  }}
+                >
+                  {card.icon}
+                </div>
+
+                {/* TITLE */}
+
+                <div
+                  style={{
+                    fontSize: 22,
+
+                    fontWeight: 800,
+
+                    marginBottom: 9,
+                  }}
+                >
+                  {card.title}
+                </div>
+
+                {/* DESCRIPTION */}
+
+                <div
+                  style={{
+                    color:
+                      colors.muted,
+
+                    fontSize: 14,
+
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {card.description}
+                </div>
+
+                {/* CTA */}
+
+                <div
+                  style={{
+                    marginTop:
+                      "auto",
+
+                    paddingTop: 24,
+
+                    color:
+                      colors.gold,
+
+                    fontSize: 13,
+
+                    fontWeight: 800,
+                  }}
+                >
+                  เปิดใช้งาน →
+                </div>
+              </a>
+            );
+          })}
         </div>
 
-        {/* FOOTER */}
+        {/* =========================
+            FOOTER
+        ========================== */}
+
         <footer
           style={{
             marginTop: 46,
-            textAlign: "center",
-            color: colors.muted,
+
+            textAlign:
+              "center",
+
+            color:
+              colors.muted,
+
             fontSize: 12,
+
             lineHeight: 1.6,
           }}
         >
