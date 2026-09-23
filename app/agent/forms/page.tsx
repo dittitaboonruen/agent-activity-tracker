@@ -17,10 +17,10 @@ type FormItem = {
 const FORMS: FormItem[] = [
   {
     id: "form-001",
-    name: "แบบฟอร์มตัวอย่าง 1",
+    name: "W8BEN",
     description:
-      "ตัวอย่างแบบฟอร์ม PDF สำหรับใช้งานของตัวแทน",
-    file: "/forms/form-01.pdf",
+      "แบบฟอร์ม W-8BEN",
+    file: "/forms/w8ben.pdf",
     active: true,
     order: 1,
     version: "2026-09",
@@ -28,10 +28,10 @@ const FORMS: FormItem[] = [
 
   {
     id: "form-002",
-    name: "แบบฟอร์มตัวอย่าง 2",
+    name: "W9",
     description:
-      "ตัวอย่างแบบฟอร์ม PDF สำหรับใช้งานของตัวแทน",
-    file: "/forms/form-02.pdf",
+      "แบบฟอร์ม W-9",
+    file: "/forms/w9.pdf",
     active: true,
     order: 2,
     version: "2026-09",
@@ -39,12 +39,89 @@ const FORMS: FormItem[] = [
 
   {
     id: "form-003",
-    name: "แบบฟอร์มตัวอย่าง 3",
+    name: "ขอประวัติ",
     description:
-      "ตัวอย่างแบบฟอร์ม PDF สำหรับใช้งานของตัวแทน",
-    file: "/forms/form-03.pdf",
+      "แบบฟอร์มสำหรับขอประวัติ",
+    file: "/forms/ขอประวัติ.pdf",
     active: true,
     order: 3,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-004",
+    name: "ขอเอกสารคืน",
+    description:
+      "แบบฟอร์มสำหรับขอเอกสารคืน",
+    file: "/forms/ขอเอกสารคืน.pdf",
+    active: true,
+    order: 4,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-005",
+    name: "ทำฟัน",
+    description:
+      "แบบฟอร์มสำหรับการเคลมค่ารักษาทางทันตกรรม",
+    file: "/forms/ทำฟัน.pdf",
+    active: true,
+    order: 5,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-006",
+    name: "ผู้ป่วยใน",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยใน",
+    file: "/forms/ผู้ป่วยใน.pdf",
+    active: true,
+    order: 6,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-007",
+    name: "เคลมผู้ป่วยนอก",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
+    file: "/forms/เคลมผู้ป่วยนอก.pdf",
+    active: true,
+    order: 7,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-008",
+    name: "เรียกร้องเสียชีวิต (ตัวแทน)",
+    description:
+      "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
+    file: "/forms/เรียกร้องเสียชีวิต (ตัวแทน).pdf",
+    active: true,
+    order: 8,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-009",
+    name: "เรียกร้องเสียชีวิต (ลูกค้า)",
+    description:
+      "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
+    file: "/forms/เรียกร้องเสียชีวิต (ลูกค้า).pdf",
+    active: true,
+    order: 9,
+    version: "2026-09",
+  },
+
+  {
+    id: "form-010",
+    name: "ใบปะหน้าเคลม",
+    description:
+      "ใบปะหน้าสำหรับเอกสารเคลม",
+    file: "/forms/ใบปะหน้าเคลม.pdf",
+    active: true,
+    order: 10,
     version: "2026-09",
   },
 ];
