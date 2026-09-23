@@ -114,6 +114,16 @@ export default function AgentPortalPage() {
       external: false,
       locked: false,
     },
+
+    {
+      icon: "📄",
+      title: "แบบฟอร์มเอกสาร",
+      description:
+        "รวมแบบฟอร์ม PDF สำหรับใช้งานของตัวแทน",
+      href: "/agent/forms",
+      external: false,
+      locked: false,
+    },
   ];
 
   return (
@@ -284,7 +294,7 @@ export default function AgentPortalPage() {
               marginBottom: 7,
             }}
           >
-            เริ่มต้นใช้งานได้จาก 3
+            เริ่มต้นใช้งานได้จาก 4
             เมนูด้านล่าง
           </div>
 
@@ -297,7 +307,8 @@ export default function AgentPortalPage() {
           >
             ตั้งเป้าหมายประจำปี
             บันทึกกิจกรรมประจำวัน
-            และคำนวณแบบประกันเพื่อประกอบการเสนอขาย
+            คำนวณแบบประกัน
+            และเลือกใช้แบบฟอร์มเอกสารจากศูนย์กลาง
           </div>
         </section>
 
