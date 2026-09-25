@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-type Theme = "morning" | "night";
+type Theme =
+  | "morning"
+  | "night";
+
+type FormCategory =
+  | "ปีแรก"
+  | "ปีต่อ"
+  | "เคลม";
 
 type FormItem = {
   id: string;
@@ -12,260 +23,415 @@ type FormItem = {
   active: boolean;
   order: number;
   version?: string;
+  categories: FormCategory[];
 };
+
+type CategoryItem = {
+  id: FormCategory;
+  icon: string;
+  title: string;
+  description: string;
+};
+
+const CATEGORIES: CategoryItem[] = [
+  {
+    id: "ปีแรก",
+    icon: "🌱",
+    title: "ปีแรก",
+    description:
+      "แบบฟอร์มและเอกสารสำหรับการสมัคร การพิจารณารับประกัน และการดำเนินงานในปีแรก",
+  },
+  {
+    id: "ปีต่อ",
+    icon: "🔄",
+    title: "ปีต่อ",
+    description:
+      "แบบฟอร์มและเอกสารสำหรับการดูแลกรมธรรม์และการดำเนินงานในปีต่อ",
+  },
+  {
+    id: "เคลม",
+    icon: "🩺",
+    title: "เคลม",
+    description:
+      "แบบฟอร์มและเอกสารสำหรับการเรียกร้องสินไหมและการเคลม",
+  },
+];
 
 const FORMS: FormItem[] = [
   {
     id: "form-001",
     name: "W8BEN",
-    description: "แบบฟอร์ม W-8BEN",
+    description:
+      "แบบฟอร์ม W-8BEN",
     file: "/forms/w8ben.pdf",
     active: true,
     order: 1,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
     id: "form-002",
     name: "W9",
-    description: "แบบฟอร์ม W-9",
+    description:
+      "แบบฟอร์ม W-9",
     file: "/forms/w9.pdf",
     active: true,
     order: 2,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
     id: "form-003",
     name: "ขอประวัติ",
-    description: "แบบฟอร์มสำหรับขอประวัติ",
+    description:
+      "แบบฟอร์มสำหรับขอประวัติ",
     file: "/forms/ขอประวัติ.pdf",
     active: true,
     order: 3,
     version: "2026-09",
+    categories: [
+      "ปีแรก",
+      "เคลม",
+    ],
   },
+
   {
     id: "form-004",
     name: "ขอเอกสารคืน",
-    description: "แบบฟอร์มสำหรับขอเอกสารคืน",
+    description:
+      "แบบฟอร์มสำหรับขอเอกสารคืน",
     file: "/forms/ขอเอกสารคืน.pdf",
     active: true,
-    order: 4,
+    order: 1,
     version: "2026-09",
+    categories: ["เคลม"],
   },
+
   {
     id: "form-005",
     name: "ทำฟัน",
-    description: "แบบฟอร์มสำหรับการเคลมค่ารักษาทางทันตกรรม",
+    description:
+      "แบบฟอร์มสำหรับการเคลมค่ารักษาทางทันตกรรม",
     file: "/forms/ทำฟัน.pdf",
     active: true,
-    order: 5,
+    order: 2,
     version: "2026-09",
+    categories: ["เคลม"],
   },
+
   {
     id: "form-006",
     name: "ผู้ป่วยใน",
-    description: "แบบฟอร์มสำหรับการเคลมผู้ป่วยใน",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยใน",
     file: "/forms/ผู้ป่วยใน.pdf",
     active: true,
-    order: 6,
+    order: 3,
     version: "2026-09",
+    categories: ["เคลม"],
   },
+
   {
     id: "form-007",
     name: "หนังสือรับรองสุขภาพ",
-    description: "หนังสือรับรองสุขภาพสำหรับประกอบเอกสาร",
+    description:
+      "หนังสือรับรองสุขภาพสำหรับประกอบเอกสาร",
     file: "/forms/หนังสือรับรองสุขภาพ.pdf",
     active: true,
-    order: 7,
+    order: 1,
     version: "2026-09",
+    categories: ["ปีต่อ"],
   },
+
   {
     id: "form-008",
     name: "เคลมผู้ป่วยนอก",
-    description: "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
     file: "/forms/เคลมผู้ป่วยนอก.pdf",
     active: true,
-    order: 8,
+    order: 4,
     version: "2026-09",
+    categories: ["เคลม"],
   },
+
   {
     id: "form-009",
     name: "เรียกร้องเสียชีวิต (ตัวแทน)",
-    description: "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
-    file: "/forms/เรียกร้องเสียชีวิต (ตัวแทน).pdf",
+    description:
+      "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
+    file:
+      "/forms/เรียกร้องเสียชีวิต (ตัวแทน).pdf",
     active: true,
-    order: 9,
+    order: 5,
     version: "2026-09",
+    categories: ["เคลม"],
   },
+
   {
     id: "form-010",
     name: "เรียกร้องเสียชีวิต (ลูกค้า)",
-    description: "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
-    file: "/forms/เรียกร้องเสียชีวิต (ลูกค้า).pdf",
+    description:
+      "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
+    file:
+      "/forms/เรียกร้องเสียชีวิต (ลูกค้า).pdf",
+    active: true,
+    order: 6,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+
+  {
+    id: "form-011",
+    name:
+      "แบบตอบคำถามและวัดความดันโลหิตและชีพจร 3 ครั้ง",
+    description:
+      "แบบฟอร์มสำหรับบันทึกคำตอบ ความดันโลหิต และชีพจร 3 ครั้ง",
+    file:
+      "/forms/แบบตอบคำถามและวัดความดันโลหิตและชีพจร 3 ครั้ง.pdf",
+    active: true,
+    order: 4,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-012",
+    name:
+      "แบบสอบถามการดื่มเครื่องดื่มแอลกอฮอล์",
+    description:
+      "แบบสอบถามเกี่ยวกับการดื่มเครื่องดื่มแอลกอฮอล์",
+    file:
+      "/forms/แบบสอบถามการดื่มเครื่องดื่มแอลกอฮอล์.pdf",
+    active: true,
+    order: 5,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-013",
+    name:
+      "แบบสอบถามการผ่าตัดเกี่ยวกับเนื้องอก",
+    description:
+      "แบบสอบถามเกี่ยวกับประวัติการผ่าตัดเนื้องอก",
+    file:
+      "/forms/แบบสอบถามการผ่าตัดเกี่ยวกับเนื้องอก.pdf",
+    active: true,
+    order: 6,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-014",
+    name:
+      "แบบสอบถามการสูบบุหรี่",
+    description:
+      "แบบสอบถามเกี่ยวกับประวัติการสูบบุหรี่",
+    file:
+      "/forms/แบบสอบถามการสูบบุหรี่.pdf",
+    active: true,
+    order: 7,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-015",
+    name:
+      "แบบสอบถามการเจ็บหน้าอก",
+    description:
+      "แบบสอบถามเกี่ยวกับอาการเจ็บหน้าอก",
+    file:
+      "/forms/แบบสอบถามการเจ็บหน้าอก.pdf",
+    active: true,
+    order: 8,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-016",
+    name:
+      "แบบสอบถามการเลิกดื่มเครื่องดื่มแอลกอฮอล์",
+    description:
+      "แบบสอบถามเกี่ยวกับประวัติการเลิกดื่มเครื่องดื่มแอลกอฮอล์",
+    file:
+      "/forms/แบบสอบถามการเลิกดื่มเครื่องดื่มแอลกอฮอล์.pdf",
+    active: true,
+    order: 9,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  {
+    id: "form-017",
+    name:
+      "แบบสอบถามความดันโลหิตสูง",
+    description:
+      "แบบสอบถามเกี่ยวกับภาวะความดันโลหิตสูง",
+    file:
+      "/forms/แบบสอบถามความดันโลหิตสูง.pdf",
     active: true,
     order: 10,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-011",
-    name: "แบบตอบคำถามและวัดความดันโลหิตและชีพจร 3 ครั้ง",
-    description: "แบบฟอร์มสำหรับบันทึกคำตอบ ความดันโลหิต และชีพจร 3 ครั้ง",
-    file: "/forms/แบบตอบคำถามและวัดความดันโลหิตและชีพจร 3 ครั้ง.pdf",
+    id: "form-018",
+    name:
+      "แบบสอบถามวงเงินสูง สำหรับ ประกันชีวิตบุคคลตำแหน่งสำคัญ (Keyman)",
+    description:
+      "แบบสอบถามวงเงินสูงสำหรับการประกันชีวิตบุคคลตำแหน่งสำคัญ",
+    file:
+      "/forms/แบบสอบถามวงเงินสูง สำหรับ ประกันชีวิตบุคคลตำแหน่งสำคัญ (Keyman).pdf",
     active: true,
     order: 11,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-012",
-    name: "แบบสอบถามการดื่มเครื่องดื่มแอลกอฮอล์",
-    description: "แบบสอบถามเกี่ยวกับการดื่มเครื่องดื่มแอลกอฮอล์",
-    file: "/forms/แบบสอบถามการดื่มเครื่องดื่มแอลกอฮอล์.pdf",
+    id: "form-019",
+    name:
+      "แบบสอบถามวงเงินสูง สำหรับ ผู้ขอเอาประกันทั่วไป",
+    description:
+      "แบบสอบถามวงเงินสูงสำหรับผู้ขอเอาประกันทั่วไป",
+    file:
+      "/forms/แบบสอบถามวงเงินสูง สำหรับ ผู้ขอเอาประกันทั่วไป.pdf",
     active: true,
     order: 12,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-013",
-    name: "แบบสอบถามการผ่าตัดเกี่ยวกับเนื้องอก",
-    description: "แบบสอบถามเกี่ยวกับประวัติการผ่าตัดเนื้องอก",
-    file: "/forms/แบบสอบถามการผ่าตัดเกี่ยวกับเนื้องอก.pdf",
+    id: "form-020",
+    name:
+      "แบบสอบถามอุบัติเหตุ",
+    description:
+      "แบบสอบถามเกี่ยวกับประวัติหรือรายละเอียดอุบัติเหตุ",
+    file:
+      "/forms/แบบสอบถามอุบัติเหตุ.pdf",
     active: true,
     order: 13,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-014",
-    name: "แบบสอบถามการสูบบุหรี่",
-    description: "แบบสอบถามเกี่ยวกับประวัติการสูบบุหรี่",
-    file: "/forms/แบบสอบถามการสูบบุหรี่.pdf",
+    id: "form-021",
+    name:
+      "แบบสอบถามเกี่ยวกับกรมธรรม์เดิม",
+    description:
+      "แบบสอบถามข้อมูลเกี่ยวกับกรมธรรม์เดิม",
+    file:
+      "/forms/แบบสอบถามเกี่ยวกับกรมธรรม์เดิม.pdf",
     active: true,
     order: 14,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-015",
-    name: "แบบสอบถามการเจ็บหน้าอก",
-    description: "แบบสอบถามเกี่ยวกับอาการเจ็บหน้าอก",
-    file: "/forms/แบบสอบถามการเจ็บหน้าอก.pdf",
+    id: "form-022",
+    name:
+      "แบบสอบถามเกี่ยวกับการตรวจร่างกาย",
+    description:
+      "แบบสอบถามเกี่ยวกับประวัติการตรวจร่างกาย",
+    file:
+      "/forms/แบบสอบถามเกี่ยวกับการตรวจร่างกาย.pdf",
     active: true,
     order: 15,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-016",
-    name: "แบบสอบถามการเลิกดื่มเครื่องดื่มแอลกอฮอล์",
-    description: "แบบสอบถามเกี่ยวกับประวัติการเลิกดื่มเครื่องดื่มแอลกอฮอล์",
-    file: "/forms/แบบสอบถามการเลิกดื่มเครื่องดื่มแอลกอฮอล์.pdf",
+    id: "form-023",
+    name:
+      "แบบสอบถามโรคกระเพาะอาหาร",
+    description:
+      "แบบสอบถามเกี่ยวกับโรคกระเพาะอาหาร",
+    file:
+      "/forms/แบบสอบถามโรคกระเพาะอาหาร.pdf",
     active: true,
     order: 16,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-017",
-    name: "แบบสอบถามความดันโลหิตสูง",
-    description: "แบบสอบถามเกี่ยวกับภาวะความดันโลหิตสูง",
-    file: "/forms/แบบสอบถามความดันโลหิตสูง.pdf",
+    id: "form-024",
+    name:
+      "แบบสอบถามโรคภูมิแพ้",
+    description:
+      "แบบสอบถามเกี่ยวกับโรคภูมิแพ้",
+    file:
+      "/forms/แบบสอบถามโรคภูมิแพ้.pdf",
     active: true,
     order: 17,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-018",
-    name: "แบบสอบถามวงเงินสูง สำหรับ ประกันชีวิตบุคคลตำแหน่งสำคัญ (Keyman)",
-    description: "แบบสอบถามวงเงินสูงสำหรับการประกันชีวิตบุคคลตำแหน่งสำคัญ",
-    file: "/forms/แบบสอบถามวงเงินสูง สำหรับ ประกันชีวิตบุคคลตำแหน่งสำคัญ (Keyman).pdf",
+    id: "form-025",
+    name:
+      "แบบสอบถามโรคลมชัก",
+    description:
+      "แบบสอบถามเกี่ยวกับโรคลมชัก",
+    file:
+      "/forms/แบบสอบถามโรคลมชัก.pdf",
     active: true,
     order: 18,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-019",
-    name: "แบบสอบถามวงเงินสูง สำหรับ ผู้ขอเอาประกันทั่วไป",
-    description: "แบบสอบถามวงเงินสูงสำหรับผู้ขอเอาประกันทั่วไป",
-    file: "/forms/แบบสอบถามวงเงินสูง สำหรับ ผู้ขอเอาประกันทั่วไป.pdf",
+    id: "form-026",
+    name:
+      "แบบสอบถามโรคหอบหืด",
+    description:
+      "แบบสอบถามเกี่ยวกับโรคหอบหืด",
+    file:
+      "/forms/แบบสอบถามโรคหอบหืด.pdf",
     active: true,
     order: 19,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
+
   {
-    id: "form-020",
-    name: "แบบสอบถามอุบัติเหตุ",
-    description: "แบบสอบถามเกี่ยวกับประวัติหรือรายละเอียดอุบัติเหตุ",
-    file: "/forms/แบบสอบถามอุบัติเหตุ.pdf",
+    id: "form-027",
+    name:
+      "แบบสอบถามโรคเบาหวาน",
+    description:
+      "แบบสอบถามเกี่ยวกับโรคเบาหวาน",
+    file:
+      "/forms/แบบสอบถามโรคเบาหวาน.pdf",
     active: true,
     order: 20,
     version: "2026-09",
+    categories: ["ปีแรก"],
   },
-  {
-    id: "form-021",
-    name: "แบบสอบถามเกี่ยวกับกรมธรรม์เดิม",
-    description: "แบบสอบถามข้อมูลเกี่ยวกับกรมธรรม์เดิม",
-    file: "/forms/แบบสอบถามเกี่ยวกับกรมธรรม์เดิม.pdf",
-    active: true,
-    order: 21,
-    version: "2026-09",
-  },
-  {
-    id: "form-022",
-    name: "แบบสอบถามเกี่ยวกับการตรวจร่างกาย",
-    description: "แบบสอบถามเกี่ยวกับประวัติการตรวจร่างกาย",
-    file: "/forms/แบบสอบถามเกี่ยวกับการตรวจร่างกาย.pdf",
-    active: true,
-    order: 22,
-    version: "2026-09",
-  },
-  {
-    id: "form-023",
-    name: "แบบสอบถามโรคกระเพาะอาหาร",
-    description: "แบบสอบถามเกี่ยวกับโรคกระเพาะอาหาร",
-    file: "/forms/แบบสอบถามโรคกระเพาะอาหาร.pdf",
-    active: true,
-    order: 23,
-    version: "2026-09",
-  },
-  {
-    id: "form-024",
-    name: "แบบสอบถามโรคภูมิแพ้",
-    description: "แบบสอบถามเกี่ยวกับโรคภูมิแพ้",
-    file: "/forms/แบบสอบถามโรคภูมิแพ้.pdf",
-    active: true,
-    order: 24,
-    version: "2026-09",
-  },
-  {
-    id: "form-025",
-    name: "แบบสอบถามโรคลมชัก",
-    description: "แบบสอบถามเกี่ยวกับโรคลมชัก",
-    file: "/forms/แบบสอบถามโรคลมชัก.pdf",
-    active: true,
-    order: 25,
-    version: "2026-09",
-  },
-  {
-    id: "form-026",
-    name: "แบบสอบถามโรคหอบหืด",
-    description: "แบบสอบถามเกี่ยวกับโรคหอบหืด",
-    file: "/forms/แบบสอบถามโรคหอบหืด.pdf",
-    active: true,
-    order: 26,
-    version: "2026-09",
-  },
-  {
-    id: "form-027",
-    name: "แบบสอบถามโรคเบาหวาน",
-    description: "แบบสอบถามเกี่ยวกับโรคเบาหวาน",
-    file: "/forms/แบบสอบถามโรคเบาหวาน.pdf",
-    active: true,
-    order: 27,
-    version: "2026-09",
-  },
+
   {
     id: "form-028",
     name: "ใบปะหน้าเคลม",
-    description: "ใบปะหน้าสำหรับเอกสารเคลม",
-    file: "/forms/ใบปะหน้าเคลม.pdf",
+    description:
+      "ใบปะหน้าสำหรับเอกสารเคลม",
+    file:
+      "/forms/ใบปะหน้าเคลม.pdf",
     active: true,
-    order: 28,
+    order: 7,
     version: "2026-09",
+    categories: ["เคลม"],
   },
 ];
 
@@ -274,9 +440,10 @@ export default function AgentFormsPage() {
     useState<Theme>("night");
 
   useEffect(() => {
-    const saved = localStorage.getItem(
-      "agent-dev-theme"
-    ) as Theme | null;
+    const saved =
+      localStorage.getItem(
+        "agent-dev-theme"
+      ) as Theme | null;
 
     if (
       saved === "morning" ||
@@ -333,16 +500,27 @@ export default function AgentFormsPage() {
       : "rgba(201,162,75,0.07)",
   };
 
-  const activeForms = useMemo(() => {
-    return FORMS
-      .filter(
+  const activeForms =
+    useMemo(() => {
+      return FORMS.filter(
         (form) => form.active
+      );
+    }, []);
+
+  function getFormsByCategory(
+    category: FormCategory
+  ) {
+    return activeForms
+      .filter((form) =>
+        form.categories.includes(
+          category
+        )
       )
       .sort(
         (a, b) =>
           a.order - b.order
       );
-  }, []);
+  }
 
   return (
     <main
@@ -358,15 +536,13 @@ export default function AgentFormsPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: 1000,
+          maxWidth: 1100,
           margin: "0 auto",
           padding:
             "34px 22px 70px",
         }}
       >
-        {/* =========================
-            HEADER
-        ========================== */}
+        {/* HEADER */}
 
         <header
           style={{
@@ -383,8 +559,7 @@ export default function AgentFormsPage() {
           <div>
             <div
               style={{
-                color:
-                  colors.gold,
+                color: colors.gold,
                 fontSize: 12,
                 fontWeight: 800,
                 letterSpacing: 2.5,
@@ -495,9 +670,7 @@ export default function AgentFormsPage() {
           </div>
         </header>
 
-        {/* =========================
-            BACK BUTTON
-        ========================== */}
+        {/* BACK */}
 
         <a
           href="/agent"
@@ -518,9 +691,7 @@ export default function AgentFormsPage() {
           ← กลับ Agent Portal
         </a>
 
-        {/* =========================
-            INTRO
-        ========================== */}
+        {/* INTRO */}
 
         <section
           style={{
@@ -531,7 +702,7 @@ export default function AgentFormsPage() {
               `1px solid ${colors.border}`,
             background:
               colors.softGold,
-            marginBottom: 26,
+            marginBottom: 36,
           }}
         >
           <div
@@ -554,7 +725,7 @@ export default function AgentFormsPage() {
               marginBottom: 6,
             }}
           >
-            เลือกแบบฟอร์มที่ต้องการใช้งาน
+            เลือกหมวดหมู่และแบบฟอร์มที่ต้องการใช้งาน
           </div>
 
           <div
@@ -565,216 +736,357 @@ export default function AgentFormsPage() {
               lineHeight: 1.6,
             }}
           >
-            เปิดดูเอกสาร PDF
+            แบบฟอร์มแบ่งเป็น
+            ปีแรก ปีต่อ และเคลม
+            สามารถเปิดดู PDF
             หรือดาวน์โหลดเก็บไว้ใช้งานได้ทันที
           </div>
         </section>
 
-        {/* =========================
-            FORM CARDS
-        ========================== */}
+        {/* CATEGORY SECTIONS */}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 18,
-          }}
-        >
-          {activeForms.map(
-            (form) => (
-              <div
-                key={form.id}
+        {CATEGORIES.map(
+          (category) => {
+            const categoryForms =
+              getFormsByCategory(
+                category.id
+              );
+
+            if (
+              categoryForms.length ===
+              0
+            ) {
+              return null;
+            }
+
+            return (
+              <section
+                key={category.id}
                 style={{
-                  background:
-                    colors.card,
-
-                  border:
-                    `1px solid ${colors.border}`,
-
-                  borderRadius: 20,
-
-                  padding: 24,
-
-                  minHeight: 220,
-
-                  display:
-                    "flex",
-
-                  flexDirection:
-                    "column",
-
-                  boxShadow:
-                    isMorning
-                      ? "0 12px 30px rgba(74,55,30,.06)"
-                      : "0 14px 30px rgba(0,0,0,.12)",
+                  marginBottom: 48,
                 }}
               >
-                {/* ICON */}
+                {/* CATEGORY HEADER */}
 
                 <div
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 16,
-                    background:
-                      colors.softGold,
-
-                    display:
-                      "flex",
-
+                    display: "flex",
                     alignItems:
                       "center",
-
                     justifyContent:
-                      "center",
-
-                    fontSize: 28,
+                      "space-between",
+                    gap: 16,
+                    flexWrap:
+                      "wrap",
                     marginBottom: 20,
+                    paddingBottom: 14,
+                    borderBottom:
+                      `1px solid ${colors.border}`,
                   }}
                 >
-                  📄
-                </div>
+                  <div>
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        alignItems:
+                          "center",
+                        gap: 10,
+                        marginBottom: 5,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 25,
+                        }}
+                      >
+                        {
+                          category.icon
+                        }
+                      </span>
 
-                {/* TITLE */}
+                      <h2
+                        style={{
+                          margin: 0,
+                          fontSize: 27,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {
+                          category.title
+                        }
+                      </h2>
+                    </div>
 
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 800,
-                    lineHeight: 1.4,
-                    marginBottom: 9,
-                  }}
-                >
-                  {form.name}
-                </div>
+                    <div
+                      style={{
+                        color:
+                          colors.muted,
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {
+                        category.description
+                      }
+                    </div>
+                  </div>
 
-                {/* DESCRIPTION */}
-
-                {form.description && (
                   <div
                     style={{
+                      padding:
+                        "7px 12px",
+                      borderRadius:
+                        999,
+                      background:
+                        colors.softGold,
                       color:
-                        colors.muted,
-
-                      fontSize: 14,
-                      lineHeight: 1.6,
-                      marginBottom: 12,
+                        colors.gold,
+                      fontSize: 12,
+                      fontWeight: 800,
                     }}
                   >
                     {
-                      form.description
-                    }
+                      categoryForms.length
+                    }{" "}
+                    แบบฟอร์ม
                   </div>
-                )}
+                </div>
 
-                {/* VERSION */}
-
-                {form.version && (
-                  <div
-                    style={{
-                      color:
-                        colors.muted,
-
-                      fontSize: 11,
-                      marginBottom: 20,
-                    }}
-                  >
-                    Version:{" "}
-                    {form.version}
-                  </div>
-                )}
-
-                {/* ACTIONS */}
+                {/* CARDS */}
 
                 <div
                   style={{
-                    display:
-                      "flex",
-                    gap: 10,
-                    flexWrap:
-                      "wrap",
-                    marginTop:
-                      "auto",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit, minmax(280px, 1fr))",
+                    gap: 18,
                   }}
                 >
-                  <a
-                    href={form.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      minWidth: 110,
+                  {categoryForms.map(
+                    (form) => (
+                      <div
+                        key={`${category.id}-${form.id}`}
+                        style={{
+                          background:
+                            colors.card,
 
-                      textAlign:
-                        "center",
+                          border:
+                            `1px solid ${colors.border}`,
 
-                      textDecoration:
-                        "none",
+                          borderRadius:
+                            20,
 
-                      background:
-                        colors.gold,
+                          padding: 24,
 
-                      color:
-                        "#18120A",
+                          minHeight:
+                            220,
 
-                      padding:
-                        "11px 14px",
+                          display:
+                            "flex",
 
-                      borderRadius: 12,
+                          flexDirection:
+                            "column",
 
-                      fontSize: 13,
+                          boxShadow:
+                            isMorning
+                              ? "0 12px 30px rgba(74,55,30,.06)"
+                              : "0 14px 30px rgba(0,0,0,.12)",
+                        }}
+                      >
+                        {/* ICON */}
 
-                      fontWeight: 800,
-                    }}
-                  >
-                    เปิดดู PDF
-                  </a>
+                        <div
+                          style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius:
+                              16,
 
-                  <a
-                    href={form.file}
-                    download
-                    style={{
-                      flex: 1,
-                      minWidth: 110,
+                            background:
+                              colors.softGold,
 
-                      textAlign:
-                        "center",
+                            display:
+                              "flex",
 
-                      textDecoration:
-                        "none",
+                            alignItems:
+                              "center",
 
-                      background:
-                        "transparent",
+                            justifyContent:
+                              "center",
 
-                      color:
-                        colors.gold,
+                            fontSize: 28,
+                            marginBottom:
+                              20,
+                          }}
+                        >
+                          📄
+                        </div>
 
-                      border:
-                        `1px solid ${colors.gold}`,
+                        {/* TITLE */}
 
-                      padding:
-                        "10px 14px",
+                        <div
+                          style={{
+                            fontSize: 20,
+                            fontWeight:
+                              800,
+                            lineHeight:
+                              1.4,
+                            marginBottom:
+                              9,
+                          }}
+                        >
+                          {
+                            form.name
+                          }
+                        </div>
 
-                      borderRadius: 12,
+                        {/* DESCRIPTION */}
 
-                      fontSize: 13,
+                        {form.description && (
+                          <div
+                            style={{
+                              color:
+                                colors.muted,
 
-                      fontWeight: 800,
-                    }}
-                  >
-                    ดาวน์โหลด
-                  </a>
+                              fontSize:
+                                14,
+                              lineHeight:
+                                1.6,
+                              marginBottom:
+                                12,
+                            }}
+                          >
+                            {
+                              form.description
+                            }
+                          </div>
+                        )}
+
+                        {/* VERSION */}
+
+                        {form.version && (
+                          <div
+                            style={{
+                              color:
+                                colors.muted,
+
+                              fontSize:
+                                11,
+                              marginBottom:
+                                20,
+                            }}
+                          >
+                            Version:{" "}
+                            {
+                              form.version
+                            }
+                          </div>
+                        )}
+
+                        {/* ACTIONS */}
+
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            gap: 10,
+                            flexWrap:
+                              "wrap",
+                            marginTop:
+                              "auto",
+                          }}
+                        >
+                          <a
+                            href={
+                              form.file
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              minWidth:
+                                110,
+
+                              textAlign:
+                                "center",
+
+                              textDecoration:
+                                "none",
+
+                              background:
+                                colors.gold,
+
+                              color:
+                                "#18120A",
+
+                              padding:
+                                "11px 14px",
+
+                              borderRadius:
+                                12,
+
+                              fontSize:
+                                13,
+
+                              fontWeight:
+                                800,
+                            }}
+                          >
+                            เปิดดู PDF
+                          </a>
+
+                          <a
+                            href={
+                              form.file
+                            }
+                            download
+                            style={{
+                              flex: 1,
+                              minWidth:
+                                110,
+
+                              textAlign:
+                                "center",
+
+                              textDecoration:
+                                "none",
+
+                              background:
+                                "transparent",
+
+                              color:
+                                colors.gold,
+
+                              border:
+                                `1px solid ${colors.gold}`,
+
+                              padding:
+                                "10px 14px",
+
+                              borderRadius:
+                                12,
+
+                              fontSize:
+                                13,
+
+                              fontWeight:
+                                800,
+                            }}
+                          >
+                            ดาวน์โหลด
+                          </a>
+                        </div>
+                      </div>
+                    )
+                  )}
                 </div>
-              </div>
-            )
-          )}
-        </div>
+              </section>
+            );
+          }
+        )}
 
-        {/* =========================
-            EMPTY STATE
-        ========================== */}
+        {/* EMPTY */}
 
         {activeForms.length ===
           0 && (
@@ -797,9 +1109,7 @@ export default function AgentFormsPage() {
           </div>
         )}
 
-        {/* =========================
-            FOOTER
-        ========================== */}
+        {/* FOOTER */}
 
         <footer
           style={{
