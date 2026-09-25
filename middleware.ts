@@ -17,6 +17,7 @@ const PUBLIC_PATHS = [
   "/annual-target",
   "/illustrations",
   "/vendor",
+  "/forms",
   "/auth/confirm",
 ];
 
