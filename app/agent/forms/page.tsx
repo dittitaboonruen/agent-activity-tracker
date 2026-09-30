@@ -6,12 +6,15 @@ import {
   useState,
 } from "react";
 
-type Theme = "morning" | "night";
+type Theme =
+  | "morning"
+  | "night";
 
 type FormCategory =
   | "ปีแรก"
   | "ปีต่อ"
-  | "เคลม";
+  | "เคลม"
+  | "Keyman";
 
 type FormItem = {
   id: string;
@@ -44,7 +47,7 @@ const CATEGORIES: CategoryItem[] = [
     icon: "📁",
     title: "ปีต่อ",
     description:
-      "แบบฟอร์มสำหรับการดูแลกรมธรรม์และการดำเนินงานในปีต่อ",
+      "แบบฟอร์มสำหรับการดูแลกรมธรรม์ การเปลี่ยนแปลง และการดำเนินงานในปีต่อ",
   },
   {
     id: "เคลม",
@@ -53,13 +56,21 @@ const CATEGORIES: CategoryItem[] = [
     description:
       "แบบฟอร์มสำหรับการเรียกร้องสินไหมและการเคลม",
   },
+  {
+    id: "Keyman",
+    icon: "📁",
+    title: "Keyman",
+    description:
+      "แบบฟอร์มสำหรับงาน Keyman",
+  },
 ];
 
 const FORMS: FormItem[] = [
   {
     id: "form-001",
     name: "W8BEN",
-    description: "แบบฟอร์ม W-8BEN",
+    description:
+      "แบบฟอร์ม W-8BEN",
     file: "/forms/w8ben.pdf",
     active: true,
     order: 1,
@@ -69,7 +80,8 @@ const FORMS: FormItem[] = [
   {
     id: "form-002",
     name: "W9",
-    description: "แบบฟอร์ม W-9",
+    description:
+      "แบบฟอร์ม W-9",
     file: "/forms/w9.pdf",
     active: true,
     order: 2,
@@ -79,17 +91,22 @@ const FORMS: FormItem[] = [
   {
     id: "form-003",
     name: "ขอประวัติ",
-    description: "แบบฟอร์มสำหรับขอประวัติ",
+    description:
+      "แบบฟอร์มสำหรับขอประวัติ",
     file: "/forms/ขอประวัติ.pdf",
     active: true,
     order: 3,
     version: "2026-09",
-    categories: ["ปีแรก", "เคลม"],
+    categories: [
+      "ปีแรก",
+      "เคลม",
+    ],
   },
   {
     id: "form-004",
     name: "ขอเอกสารคืน",
-    description: "แบบฟอร์มสำหรับขอเอกสารคืน",
+    description:
+      "แบบฟอร์มสำหรับขอเอกสารคืน",
     file: "/forms/ขอเอกสารคืน.pdf",
     active: true,
     order: 1,
@@ -123,7 +140,8 @@ const FORMS: FormItem[] = [
     name: "หนังสือรับรองสุขภาพ",
     description:
       "หนังสือรับรองสุขภาพสำหรับประกอบเอกสาร",
-    file: "/forms/หนังสือรับรองสุขภาพ.pdf",
+    file:
+      "/forms/หนังสือรับรองสุขภาพ.pdf",
     active: true,
     order: 1,
     version: "2026-09",
@@ -134,7 +152,8 @@ const FORMS: FormItem[] = [
     name: "เคลมผู้ป่วยนอก",
     description:
       "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
-    file: "/forms/เคลมผู้ป่วยนอก.pdf",
+    file:
+      "/forms/เคลมผู้ป่วยนอก.pdf",
     active: true,
     order: 4,
     version: "2026-09",
@@ -142,7 +161,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-009",
-    name: "เรียกร้องเสียชีวิต (ตัวแทน)",
+    name:
+      "เรียกร้องเสียชีวิต (ตัวแทน)",
     description:
       "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
     file:
@@ -154,7 +174,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-010",
-    name: "เรียกร้องเสียชีวิต (ลูกค้า)",
+    name:
+      "เรียกร้องเสียชีวิต (ลูกค้า)",
     description:
       "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
     file:
@@ -205,7 +226,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-014",
-    name: "แบบสอบถามการสูบบุหรี่",
+    name:
+      "แบบสอบถามการสูบบุหรี่",
     description:
       "แบบสอบถามเกี่ยวกับประวัติการสูบบุหรี่",
     file:
@@ -217,7 +239,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-015",
-    name: "แบบสอบถามการเจ็บหน้าอก",
+    name:
+      "แบบสอบถามการเจ็บหน้าอก",
     description:
       "แบบสอบถามเกี่ยวกับอาการเจ็บหน้าอก",
     file:
@@ -281,7 +304,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-020",
-    name: "แบบสอบถามอุบัติเหตุ",
+    name:
+      "แบบสอบถามอุบัติเหตุ",
     description:
       "แบบสอบถามเกี่ยวกับประวัติหรือรายละเอียดอุบัติเหตุ",
     file:
@@ -332,7 +356,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-024",
-    name: "แบบสอบถามโรคภูมิแพ้",
+    name:
+      "แบบสอบถามโรคภูมิแพ้",
     description:
       "แบบสอบถามเกี่ยวกับโรคภูมิแพ้",
     file:
@@ -344,7 +369,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-025",
-    name: "แบบสอบถามโรคลมชัก",
+    name:
+      "แบบสอบถามโรคลมชัก",
     description:
       "แบบสอบถามเกี่ยวกับโรคลมชัก",
     file:
@@ -356,7 +382,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-026",
-    name: "แบบสอบถามโรคหอบหืด",
+    name:
+      "แบบสอบถามโรคหอบหืด",
     description:
       "แบบสอบถามเกี่ยวกับโรคหอบหืด",
     file:
@@ -368,7 +395,8 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-027",
-    name: "แบบสอบถามโรคเบาหวาน",
+    name:
+      "แบบสอบถามโรคเบาหวาน",
     description:
       "แบบสอบถามเกี่ยวกับโรคเบาหวาน",
     file:
@@ -389,6 +417,91 @@ const FORMS: FormItem[] = [
     order: 7,
     version: "2026-09",
     categories: ["เคลม"],
+  },
+
+  // =========================
+  // ปีแรก - เพิ่มใหม่
+  // =========================
+
+  {
+    id: "form-029",
+    name:
+      "บันทึกคำยืนยันสถานที่ชักชวนการสมัครเอาประกันอุบัติเหตุ",
+    description:
+      "บันทึกคำยืนยันสถานที่ชักชวนการสมัครเอาประกันอุบัติเหตุ",
+    file:
+      "/forms/บันทึกคำยืนยันสถานที่ชักชวนการสมัครเอาประกันอุบัติเหตุ.pdf",
+    active: true,
+    order: 21,
+    version: "2026-09",
+    categories: ["ปีแรก"],
+  },
+
+  // =========================
+  // ปีต่อ - เพิ่มใหม่
+  // =========================
+
+  {
+    id: "form-030",
+    name: "กู้",
+    description:
+      "แบบฟอร์มสำหรับการกู้",
+    file: "/forms/กู้.PDF",
+    active: true,
+    order: 2,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
+  },
+  {
+    id: "form-031",
+    name: "ฟอร์มเงินคืน",
+    description:
+      "แบบฟอร์มสำหรับดำเนินการเกี่ยวกับเงินคืน",
+    file:
+      "/forms/ฟอร์มเงินคืน.pdf",
+    active: true,
+    order: 3,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
+  },
+  {
+    id: "form-032",
+    name:
+      "ใบนำส่งเปลี่ยนแปลง",
+    description:
+      "ใบนำส่งสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
+    file:
+      "/forms/ใบนำส่งเปลี่ยนแปลง.PDF",
+    active: true,
+    order: 4,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
+  },
+  {
+    id: "form-033",
+    name:
+      "ใบเปลี่ยนแปลง 2",
+    description:
+      "แบบฟอร์มสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
+    file:
+      "/forms/ใบเปลี่ยนแปลง2.pdf",
+    active: true,
+    order: 5,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
+  },
+  {
+    id: "form-034",
+    name:
+      "ใบเปลี่ยนแปลงแบบ 1",
+    description:
+      "แบบฟอร์มสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
+    file:
+      "/forms/ใบเปลี่ยนแปลงแบบ1.pdf",
+    active: true,
+    order: 6,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
   },
 ];
 
@@ -511,6 +624,8 @@ export default function AgentFormsPage() {
         background:
           colors.background,
         color: colors.text,
+        transition:
+          "background .25s ease, color .25s ease",
       }}
     >
       <div
@@ -522,13 +637,17 @@ export default function AgentFormsPage() {
             "34px 22px 70px",
         }}
       >
-        {/* HEADER */}
+        {/* =========================
+            HEADER
+        ========================== */}
 
         <header
           style={{
             display: "flex",
             justifyContent:
               "space-between",
+            alignItems:
+              "flex-start",
             gap: 24,
             flexWrap: "wrap",
             marginBottom: 32,
@@ -551,7 +670,10 @@ export default function AgentFormsPage() {
               style={{
                 margin: 0,
                 fontSize:
-                  "clamp(34px,6vw,54px)",
+                  "clamp(34px, 6vw, 54px)",
+                lineHeight: 1.05,
+                letterSpacing:
+                  "-1px",
               }}
             >
               แบบฟอร์มเอกสาร
@@ -559,15 +681,20 @@ export default function AgentFormsPage() {
 
             <p
               style={{
+                marginTop: 12,
+                marginBottom: 0,
                 color:
                   colors.muted,
                 fontSize: 15,
+                lineHeight: 1.6,
               }}
             >
               เลือกหมวดหมู่
-              แล้วเลือกแบบฟอร์มที่ต้องการ
+              แล้วเลือกแบบฟอร์มที่ต้องการใช้งาน
             </p>
           </div>
+
+          {/* THEME SWITCH */}
 
           <div
             style={{
@@ -583,6 +710,7 @@ export default function AgentFormsPage() {
             }}
           >
             <button
+              type="button"
               onClick={() =>
                 changeTheme(
                   "morning"
@@ -595,16 +723,22 @@ export default function AgentFormsPage() {
                   "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
+
                 background:
                   isMorning
                     ? colors.gold
                     : "transparent",
+
+                color: isMorning
+                  ? "#18120A"
+                  : colors.muted,
               }}
             >
               ☀️ เช้า
             </button>
 
             <button
+              type="button"
               onClick={() =>
                 changeTheme(
                   "night"
@@ -617,10 +751,15 @@ export default function AgentFormsPage() {
                   "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
+
                 background:
                   !isMorning
                     ? colors.gold
                     : "transparent",
+
+                color: !isMorning
+                  ? "#18120A"
+                  : colors.muted,
               }}
             >
               🌙 กลางคืน
@@ -628,12 +767,16 @@ export default function AgentFormsPage() {
           </div>
         </header>
 
-        {/* BACK */}
+        {/* =========================
+            BACK
+        ========================== */}
 
         {!selectedCategory ? (
           <a
             href="/agent"
             style={{
+              display:
+                "inline-flex",
               color:
                 colors.gold,
               textDecoration:
@@ -668,7 +811,9 @@ export default function AgentFormsPage() {
           </button>
         )}
 
-        {/* CATEGORY VIEW */}
+        {/* =========================
+            CATEGORY VIEW
+        ========================== */}
 
         {!selectedCategory && (
           <>
@@ -687,6 +832,20 @@ export default function AgentFormsPage() {
             >
               <div
                 style={{
+                  color:
+                    colors.gold,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing:
+                    1.5,
+                  marginBottom: 7,
+                }}
+              >
+                DOCUMENT FORMS
+              </div>
+
+              <div
+                style={{
                   fontSize: 20,
                   fontWeight: 800,
                   marginBottom: 6,
@@ -700,6 +859,7 @@ export default function AgentFormsPage() {
                   color:
                     colors.muted,
                   fontSize: 14,
+                  lineHeight: 1.6,
                 }}
               >
                 เลือกโฟลเดอร์ที่ต้องการ
@@ -711,107 +871,115 @@ export default function AgentFormsPage() {
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "repeat(auto-fit,minmax(260px,1fr))",
+                  "repeat(auto-fit, minmax(240px, 1fr))",
                 gap: 18,
               }}
             >
               {CATEGORIES.map(
-                (category) => (
-                  <button
-                    key={
+                (category) => {
+                  const count =
+                    getCategoryCount(
                       category.id
-                    }
-                    type="button"
-                    onClick={() =>
-                      setSelectedCategory(
+                    );
+
+                  return (
+                    <button
+                      key={
                         category.id
-                      )
-                    }
-                    style={{
-                      textAlign:
-                        "left",
-                      background:
-                        colors.card,
-                      color:
-                        colors.text,
-                      border:
-                        `1px solid ${colors.border}`,
-                      borderRadius:
-                        20,
-                      padding: 26,
-                      minHeight: 220,
-                      cursor:
-                        "pointer",
-                      boxShadow:
-                        isMorning
-                          ? "0 12px 30px rgba(74,55,30,.06)"
-                          : "0 14px 30px rgba(0,0,0,.12)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 42,
-                        marginBottom:
-                          18,
-                      }}
-                    >
-                      {
-                        category.icon
                       }
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: 25,
-                        fontWeight:
-                          800,
-                        marginBottom:
-                          8,
-                      }}
-                    >
-                      {
-                        category.title
+                      type="button"
+                      onClick={() =>
+                        setSelectedCategory(
+                          category.id
+                        )
                       }
-                    </div>
-
-                    <div
                       style={{
+                        textAlign:
+                          "left",
+                        background:
+                          colors.card,
                         color:
-                          colors.muted,
-                        fontSize: 14,
-                        lineHeight:
-                          1.6,
-                        marginBottom:
+                          colors.text,
+                        border:
+                          `1px solid ${colors.border}`,
+                        borderRadius:
                           20,
-                      }}
-                    >
-                      {
-                        category.description
-                      }
-                    </div>
+                        padding: 26,
+                        minHeight:
+                          220,
+                        cursor:
+                          "pointer",
 
-                    <div
-                      style={{
-                        color:
-                          colors.gold,
-                        fontWeight:
-                          800,
-                        fontSize: 13,
+                        boxShadow:
+                          isMorning
+                            ? "0 12px 30px rgba(74,55,30,.06)"
+                            : "0 14px 30px rgba(0,0,0,.12)",
                       }}
                     >
-                      {getCategoryCount(
-                        category.id
-                      )}{" "}
-                      แบบฟอร์ม →
-                    </div>
-                  </button>
-                )
+                      <div
+                        style={{
+                          fontSize: 42,
+                          marginBottom:
+                            18,
+                        }}
+                      >
+                        {
+                          category.icon
+                        }
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 25,
+                          fontWeight:
+                            800,
+                          marginBottom:
+                            8,
+                        }}
+                      >
+                        {
+                          category.title
+                        }
+                      </div>
+
+                      <div
+                        style={{
+                          color:
+                            colors.muted,
+                          fontSize: 14,
+                          lineHeight:
+                            1.6,
+                          marginBottom:
+                            20,
+                        }}
+                      >
+                        {
+                          category.description
+                        }
+                      </div>
+
+                      <div
+                        style={{
+                          color:
+                            colors.gold,
+                          fontWeight:
+                            800,
+                          fontSize: 13,
+                        }}
+                      >
+                        {count} แบบฟอร์ม →
+                      </div>
+                    </button>
+                  );
+                }
               )}
             </div>
           </>
         )}
 
-        {/* FORMS VIEW */}
+        {/* =========================
+            FORMS VIEW
+        ========================== */}
 
         {selectedCategory && (
           <>
@@ -825,6 +993,7 @@ export default function AgentFormsPage() {
                 style={{
                   fontSize: 32,
                   fontWeight: 800,
+                  lineHeight: 1.2,
                 }}
               >
                 📁{" "}
@@ -835,9 +1004,10 @@ export default function AgentFormsPage() {
 
               <div
                 style={{
-                  marginTop: 6,
+                  marginTop: 7,
                   color:
                     colors.muted,
+                  fontSize: 14,
                 }}
               >
                 {
@@ -847,183 +1017,255 @@ export default function AgentFormsPage() {
               </div>
             </section>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit,minmax(280px,1fr))",
-                gap: 18,
-              }}
-            >
-              {selectedForms.map(
-                (form) => (
-                  <div
-                    key={
-                      form.id
-                    }
-                    style={{
-                      background:
-                        colors.card,
-                      border:
-                        `1px solid ${colors.border}`,
-                      borderRadius:
-                        20,
-                      padding: 24,
-                      minHeight:
-                        220,
-                      display:
-                        "flex",
-                      flexDirection:
-                        "column",
-                    }}
-                  >
+            {/* EMPTY CATEGORY */}
+
+            {selectedForms.length ===
+            0 ? (
+              <div
+                style={{
+                  padding:
+                    "42px 24px",
+                  textAlign:
+                    "center",
+                  background:
+                    colors.card,
+                  border:
+                    `1px solid ${colors.border}`,
+                  borderRadius:
+                    20,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 42,
+                    marginBottom: 14,
+                  }}
+                >
+                  📂
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    marginBottom: 7,
+                  }}
+                >
+                  ยังไม่มีแบบฟอร์มในหมวดนี้
+                </div>
+
+                <div
+                  style={{
+                    color:
+                      colors.muted,
+                    fontSize: 14,
+                  }}
+                >
+                  สามารถเพิ่มแบบฟอร์มเข้ามาในภายหลังได้
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 18,
+                }}
+              >
+                {selectedForms.map(
+                  (form) => (
                     <div
+                      key={
+                        form.id
+                      }
                       style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius:
-                          16,
                         background:
-                          colors.softGold,
+                          colors.card,
+
+                        border:
+                          `1px solid ${colors.border}`,
+
+                        borderRadius:
+                          20,
+
+                        padding: 24,
+
+                        minHeight:
+                          220,
+
                         display:
                           "flex",
-                        alignItems:
-                          "center",
-                        justifyContent:
-                          "center",
-                        fontSize: 28,
-                        marginBottom:
-                          20,
-                      }}
-                    >
-                      📄
-                    </div>
 
-                    <div
-                      style={{
-                        fontSize: 20,
-                        fontWeight:
-                          800,
-                        lineHeight:
-                          1.4,
-                        marginBottom:
-                          9,
-                      }}
-                    >
-                      {
-                        form.name
-                      }
-                    </div>
+                        flexDirection:
+                          "column",
 
-                    <div
-                      style={{
-                        color:
-                          colors.muted,
-                        fontSize: 14,
-                        lineHeight:
-                          1.6,
-                        marginBottom:
-                          12,
+                        boxShadow:
+                          isMorning
+                            ? "0 12px 30px rgba(74,55,30,.06)"
+                            : "0 14px 30px rgba(0,0,0,.12)",
                       }}
                     >
-                      {
-                        form.description
-                      }
-                    </div>
-
-                    <div
-                      style={{
-                        color:
-                          colors.muted,
-                        fontSize: 11,
-                        marginBottom:
-                          20,
-                      }}
-                    >
-                      Version:{" "}
-                      {
-                        form.version
-                      }
-                    </div>
-
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        gap: 10,
-                        flexWrap:
-                          "wrap",
-                        marginTop:
-                          "auto",
-                      }}
-                    >
-                      <a
-                        href={
-                          form.file
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <div
                         style={{
-                          flex: 1,
-                          minWidth:
-                            110,
-                          textAlign:
-                            "center",
-                          textDecoration:
-                            "none",
+                          width: 56,
+                          height: 56,
+                          borderRadius:
+                            16,
                           background:
-                            colors.gold,
-                          color:
-                            "#18120A",
-                          padding:
-                            "11px 14px",
-                          borderRadius:
-                            12,
-                          fontSize:
-                            13,
-                          fontWeight:
-                            800,
-                        }}
-                      >
-                        เปิดดู PDF
-                      </a>
-
-                      <a
-                        href={
-                          form.file
-                        }
-                        download
-                        style={{
-                          flex: 1,
-                          minWidth:
-                            110,
-                          textAlign:
+                            colors.softGold,
+                          display:
+                            "flex",
+                          alignItems:
                             "center",
-                          textDecoration:
-                            "none",
-                          color:
-                            colors.gold,
-                          border:
-                            `1px solid ${colors.gold}`,
-                          padding:
-                            "10px 14px",
-                          borderRadius:
-                            12,
-                          fontSize:
-                            13,
-                          fontWeight:
-                            800,
+                          justifyContent:
+                            "center",
+                          fontSize: 28,
+                          marginBottom:
+                            20,
                         }}
                       >
-                        ดาวน์โหลด
-                      </a>
+                        📄
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 20,
+                          fontWeight:
+                            800,
+                          lineHeight:
+                            1.4,
+                          marginBottom:
+                            9,
+                        }}
+                      >
+                        {
+                          form.name
+                        }
+                      </div>
+
+                      {form.description && (
+                        <div
+                          style={{
+                            color:
+                              colors.muted,
+                            fontSize:
+                              14,
+                            lineHeight:
+                              1.6,
+                            marginBottom:
+                              12,
+                          }}
+                        >
+                          {
+                            form.description
+                          }
+                        </div>
+                      )}
+
+                      {form.version && (
+                        <div
+                          style={{
+                            color:
+                              colors.muted,
+                            fontSize:
+                              11,
+                            marginBottom:
+                              20,
+                          }}
+                        >
+                          Version:{" "}
+                          {
+                            form.version
+                          }
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          gap: 10,
+                          flexWrap:
+                            "wrap",
+                          marginTop:
+                            "auto",
+                        }}
+                      >
+                        <a
+                          href={
+                            form.file
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            minWidth:
+                              110,
+                            textAlign:
+                              "center",
+                            textDecoration:
+                              "none",
+                            background:
+                              colors.gold,
+                            color:
+                              "#18120A",
+                            padding:
+                              "11px 14px",
+                            borderRadius:
+                              12,
+                            fontSize:
+                              13,
+                            fontWeight:
+                              800,
+                          }}
+                        >
+                          เปิดดู PDF
+                        </a>
+
+                        <a
+                          href={
+                            form.file
+                          }
+                          download
+                          style={{
+                            flex: 1,
+                            minWidth:
+                              110,
+                            textAlign:
+                              "center",
+                            textDecoration:
+                              "none",
+                            background:
+                              "transparent",
+                            color:
+                              colors.gold,
+                            border:
+                              `1px solid ${colors.gold}`,
+                            padding:
+                              "10px 14px",
+                            borderRadius:
+                              12,
+                            fontSize:
+                              13,
+                            fontWeight:
+                              800,
+                          }}
+                        >
+                          ดาวน์โหลด
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                )
-              )}
-            </div>
+                  )
+                )}
+              </div>
+            )}
           </>
         )}
+
+        {/* =========================
+            FOOTER
+        ========================== */}
 
         <footer
           style={{
@@ -1033,6 +1275,7 @@ export default function AgentFormsPage() {
             color:
               colors.muted,
             fontSize: 12,
+            lineHeight: 1.6,
           }}
         >
           Royal Partner ·
