@@ -18,6 +18,7 @@ type FormItem = {
   id: string;
   name: string;
   description?: string;
+  note?: string;
   file: string;
   active: boolean;
   order: number;
@@ -343,7 +344,8 @@ const FORMS: FormItem[] = [
   {
     id: "form-030",
     name: "กู้",
-    description: "แบบฟอร์มสำหรับการกู้",
+    description:
+      "แบบฟอร์มสำหรับการกู้",
     file: "/forms/กู้.PDF",
     active: true,
     order: 2,
@@ -488,11 +490,6 @@ const FORMS: FormItem[] = [
     version: "2026-09",
     categories: ["เคลม"],
   },
-
-  // ขอประวัติ = form-003
-  // อยู่ทั้งปีแรกและเคลม
-  // ดังนั้นจะเป็นลำดับที่ 8 ของหมวดเคลม
-
   {
     id: "form-035",
     name: "เคลมมะเร็งไม่ลุกลาม",
@@ -544,7 +541,22 @@ const FORMS: FormItem[] = [
   // =========================
   // Keyman
   // =========================
-  // ยังไม่มีแบบฟอร์ม
+
+  {
+    id: "form-039",
+    name:
+      "รายงานการประชุม - ขอหนังสือรับรองการชำระ",
+    description:
+      "เอกสารรายงานการประชุมและขอหนังสือรับรองการชำระ",
+    note:
+      "เอกสารที่ต้องแนบมาพร้อมกับจดหมายฉบับนี้ด้วยคือ ใบสำคัญจ่าย (ที่ทางบริษัทของผู้เอาประกันจะเป็นผู้ออกให้)",
+    file:
+      "/forms/รายงานการประชุม - ขอหนังสือรับรองการชำระ.pdf",
+    active: true,
+    order: 1,
+    version: "2026-10",
+    categories: ["Keyman"],
+  },
 ];
 
 export default function AgentFormsPage() {
@@ -570,6 +582,11 @@ export default function AgentFormsPage() {
       saved === "night"
     ) {
       setTheme(saved);
+
+      document.documentElement.setAttribute(
+        "data-rp-theme",
+        saved
+      );
     }
   }, []);
 
@@ -765,12 +782,10 @@ export default function AgentFormsPage() {
                   "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
-
                 background:
                   isMorning
                     ? colors.gold
                     : "transparent",
-
                 color: isMorning
                   ? "#18120A"
                   : colors.muted,
@@ -793,12 +808,10 @@ export default function AgentFormsPage() {
                   "9px 14px",
                 cursor: "pointer",
                 fontWeight: 700,
-
                 background:
                   !isMorning
                     ? colors.gold
                     : "transparent",
-
                 color: !isMorning
                   ? "#18120A"
                   : colors.muted,
@@ -951,7 +964,6 @@ export default function AgentFormsPage() {
                           220,
                         cursor:
                           "pointer",
-
                         boxShadow:
                           isMorning
                             ? "0 12px 30px rgba(74,55,30,.06)"
@@ -1124,24 +1136,17 @@ export default function AgentFormsPage() {
                       style={{
                         background:
                           colors.card,
-
                         border:
                           `1px solid ${colors.border}`,
-
                         borderRadius:
                           20,
-
                         padding: 24,
-
                         minHeight:
                           220,
-
                         display:
                           "flex",
-
                         flexDirection:
                           "column",
-
                         boxShadow:
                           isMorning
                             ? "0 12px 30px rgba(74,55,30,.06)"
@@ -1202,6 +1207,51 @@ export default function AgentFormsPage() {
                           {
                             form.description
                           }
+                        </div>
+                      )}
+
+                      {form.note && (
+                        <div
+                          style={{
+                            background:
+                              colors.softGold,
+                            border:
+                              `1px solid ${colors.border}`,
+                            borderRadius:
+                              12,
+                            padding:
+                              "12px 14px",
+                            marginBottom:
+                              16,
+                            fontSize:
+                              13,
+                            lineHeight:
+                              1.7,
+                          }}
+                        >
+                          <div
+                            style={{
+                              color:
+                                colors.gold,
+                              fontWeight:
+                                800,
+                              marginBottom:
+                                5,
+                            }}
+                          >
+                            ⚠️ หมายเหตุ
+                          </div>
+
+                          <div
+                            style={{
+                              color:
+                                colors.text,
+                            }}
+                          >
+                            {
+                              form.note
+                            }
+                          </div>
                         </div>
                       )}
 
