@@ -6,9 +6,7 @@ import {
   useState,
 } from "react";
 
-type Theme =
-  | "morning"
-  | "night";
+type Theme = "morning" | "night";
 
 type FormCategory =
   | "ปีแรก"
@@ -66,11 +64,14 @@ const CATEGORIES: CategoryItem[] = [
 ];
 
 const FORMS: FormItem[] = [
+  // =========================
+  // ปีแรก
+  // =========================
+
   {
     id: "form-001",
     name: "W8BEN",
-    description:
-      "แบบฟอร์ม W-8BEN",
+    description: "แบบฟอร์ม W-8BEN",
     file: "/forms/w8ben.pdf",
     active: true,
     order: 1,
@@ -80,8 +81,7 @@ const FORMS: FormItem[] = [
   {
     id: "form-002",
     name: "W9",
-    description:
-      "แบบฟอร์ม W-9",
+    description: "แบบฟอร์ม W-9",
     file: "/forms/w9.pdf",
     active: true,
     order: 2,
@@ -91,99 +91,12 @@ const FORMS: FormItem[] = [
   {
     id: "form-003",
     name: "ขอประวัติ",
-    description:
-      "แบบฟอร์มสำหรับขอประวัติ",
+    description: "แบบฟอร์มสำหรับขอประวัติ",
     file: "/forms/ขอประวัติ.pdf",
     active: true,
     order: 3,
     version: "2026-09",
-    categories: [
-      "ปีแรก",
-      "เคลม",
-    ],
-  },
-  {
-    id: "form-004",
-    name: "ขอเอกสารคืน",
-    description:
-      "แบบฟอร์มสำหรับขอเอกสารคืน",
-    file: "/forms/ขอเอกสารคืน.pdf",
-    active: true,
-    order: 1,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-  {
-    id: "form-005",
-    name: "ทำฟัน",
-    description:
-      "แบบฟอร์มสำหรับการเคลมค่ารักษาทางทันตกรรม",
-    file: "/forms/ทำฟัน.pdf",
-    active: true,
-    order: 2,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-  {
-    id: "form-006",
-    name: "ผู้ป่วยใน",
-    description:
-      "แบบฟอร์มสำหรับการเคลมผู้ป่วยใน",
-    file: "/forms/ผู้ป่วยใน.pdf",
-    active: true,
-    order: 3,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-  {
-    id: "form-007",
-    name: "หนังสือรับรองสุขภาพ",
-    description:
-      "หนังสือรับรองสุขภาพสำหรับประกอบเอกสาร",
-    file:
-      "/forms/หนังสือรับรองสุขภาพ.pdf",
-    active: true,
-    order: 1,
-    version: "2026-09",
-    categories: ["ปีต่อ"],
-  },
-  {
-    id: "form-008",
-    name: "เคลมผู้ป่วยนอก",
-    description:
-      "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
-    file:
-      "/forms/เคลมผู้ป่วยนอก.pdf",
-    active: true,
-    order: 4,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-  {
-    id: "form-009",
-    name:
-      "เรียกร้องเสียชีวิต (ตัวแทน)",
-    description:
-      "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
-    file:
-      "/forms/เรียกร้องเสียชีวิต (ตัวแทน).pdf",
-    active: true,
-    order: 5,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-  {
-    id: "form-010",
-    name:
-      "เรียกร้องเสียชีวิต (ลูกค้า)",
-    description:
-      "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
-    file:
-      "/forms/เรียกร้องเสียชีวิต (ลูกค้า).pdf",
-    active: true,
-    order: 6,
-    version: "2026-09",
-    categories: ["เคลม"],
+    categories: ["ปีแรก", "เคลม"],
   },
   {
     id: "form-011",
@@ -226,8 +139,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-014",
-    name:
-      "แบบสอบถามการสูบบุหรี่",
+    name: "แบบสอบถามการสูบบุหรี่",
     description:
       "แบบสอบถามเกี่ยวกับประวัติการสูบบุหรี่",
     file:
@@ -239,8 +151,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-015",
-    name:
-      "แบบสอบถามการเจ็บหน้าอก",
+    name: "แบบสอบถามการเจ็บหน้าอก",
     description:
       "แบบสอบถามเกี่ยวกับอาการเจ็บหน้าอก",
     file:
@@ -265,8 +176,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-017",
-    name:
-      "แบบสอบถามความดันโลหิตสูง",
+    name: "แบบสอบถามความดันโลหิตสูง",
     description:
       "แบบสอบถามเกี่ยวกับภาวะความดันโลหิตสูง",
     file:
@@ -304,8 +214,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-020",
-    name:
-      "แบบสอบถามอุบัติเหตุ",
+    name: "แบบสอบถามอุบัติเหตุ",
     description:
       "แบบสอบถามเกี่ยวกับประวัติหรือรายละเอียดอุบัติเหตุ",
     file:
@@ -343,8 +252,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-023",
-    name:
-      "แบบสอบถามโรคกระเพาะอาหาร",
+    name: "แบบสอบถามโรคกระเพาะอาหาร",
     description:
       "แบบสอบถามเกี่ยวกับโรคกระเพาะอาหาร",
     file:
@@ -356,8 +264,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-024",
-    name:
-      "แบบสอบถามโรคภูมิแพ้",
+    name: "แบบสอบถามโรคภูมิแพ้",
     description:
       "แบบสอบถามเกี่ยวกับโรคภูมิแพ้",
     file:
@@ -369,8 +276,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-025",
-    name:
-      "แบบสอบถามโรคลมชัก",
+    name: "แบบสอบถามโรคลมชัก",
     description:
       "แบบสอบถามเกี่ยวกับโรคลมชัก",
     file:
@@ -382,8 +288,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-026",
-    name:
-      "แบบสอบถามโรคหอบหืด",
+    name: "แบบสอบถามโรคหอบหืด",
     description:
       "แบบสอบถามเกี่ยวกับโรคหอบหืด",
     file:
@@ -395,8 +300,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-027",
-    name:
-      "แบบสอบถามโรคเบาหวาน",
+    name: "แบบสอบถามโรคเบาหวาน",
     description:
       "แบบสอบถามเกี่ยวกับโรคเบาหวาน",
     file:
@@ -406,23 +310,6 @@ const FORMS: FormItem[] = [
     version: "2026-09",
     categories: ["ปีแรก"],
   },
-  {
-    id: "form-028",
-    name: "ใบปะหน้าเคลม",
-    description:
-      "ใบปะหน้าสำหรับเอกสารเคลม",
-    file:
-      "/forms/ใบปะหน้าเคลม.pdf",
-    active: true,
-    order: 7,
-    version: "2026-09",
-    categories: ["เคลม"],
-  },
-
-  // =========================
-  // ปีแรก - เพิ่มใหม่
-  // =========================
-
   {
     id: "form-029",
     name:
@@ -438,14 +325,25 @@ const FORMS: FormItem[] = [
   },
 
   // =========================
-  // ปีต่อ - เพิ่มใหม่
+  // ปีต่อ
   // =========================
 
   {
+    id: "form-007",
+    name: "หนังสือรับรองสุขภาพ",
+    description:
+      "หนังสือรับรองสุขภาพสำหรับประกอบเอกสาร",
+    file:
+      "/forms/หนังสือรับรองสุขภาพ.pdf",
+    active: true,
+    order: 1,
+    version: "2026-09",
+    categories: ["ปีต่อ"],
+  },
+  {
     id: "form-030",
     name: "กู้",
-    description:
-      "แบบฟอร์มสำหรับการกู้",
+    description: "แบบฟอร์มสำหรับการกู้",
     file: "/forms/กู้.PDF",
     active: true,
     order: 2,
@@ -466,8 +364,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-032",
-    name:
-      "ใบนำส่งเปลี่ยนแปลง",
+    name: "ใบนำส่งเปลี่ยนแปลง",
     description:
       "ใบนำส่งสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
     file:
@@ -479,8 +376,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-033",
-    name:
-      "ใบเปลี่ยนแปลง 2",
+    name: "ใบเปลี่ยนแปลง 2",
     description:
       "แบบฟอร์มสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
     file:
@@ -492,8 +388,7 @@ const FORMS: FormItem[] = [
   },
   {
     id: "form-034",
-    name:
-      "ใบเปลี่ยนแปลงแบบ 1",
+    name: "ใบเปลี่ยนแปลงแบบ 1",
     description:
       "แบบฟอร์มสำหรับการเปลี่ยนแปลงข้อมูลกรมธรรม์",
     file:
@@ -503,6 +398,153 @@ const FORMS: FormItem[] = [
     version: "2026-09",
     categories: ["ปีต่อ"],
   },
+
+  // =========================
+  // เคลม
+  // =========================
+
+  {
+    id: "form-004",
+    name: "ขอเอกสารคืน",
+    description:
+      "แบบฟอร์มสำหรับขอเอกสารคืน",
+    file:
+      "/forms/ขอเอกสารคืน.pdf",
+    active: true,
+    order: 1,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-005",
+    name: "ทำฟัน",
+    description:
+      "แบบฟอร์มสำหรับการเคลมค่ารักษาทางทันตกรรม",
+    file: "/forms/ทำฟัน.pdf",
+    active: true,
+    order: 2,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-006",
+    name: "ผู้ป่วยใน",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยใน",
+    file:
+      "/forms/ผู้ป่วยใน.pdf",
+    active: true,
+    order: 3,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-008",
+    name: "เคลมผู้ป่วยนอก",
+    description:
+      "แบบฟอร์มสำหรับการเคลมผู้ป่วยนอก",
+    file:
+      "/forms/เคลมผู้ป่วยนอก.pdf",
+    active: true,
+    order: 4,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-009",
+    name:
+      "เรียกร้องเสียชีวิต (ตัวแทน)",
+    description:
+      "แบบฟอร์มสำหรับตัวแทน กรณีเรียกร้องสินไหมเสียชีวิต",
+    file:
+      "/forms/เรียกร้องเสียชีวิต (ตัวแทน).pdf",
+    active: true,
+    order: 5,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-010",
+    name:
+      "เรียกร้องเสียชีวิต (ลูกค้า)",
+    description:
+      "แบบฟอร์มสำหรับลูกค้า กรณีเรียกร้องสินไหมเสียชีวิต",
+    file:
+      "/forms/เรียกร้องเสียชีวิต (ลูกค้า).pdf",
+    active: true,
+    order: 6,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-028",
+    name: "ใบปะหน้าเคลม",
+    description:
+      "ใบปะหน้าสำหรับเอกสารเคลม",
+    file:
+      "/forms/ใบปะหน้าเคลม.pdf",
+    active: true,
+    order: 7,
+    version: "2026-09",
+    categories: ["เคลม"],
+  },
+
+  // ขอประวัติ = form-003
+  // อยู่ทั้งปีแรกและเคลม
+  // ดังนั้นจะเป็นลำดับที่ 8 ของหมวดเคลม
+
+  {
+    id: "form-035",
+    name: "เคลมมะเร็งไม่ลุกลาม",
+    description:
+      "แบบฟอร์มสำหรับการเคลมมะเร็งระยะไม่ลุกลาม",
+    file:
+      "/forms/เคลมมะเร็งไม่ลุกลาม.pdf",
+    active: true,
+    order: 9,
+    version: "2026-10",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-036",
+    name: "มะเร็งระยะลุกลาม",
+    description:
+      "แบบฟอร์มสำหรับการเคลมมะเร็งระยะลุกลาม",
+    file:
+      "/forms/มะเร็งระยะลุกลาม.pdf",
+    active: true,
+    order: 10,
+    version: "2026-10",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-037",
+    name: "หลอดเลือดหัวใจตีบ",
+    description:
+      "แบบฟอร์มสำหรับการเคลมกรณีหลอดเลือดหัวใจตีบ",
+    file:
+      "/forms/หลอดเลือดหัวใจตีบ.pdf",
+    active: true,
+    order: 11,
+    version: "2026-10",
+    categories: ["เคลม"],
+  },
+  {
+    id: "form-038",
+    name: "Stroke",
+    description:
+      "แบบฟอร์มสำหรับการเคลมกรณี Stroke",
+    file: "/forms/stroke.pdf",
+    active: true,
+    order: 12,
+    version: "2026-10",
+    categories: ["เคลม"],
+  },
+
+  // =========================
+  // Keyman
+  // =========================
+  // ยังไม่มีแบบฟอร์ม
 ];
 
 export default function AgentFormsPage() {
