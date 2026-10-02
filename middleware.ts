@@ -11,6 +11,12 @@ type Role =
   | "manager"
   | "admin";
 
+const SKOOL_IMPORTER_EMAILS =
+  new Set([
+    "training@royalpartner.org",
+    "newagent@royalpartner.org",
+  ]);
+
 const PUBLIC_PATHS = [
   "/login",
   "/agent",
@@ -30,12 +36,14 @@ const ADMIN_ALLOWED_PATHS = [
   "/",
   "/admin/production",
   "/admin/agents",
+  "/admin/skool-import",
   "/dashboard/performance",
 ];
 
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
+  "/api/admin/skool-import",
   "/api/monthly-performance",
 ];
 
@@ -144,6 +152,21 @@ function isDailyProductionPath(
     pathMatches(
       pathname,
       "/api/daily-production"
+    )
+  );
+}
+
+function isSkoolImportPath(
+  pathname: string
+) {
+  return (
+    pathMatches(
+      pathname,
+      "/admin/skool-import"
+    ) ||
+    pathMatches(
+      pathname,
+      "/api/admin/skool-import"
     )
   );
 }
@@ -413,6 +436,36 @@ export async function middleware(
       response,
       "บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน"
     );
+  }
+
+  /*
+    SKOOL CSV IMPORT
+
+    อนุญาตเฉพาะ Training และ NewAgent
+    API จะตรวจสิทธิ์ซ้ำอีกชั้น
+  */
+
+  if (
+    isSkoolImportPath(
+      pathname
+    )
+  ) {
+    const email =
+      user.email
+        ?.trim()
+        .toLowerCase() ?? "";
+
+    if (
+      !SKOOL_IMPORTER_EMAILS.has(
+        email
+      )
+    ) {
+      return denyAccess(
+        request,
+        response,
+        "บัญชีนี้ไม่มีสิทธิ์นำเข้าข้อมูล Skool"
+      );
+    }
   }
 
   /*
