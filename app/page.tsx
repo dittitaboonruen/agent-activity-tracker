@@ -72,6 +72,21 @@ const sections: ModuleSection[] = [
       },
     ],
   },
+
+  {
+    number: "04",
+    title: "LEARNING",
+    description: "ติดตามการเรียนและพัฒนาศักยภาพตัวแทน",
+    items: [
+      {
+        icon: "🎓",
+        title: "Skool Progress Dashboard",
+        description: "ติดตามคอร์ส เปอร์เซ็นต์ และสถานะการเรียนของตัวแทน",
+        href: "/dashboard/skool",
+        badge: "Learning",
+      },
+    ],
+  },
 ];
 
 export default function PerformanceHubHome() {
