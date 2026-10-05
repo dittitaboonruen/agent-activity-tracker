@@ -57,6 +57,7 @@ import SourceCard from "./SourceCard";
 import AgentTable from "./AgentTable";
 import PepInsightCard from "./PepInsightCard";
 import PepNotesPanel from "./PepNotesPanel";
+import SkoolSummaryCard from "./SkoolSummaryCard";
 
 const GOLD = "#C9A24B";
 const BRONZE = "#4A3B1E";
@@ -790,6 +791,12 @@ export default function Dashboard({
           }
         />
       </div>
+
+      {/* =====================================================
+          SKOOL LEARNING SUMMARY
+      ===================================================== */}
+
+      <SkoolSummaryCard />
 
       {/* =====================================================
           CLOSING + 9 STEPS
