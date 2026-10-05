@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { ensureImportCourses } from "@/lib/skool-import-courses";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSupabaseClient } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
@@ -129,7 +130,14 @@ function toRecords(rows: string[][]): CsvRow[] {
     throw new Error(`CSV_HEADERS:${missingHeaders.join(", ")}`);
   }
 
-  return rows.slice(1).map((values) => {
+  if (new Set(headers).size !== headers.length) {
+    throw new Error("CSV_ROWS:หัวตาราง CSV ซ้ำกัน");
+  }
+
+  return rows.slice(1).map((values, index) => {
+    if (values.length !== headers.length) {
+      throw new Error(`ROW:${index + 2}:จำนวนช่องข้อมูลไม่ตรงกับหัวตาราง`);
+    }
     const record: CsvRow = {};
 
     headers.forEach((header, index) => {
@@ -210,6 +218,7 @@ function validateRows(records: CsvRow[]): ValidatedRow[] {
     const progressPercent = Number(record["Progress %"]);
 
     if (
+      !record["Progress %"].trim() ||
       !Number.isFinite(progressPercent) ||
       progressPercent < 0 ||
       progressPercent > 100
@@ -383,31 +392,10 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
     const classrooms = Array.from(new Set(rows.map((row) => row.classroom)));
 
-    const { data: courses, error: coursesError } = await supabase
-      .from("learning_courses")
-      .select("id, course_name")
-      .in("course_name", classrooms)
-      .eq("active", true);
-
-    if (coursesError) {
-      console.error("[skool-import] course lookup error:", coursesError);
-      return errorResponse("ไม่สามารถตรวจสอบคอร์สได้", 500);
-    }
-
+    const importedCourses = await ensureImportCourses(supabase, classrooms, now);
     const courseByName = new Map(
-      (courses ?? []).map((course) => [String(course.course_name), course.id])
+      importedCourses.map((course) => [course.course_name, course.id])
     );
-
-    const missingCourses = classrooms.filter(
-      (classroom) => !courseByName.has(classroom)
-    );
-
-    if (missingCourses.length > 0) {
-      return errorResponse(
-        `ยังไม่มีคอร์สในระบบ: ${missingCourses.slice(0, 3).join(", ")}`,
-        400
-      );
-    }
 
     const profileUrls = Array.from(
       new Set(rows.map((row) => row.profileUrl))
@@ -519,9 +507,11 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "นำเข้าข้อมูล Skool เรียบร้อยแล้ว",
+        importedCourses,
         summary: {
           importedRows: rows.length,
           courses: classrooms.length,
+          createdCourses: importedCourses.filter((course) => course.created).length,
           members: memberPayload.length,
           linkedAgents: linkedMembers,
           unlinkedMembers: memberPayload.length - linkedMembers,
@@ -531,7 +521,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("[skool-import] unexpected error:", error);
-    return errorResponse("เกิดข้อผิดพลาดในการนำเข้าข้อมูล Skool", 500);
+    return errorResponse(
+      error instanceof Error && error.message === "DUPLICATE_CLASSROOM"
+        ? "มีคอร์สชื่อ Classroom ซ้ำในระบบ กรุณาตรวจสอบก่อนนำเข้า"
+        : "นำเข้าไม่สำเร็จ อาจบันทึกบางส่วนแล้ว สามารถนำเข้าไฟล์เดิมซ้ำเพื่อดำเนินการต่อได้",
+      500
+    );
   }
 }
 
