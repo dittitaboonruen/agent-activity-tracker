@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getCourseImportStats } from "@/lib/skool-import-stats";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSupabaseClient } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
@@ -110,7 +111,7 @@ export async function GET() {
 
   try {
     const supabase = getSupabaseClient();
-    const [courseResult, lessonResult] = await Promise.all([
+    const [courseResult, lessonResult, importResult] = await Promise.all([
       supabase
         .from("learning_courses")
         .select("id, course_code, course_name, description, sort_order, active")
@@ -123,6 +124,12 @@ export async function GET() {
         )
         .order("lesson_order", { ascending: true })
         .order("id", { ascending: true }),
+      getCourseImportStats(supabase)
+        .then((stats) => ({ stats, warning: "" }))
+        .catch((error) => {
+          console.error("[skool-courses] import stats error:", error);
+          return { stats: {}, warning: "โหลดสรุป CSV ไม่สำเร็จ กรุณาลองรีเฟรชอีกครั้ง" };
+        }),
     ]);
 
     if (courseResult.error || lessonResult.error) {
@@ -138,6 +145,8 @@ export async function GET() {
         success: true,
         courses: courseResult.data ?? [],
         lessons: lessonResult.data ?? [],
+        importStats: importResult.stats,
+        warning: importResult.warning,
       },
       { headers: NO_STORE_HEADERS }
     );
