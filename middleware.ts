@@ -37,6 +37,7 @@ const ADMIN_ALLOWED_PATHS = [
   "/admin/production",
   "/admin/agents",
   "/admin/skool-import",
+  "/admin/skool-courses",
   "/dashboard/performance",
 ];
 
@@ -44,6 +45,7 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
   "/api/admin/skool-import",
+  "/api/admin/skool-courses",
   "/api/monthly-performance",
 ];
 
@@ -156,7 +158,7 @@ function isDailyProductionPath(
   );
 }
 
-function isSkoolImportPath(
+function isSkoolAdminPath(
   pathname: string
 ) {
   return (
@@ -167,7 +169,9 @@ function isSkoolImportPath(
     pathMatches(
       pathname,
       "/api/admin/skool-import"
-    )
+    ) ||
+    pathMatches(pathname, "/admin/skool-courses") ||
+    pathMatches(pathname, "/api/admin/skool-courses")
   );
 }
 
@@ -446,7 +450,7 @@ export async function middleware(
   */
 
   if (
-    isSkoolImportPath(
+    isSkoolAdminPath(
       pathname
     )
   ) {
