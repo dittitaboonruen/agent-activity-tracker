@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import SkoolCsvImport, { SKOOL_IMPORT_EVENT, type ImportResult } from "@/components/SkoolCsvImport";
+import type { CourseImportStats } from "@/lib/skool-import-stats";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 type Course = {
   id: number;
@@ -27,6 +29,8 @@ type ApiResponse = {
   error?: string;
   courses?: Course[];
   lessons?: Lesson[];
+  importStats?: Record<string, CourseImportStats>;
+  warning?: string;
 };
 
 const emptyCourse = {
@@ -49,6 +53,8 @@ const emptyLesson = {
 export default function SkoolCoursesAdminPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [importStats, setImportStats] = useState<Record<string, CourseImportStats>>({});
+  const [warning, setWarning] = useState("");
   const [courseForm, setCourseForm] = useState(emptyCourse);
   const [lessonForm, setLessonForm] = useState(emptyLesson);
   const [editingCourseId, setEditingCourseId] = useState<number | null>(null);
@@ -58,8 +64,10 @@ export default function SkoolCoursesAdminPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const loadGeneration = useRef(0);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (preferredCourseId?: number) => {
+    const generation = ++loadGeneration.current;
     setLoading(true);
     setError("");
 
@@ -68,6 +76,7 @@ export default function SkoolCoursesAdminPage() {
         cache: "no-store",
       });
       const body = (await response.json()) as ApiResponse;
+      if (generation !== loadGeneration.current) return;
 
       if (!response.ok || body.success !== true) {
         setError(body.error || "ไม่สามารถโหลดข้อมูลได้");
@@ -77,21 +86,44 @@ export default function SkoolCoursesAdminPage() {
       const nextCourses = body.courses ?? [];
       setCourses(nextCourses);
       setLessons(body.lessons ?? []);
-      setSelectedCourseId((current) =>
-        current && nextCourses.some((course) => course.id === current)
-          ? current
-          : nextCourses[0]?.id ?? null
-      );
+      setImportStats(body.importStats ?? {});
+      setWarning(body.warning ?? "");
+      const urlCourseId = Number(new URLSearchParams(window.location.search).get("course"));
+      setSelectedCourseId((current) => {
+        const preferred = preferredCourseId ?? current ?? urlCourseId;
+        return preferred && nextCourses.some((course) => course.id === preferred)
+          ? preferred
+          : nextCourses[0]?.id ?? null;
+      });
     } catch {
-      setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      if (generation === loadGeneration.current) setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
     } finally {
-      setLoading(false);
+      if (generation === loadGeneration.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const refresh = () => { void loadData(); };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === SKOOL_IMPORT_EVENT) refresh();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [loadData]);
+
+  async function onImported(result: ImportResult) {
+    const firstId = result.importedCourses[0]?.id;
+    await loadData(firstId);
+    if (firstId) resetLessonForm(firstId);
+  }
 
   const selectedCourse = courses.find((course) => course.id === selectedCourseId);
   const selectedLessons = useMemo(
@@ -111,7 +143,7 @@ export default function SkoolCoursesAdminPage() {
     setEditingCourseId(null);
     setCourseForm({
       ...emptyCourse,
-      sortOrder: String(Math.max(1, courses.length + 1)),
+      sortOrder: String(Math.max(0, ...courses.map((course) => course.sort_order)) + 1),
     });
   }
 
@@ -120,7 +152,7 @@ export default function SkoolCoursesAdminPage() {
     setLessonForm({
       ...emptyLesson,
       courseId: courseId ? String(courseId) : "",
-      lessonOrder: String(selectedLessons.length + 1),
+      lessonOrder: String(Math.max(0, ...lessons.filter((lesson) => lesson.course_id === courseId).map((lesson) => lesson.lesson_order)) + 1),
     });
   }
 
@@ -241,13 +273,16 @@ export default function SkoolCoursesAdminPage() {
           <div style={eyebrowStyle}>ROYAL PARTNER · LEARNING ADMIN</div>
           <h1 style={titleStyle}>Skool Course & Lesson Manager</h1>
           <p style={subtitleStyle}>
-            จัดการโครงสร้างคอร์สและบทเรียน โดยชื่อคอร์สต้องตรงกับ Classroom ในไฟล์ Skool CSV
+            นำเข้า CSV ให้คอร์สและความคืบหน้าแสดงทันที แล้วค่อยเพิ่มบทเรียนและแก้รายละเอียด
           </p>
         </header>
 
         {(error || message) && (
           <div style={error ? errorStyle : successStyle}>{error ? `⚠️ ${error}` : `✅ ${message}`}</div>
         )}
+
+        <SkoolCsvImport onImported={onImported} disabled={saving} />
+        {warning && <p role="alert" style={noteStyle}>{warning}</p>}
 
         <div style={formGridStyle}>
           <form onSubmit={saveCourse} style={panelStyle}>
@@ -399,12 +434,13 @@ export default function SkoolCoursesAdminPage() {
           {loading ? (
             <div style={emptyStyle}>กำลังโหลดข้อมูล...</div>
           ) : courses.length === 0 ? (
-            <div style={emptyStyle}>ยังไม่มีคอร์ส กรุณาเพิ่มคอร์สด้านบนก่อน</div>
+            <div style={emptyStyle}>ยังไม่มีคอร์ส นำเข้า CSV ด้านบนเพื่อสร้างคอร์สอัตโนมัติได้เลย</div>
           ) : (
             <div style={courseGridStyle}>
               {courses.map((course) => {
                 const count = lessons.filter((lesson) => lesson.course_id === course.id).length;
                 const selected = selectedCourseId === course.id;
+                const stats = importStats[String(course.id)];
 
                 return (
                   <article
@@ -425,8 +461,16 @@ export default function SkoolCoursesAdminPage() {
                       <Status active={course.active} />
                     </div>
                     <p style={cardDescriptionStyle}>{course.description || "ไม่มีคำอธิบาย"}</p>
+                    {stats && (
+                      <div style={{ ...noteStyle, margin: "10px 0", padding: 10 }}>
+                        <strong>มีข้อมูลจาก CSV แล้ว</strong><br />
+                        สมาชิกที่นำเข้า {stats.members} คน · เรียนจบ {stats.completed} คน<br />
+                        ความคืบหน้าเฉลี่ย {stats.averageProgress}%<br />
+                        <span>รวมสมาชิก Skool ที่นำเข้าทั้งหมด</span>
+                      </div>
+                    )}
                     <div style={cardFooterStyle}>
-                      <span>{count} บทเรียน</span>
+                      <span>{count > 0 ? `${count} บทเรียน` : "ยังไม่เพิ่มบทเรียน · เพิ่มภายหลังได้"}</span>
                       <div style={{ display: "flex", gap: 10 }}>
                         <button type="button" style={textButtonStyle} onClick={(event) => { event.stopPropagation(); editCourse(course); }}>แก้ไข</button>
                         {course.active && (
@@ -449,7 +493,11 @@ export default function SkoolCoursesAdminPage() {
           {!selectedCourse ? (
             <div style={emptyStyle}>เลือกคอร์สเพื่อดูบทเรียน</div>
           ) : selectedLessons.length === 0 ? (
-            <div style={emptyStyle}>คอร์สนี้ยังไม่มีบทเรียน</div>
+            <div style={emptyStyle}>
+              {importStats[String(selectedCourse.id)]
+                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน เพิ่มบทเรียนภายหลังได้จากฟอร์มด้านบน"
+                : "ยังไม่มีบทเรียน — นำเข้า CSV เพื่อแสดงความคืบหน้าระดับคอร์สก่อนได้ แล้วค่อยเพิ่มบทเรียนภายหลัง"}
+            </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={tableStyle}>
@@ -481,7 +529,7 @@ export default function SkoolCoursesAdminPage() {
         </section>
 
         <aside style={noteStyle}>
-          <strong>ลำดับการทำงาน:</strong> สร้างคอร์สและบทใน Skool → เพิ่มชื่อเดียวกันในหน้านี้ → Import CSV เพื่ออัปเดตเปอร์เซ็นต์ → เชื่อม Google Forms สำหรับบทประเภท QUIZ
+          <strong>ลำดับการทำงาน:</strong> Export CSV จาก Skool → Import ที่หน้านี้ → คอร์สและความคืบหน้าแสดงทันที → แก้รายละเอียดและเพิ่มบทเรียน/Google Forms ภายหลัง โดยคงชื่อ Classroom ให้ตรงกับ CSV เพื่อให้นำเข้าครั้งต่อไปเข้าคอร์สเดิม
         </aside>
       </div>
     </main>
