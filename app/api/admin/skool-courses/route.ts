@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { parseLessonOutline } from "@/lib/skool-curriculum";
 import { getCourseImportStats } from "@/lib/skool-import-stats";
+import { generateCourseCode } from "@/lib/skool-import-courses";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSupabaseClient } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
@@ -120,7 +122,7 @@ export async function GET() {
       supabase
         .from("learning_lessons")
         .select(
-          "id, course_id, lesson_name, lesson_type, lesson_order, quiz_url, active"
+          "id, course_id, lesson_name, lesson_type, lesson_order, quiz_url, active, parent_lesson_id"
         )
         .order("lesson_order", { ascending: true })
         .order("id", { ascending: true }),
@@ -137,7 +139,10 @@ export async function GET() {
         courses: courseResult.error,
         lessons: lessonResult.error,
       });
-      return errorResponse("ไม่สามารถโหลดข้อมูลคอร์สและบทเรียนได้", 500);
+      return errorResponse(
+        lessonResult.error?.code === "42703" || lessonResult.error?.code === "PGRST204"
+          ? "กรุณารันไฟล์ 20261006_skool_curriculum.sql ใน Supabase ก่อนใช้รุ่นนี้"
+          : "ไม่สามารถโหลดข้อมูลคอร์สและบทเรียนได้", 500);
     }
 
     return NextResponse.json(
@@ -175,6 +180,33 @@ async function save(request: NextRequest) {
   try {
     const supabase = getSupabaseClient();
 
+    if (body.entity === "reorder") {
+      const ids = body.courseIds;
+      if (!Array.isArray(ids) || !ids.length || ids.some(v => !Number.isSafeInteger(v) || v < 1) || new Set(ids).size !== ids.length) {
+        return errorResponse("รายการลำดับคอร์สไม่ถูกต้อง", 400);
+      }
+      const { error } = await supabase.rpc("rp_reorder_courses", { p_ids: ids });
+      if (error) {
+        console.error("[skool-courses] reorder error:", error);
+        return errorResponse("จัดลำดับไม่สำเร็จ กรุณารีเฟรชและตรวจว่ารัน SQL รุ่นนี้แล้ว", 409);
+      }
+      return NextResponse.json({ success: true }, { headers: NO_STORE_HEADERS });
+    }
+
+    if (body.entity === "lesson-outline") {
+      const courseId = integer(body.courseId);
+      if (!courseId || courseId < 1 || typeof body.outline !== "string" || body.outline.length > 64000) return errorResponse("ข้อมูลโครงบทเรียนไม่ถูกต้อง", 400);
+      let items;
+      try { items = parseLessonOutline(body.outline); }
+      catch (error) { return errorResponse(error instanceof Error ? error.message : "โครงบทเรียนไม่ถูกต้อง", 400); }
+      const { data, error } = await supabase.rpc("rp_add_lesson_outline", { p_course_id: courseId, p_items: items });
+      if (error) {
+        console.error("[skool-courses] outline error:", error);
+        return errorResponse("เพิ่มบทเรียนไม่สำเร็จ กรุณาตรวจ SQL และชื่อบทเรียนซ้ำในคอร์สเดิม", 500);
+      }
+      return NextResponse.json({ success: true, summary: data }, { headers: NO_STORE_HEADERS });
+    }
+
     if (entity === "course") {
       const courseName = text(body.courseName);
       const courseCode = text(body.courseCode);
@@ -182,24 +214,18 @@ async function save(request: NextRequest) {
       const sortOrder = integer(body.sortOrder);
 
       if (!courseName) return errorResponse("กรุณาระบุชื่อคอร์ส", 400);
-      if (sortOrder === null || sortOrder < 0) {
+      if (sortOrder === null || sortOrder < 1) {
         return errorResponse("ลำดับคอร์สไม่ถูกต้อง", 400);
       }
 
-      const payload = {
-        course_name: courseName,
-        course_code: courseCode || null,
-        description: description || null,
-        sort_order: sortOrder,
-        active: boolean(body.active),
-        updated_at: now,
-      };
-
-      const query = id
-        ? supabase.from("learning_courses").update(payload).eq("id", id)
-        : supabase.from("learning_courses").insert(payload);
-
-      const { data, error } = await query.select().single();
+      const { data, error } = await supabase.rpc("rp_save_course", {
+        p_id: id || null,
+        p_name: courseName,
+        p_code: courseCode || (id ? null : generateCourseCode(courseName)),
+        p_description: description || null,
+        p_order: sortOrder,
+        p_active: boolean(body.active),
+      });
 
       if (error) {
         console.error("[skool-courses] save course error:", error);
@@ -241,7 +267,10 @@ async function save(request: NextRequest) {
         return errorResponse("ลิงก์แบบทดสอบต้องเป็น Google Forms แบบ https", 400);
       }
 
+      const parentId = body.parentLessonId == null || body.parentLessonId === "" ? null : integer(body.parentLessonId);
+      if ((body.parentLessonId != null && body.parentLessonId !== "" && (!parentId || parentId < 1)) || (id && parentId === id)) return errorResponse("บทหลักไม่ถูกต้อง", 400);
       const payload = {
+        parent_lesson_id: parentId,
         course_id: courseId,
         lesson_name: lessonName,
         lesson_type: lessonType,
@@ -259,7 +288,7 @@ async function save(request: NextRequest) {
 
       if (error) {
         console.error("[skool-courses] save lesson error:", error);
-        return errorResponse("ไม่สามารถบันทึกบทเรียนได้", 500);
+        return errorResponse("บันทึกบทเรียนไม่สำเร็จ บทหลักต้องอยู่คอร์สเดียวกันและห้ามเลือกข้อย่อยของตัวเองเป็นบทหลัก", 400);
       }
 
       return NextResponse.json(
