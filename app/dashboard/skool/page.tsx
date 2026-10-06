@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import SkoolQuizResults from "@/components/SkoolQuizResults";
 import { useEffect, useMemo, useState } from "react";
 
 type ProgressStatus = "not_started" | "in_progress" | "completed";
@@ -102,6 +103,7 @@ function formatDate(value: string | null) {
 }
 
 export default function SkoolDashboardPage() {
+  const [quizRefreshKey, setQuizRefreshKey] = useState(0);
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -265,7 +267,7 @@ export default function SkoolDashboardPage() {
 
           <button
             type="button"
-            onClick={() => void loadData()}
+            onClick={() => { setQuizRefreshKey(v => v + 1); void loadData(); }}
             disabled={loading}
             style={{
               minHeight: 42,
@@ -313,7 +315,7 @@ export default function SkoolDashboardPage() {
               lineHeight: 1.08,
             }}
           >
-            Skool Progress Dashboard
+            Skool Learning Dashboard
           </h1>
 
           <p
@@ -324,8 +326,7 @@ export default function SkoolDashboardPage() {
               lineHeight: 1.7,
             }}
           >
-            ติดตามความคืบหน้าการเรียนของตัวแทนจากข้อมูล Course Progress
-            ที่นำเข้าล่าสุด
+            ติดตามความคืบหน้าการเรียนจาก Skool และคะแนนข้อสอบจาก Google Form
           </p>
 
           {data?.scope && (
@@ -350,6 +351,8 @@ export default function SkoolDashboardPage() {
             </div>
           )}
         </header>
+
+        <SkoolQuizResults refreshKey={quizRefreshKey} />
 
         {error && (
           <div
