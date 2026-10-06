@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { Card } from "./ui";
+import SkoolQuizSummary from "./SkoolQuizSummary";
 
 type SkoolSummary = {
   linkedAgents: number;
@@ -60,6 +61,7 @@ export default function SkoolSummaryCard() {
   const [canSeeAll, setCanSeeAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quizRefreshKey, setQuizRefreshKey] = useState(0);
 
   const loadSummary = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -122,7 +124,10 @@ export default function SkoolSummaryCard() {
         <div style={actionStyle}>
           <button
             type="button"
-            onClick={() => void loadSummary()}
+            onClick={() => {
+              void loadSummary();
+              setQuizRefreshKey(value => value + 1);
+            }}
             disabled={loading}
             style={{
               ...refreshButtonStyle,
@@ -168,6 +173,7 @@ export default function SkoolSummaryCard() {
           </div>
         </>
       )}
+      <SkoolQuizSummary refreshKey={quizRefreshKey} />
     </Card>
   );
 }
