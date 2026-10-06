@@ -26,7 +26,8 @@ function text(value: unknown, maxLength: number) {
 }
 
 function number(value: unknown) {
-  const parsed = Number(value);
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  const parsed = value;
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -184,7 +185,7 @@ export async function POST(request: NextRequest) {
 
     const scorePercent = Math.round((score / maxScore) * 10_000) / 100;
     const passingScore = Number(lesson.passing_score_percent ?? 80);
-    const passed = scorePercent >= passingScore;
+    const passed = (score / maxScore) * 100 >= passingScore;
     const now = new Date().toISOString();
 
     const { data: saved, error: saveError } = await supabase
