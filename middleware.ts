@@ -39,6 +39,7 @@ const ADMIN_ALLOWED_PATHS = [
   "/admin/skool-import",
   "/admin/skool-courses",
   "/dashboard/performance",
+  "/dashboard/skool",
 ];
 
 const ADMIN_ALLOWED_API_PATHS = [
@@ -47,6 +48,8 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/admin/skool-import",
   "/api/admin/skool-courses",
   "/api/monthly-performance",
+  "/api/skool-progress",
+  "/api/skool-quiz-results",
 ];
 
 function pathMatches(
@@ -268,6 +271,12 @@ export async function middleware(
 ) {
   const pathname =
     request.nextUrl.pathname;
+
+  // Machine-to-machine endpoint authenticates its Bearer secret in the route.
+  // Exact path only: no session lookup and no public dashboard access.
+  if (pathname === "/api/integrations/google-form-quiz") {
+    return NextResponse.next();
+  }
 
   let response =
     NextResponse.next({
