@@ -5637,13 +5637,13 @@
     padding:4px 6px !important;
   }
 /* ==========================================================
-   v60 — Global Payment Promotion 2026-10
-   0% installment 4 months
+   v61 — Global Payment Promotion 2026-10
+   FIX: A4 fit + correct wide banner ratio
    Shared by all report types
    Presentation only — no calculation changes
    ========================================================== */
 
-/* ---------- Shared payment image ---------- */
+/* ---------- GLOBAL ---------- */
 
 .rp-resource-payment-row {
   width: 100% !important;
@@ -5661,12 +5661,15 @@
 
 .rp-resource-payment-row
 .rp-resource-payment-image {
+  display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1200 / 557 !important;
+  aspect-ratio: 1095 / 161 !important;
+  min-height: 0 !important;
   padding: 0 !important;
-  background: #fff !important;
+  margin: 0 !important;
   overflow: hidden !important;
+  background: #fff !important;
 }
 
 .rp-resource-payment-row
@@ -5674,23 +5677,26 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
-  image-rendering: auto !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
 
-/* ---------- CI ProCare ---------- */
+/* ---------- CI PROCARE ---------- */
 
 #ci-procare-report-page-1
 .rp-ci-payment-wide {
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1200 / 557 !important;
-  margin-top: 4px !important;
+  min-height: 0 !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 4px 0 0 !important;
   padding: 3px !important;
   border: 1px solid #d9d2bf !important;
   background: #fff !important;
@@ -5702,12 +5708,14 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- CI SuperCare ---------- */
+/* ---------- CI SUPERCARE ---------- */
 
 #ci-supercare-report-page-1
 .rp-sc-payment-wide {
@@ -5715,8 +5723,8 @@
   width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
-  aspect-ratio: 1200 / 557 !important;
-  margin-top: 4px !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 4px 0 0 !important;
   padding: 3px !important;
   border: 1px solid #d9d2bf !important;
   background: #fff !important;
@@ -5729,12 +5737,13 @@
   width: 100% !important;
   height: 100% !important;
   min-height: 0 !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- Excellent ---------- */
+/* ---------- EXCELLENT ---------- */
 
 #excellent-report-page-1
 .rp-ex-payment-wide {
@@ -5742,8 +5751,8 @@
   width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
-  aspect-ratio: 1200 / 557 !important;
-  margin-top: 4px !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 4px 0 0 !important;
   padding: 3px !important;
   border: 1px solid #d9d2bf !important;
   background: #fff !important;
@@ -5755,20 +5764,23 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- 20 Pay Life ---------- */
+/* ---------- 20 PAY LIFE ---------- */
 
 #pay20life-report-page-1
 .pl20-payment-wide {
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1200 / 557 !important;
-  margin-top: 4px !important;
+  min-height: 0 !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 4px 0 0 !important;
   padding: 3px !important;
   border: 1px solid #d9d2bf !important;
   background: #fff !important;
@@ -5780,20 +5792,23 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- 15 Pay 25 ---------- */
+/* ---------- 15 PAY 25 ---------- */
 
 #pay25-report-page-1
 .p25-payment-wide {
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1200 / 557 !important;
-  margin-top: 4px !important;
+  min-height: 0 !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 4px 0 0 !important;
   padding: 3px !important;
   border: 1px solid #d9d2bf !important;
   background: #fff !important;
@@ -5805,19 +5820,25 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- Front / card resource ---------- */
+/* ---------- FRONT / OTHER REPORTS ---------- */
 
 .card
 .rp-resource-payment-image {
+  display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1200 / 557 !important;
+  min-height: 0 !important;
+  aspect-ratio: 1095 / 161 !important;
+  margin: 0 !important;
   padding: 0 !important;
+  overflow: hidden !important;
 }
 
 .card
@@ -5825,19 +5846,19 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
 }
 
 
-/* ---------- Report disclaimer readability ---------- */
+/* ---------- DISCLAIMER ---------- */
 
 .rp-red-remark-before-payment {
-  margin-top: 5px !important;
-  margin-bottom: 5px !important;
-  padding: 5px 8px !important;
-  font-size: 8px !important;
-  line-height: 1.35 !important;
+  margin: 4px 0 4px !important;
+  padding: 4px 8px !important;
+  font-size: 7px !important;
+  line-height: 1.25 !important;
   font-weight: 700 !important;
 }
 </style>
