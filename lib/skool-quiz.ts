@@ -35,3 +35,22 @@ export function latestQuizAttempts(rows: QuizResultRow[]) {
   return [...latest.values()].sort((a, b) =>
     b.submittedAt.localeCompare(a.submittedAt) || b.id - a.id);
 }
+
+// Each active agent/quiz pair contributes once, using its latest attempt.
+// Missing results are not failures. Disabled lessons remain in the detail history.
+export function summarizeQuizResults(rows: QuizResultRow[]) {
+  const active = rows.filter(row => row.lessonActive);
+  const latest = latestQuizAttempts(active);
+  const passed = latest.filter(row => row.passed).length;
+  return {
+    agents: new Set(latest.map(row => row.agentId)).size,
+    results: latest.length,
+    passed,
+    failed: latest.length - passed,
+    averageScore: latest.length
+      ? Math.round(latest.reduce((sum, row) => sum + row.scorePercent, 0) / latest.length * 10) / 10
+      : null,
+    updatedAt: active.reduce<string | null>((last, row) =>
+      !last || row.updatedAt > last ? row.updatedAt : last, null),
+  };
+}
