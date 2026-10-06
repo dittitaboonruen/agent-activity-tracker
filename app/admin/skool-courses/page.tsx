@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import SkoolLessonOutline from "@/components/SkoolLessonOutline";
+import { lessonTree, recommendedCourseIds } from "@/lib/skool-curriculum";
 import SkoolCsvImport, { SKOOL_IMPORT_EVENT, type ImportResult } from "@/components/SkoolCsvImport";
 import type { CourseImportStats } from "@/lib/skool-import-stats";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -17,10 +19,12 @@ type Course = {
 type Lesson = {
   id: number;
   course_id: number;
+  parent_lesson_id: number | null;
   lesson_name: string;
   lesson_type: "INFO" | "QUIZ";
   lesson_order: number;
   quiz_url: string | null;
+  google_form_id: string | null;
   active: boolean;
 };
 
@@ -43,10 +47,12 @@ const emptyCourse = {
 
 const emptyLesson = {
   courseId: "",
+  parentLessonId: "",
   lessonName: "",
   lessonType: "INFO" as "INFO" | "QUIZ",
   lessonOrder: "1",
   quizUrl: "",
+  googleFormId: "",
   active: true,
 };
 
@@ -133,6 +139,26 @@ export default function SkoolCoursesAdminPage() {
         .sort((a, b) => a.lesson_order - b.lesson_order || a.id - b.id),
     [lessons, selectedCourseId]
   );
+
+  const treeRows = useMemo(() => lessonTree(selectedLessons), [selectedLessons]);
+
+  async function reorder(ids: number[]) {
+    if (saving || loading) return;
+    clearNotice(); setSaving(true);
+    try {
+      await request("PATCH", { entity: "reorder", courseIds: ids });
+      await loadData(); setMessage("จัดลำดับคอร์สเรียบร้อยแล้ว");
+    } catch (error) { setError(error instanceof Error ? error.message : "จัดลำดับไม่สำเร็จ"); }
+    finally { setSaving(false); }
+  }
+
+  function moveCourse(index: number, delta: number) {
+    const ids = courses.map(c => c.id);
+    const destination = index + delta;
+    if (destination < 0 || destination >= ids.length) return;
+    [ids[index], ids[destination]] = [ids[destination], ids[index]];
+    void reorder(ids);
+  }
 
   function clearNotice() {
     setError("");
@@ -250,10 +276,12 @@ export default function SkoolCoursesAdminPage() {
     setEditingLessonId(lesson.id);
     setLessonForm({
       courseId: String(lesson.course_id),
+      parentLessonId: lesson.parent_lesson_id ? String(lesson.parent_lesson_id) : "",
       lessonName: lesson.lesson_name,
       lessonType: lesson.lesson_type,
       lessonOrder: String(lesson.lesson_order),
       quizUrl: lesson.quiz_url ?? "",
+      googleFormId: lesson.google_form_id ?? "",
       active: lesson.active,
     });
   }
@@ -313,7 +341,7 @@ export default function SkoolCoursesAdminPage() {
                   <input
                     style={inputStyle}
                     type="number"
-                    min="0"
+                    min="1"
                     value={courseForm.sortOrder}
                     onChange={(event) => setCourseForm({ ...courseForm, sortOrder: event.target.value })}
                     required
@@ -342,8 +370,8 @@ export default function SkoolCoursesAdminPage() {
 
           <form onSubmit={saveLesson} style={panelStyle}>
             <PanelHeader
-              title={editingLessonId ? "แก้ไขบทเรียน" : "เพิ่มบทเรียน"}
-              caption="INFO ไม่ต้องมีแบบทดสอบ · QUIZ ต้องใส่ Google Form"
+              title={editingLessonId ? "แก้ไขบทเรียน" : "เพิ่มบทเรียนทีละบท"}
+              caption="กดบันทึกครั้งเดียว · INFO ไม่มีแบบทดสอบ · QUIZ ใส่ Google Form"
             />
             <div style={panelBodyStyle}>
               <Field label="คอร์ส *">
@@ -353,13 +381,22 @@ export default function SkoolCoursesAdminPage() {
                   onChange={(event) => {
                     const courseId = Number(event.target.value) || null;
                     setSelectedCourseId(courseId);
-                    setLessonForm({ ...lessonForm, courseId: event.target.value });
+                    resetLessonForm(courseId);
                   }}
                   required
                 >
                   <option value="">เลือกคอร์ส</option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>{course.course_name}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="บทหลัก (เว้นว่างถ้าเป็นบทระดับแรก)">
+                <select style={inputStyle} value={lessonForm.parentLessonId}
+                  onChange={event => setLessonForm({ ...lessonForm, parentLessonId: event.target.value })}>
+                  <option value="">บทระดับแรก</option>
+                  {treeRows.filter(row => row.lesson.id !== editingLessonId).map(row => (
+                    <option key={row.lesson.id} value={row.lesson.id}>{row.number} · {row.lesson.lesson_name}</option>
                   ))}
                 </select>
               </Field>
@@ -398,9 +435,11 @@ export default function SkoolCoursesAdminPage() {
                     onChange={(event) => setLessonForm({ ...lessonForm, lessonOrder: event.target.value })}
                     required
                   />
+                  <small style={{ color: "#a1a1aa" }}>ระบบขยับบทอื่นให้เมื่อแทรกหรือย้ายลำดับ</small>
                 </Field>
               </div>
               {lessonForm.lessonType === "QUIZ" && (
+                <>
                 <Field label="Google Form URL *">
                   <input
                     style={inputStyle}
@@ -411,6 +450,13 @@ export default function SkoolCoursesAdminPage() {
                     required
                   />
                 </Field>
+                <Field label="Google Form ID สำหรับรับคะแนนอัตโนมัติ">
+                  <input style={inputStyle} value={lessonForm.googleFormId}
+                    onChange={(event) => setLessonForm({ ...lessonForm, googleFormId: event.target.value })}
+                    placeholder="รหัสจากลิงก์หน้าแก้ไข Google Form" />
+                  <small style={{ color: "#a1a1aa" }}>ใช้รหัสระหว่าง /forms/d/ และ /edit จากหน้าแก้ไขฟอร์ม</small>
+                </Field>
+                </>
               )}
               <ActiveField
                 checked={lessonForm.active}
@@ -420,6 +466,7 @@ export default function SkoolCoursesAdminPage() {
                 saving={saving}
                 editing={editingLessonId !== null}
                 onCancel={() => resetLessonForm()}
+                createLabel="เพิ่มบทเรียน"
                 disabled={courses.length === 0}
               />
             </div>
@@ -427,6 +474,10 @@ export default function SkoolCoursesAdminPage() {
         </div>
 
         <section style={{ ...panelStyle, marginTop: 18 }}>
+          <div style={{ padding: "12px 18px" }}>
+            <button type="button" style={secondaryButtonStyle} disabled={saving || loading || courses.length === 0}
+              onClick={() => void reorder(recommendedCourseIds(courses))}>จัดลำดับเส้นทางเรียน · About เป็น 2</button>
+          </div>
           <PanelHeader
             title={`คอร์สทั้งหมด (${courses.length})`}
             caption="เลือกคอร์สเพื่อดูและจัดการบทเรียน"
@@ -437,7 +488,7 @@ export default function SkoolCoursesAdminPage() {
             <div style={emptyStyle}>ยังไม่มีคอร์ส นำเข้า CSV ด้านบนเพื่อสร้างคอร์สอัตโนมัติได้เลย</div>
           ) : (
             <div style={courseGridStyle}>
-              {courses.map((course) => {
+              {courses.map((course, index) => {
                 const count = lessons.filter((lesson) => lesson.course_id === course.id).length;
                 const selected = selectedCourseId === course.id;
                 const stats = importStats[String(course.id)];
@@ -447,8 +498,9 @@ export default function SkoolCoursesAdminPage() {
                     key={course.id}
                     style={{ ...courseCardStyle, ...(selected ? selectedCardStyle : {}) }}
                     onClick={() => {
+                      if (saving) return;
                       setSelectedCourseId(course.id);
-                      setLessonForm((current) => ({ ...current, courseId: String(course.id) }));
+                      resetLessonForm(course.id);
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -459,6 +511,10 @@ export default function SkoolCoursesAdminPage() {
                         <h3 style={{ margin: "7px 0 0", fontSize: 16 }}>{course.course_name}</h3>
                       </div>
                       <Status active={course.active} />
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }} onClick={event => event.stopPropagation()}>
+                      <button type="button" disabled={saving || loading || index === 0} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ขึ้น`} onClick={() => moveCourse(index, -1)}>↑ ขึ้น</button>
+                      <button type="button" disabled={saving || loading || index === courses.length - 1} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ลง`} onClick={() => moveCourse(index, 1)}>↓ ลง</button>
                     </div>
                     <p style={cardDescriptionStyle}>{course.description || "ไม่มีคำอธิบาย"}</p>
                     {stats && (
@@ -490,12 +546,18 @@ export default function SkoolCoursesAdminPage() {
             title={selectedCourse ? `บทเรียน: ${selectedCourse.course_name}` : "บทเรียน"}
             caption={`${selectedLessons.length} บท · เรียงตามลำดับที่กำหนด`}
           />
+          {selectedCourse && <details key={selectedCourse.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
+            <summary style={{ padding: "16px 18px", cursor: "pointer", color: "var(--gold-bright)", fontWeight: 700 }}>เพิ่มหลายบทพร้อมกัน</summary>
+            <p style={{ ...noteStyle, margin: "0 18px 12px" }}>เลือกใช้เมื่อมีหลายบท บทที่เพิ่มจากฟอร์มด้านบนแล้วไม่ต้องเพิ่มซ้ำในช่องนี้</p>
+            <SkoolLessonOutline courseId={selectedCourse.id} courseName={selectedCourse.course_name} disabled={saving || loading}
+              onBusyChange={setSaving} onSaved={() => loadData(selectedCourse.id)} />
+          </details>}
           {!selectedCourse ? (
             <div style={emptyStyle}>เลือกคอร์สเพื่อดูบทเรียน</div>
           ) : selectedLessons.length === 0 ? (
             <div style={emptyStyle}>
               {importStats[String(selectedCourse.id)]
-                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน เพิ่มบทเรียนภายหลังได้จากฟอร์มด้านบน"
+                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน เพิ่มจากฟอร์มด้านบน หรือเปิด “เพิ่มหลายบทพร้อมกัน” เพื่อวางรายชื่อทั้งชุด"
                 : "ยังไม่มีบทเรียน — นำเข้า CSV เพื่อแสดงความคืบหน้าระดับคอร์สก่อนได้ แล้วค่อยเพิ่มบทเรียนภายหลัง"}
             </div>
           ) : (
@@ -505,10 +567,10 @@ export default function SkoolCoursesAdminPage() {
                   <tr>{["ลำดับ", "บทเรียน", "ประเภท", "แบบทดสอบ", "สถานะ", "จัดการ"].map((heading) => <th key={heading} style={thStyle}>{heading}</th>)}</tr>
                 </thead>
                 <tbody>
-                  {selectedLessons.map((lesson) => (
+                  {treeRows.map(({ lesson, number, depth }) => (
                     <tr key={lesson.id} style={trStyle}>
-                      <td style={tdStyle}>{lesson.lesson_order}</td>
-                      <td style={{ ...tdStyle, color: "var(--cream)", fontWeight: 700 }}>{lesson.lesson_name}</td>
+                      <td style={tdStyle}>{number}</td>
+                      <td style={{ ...tdStyle, paddingLeft: 14 + depth * 20, color: "var(--cream)", fontWeight: depth ? 500 : 700 }}>{lesson.lesson_name}</td>
                       <td style={tdStyle}><TypeBadge type={lesson.lesson_type} /></td>
                       <td style={tdStyle}>
                         {lesson.quiz_url ? <a href={lesson.quiz_url} target="_blank" rel="noreferrer" style={textLinkStyle}>เปิด Form ↗</a> : "—"}
@@ -553,11 +615,11 @@ function ActiveField({ checked, onChange }: { checked: boolean; onChange: (value
   );
 }
 
-function FormActions({ saving, editing, disabled = false, onCancel }: { saving: boolean; editing: boolean; disabled?: boolean; onCancel: () => void }) {
+function FormActions({ saving, editing, disabled = false, createLabel = "เพิ่มข้อมูล", onCancel }: { saving: boolean; editing: boolean; disabled?: boolean; createLabel?: string; onCancel: () => void }) {
   return (
     <div style={{ display: "flex", gap: 9, marginTop: 18 }}>
       <button type="submit" disabled={saving || disabled} style={{ ...primaryButtonStyle, opacity: saving || disabled ? 0.55 : 1 }}>
-        {saving ? "กำลังบันทึก..." : editing ? "บันทึกการแก้ไข" : "เพิ่มข้อมูล"}
+        {saving ? "กำลังบันทึก..." : editing ? "บันทึกการแก้ไข" : createLabel}
       </button>
       {editing && <button type="button" onClick={onCancel} style={secondaryButtonStyle}>ยกเลิก</button>}
     </div>
