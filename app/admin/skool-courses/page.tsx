@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import SkoolLessonOutline from "@/components/SkoolLessonOutline";
-import { lessonTree, recommendedCourseIds } from "@/lib/skool-curriculum";
 import SkoolCsvImport, { SKOOL_IMPORT_EVENT, type ImportResult } from "@/components/SkoolCsvImport";
 import type { CourseImportStats } from "@/lib/skool-import-stats";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -19,7 +17,6 @@ type Course = {
 type Lesson = {
   id: number;
   course_id: number;
-  parent_lesson_id: number | null;
   lesson_name: string;
   lesson_type: "INFO" | "QUIZ";
   lesson_order: number;
@@ -46,7 +43,6 @@ const emptyCourse = {
 
 const emptyLesson = {
   courseId: "",
-  parentLessonId: "",
   lessonName: "",
   lessonType: "INFO" as "INFO" | "QUIZ",
   lessonOrder: "1",
@@ -137,26 +133,6 @@ export default function SkoolCoursesAdminPage() {
         .sort((a, b) => a.lesson_order - b.lesson_order || a.id - b.id),
     [lessons, selectedCourseId]
   );
-
-  const treeRows = useMemo(() => lessonTree(selectedLessons), [selectedLessons]);
-
-  async function reorder(ids: number[]) {
-    if (saving || loading) return;
-    clearNotice(); setSaving(true);
-    try {
-      await request("PATCH", { entity: "reorder", courseIds: ids });
-      await loadData(); setMessage("จัดลำดับคอร์สเรียบร้อยแล้ว");
-    } catch (error) { setError(error instanceof Error ? error.message : "จัดลำดับไม่สำเร็จ"); }
-    finally { setSaving(false); }
-  }
-
-  function moveCourse(index: number, delta: number) {
-    const ids = courses.map(c => c.id);
-    const destination = index + delta;
-    if (destination < 0 || destination >= ids.length) return;
-    [ids[index], ids[destination]] = [ids[destination], ids[index]];
-    void reorder(ids);
-  }
 
   function clearNotice() {
     setError("");
@@ -274,7 +250,6 @@ export default function SkoolCoursesAdminPage() {
     setEditingLessonId(lesson.id);
     setLessonForm({
       courseId: String(lesson.course_id),
-      parentLessonId: lesson.parent_lesson_id ? String(lesson.parent_lesson_id) : "",
       lessonName: lesson.lesson_name,
       lessonType: lesson.lesson_type,
       lessonOrder: String(lesson.lesson_order),
@@ -338,7 +313,7 @@ export default function SkoolCoursesAdminPage() {
                   <input
                     style={inputStyle}
                     type="number"
-                    min="1"
+                    min="0"
                     value={courseForm.sortOrder}
                     onChange={(event) => setCourseForm({ ...courseForm, sortOrder: event.target.value })}
                     required
@@ -378,22 +353,13 @@ export default function SkoolCoursesAdminPage() {
                   onChange={(event) => {
                     const courseId = Number(event.target.value) || null;
                     setSelectedCourseId(courseId);
-                    resetLessonForm(courseId);
+                    setLessonForm({ ...lessonForm, courseId: event.target.value });
                   }}
                   required
                 >
                   <option value="">เลือกคอร์ส</option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>{course.course_name}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="บทหลัก (เว้นว่างถ้าเป็นบทระดับแรก)">
-                <select style={inputStyle} value={lessonForm.parentLessonId}
-                  onChange={event => setLessonForm({ ...lessonForm, parentLessonId: event.target.value })}>
-                  <option value="">บทระดับแรก</option>
-                  {treeRows.filter(row => row.lesson.id !== editingLessonId).map(row => (
-                    <option key={row.lesson.id} value={row.lesson.id}>{row.number} · {row.lesson.lesson_name}</option>
                   ))}
                 </select>
               </Field>
@@ -461,10 +427,6 @@ export default function SkoolCoursesAdminPage() {
         </div>
 
         <section style={{ ...panelStyle, marginTop: 18 }}>
-          <div style={{ padding: "12px 18px" }}>
-            <button type="button" style={secondaryButtonStyle} disabled={saving || loading || courses.length === 0}
-              onClick={() => void reorder(recommendedCourseIds(courses))}>จัดลำดับเส้นทางเรียน · About เป็น 2</button>
-          </div>
           <PanelHeader
             title={`คอร์สทั้งหมด (${courses.length})`}
             caption="เลือกคอร์สเพื่อดูและจัดการบทเรียน"
@@ -475,7 +437,7 @@ export default function SkoolCoursesAdminPage() {
             <div style={emptyStyle}>ยังไม่มีคอร์ส นำเข้า CSV ด้านบนเพื่อสร้างคอร์สอัตโนมัติได้เลย</div>
           ) : (
             <div style={courseGridStyle}>
-              {courses.map((course, index) => {
+              {courses.map((course) => {
                 const count = lessons.filter((lesson) => lesson.course_id === course.id).length;
                 const selected = selectedCourseId === course.id;
                 const stats = importStats[String(course.id)];
@@ -485,9 +447,8 @@ export default function SkoolCoursesAdminPage() {
                     key={course.id}
                     style={{ ...courseCardStyle, ...(selected ? selectedCardStyle : {}) }}
                     onClick={() => {
-                      if (saving) return;
                       setSelectedCourseId(course.id);
-                      resetLessonForm(course.id);
+                      setLessonForm((current) => ({ ...current, courseId: String(course.id) }));
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -498,10 +459,6 @@ export default function SkoolCoursesAdminPage() {
                         <h3 style={{ margin: "7px 0 0", fontSize: 16 }}>{course.course_name}</h3>
                       </div>
                       <Status active={course.active} />
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 12 }} onClick={event => event.stopPropagation()}>
-                      <button type="button" disabled={saving || loading || index === 0} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ขึ้น`} onClick={() => moveCourse(index, -1)}>↑ ขึ้น</button>
-                      <button type="button" disabled={saving || loading || index === courses.length - 1} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ลง`} onClick={() => moveCourse(index, 1)}>↓ ลง</button>
                     </div>
                     <p style={cardDescriptionStyle}>{course.description || "ไม่มีคำอธิบาย"}</p>
                     {stats && (
@@ -533,15 +490,12 @@ export default function SkoolCoursesAdminPage() {
             title={selectedCourse ? `บทเรียน: ${selectedCourse.course_name}` : "บทเรียน"}
             caption={`${selectedLessons.length} บท · เรียงตามลำดับที่กำหนด`}
           />
-          {selectedCourse && <SkoolLessonOutline key={selectedCourse.id}
-            courseId={selectedCourse.id} courseName={selectedCourse.course_name} disabled={saving || loading}
-            onBusyChange={setSaving} onSaved={() => loadData(selectedCourse.id)} />}
           {!selectedCourse ? (
             <div style={emptyStyle}>เลือกคอร์สเพื่อดูบทเรียน</div>
           ) : selectedLessons.length === 0 ? (
             <div style={emptyStyle}>
               {importStats[String(selectedCourse.id)]
-                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน วางโครงบทเรียนจริงด้านบนเพื่อเพิ่มทั้งบทหลักและข้อย่อยพร้อมกัน"
+                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน เพิ่มบทเรียนภายหลังได้จากฟอร์มด้านบน"
                 : "ยังไม่มีบทเรียน — นำเข้า CSV เพื่อแสดงความคืบหน้าระดับคอร์สก่อนได้ แล้วค่อยเพิ่มบทเรียนภายหลัง"}
             </div>
           ) : (
@@ -551,10 +505,10 @@ export default function SkoolCoursesAdminPage() {
                   <tr>{["ลำดับ", "บทเรียน", "ประเภท", "แบบทดสอบ", "สถานะ", "จัดการ"].map((heading) => <th key={heading} style={thStyle}>{heading}</th>)}</tr>
                 </thead>
                 <tbody>
-                  {treeRows.map(({ lesson, number, depth }) => (
+                  {selectedLessons.map((lesson) => (
                     <tr key={lesson.id} style={trStyle}>
-                      <td style={tdStyle}>{number}</td>
-                      <td style={{ ...tdStyle, paddingLeft: 14 + depth * 20, color: "var(--cream)", fontWeight: depth ? 500 : 700 }}>{lesson.lesson_name}</td>
+                      <td style={tdStyle}>{lesson.lesson_order}</td>
+                      <td style={{ ...tdStyle, color: "var(--cream)", fontWeight: 700 }}>{lesson.lesson_name}</td>
                       <td style={tdStyle}><TypeBadge type={lesson.lesson_type} /></td>
                       <td style={tdStyle}>
                         {lesson.quiz_url ? <a href={lesson.quiz_url} target="_blank" rel="noreferrer" style={textLinkStyle}>เปิด Form ↗</a> : "—"}
