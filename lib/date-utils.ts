@@ -78,3 +78,28 @@ export function monthLabel(ym: string): string {
   const [y, m] = ym.split("-");
   return `${THAI_MONTHS[parseInt(m, 10) - 1]} ${parseInt(y, 10) + 543}`;
 }
+
+/** Timestamp labels never substitute the time of a browser refresh for source data. */
+export function dataTimestampLabel(value: string | null | undefined, missing = "ยังไม่พบเวลาอัปเดต"): string {
+  if (!value) return missing;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return missing;
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: BANGKOK_TZ, dateStyle: "medium", timeStyle: "short",
+  }).format(date) + " (เวลาไทย)";
+}
+
+/** Compare instants, including timestamps with different offsets; ignore invalid values. */
+export function latestDataTimestamp(values: Array<string | null | undefined>): string | null {
+  let latest: string | null = null;
+  let latestTime = -Infinity;
+  for (const value of values) {
+    if (!value) continue;
+    const time = new Date(value).getTime();
+    if (Number.isFinite(time) && time > latestTime) {
+      latest = value;
+      latestTime = time;
+    }
+  }
+  return latest;
+}
