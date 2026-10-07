@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import SkoolQuizResults from "@/components/SkoolQuizResults";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { learningApiUrl, readLearningAgentId, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type ProgressStatus = "not_started" | "in_progress" | "completed";
 
@@ -103,6 +105,21 @@ function formatDate(value: string | null) {
 }
 
 export default function SkoolDashboardPage() {
+  return <Suspense fallback={<p role="status" style={{ padding: 28 }}>กำลังโหลดหน้า Skool...</p>}><SkoolDashboardRoute /></Suspense>;
+}
+
+function SkoolDashboardRoute() {
+  const search = useSearchParams().toString();
+  let agentSelection: LearningAgentSelection;
+  try {
+    agentSelection = readLearningAgentId(`https://dashboard.local/?${search}`) ?? "all";
+  } catch {
+    agentSelection = null;
+  }
+  return <SkoolDashboardContent key={search} agentSelection={agentSelection} />;
+}
+
+function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAgentSelection }) {
   const [quizRefreshKey, setQuizRefreshKey] = useState(0);
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,19 +128,26 @@ export default function SkoolDashboardPage() {
   const [unit, setUnit] = useState("all");
   const [course, setCourse] = useState("all");
   const [status, setStatus] = useState<"all" | ProgressStatus>("all");
+  const requestRef = useRef<AbortController | null>(null);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setError("");
+    setData(null);
 
     try {
-      const response = await fetch("/api/skool-progress", {
+      const response = await fetch(learningApiUrl("/api/skool-progress", agentSelection), {
         cache: "no-store",
+        signal: controller.signal,
       });
       const responseData = (await response.json().catch(() => ({
         error: "ไม่สามารถอ่านข้อมูลจากระบบได้",
       }))) as DashboardResponse;
 
+      if (controller.signal.aborted) return;
       if (!response.ok || responseData.success !== true) {
         setData(null);
         setError(responseData.error || "ไม่สามารถโหลด Skool Dashboard ได้");
@@ -132,17 +156,19 @@ export default function SkoolDashboardPage() {
 
       setData(responseData);
     } catch (loadError) {
+      if (controller.signal.aborted) return;
       console.error("[skool-dashboard] load error:", loadError);
       setData(null);
-      setError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
+      setError(agentSelection === null ? "ตัวกรองตัวแทนไม่ถูกต้อง กรุณากลับไปเลือกตัวแทนจาก Dashboard" : "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }
+  }, [agentSelection]);
 
   useEffect(() => {
     void loadData();
-  }, []);
+    return () => requestRef.current?.abort();
+  }, [loadData]);
 
   const rows = useMemo(() => data?.rows ?? [], [data]);
 
@@ -352,7 +378,14 @@ export default function SkoolDashboardPage() {
           )}
         </header>
 
-        <SkoolQuizResults refreshKey={quizRefreshKey} />
+        {agentSelection !== "all" && (
+          <div style={{ marginBottom: 20, color: "var(--cream-muted)", lineHeight: 1.7 }}>
+            {agentSelection === null ? "ไม่สามารถระบุตัวแทนที่เลือกได้" : "กำลังแสดงข้อมูลเฉพาะตัวแทนที่เลือกจาก Activity Dashboard"}
+            {" · "}<Link href="/dashboard/skool" style={{ color: "var(--gold-bright)" }}>ดูทุกตัวแทนที่มีสิทธิ์</Link>
+          </div>
+        )}
+
+        <SkoolQuizResults refreshKey={quizRefreshKey} agentSelection={agentSelection} />
 
         {error && (
           <div

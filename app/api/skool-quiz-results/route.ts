@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { getSkoolAccess } from "@/lib/skool-access";
+import { LearningFilterError, readLearningAgentId } from "@/lib/learning-filter";
 import type { QuizResultRow } from "@/lib/skool-quiz";
 
 export const dynamic = "force-dynamic";
@@ -20,18 +21,23 @@ async function allRows(query: () => any): Promise<any[]> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const access = await getSkoolAccess();
   if (!access.allowed) return json({ success: false, error: access.message }, access.status);
   try {
+    const selectedAgentId = readLearningAgentId(request?.url);
     const db = getSupabaseClient();
     const agents = await allRows(() => {
       let q = db.from("agent_master")
         .select("id, agent_code, agent_name, agent_nickname, unit_id")
         .eq("active", true).order("id");
       if (!access.canSeeAll) q = q.eq("unit_id", access.unitId!);
+      if (selectedAgentId !== null) q = q.eq("id", selectedAgentId);
       return q;
     });
+    if (selectedAgentId !== null && agents.length === 0) {
+      return json({ success: false, error: "ไม่พบตัวแทนที่เลือกในข้อมูลที่คุณมีสิทธิ์ดู" }, 404);
+    }
     if (agents.length === 0) return json({ success: true, scope: access, rows: [] });
     const agentIds = agents.map(a => a.id);
     // Scope is applied at the database query, before reading any quiz results.
@@ -79,6 +85,7 @@ export async function GET() {
     }).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt) || b.id - a.id);
     return json({ success: true, scope: access, rows });
   } catch (error) {
+    if (error instanceof LearningFilterError) return json({ success: false, error: error.message }, 400);
     console.error("[skool-quiz-results] query failed:", error);
     return json({ success: false, error: "ไม่สามารถโหลดคะแนนข้อสอบได้ กรุณาตรวจการติดตั้งตาราง learning_quiz_results" }, 500);
   }

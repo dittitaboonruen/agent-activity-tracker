@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseClient } from "@/lib/supabase";
 import { getSkoolAccess } from "@/lib/skool-access";
+import { LearningFilterError, readLearningAgentId } from "@/lib/learning-filter";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -41,7 +42,7 @@ function getStatus(
   return "not_started";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const access = await getSkoolAccess();
 
   if (!access.allowed) {
@@ -49,6 +50,7 @@ export async function GET() {
   }
 
   try {
+    const selectedAgentId = readLearningAgentId(request?.url);
     const supabase = getSupabaseClient();
 
     let agentsQuery = supabase
@@ -60,6 +62,7 @@ export async function GET() {
     if (!access.canSeeAll && access.unitId !== null) {
       agentsQuery = agentsQuery.eq("unit_id", access.unitId);
     }
+    if (selectedAgentId !== null) agentsQuery = agentsQuery.eq("id", selectedAgentId);
 
     const { data: agents, error: agentsError } = await agentsQuery;
 
@@ -69,6 +72,9 @@ export async function GET() {
     }
 
     const agentRows = agents ?? [];
+    if (selectedAgentId !== null && agentRows.length === 0) {
+      return errorResponse("ไม่พบตัวแทนที่เลือกในข้อมูลที่คุณมีสิทธิ์ดู", 404);
+    }
     const agentIds = agentRows.map((agent) => agent.id);
     const unitIds = Array.from(
       new Set(
@@ -297,6 +303,7 @@ export async function GET() {
       { headers: NO_STORE_HEADERS }
     );
   } catch (error) {
+    if (error instanceof LearningFilterError) return errorResponse(error.message, 400);
     console.error("[skool-progress] unexpected error:", error);
     return errorResponse("เกิดข้อผิดพลาดในการโหลด Skool Dashboard", 500);
   }
