@@ -1,4 +1,5 @@
 import type { Submission } from "@/types";
+import type { LearningAgentSelection } from "@/lib/learning-filter";
 
 /** Safe, scoped roster returned by /api/dashboard-agents. */
 export interface DashboardAgent {
@@ -15,6 +16,13 @@ function identity(value: string) {
 export function dashboardAgentNames(agents: DashboardAgent[]): string[] {
   return Array.from(new Set(agents.map(agent => agent.agentName).filter(name => name.trim())))
     .sort((a, b) => a.localeCompare(b, "th"));
+}
+
+/** Never guess an ID if a legacy name-based dropdown has duplicate names. */
+export function dashboardLearningSelection(name: string, agents: DashboardAgent[]): LearningAgentSelection {
+  if (name === "all") return "all";
+  const matches = agents.filter(agent => agent.agentName === name);
+  return matches.length === 1 ? matches[0].id : null;
 }
 
 /** Match only unique registered names/aliases; keep unmatched activity in totals. */
