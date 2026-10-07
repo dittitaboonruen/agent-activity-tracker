@@ -33,6 +33,12 @@ function PepNotesPanel({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [editingNote, setEditingNote] = useState<PepNote | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<PepNote | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletedMessage, setDeletedMessage] = useState(false);
+  const newDraftRef = useRef({ pepDate: todayStr, recommendation: "", coachingQuestion: "", actionPlan: "" });
 
   const [historyRetry, setHistoryRetry] = useState(0);
   const historyRequestRef = useRef<AbortController | null>(null);
@@ -41,7 +47,7 @@ function PepNotesPanel({
   // A late save response belongs to its original selection, even after unmount.
   useEffect(() => {
     return () => { saveContextRef.current += 1; };
-  }, [agentFilter]);
+  }, [agentFilter, todayStr]);
 
   // Reset the draft only when the selected agent or Bangkok date changes.
   // Intentionally does NOT depend on suggestedRecommendation/suggestedQuestion —
@@ -56,6 +62,11 @@ function PepNotesPanel({
     setActionPlan("");
 
     setSaving(false);
+    setEditingNote(null);
+    setDeleteCandidate(null);
+    setDeleting(false);
+    setDeleteError(null);
+    setDeletedMessage(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentFilter, todayStr]);
 
@@ -85,16 +96,17 @@ function PepNotesPanel({
   }, [agentFilter, refreshKey, historyRetry]);
 
   const handleSave = useCallback(async () => {
-    if (agentFilter === "all" || saving) return;
+    if (agentFilter === "all" || saving || deleting) return;
     const context = saveContextRef.current;
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
     try {
       const res = await fetch("/api/pep-notes", {
-        method: "POST",
+        method: editingNote ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentName: agentFilter, pepDate, recommendation, coachingQuestion, actionPlan }),
+        body: JSON.stringify({ agentName: agentFilter, pepDate, recommendation, coachingQuestion, actionPlan,
+          ...(editingNote ? { id: editingNote.id, expectedUpdatedAt: editingNote.updatedAt } : {}) }),
       });
       const json = await res.json();
       if (!res.ok || !json.note) throw new Error(json?.error || "ไม่สามารถบันทึก PEP ได้");
@@ -102,7 +114,8 @@ function PepNotesPanel({
       historyRequestRef.current?.abort();
       setHistoryLoading(false);
       setHistoryError(null);
-      setHistory((prev) => [json.note as PepNote, ...prev]);
+      setHistory((prev) => [json.note as PepNote, ...prev.filter(note => note.id !== json.note.id)]);
+      if (editingNote) setEditingNote(json.note as PepNote);
       setSaveSuccess(true);
       setHistoryRetry(value => value + 1);
     } catch (err) {
@@ -111,7 +124,50 @@ function PepNotesPanel({
     } finally {
       if (context === saveContextRef.current) setSaving(false);
     }
-  }, [agentFilter, saving, pepDate, recommendation, coachingQuestion, actionPlan]);
+  }, [agentFilter, saving, deleting, editingNote, pepDate, recommendation, coachingQuestion, actionPlan]);
+
+  function startEdit(note: PepNote) {
+    if (saving || deleting) return;
+    if (!editingNote) newDraftRef.current = { pepDate, recommendation, coachingQuestion, actionPlan };
+    setEditingNote(note);
+    setPepDate(note.pepDate); setRecommendation(note.recommendation);
+    setCoachingQuestion(note.coachingQuestion); setActionPlan(note.actionPlan);
+    setSaveSuccess(false); setSaveError(null); setDeleteCandidate(null); setDeleteError(null);
+    document.getElementById("pep-note-date")?.focus();
+  }
+
+  function finishEdit() {
+    const draft = newDraftRef.current;
+    setPepDate(draft.pepDate); setRecommendation(draft.recommendation);
+    setCoachingQuestion(draft.coachingQuestion); setActionPlan(draft.actionPlan);
+    setEditingNote(null); setSaveError(null); setSaveSuccess(false);
+  }
+
+  async function handleDelete() {
+    if (!deleteCandidate || saving || deleting) return;
+    const note = deleteCandidate;
+    const context = saveContextRef.current;
+    setDeleting(true); setDeleteError(null); setDeletedMessage(false);
+    try {
+      const res = await fetch("/api/pep-notes", { method: "DELETE", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: note.id, agentName: agentFilter, expectedUpdatedAt: note.updatedAt }) });
+      const json = await res.json();
+      if (!res.ok || json.deleted !== true) throw new Error(json.error || "ไม่สามารถลบ PEP ได้");
+      if (context !== saveContextRef.current) return;
+      historyRequestRef.current?.abort();
+      setHistory(prev => prev.filter(item => item.id !== note.id));
+      setHistoryLoading(false); setHistoryError(null);
+      if (editingNote?.id === note.id) finishEdit();
+      setDeleteCandidate(null); setDeletedMessage(true);
+      setHistoryRetry(value => value + 1);
+    } catch (err) {
+      if (context === saveContextRef.current) setDeleteError(err instanceof Error ? err.message : "ไม่สามารถลบ PEP ได้");
+    } finally {
+      if (context === saveContextRef.current) setDeleting(false);
+    }
+  }
+
+  const busy = saving || deleting;
 
   if (agentFilter === "all") {
     return (
@@ -126,26 +182,27 @@ function PepNotesPanel({
   return (
     <Card>
       <div className="dash-section-title">บันทึก PEP — ตัวแทน {agentFilter}</div>
+      {editingNote && <p role="status">กำลังแก้ไขรายการวันที่ {formatThaiDateLong(editingNote.pepDate)} — บันทึกจะอัปเดตรายการเดิม</p>}
 
       <div className="dash-pepform-field">
         <label htmlFor="pep-note-date">วันที่ทำ PEP</label>
-        <input id="pep-note-date" disabled={saving} type="date" value={pepDate} onChange={(e) => setPepDate(e.target.value)} max={todayStr} />
+        <input id="pep-note-date" disabled={busy} type="date" value={pepDate} onChange={(e) => setPepDate(e.target.value)} max={todayStr} />
       </div>
 
       <div className="dash-pepform-field">
         <label htmlFor="pep-note-recommendation">แนวทาง PEP / เทคนิคที่แนะนำ</label>
-        <textarea id="pep-note-recommendation" disabled={saving} value={recommendation} onChange={(e) => setRecommendation(e.target.value)} rows={2} />
+        <textarea id="pep-note-recommendation" disabled={busy} value={recommendation} onChange={(e) => setRecommendation(e.target.value)} rows={2} />
       </div>
 
       <div className="dash-pepform-field">
         <label htmlFor="pep-note-question">คำถามชวนโค้ช</label>
-        <textarea id="pep-note-question" disabled={saving} value={coachingQuestion} onChange={(e) => setCoachingQuestion(e.target.value)} rows={2} />
+        <textarea id="pep-note-question" disabled={busy} value={coachingQuestion} onChange={(e) => setCoachingQuestion(e.target.value)} rows={2} />
       </div>
 
       <div className="dash-pepform-field">
         <label htmlFor="pep-note-action">Action Plan</label>
         <textarea id="pep-note-action"
-          disabled={saving}
+          disabled={busy}
           value={actionPlan}
           onChange={(e) => setActionPlan(e.target.value)}
           rows={2}
@@ -153,16 +210,25 @@ function PepNotesPanel({
         />
       </div>
 
-      <div className="dash-pepform-actions">
-        <button className="dash-save-btn" onClick={handleSave} disabled={saving}>
-          {saving ? "กำลังบันทึก..." : "บันทึก PEP"}
+      <div className="dash-pepform-actions" style={{ flexWrap: "wrap" }}>
+        <button className="dash-save-btn" onClick={handleSave} disabled={busy}>
+          {saving ? "กำลังบันทึก..." : editingNote ? "บันทึกการแก้ไข" : "บันทึก PEP"}
         </button>
+        {editingNote && <button type="button" className="dash-refresh-btn" disabled={busy} onClick={finishEdit}>กลับไปสร้างรายการใหม่</button>}
         {saveSuccess && <span className="dash-save-success">บันทึกแล้ว</span>}
       </div>
 
-      {saveError && <div className="dash-stale-warning dash-pepform-error">ไม่สามารถบันทึก PEP ได้: {saveError}</div>}
+      {saveError && <div className="dash-stale-warning dash-pepform-error" role="alert">ไม่สามารถบันทึก PEP ได้: {saveError}</div>}
 
       <div className="dash-eyebrow dash-pep-history-eyebrow">ประวัติ PEP</div>
+      {deletedMessage && <p role="status" className="dash-save-success">ลบรายการ PEP แล้ว</p>}
+      {deleteCandidate && <div className="dash-stale-warning" role="group" aria-label="ยืนยันลบ PEP">
+        <p>ลบบันทึกวันที่ {formatThaiDateLong(deleteCandidate.pepDate)} ของ {agentFilter} ใช่หรือไม่? การลบนี้กู้คืนจากหน้านี้ไม่ได้</p>
+        {deleteCandidate.actionPlan && <p>Action Plan: {deleteCandidate.actionPlan}</p>}
+        <button type="button" className="dash-refresh-btn" disabled={busy} onClick={handleDelete}>{deleting ? "กำลังลบ..." : "ยืนยันลบ"}</button>{" "}
+        <button type="button" className="dash-refresh-btn" disabled={busy} onClick={() => { setDeleteCandidate(null); setDeleteError(null); }}>ยกเลิก</button>
+        {deleteError && <p role="alert">{deleteError}</p>}
+      </div>}
 
       {historyLoading && <div className="dash-pep-empty" role="status">กำลังโหลดประวัติ...</div>}
       {historyError && <div className="dash-stale-warning" role="alert">
@@ -182,6 +248,10 @@ function PepNotesPanel({
           {history.map((note) => (
             <div key={note.id} className="dash-pep-history-item">
               <div className="dash-pep-history-date">{formatThaiDateLong(note.pepDate)}</div>
+              <div className="dash-pepform-actions" style={{ flexWrap: "wrap" }}>
+                <button type="button" className="dash-refresh-btn" disabled={busy} onClick={() => startEdit(note)} aria-label={`แก้ไข PEP วันที่ ${formatThaiDateLong(note.pepDate)}`}>แก้ไข</button>
+                <button type="button" className="dash-refresh-btn" disabled={busy} onClick={() => { setDeleteCandidate(note); setDeleteError(null); setDeletedMessage(false); }} aria-label={`ลบ PEP วันที่ ${formatThaiDateLong(note.pepDate)}`}>ลบ</button>
+              </div>
               {note.recommendation && (
                 <div className="dash-pep-history-row">
                   <span className="dash-pep-history-label">แนวทาง / เทคนิคที่แนะนำ:</span> {note.recommendation}
