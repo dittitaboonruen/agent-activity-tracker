@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { dataTimestampLabel, latestDataTimestamp } from "@/lib/date-utils";
 import SkoolQuizResults from "@/components/SkoolQuizResults";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -148,7 +149,7 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
       }))) as DashboardResponse;
 
       if (controller.signal.aborted) return;
-      if (!response.ok || responseData.success !== true) {
+      if (!response.ok || responseData.success !== true || !Array.isArray(responseData.rows) || !responseData.summary) {
         setData(null);
         setError(responseData.error || "ไม่สามารถโหลด Skool Dashboard ได้");
         return;
@@ -402,7 +403,8 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
           </div>
         )}
 
-        {!error && (
+        {!error && loading && <p role="status" style={emptyStyle}>กำลังโหลดความคืบหน้าการเรียน…</p>}
+        {!error && !loading && (
           <>
             <section
               style={{
@@ -414,7 +416,7 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
             >
               {[
                 ["ตัวแทนที่เชื่อมแล้ว", filteredSummary.agents, "คน"],
-                ["ความคืบหน้าเฉลี่ย", filteredSummary.averageProgress, "%"],
+                ["ความคืบหน้าเฉลี่ย", filteredRows.length ? filteredSummary.averageProgress : "—", filteredRows.length ? "%" : ""],
                 ["เรียนจบแล้ว", filteredSummary.completed, "รายการ"],
                 ["กำลังเรียน", filteredSummary.inProgress, "รายการ"],
                 ["ยังไม่เริ่ม", filteredSummary.notStarted, "รายการ"],
@@ -582,7 +584,8 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
                   รายละเอียดการเรียน ({filteredRows.length} รายการ)
                 </div>
                 <div style={{ color: "var(--cream-faint)", fontSize: 12 }}>
-                  อัปเดตล่าสุด: {formatDate(data?.summary?.syncedAt ?? null)}
+                  นำเข้า CSV ล่าสุดตามตัวกรอง: {dataTimestampLabel(latestDataTimestamp(filteredRows.map(row => row.syncedAt)), filteredRows.length ? "ยังไม่พบเวลานำเข้า" : "ยังไม่มีข้อมูลนำเข้าที่จับคู่ได้")}
+                  <br />รอบนำเข้า: ทุกวันศุกร์
                 </div>
               </div>
 
@@ -591,7 +594,7 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
               ) : filteredRows.length === 0 ? (
                 <div style={emptyStyle}>
                   {rows.length === 0
-                    ? "ยังไม่มีตัวแทนที่เชื่อมกับข้อมูล Skool ในขอบเขตนี้"
+                    ? "ยังไม่มีข้อมูลการเรียนที่นำเข้าหรือจับคู่ได้ในขอบเขตนี้ · ดูผลสอบ Google Forms แยกได้ด้านบน"
                     : "ไม่พบข้อมูลตามตัวกรองที่เลือก"}
                 </div>
               ) : (

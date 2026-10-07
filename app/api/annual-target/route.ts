@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
       supabase
         .from("agent_targets")
         .select(
-          "id, agent_id, agent_name, target_year, target_fyp, target_fyc, target_case"
+          "id, agent_id, agent_name, target_year, target_fyp, target_fyc, target_case, updated_at"
         )
         .eq("target_year", year)
         .order("agent_name", { ascending: true }),
@@ -320,7 +320,7 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .select(
-        "id, agent_id, agent_name, target_year, target_fyp, target_fyc, target_case"
+        "id, agent_id, agent_name, target_year, target_fyp, target_fyc, target_case, updated_at"
       )
       .single();
 

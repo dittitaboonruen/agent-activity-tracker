@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { listPepNotesForAgent, createPepNote } from "@/lib/pep-notes";
 import { SupabaseConfigError, SupabaseQueryError } from "@/lib/supabase";
+import { DashboardAccessError, getDashboardAccess } from "@/lib/dashboard-access";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // Always execute fresh — PEP notes are managers' live data, never cached here.
@@ -27,6 +28,7 @@ function methodNotAllowed() {
 }
 
 function handleKnownError(err: unknown, fallbackMessage: string) {
+  if (err instanceof DashboardAccessError) return errorResponse(err.message, err.status);
   if (err instanceof SupabaseConfigError) {
     // err.message is already a safe, generic string — see lib/supabase.ts.
     return errorResponse(err.message, 500);
@@ -38,6 +40,14 @@ function handleKnownError(err: unknown, fallbackMessage: string) {
   }
   console.error("[api/pep-notes] unexpected error:", err);
   return errorResponse(fallbackMessage, 500);
+}
+
+async function requirePepAgentAccess(agentName: string) {
+  const access = await getDashboardAccess("activity");
+  const normalized = agentName.normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("th-TH");
+  if (!access.canSeeAll && !access.agentNames.has(normalized)) {
+    throw new DashboardAccessError("คุณไม่มีสิทธิ์ดูหรือบันทึก PEP ของตัวแทนคนนี้", 403);
+  }
 }
 
 /** GET /api/pep-notes?agent=<name> — returns that agent's PEP note history. */
@@ -67,6 +77,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    await requirePepAgentAccess(agent);
     const notes = await listPepNotesForAgent(agent);
     return NextResponse.json({ notes }, { headers: NO_STORE_HEADERS });
   } catch (err) {
@@ -116,6 +127,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await requirePepAgentAccess(agentName);
     const note = await createPepNote({ agentName, pepDate, recommendation, coachingQuestion, actionPlan });
     return NextResponse.json({ note }, { status: 201, headers: NO_STORE_HEADERS });
   } catch (err) {
