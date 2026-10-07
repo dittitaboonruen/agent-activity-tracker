@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { listPepNotesForAgent, createPepNote } from "@/lib/pep-notes";
+import { listPepNotesForAgent, createPepNote, updatePepNote, deletePepNote } from "@/lib/pep-notes";
 import { SupabaseConfigError, SupabaseQueryError } from "@/lib/supabase";
 import { DashboardAccessError, getDashboardAccess } from "@/lib/dashboard-access";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -24,7 +24,7 @@ function errorResponse(message: string, status: number, extraHeaders?: Record<st
 }
 
 function methodNotAllowed() {
-  return errorResponse("Method not allowed.", 405, { Allow: "GET, POST" });
+  return errorResponse("Method not allowed.", 405, { Allow: "GET, POST, PATCH, DELETE" });
 }
 
 function handleKnownError(err: unknown, fallbackMessage: string) {
@@ -135,17 +135,50 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Explicitly restrict this route to GET and POST, same pattern as /api/jotform.
+/** Scope is checked before the privileged query, which also binds ID to agent. */
+async function mutateNote(request: NextRequest, deleting: boolean) {
+  if (request.nextUrl.searchParams.toString()) return errorResponse("This endpoint does not accept query parameters.", 400);
+  const rate = checkRateLimit(request);
+  if (!rate.allowed) return errorResponse("Too many requests. Please wait before trying again.", 429, { "Retry-After": String(rate.retryAfterSeconds) });
+  let body: unknown;
+  try { body = await request.json(); } catch { return errorResponse("Request body must be valid JSON.", 400); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return errorResponse("Invalid request body.", 400);
+  const b = body as Record<string, unknown>;
+  const agentName = typeof b.agentName === "string" ? b.agentName.trim() : "";
+  const expectedUpdatedAt = typeof b.expectedUpdatedAt === "string" ? b.expectedUpdatedAt : "";
+  if (!Number.isSafeInteger(b.id) || (b.id as number) <= 0 || !agentName || agentName.length > MAX_AGENT_LENGTH ||
+      !expectedUpdatedAt || expectedUpdatedAt.length > 100 || !Number.isFinite(Date.parse(expectedUpdatedAt))) {
+    return errorResponse("Invalid note ID, agent or update timestamp.", 400);
+  }
+  const pepDate = typeof b.pepDate === "string" ? b.pepDate.trim() : "";
+  const texts = [b.recommendation, b.coachingQuestion, b.actionPlan];
+  const parsedDate = new Date(pepDate + "T00:00:00Z");
+  if (!deleting && (!YMD_REGEX.test(pepDate) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== pepDate ||
+      texts.some(t => typeof t !== "string" || t.trim().length > MAX_TEXT_LENGTH))) {
+    return errorResponse("Invalid date or PEP text fields.", 400);
+  }
+  try {
+    await requirePepAgentAccess(agentName);
+    const result = deleting
+      ? await deletePepNote(b.id as number, agentName, expectedUpdatedAt)
+      : await updatePepNote(b.id as number, expectedUpdatedAt, {
+          agentName, pepDate, recommendation: (b.recommendation as string).trim(),
+          coachingQuestion: (b.coachingQuestion as string).trim(), actionPlan: (b.actionPlan as string).trim(),
+        });
+    if (!result) return errorResponse("รายการนี้ถูกแก้ไขหรือลบแล้ว หรือไม่ตรงกับตัวแทนที่เลือก กรุณาโหลดประวัติใหม่ก่อนลองอีกครั้ง", 409);
+    return NextResponse.json(deleting ? { deleted: true } : { note: result }, { headers: NO_STORE_HEADERS });
+  } catch (err) { return handleKnownError(err, "Unable to change the PEP note."); }
+}
+
 export async function PUT() {
   return methodNotAllowed();
 }
-export async function PATCH() {
-  return methodNotAllowed();
+export async function PATCH(request: NextRequest) {
+  return mutateNote(request, false);
 }
-export async function DELETE() {
-  return methodNotAllowed();
+export async function DELETE(request: NextRequest) {
+  return mutateNote(request, true);
 }
 export async function OPTIONS() {
   return methodNotAllowed();
 }
-
