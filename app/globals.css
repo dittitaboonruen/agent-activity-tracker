@@ -130,6 +130,96 @@ html, body {
   background: linear-gradient(90deg, var(--hairline), transparent);
 }
 
+/* Dashboard sections: shared person filter, separate source summaries. */
+.dash-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dash-section-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--cream);
+  font-size: 13px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.dash-section-nav a:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+.dash-section-nav a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.dash-filter-guide {
+  margin: 0 0 12px;
+  color: var(--cream-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.dash-data-section {
+  margin-top: 30px;
+  scroll-margin-top: 24px;
+}
+.dash-data-section + .dash-data-section {
+  margin-top: 40px;
+}
+.dash-data-section-header {
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.dash-data-section-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dash-data-section-heading h2 {
+  margin: 0;
+  color: var(--cream);
+  font-size: 20px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.dash-data-section-number {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+.dash-data-source {
+  padding: 4px 9px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--cream-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dash-data-section-description,
+.dash-data-section-context {
+  margin: 10px 0 0;
+  color: var(--cream-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.dash-data-section-context { font-size: 12px; }
+@media (max-width: 560px) {
+  .dash-section-nav a { flex: 1 1 100%; }
+  .dash-data-section-header { padding: 14px; }
+  .dash-data-section-heading h2 { font-size: 18px; }
+}
+
 .dash-filter-bar {
   display: flex;
   flex-direction: column;
