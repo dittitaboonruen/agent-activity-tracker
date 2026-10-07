@@ -647,20 +647,9 @@ export default function Dashboard({
           </h1>
 
           <div className="dash-title-sub">
-            ข้อมูลจริงจาก
-            Jotform ·{" "}
-            {
-              kpis.totalSubmissions
-            }{" "}
-            รายการที่แสดงผล
-            จากทั้งหมด{" "}
-            {
-              submissions.length
-            }{" "}
-            รายการ ·
-            เขตเวลา
-            Asia/Bangkok
-            (UTC+7)
+            กิจกรรมจาก Jotform · การเรียนจาก Skool · ผลสอบจาก Google Forms
+            <br />
+            รายชื่อจาก Agent Master · เขตเวลา Asia/Bangkok (UTC+7)
           </div>
         </div>
 
@@ -695,7 +684,7 @@ export default function Dashboard({
           {lastFetchedUTC &&
             !showHardError && (
               <div className="dash-sync-time">
-                อัปเดตล่าสุด:{" "}
+                ดึงข้อมูล Jotform ล่าสุด:{" "}
                 {bangkokRefreshLabel(
                   lastFetchedUTC
                 )}
@@ -720,33 +709,18 @@ export default function Dashboard({
       </div>
 
       {/* =====================================================
-          LOADING / ERROR
-      ===================================================== */}
-
-      {showBlockingLoading && (
-        <div className="dash-loading-banner">
-          กำลังดึงข้อมูลล่าสุดจาก
-          Jotform…
-        </div>
-      )}
-
-      {showHardError && (
-        <div className="dash-error-banner">
-          ไม่สามารถโหลดข้อมูลได้:{" "}
-          {error}
-        </div>
-      )}
-
-      {showStaleWarning && (
-        <div className="dash-stale-warning">
-          ไม่สามารถอัปเดตข้อมูลล่าสุดได้
-          กำลังแสดงข้อมูลจากการอัปเดตครั้งก่อน
-        </div>
-      )}
-
-      {/* =====================================================
           FILTERS
       ===================================================== */}
+
+      <nav className="dash-section-nav" aria-label="ข้ามไปส่วนของแดชบอร์ด">
+        <a href="#dashboard-activities">01 กิจกรรมและยอดขาย</a>
+        <a href="#dashboard-learning">02 การเรียนและ Quiz</a>
+        <a href="#dashboard-goals">03 เป้าหมายรายปีและ PEP</a>
+      </nav>
+
+      <p className="dash-filter-guide">
+        เลือกชื่อตัวแทนเพื่อดูข้อมูลของคนนั้นในทั้ง 3 ส่วน · วันที่และช่องทางใช้กับกิจกรรมและ PEP Insight
+      </p>
 
       <FilterBar
         filters={
@@ -776,205 +750,281 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* =====================================================
-          OVERVIEW KPI
-      ===================================================== */}
+      <section id="dashboard-activities" className="dash-data-section" aria-labelledby="dashboard-activities-title">
+        <header className="dash-data-section-header">
+          <div className="dash-data-section-heading">
+            <span className="dash-data-section-number" aria-hidden="true">01</span>
+            <h2 id="dashboard-activities-title">กิจกรรมและยอดขาย</h2>
+            <span className="dash-data-source">Jotform</span>
+          </div>
+          <p className="dash-data-section-description">
+            บันทึกกิจกรรมประจำวันและสถานะการขาย · My Money Map นับจากบันทึกกิจกรรมนี้
+          </p>
+          <p className="dash-data-section-context">
+            แสดง {kpis.totalSubmissions} รายการตามตัวกรอง จากข้อมูล Jotform {submissions.length} รายการ
+            · ตารางเปรียบเทียบแสดงตัวแทนตามสิทธิ์ และเน้นชื่อที่เลือก
+          </p>
+        </header>
 
-      <SectionLabel>
-        ภาพรวม
-      </SectionLabel>
+        {/* =====================================================
+            LOADING / ERROR
+        ===================================================== */}
 
-      <div className="dash-kpi-grid">
-        <KpiCard
-          label="ลูกค้าทั้งหมด"
-          value={
-            kpis.totalCustomers
+        {showBlockingLoading && (
+          <div className="dash-loading-banner">
+            กำลังดึงข้อมูลล่าสุดจาก
+            Jotform…
+          </div>
+        )}
+
+        {showHardError && (
+          <div className="dash-error-banner">
+            ไม่สามารถโหลดข้อมูลกิจกรรมจาก Jotform ได้:{" "}
+            {error}
+          </div>
+        )}
+
+        {showStaleWarning && (
+          <div className="dash-stale-warning">
+            ไม่สามารถอัปเดตข้อมูลล่าสุดได้
+            กำลังแสดงข้อมูลจากการอัปเดตครั้งก่อน
+          </div>
+        )}
+
+        {/* =====================================================
+            OVERVIEW KPI
+        ===================================================== */}
+
+        <SectionLabel>
+          ภาพรวม
+        </SectionLabel>
+
+        <div className="dash-kpi-grid">
+          <KpiCard
+            label="ลูกค้าทั้งหมด"
+            value={
+              kpis.totalCustomers
+            }
+          />
+
+          <KpiCard
+            label="กิจกรรมทั้งหมด"
+            value={
+              kpis.totalActivities
+            }
+          />
+
+          <KpiCard
+            label="หารายชื่อ"
+            value={
+              prospectingTotal
+            }
+          />
+
+          <KpiCard
+            label="ขาย"
+            value={
+              salesTotal
+            }
+          />
+
+          <KpiCard
+            label="บริการ"
+            value={
+              serviceTotal
+            }
+          />
+
+          <KpiCard
+            label="ทำ My Money Map"
+            value={
+              kpis.moneyMapDone
+            }
+          />
+        </div>
+
+        {/* =====================================================
+            SALES PROCESS SUMMARY
+        ===================================================== */}
+
+        <ActivitySummary
+          breakdown={
+            activityBreakdown
           }
-        />
-
-        <KpiCard
-          label="กิจกรรมทั้งหมด"
-          value={
+          totalActivities={
             kpis.totalActivities
           }
         />
 
-        <KpiCard
-          label="หารายชื่อ"
-          value={
-            prospectingTotal
+        {/* =====================================================
+            CLOSING + 9 STEPS
+        ===================================================== */}
+
+        <div className="dash-grid-2">
+          <ClosingStatusCard
+            closingData={
+              closingData
+            }
+            totalSubmissions={
+              kpis.totalSubmissions
+            }
+            closedSales={
+              kpis.closedSales
+            }
+          />
+
+          <ActivityBreakdownCard
+            data={
+              activityBreakdown
+            }
+          />
+        </div>
+
+        {/* =====================================================
+            MONEY MAP / CHANNEL / SOURCE
+        ===================================================== */}
+
+        <div className="dash-grid-3">
+          <MoneyMapCard
+            data={
+              moneyMapData
+            }
+            total={
+              filtered.length
+            }
+          />
+
+          <ChannelCard
+            data={
+              channelData
+            }
+          />
+
+          <SourceCard
+            data={
+              sourceData
+            }
+          />
+        </div>
+
+        {/* =====================================================
+            AGENT COMPARISON
+        ===================================================== */}
+
+        <SectionLabel>
+          เปรียบเทียบผลงานตัวแทน
+        </SectionLabel>
+
+        <AgentTable
+          rows={
+            agentTable
+          }
+          selectedAgent={
+            filters.agentFilter
           }
         />
 
-        <KpiCard
-          label="ขาย"
-          value={
-            salesTotal
-          }
+      </section>
+
+      <section id="dashboard-learning" className="dash-data-section" aria-labelledby="dashboard-learning-title">
+        <header className="dash-data-section-header">
+          <div className="dash-data-section-heading">
+            <span className="dash-data-section-number" aria-hidden="true">02</span>
+            <h2 id="dashboard-learning-title">การเรียนและ Quiz</h2>
+            <span className="dash-data-source">Skool · Google Forms</span>
+          </div>
+          <p className="dash-data-section-description">
+            ความคืบหน้า Skool จาก CSV ที่นำเข้าทุกวันศุกร์ · ผลสอบ Google Forms รับผ่าน Apps Script
+          </p>
+          <p className="dash-data-section-context">
+            แสดงตามชื่อตัวแทนที่เลือก · วันที่และช่องทางกิจกรรมไม่มีผลกับส่วนนี้
+          </p>
+        </header>
+
+        {/* =====================================================
+            SKOOL LEARNING SUMMARY
+        ===================================================== */}
+
+        <SkoolSummaryCard
+          key={`${learningSelection ?? "unresolved"}:${learningRefreshKey}`}
+          agentSelection={learningSelection}
+          agentName={filters.agentFilter === "all" ? undefined : filters.agentFilter}
         />
 
-        <KpiCard
-          label="บริการ"
-          value={
-            serviceTotal
-          }
-        />
+      </section>
 
-        <KpiCard
-          label="ทำ My Money Map"
-          value={
-            kpis.moneyMapDone
-          }
-        />
-      </div>
+      <section id="dashboard-goals" className="dash-data-section" aria-labelledby="dashboard-goals-title">
+        <header className="dash-data-section-header">
+          <div className="dash-data-section-heading">
+            <span className="dash-data-section-number" aria-hidden="true">03</span>
+            <h2 id="dashboard-goals-title">เป้าหมายรายปีและ PEP</h2>
+            <span className="dash-data-source">Annual Target · PEP</span>
+          </div>
+          <p className="dash-data-section-description">
+            เป้าหมายประจำปี {currentYear + 543} และการติดตามตัวแทนรายบุคคล
+          </p>
+          <p className="dash-data-section-context">
+            เป้าหมายรายปีและประวัติ PEP แสดงตามชื่อ · PEP Insight วิเคราะห์กิจกรรมตามวันที่และช่องทางที่เลือก
+          </p>
+        </header>
 
-      {/* =====================================================
-          SALES PROCESS SUMMARY
-      ===================================================== */}
+        {/* =====================================================
+            ANNUAL TARGET
+        ===================================================== */}
 
-      <ActivitySummary
-        breakdown={
-          activityBreakdown
-        }
-        totalActivities={
-          kpis.totalActivities
-        }
-      />
+        <div
+          style={{
+            marginTop: 18,
+          }}
+        >
+          <AnnualTargetCard
+            agentFilter={
+              filters.agentFilter
+            }
+            year={
+              currentYear
+            }
+          />
+        </div>
 
-      {/* =====================================================
-          ANNUAL TARGET
-      ===================================================== */}
+        {/* =====================================================
+            PEP
+        ===================================================== */}
 
-      <div
-        style={{
-          marginTop: 18,
-        }}
-      >
-        <AnnualTargetCard
+        <SectionLabel>
+          PEP Insight
+        </SectionLabel>
+
+        <PepInsightCard
           agentFilter={
             filters.agentFilter
           }
-          year={
-            currentYear
-          }
-        />
-      </div>
-
-      {/* =====================================================
-          SKOOL LEARNING SUMMARY
-      ===================================================== */}
-
-      <SkoolSummaryCard
-        key={`${learningSelection ?? "unresolved"}:${learningRefreshKey}`}
-        agentSelection={learningSelection}
-        agentName={filters.agentFilter === "all" ? undefined : filters.agentFilter}
-      />
-
-      {/* =====================================================
-          CLOSING + 9 STEPS
-      ===================================================== */}
-
-      <div className="dash-grid-2">
-        <ClosingStatusCard
-          closingData={
-            closingData
-          }
-          totalSubmissions={
-            kpis.totalSubmissions
-          }
-          closedSales={
-            kpis.closedSales
+          insight={
+            pepInsight
           }
         />
 
-        <ActivityBreakdownCard
-          data={
-            activityBreakdown
-          }
-        />
-      </div>
-
-      {/* =====================================================
-          MONEY MAP / CHANNEL / SOURCE
-      ===================================================== */}
-
-      <div className="dash-grid-3">
-        <MoneyMapCard
-          data={
-            moneyMapData
-          }
-          total={
-            filtered.length
-          }
-        />
-
-        <ChannelCard
-          data={
-            channelData
-          }
-        />
-
-        <SourceCard
-          data={
-            sourceData
-          }
-        />
-      </div>
-
-      {/* =====================================================
-          AGENT COMPARISON
-      ===================================================== */}
-
-      <SectionLabel>
-        เปรียบเทียบผลงานตัวแทน
-      </SectionLabel>
-
-      <AgentTable
-        rows={
-          agentTable
-        }
-        selectedAgent={
-          filters.agentFilter
-        }
-      />
-
-      {/* =====================================================
-          PEP
-      ===================================================== */}
-
-      <SectionLabel>
-        PEP Insight
-      </SectionLabel>
-
-      <PepInsightCard
-        agentFilter={
-          filters.agentFilter
-        }
-        insight={
-          pepInsight
-        }
-      />
-
-      <div
-        style={{
-          marginTop: 18,
-        }}
-      >
-        <PepNotesPanel
-          agentFilter={
-            pepAgentFilter
-          }
-          todayStr={
-            todayStr
-          }
-          suggestedRecommendation={
-            suggestedRecommendation
-          }
-          suggestedQuestion={
-            suggestedQuestion
-          }
-        />
-      </div>
+        <div
+          style={{
+            marginTop: 18,
+          }}
+        >
+          <PepNotesPanel
+            agentFilter={
+              pepAgentFilter
+            }
+            todayStr={
+              todayStr
+            }
+            suggestedRecommendation={
+              suggestedRecommendation
+            }
+            suggestedQuestion={
+              suggestedQuestion
+            }
+          />
+        </div>
+      </section>
     </div>
   );
 }
