@@ -1,0 +1,13 @@
+PASS selected agent only, zero quiz score and zero annual target preserved
+PASS real PDF download through React button with local Thai fonts
+PASS changing selected agent invalidates the previous PDF
+PASS missing Jotform and failed optional sources do not become fake zero scores
+PASS long Thai comments generate a complete multi-page PDF
+PASS PDF renders missing-source messages with no invented KPI numbers
+PASS export blocks deny
+PASS export blocks other
+PASS export blocks changed
+PASS export blocks deleted
+PASS late API responses cannot create a previous-agent PDF
+PASS save/delete in progress disables export
+PASS no browser runtime or CSP errors

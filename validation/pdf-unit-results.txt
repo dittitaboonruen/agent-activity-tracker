@@ -1,0 +1,15 @@
+✔ PDF requests one numeric agent ID, uses legacy PEP alias, and excludes unrelated quiz rows (2.454508ms)
+✔ invalid dates, impossible dates, reversed range, all-agent sentinel and loading are rejected before requests (0.682514ms)
+✔ current permission and roster mismatch block exporting cached data (0.543402ms)
+✔ deleted or concurrently changed PEP comments cannot be attached (1.229311ms)
+✔ optional learning failure remains visibly unavailable and no-comment export remains valid (15.653376ms)
+✔ no activity differs from recorded zero and missing learning differs from failed quizzes (6.226196ms)
+✔ aborted loading cannot publish a report and filename safely retains leading zeros (0.653622ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 481.34485

@@ -1,0 +1,2 @@
+Existing regression suite: 108 tests, 108 passed, 0 failed, 0 skipped.
+Includes manager scoping, activity states, PEP CRUD, Google Form webhook, Skool import and real PostgreSQL (PGlite) cases.
