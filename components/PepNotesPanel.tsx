@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "./ui";
-import { formatThaiDateLong } from "@/lib/date-utils";
+import { dataTimestampLabel, latestDataTimestamp, formatThaiDateLong } from "@/lib/date-utils";
 import type { PepNote } from "@/types";
 
 interface PepNotesPanelProps {
   agentFilter: string;
   todayStr: string;
+  refreshKey?: number;
   /** Prefill only — from the existing auto-computed PEP analytics (PEP_META[gapKey]). Fully editable/overridable by the manager. */
   suggestedRecommendation?: string;
   suggestedQuestion?: string;
@@ -16,11 +17,12 @@ interface PepNotesPanelProps {
 function PepNotesPanel({
   agentFilter,
   todayStr,
+  refreshKey = 0,
   suggestedRecommendation = "",
   suggestedQuestion = "",
 }: PepNotesPanelProps) {
   const [history, setHistory] = useState<PepNote[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(agentFilter !== "all");
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   const [pepDate, setPepDate] = useState(todayStr);
@@ -32,7 +34,16 @@ function PepNotesPanel({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Reset the form and (re)load history whenever the selected agent changes.
+  const [historyRetry, setHistoryRetry] = useState(0);
+  const historyRequestRef = useRef<AbortController | null>(null);
+  const saveContextRef = useRef(0);
+
+  // A late save response belongs to its original selection, even after unmount.
+  useEffect(() => {
+    return () => { saveContextRef.current += 1; };
+  }, [agentFilter]);
+
+  // Reset the draft only when the selected agent or Bangkok date changes.
   // Intentionally does NOT depend on suggestedRecommendation/suggestedQuestion —
   // those are a one-time prefill on agent selection, not a live sync, so a
   // background data refresh never clobbers what a manager is mid-typing.
@@ -44,38 +55,38 @@ function PepNotesPanel({
     setCoachingQuestion(suggestedQuestion);
     setActionPlan("");
 
-    if (agentFilter === "all") {
-      setHistory([]);
-      setHistoryError(null);
-      setHistoryLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setHistoryLoading(true);
-    setHistoryError(null);
-
-    fetch(`/api/pep-notes?agent=${encodeURIComponent(agentFilter)}`, { cache: "no-store" })
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || `Request failed with status ${res.status}`);
-        if (!cancelled) setHistory(json.notes ?? []);
-      })
-      .catch((err) => {
-        if (!cancelled) setHistoryError(err instanceof Error ? err.message : "ไม่สามารถโหลดประวัติ PEP ได้");
-      })
-      .finally(() => {
-        if (!cancelled) setHistoryLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    setSaving(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentFilter, todayStr]);
 
+  // Refresh history separately so retry or dashboard refresh preserves the draft.
+  useEffect(() => {
+    historyRequestRef.current?.abort();
+    const controller = new AbortController();
+    historyRequestRef.current = controller;
+    setHistory([]);
+    setHistoryError(null);
+    setHistoryLoading(agentFilter !== "all");
+    if (agentFilter === "all") return () => controller.abort();
+
+    fetch(`/api/pep-notes?agent=${encodeURIComponent(agentFilter)}`, { cache: "no-store", signal: controller.signal })
+      .then(async res => {
+        const json = await res.json();
+        if (!res.ok || !Array.isArray(json.notes)) throw new Error(json.error || "ไม่สามารถโหลดประวัติ PEP ได้");
+        if (!controller.signal.aborted) setHistory(json.notes);
+      })
+      .catch(err => {
+        if (!controller.signal.aborted) setHistoryError(err instanceof Error ? err.message : "ไม่สามารถโหลดประวัติ PEP ได้");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setHistoryLoading(false);
+      });
+    return () => controller.abort();
+  }, [agentFilter, refreshKey, historyRetry]);
+
   const handleSave = useCallback(async () => {
     if (agentFilter === "all" || saving) return;
+    const context = saveContextRef.current;
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
@@ -86,13 +97,19 @@ function PepNotesPanel({
         body: JSON.stringify({ agentName: agentFilter, pepDate, recommendation, coachingQuestion, actionPlan }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || `Request failed with status ${res.status}`);
+      if (!res.ok || !json.note) throw new Error(json?.error || "ไม่สามารถบันทึก PEP ได้");
+      if (context !== saveContextRef.current) return;
+      historyRequestRef.current?.abort();
+      setHistoryLoading(false);
+      setHistoryError(null);
       setHistory((prev) => [json.note as PepNote, ...prev]);
       setSaveSuccess(true);
+      setHistoryRetry(value => value + 1);
     } catch (err) {
+      if (context !== saveContextRef.current) return;
       setSaveError(err instanceof Error ? err.message : "ไม่สามารถบันทึก PEP ได้");
     } finally {
-      setSaving(false);
+      if (context === saveContextRef.current) setSaving(false);
     }
   }, [agentFilter, saving, pepDate, recommendation, coachingQuestion, actionPlan]);
 
@@ -111,23 +128,24 @@ function PepNotesPanel({
       <div className="dash-section-title">บันทึก PEP — ตัวแทน {agentFilter}</div>
 
       <div className="dash-pepform-field">
-        <label>วันที่ทำ PEP</label>
-        <input type="date" value={pepDate} onChange={(e) => setPepDate(e.target.value)} max={todayStr} />
+        <label htmlFor="pep-note-date">วันที่ทำ PEP</label>
+        <input id="pep-note-date" disabled={saving} type="date" value={pepDate} onChange={(e) => setPepDate(e.target.value)} max={todayStr} />
       </div>
 
       <div className="dash-pepform-field">
-        <label>แนวทาง PEP / เทคนิคที่แนะนำ</label>
-        <textarea value={recommendation} onChange={(e) => setRecommendation(e.target.value)} rows={2} />
+        <label htmlFor="pep-note-recommendation">แนวทาง PEP / เทคนิคที่แนะนำ</label>
+        <textarea id="pep-note-recommendation" disabled={saving} value={recommendation} onChange={(e) => setRecommendation(e.target.value)} rows={2} />
       </div>
 
       <div className="dash-pepform-field">
-        <label>คำถามชวนโค้ช</label>
-        <textarea value={coachingQuestion} onChange={(e) => setCoachingQuestion(e.target.value)} rows={2} />
+        <label htmlFor="pep-note-question">คำถามชวนโค้ช</label>
+        <textarea id="pep-note-question" disabled={saving} value={coachingQuestion} onChange={(e) => setCoachingQuestion(e.target.value)} rows={2} />
       </div>
 
       <div className="dash-pepform-field">
-        <label>Action Plan</label>
-        <textarea
+        <label htmlFor="pep-note-action">Action Plan</label>
+        <textarea id="pep-note-action"
+          disabled={saving}
           value={actionPlan}
           onChange={(e) => setActionPlan(e.target.value)}
           rows={2}
@@ -146,12 +164,20 @@ function PepNotesPanel({
 
       <div className="dash-eyebrow dash-pep-history-eyebrow">ประวัติ PEP</div>
 
-      {historyLoading && <div className="dash-pep-empty">กำลังโหลดประวัติ...</div>}
-      {historyError && <div className="dash-stale-warning">ไม่สามารถโหลดประวัติ PEP ได้: {historyError}</div>}
+      {historyLoading && <div className="dash-pep-empty" role="status">กำลังโหลดประวัติ...</div>}
+      {historyError && <div className="dash-stale-warning" role="alert">
+        ไม่สามารถโหลดประวัติ PEP ได้: {historyError}{" "}
+        <button type="button" className="dash-refresh-btn" onClick={() => setHistoryRetry(value => value + 1)}>ลองโหลดประวัติใหม่</button>
+      </div>}
       {!historyLoading && !historyError && history.length === 0 && (
         <div className="dash-pep-empty">ยังไม่มีประวัติ PEP สำหรับตัวแทนนี้</div>
       )}
-      {!historyLoading && history.length > 0 && (
+      {!historyLoading && !historyError && history.length > 0 && (
+        <p style={{ color: "var(--cream-muted)", fontSize: 12 }}>
+          บันทึก PEP อัปเดตล่าสุด: {dataTimestampLabel(latestDataTimestamp(history.map(note => note.updatedAt || note.createdAt)))}
+        </p>
+      )}
+      {!historyLoading && !historyError && history.length > 0 && (
         <div className="dash-pep-history-list">
           {history.map((note) => (
             <div key={note.id} className="dash-pep-history-item">

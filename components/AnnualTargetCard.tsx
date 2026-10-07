@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { dataTimestampLabel } from "@/lib/date-utils";
 
 type AnnualTarget = {
   id: number;
@@ -9,53 +10,52 @@ type AnnualTarget = {
   target_fyp: number;
   target_fyc: number;
   target_case: number;
+  updated_at?: string | null;
 };
 
 interface AnnualTargetCardProps {
   agentFilter: string;
   year: number;
+  refreshKey?: number;
 }
 
 export default function AnnualTargetCard({
   agentFilter,
   year,
+  refreshKey = 0,
 }: AnnualTargetCardProps) {
   const [target, setTarget] = useState<AnnualTarget | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(agentFilter !== "all");
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
+    setTarget(null);
+    setError(null);
     if (agentFilter === "all") {
-      setTarget(null);
-      return;
+      setLoading(false);
+      return () => controller.abort();
     }
-
+    setLoading(true);
     async function loadTarget() {
-      setLoading(true);
-
       try {
         const res = await fetch(
-          `/api/annual-target?agent=${encodeURIComponent(
-            agentFilter
-          )}&year=${year}`,
-          { cache: "no-store" }
+          `/api/annual-target?agent=${encodeURIComponent(agentFilter)}&year=${year}`,
+          { cache: "no-store", signal: controller.signal }
         );
-
         const json = await res.json();
-
-        if (res.ok) {
-          setTarget(json.target ?? null);
-        } else {
-          setTarget(null);
-        }
-      } catch {
-        setTarget(null);
+        if (!res.ok || !("target" in json)) throw new Error(json.error || "ไม่สามารถโหลดเป้าหมายได้");
+        if (!controller.signal.aborted) setTarget(json.target ?? null);
+      } catch (loadError) {
+        if (!controller.signal.aborted) setError(loadError instanceof Error ? loadError.message : "ไม่สามารถโหลดเป้าหมายได้");
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
-
-    loadTarget();
-  }, [agentFilter, year]);
+    void loadTarget();
+    return () => controller.abort();
+  }, [agentFilter, year, refreshKey, retry]);
 
   if (agentFilter === "all") {
     return (
@@ -75,12 +75,17 @@ export default function AnnualTargetCard({
       </div>
 
       {loading ? (
-        <div style={{ marginTop: 14, opacity: 0.65 }}>
+        <div role="status" style={{ marginTop: 14, opacity: 0.65 }}>
           กำลังโหลดเป้าหมาย...
+        </div>
+      ) : error ? (
+        <div className="dash-error-banner" role="alert">
+          ไม่สามารถโหลดเป้าหมายได้: {error}{" "}
+          <button type="button" className="dash-refresh-btn" onClick={() => setRetry(value => value + 1)}>ลองใหม่</button>
         </div>
       ) : !target ? (
         <div style={{ marginTop: 14, opacity: 0.65 }}>
-          ยังไม่มีข้อมูลเป้าหมายของ {agentFilter}
+          ยังไม่มีข้อมูลเป้าหมายปี {year + 543} ของ {agentFilter}
         </div>
       ) : (
         <div
@@ -106,6 +111,11 @@ export default function AnnualTargetCard({
             value={Number(target.target_case).toLocaleString()}
           />
         </div>
+      )}
+      {!loading && !error && target && (
+        <p style={{ marginTop: 14, color: "var(--cream-muted)", fontSize: 12 }}>
+          เป้าหมายอัปเดตล่าสุด: {dataTimestampLabel(target.updated_at)}
+        </p>
       )}
     </div>
   );

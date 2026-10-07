@@ -16,7 +16,8 @@ import type {
 
 import {
   todayBangkokStr,
-  bangkokRefreshLabel,
+  dataTimestampLabel,
+  latestDataTimestamp,
 } from "@/lib/date-utils";
 
 import {
@@ -304,14 +305,11 @@ export default function Dashboard({
             );
           }
 
-          setSubmissions(
-            json.submissions ??
-              []
-          );
+          if (!Array.isArray(json.submissions)) throw new Error("ข้อมูลกิจกรรมจากระบบไม่สมบูรณ์ กรุณาลองใหม่");
+          setSubmissions(json.submissions);
 
           setLastFetchedUTC(
-            json.fetchedAtUTC ??
-              new Date().toISOString()
+            json.fetchedAtUTC ?? null
           );
 
           setError(
@@ -617,10 +615,7 @@ export default function Dashboard({
     submissions.length ===
       0;
 
-  const showStaleWarning =
-    staleWarning &&
-    submissions.length >
-      0;
+  const showStaleWarning = staleWarning && Boolean(lastFetchedUTC);
 
   const isBusy =
     loading ||
@@ -685,9 +680,7 @@ export default function Dashboard({
             !showHardError && (
               <div className="dash-sync-time">
                 ดึงข้อมูล Jotform ล่าสุด:{" "}
-                {bangkokRefreshLabel(
-                  lastFetchedUTC
-                )}
+                {dataTimestampLabel(lastFetchedUTC)}
 
                 {refreshing && (
                   <span className="dash-sync-refreshing">
@@ -761,8 +754,12 @@ export default function Dashboard({
             บันทึกกิจกรรมประจำวันและสถานะการขาย · My Money Map นับจากบันทึกกิจกรรมนี้
           </p>
           <p className="dash-data-section-context">
-            แสดง {kpis.totalSubmissions} รายการตามตัวกรอง จากข้อมูล Jotform {submissions.length} รายการ
-            · ตารางเปรียบเทียบแสดงตัวแทนตามสิทธิ์ และเน้นชื่อที่เลือก
+            {showBlockingLoading ? "กำลังโหลดกิจกรรม…" : showHardError ? "ยังโหลดกิจกรรมไม่สำเร็จ" : `แสดง ${kpis.totalSubmissions} รายการตามตัวกรอง จากข้อมูล Jotform ${submissions.length} รายการ`}
+          </p>
+          <p className="dash-data-section-context">
+            ดึงข้อมูล Jotform ล่าสุด: {dataTimestampLabel(lastFetchedUTC, showBlockingLoading || showHardError ? "ยังโหลดข้อมูลไม่สำเร็จ" : "ยังไม่พบเวลาที่ดึงข้อมูล")}
+            <br />บันทึกล่าสุดในตัวกรอง: {dataTimestampLabel(latestDataTimestamp(filtered.map(row => row.createdAtUTC)), filtered.length ? "ยังไม่พบเวลาบันทึก" : "ยังไม่มีบันทึกในตัวกรองนี้")}
+
           </p>
         </header>
 
@@ -771,14 +768,14 @@ export default function Dashboard({
         ===================================================== */}
 
         {showBlockingLoading && (
-          <div className="dash-loading-banner">
+          <div className="dash-loading-banner" role="status">
             กำลังดึงข้อมูลล่าสุดจาก
             Jotform…
           </div>
         )}
 
         {showHardError && (
-          <div className="dash-error-banner">
+          <div className="dash-error-banner" role="alert">
             ไม่สามารถโหลดข้อมูลกิจกรรมจาก Jotform ได้:{" "}
             {error}
           </div>
@@ -791,139 +788,133 @@ export default function Dashboard({
           </div>
         )}
 
-        {/* =====================================================
-            OVERVIEW KPI
-        ===================================================== */}
+        {!showBlockingLoading && !showHardError && filtered.length === 0 && (
+          <div className="dash-loading-banner" role="status">
+            {filters.agentFilter === "all" ? "ไม่มีบันทึกกิจกรรมในช่วงวันที่และช่องทางที่เลือก" : `ไม่มีบันทึกกิจกรรมของ ${filters.agentFilter} ในช่วงวันที่และช่องทางที่เลือก`}
+            <br />ข้อมูลการเรียน ผลสอบ เป้าหมาย และบันทึก PEP ดูได้ในส่วนถัดไป
+          </div>
+        )}
 
-        <SectionLabel>
-          ภาพรวม
-        </SectionLabel>
+        {!showBlockingLoading && !showHardError && filtered.length > 0 && (
+          <>
+            {/* =====================================================
+                OVERVIEW KPI
+            ===================================================== */}
 
-        <div className="dash-kpi-grid">
-          <KpiCard
-            label="ลูกค้าทั้งหมด"
-            value={
-              kpis.totalCustomers
-            }
-          />
+            <SectionLabel>
+              ภาพรวม
+            </SectionLabel>
 
-          <KpiCard
-            label="กิจกรรมทั้งหมด"
-            value={
-              kpis.totalActivities
-            }
-          />
+            <div className="dash-kpi-grid">
+              <KpiCard
+                label="ลูกค้าทั้งหมด"
+                value={
+                  kpis.totalCustomers
+                }
+              />
 
-          <KpiCard
-            label="หารายชื่อ"
-            value={
-              prospectingTotal
-            }
-          />
+              <KpiCard
+                label="กิจกรรมทั้งหมด"
+                value={
+                  kpis.totalActivities
+                }
+              />
 
-          <KpiCard
-            label="ขาย"
-            value={
-              salesTotal
-            }
-          />
+              <KpiCard
+                label="หารายชื่อ"
+                value={
+                  prospectingTotal
+                }
+              />
 
-          <KpiCard
-            label="บริการ"
-            value={
-              serviceTotal
-            }
-          />
+              <KpiCard
+                label="ขาย"
+                value={
+                  salesTotal
+                }
+              />
 
-          <KpiCard
-            label="ทำ My Money Map"
-            value={
-              kpis.moneyMapDone
-            }
-          />
-        </div>
+              <KpiCard
+                label="บริการ"
+                value={
+                  serviceTotal
+                }
+              />
 
-        {/* =====================================================
-            SALES PROCESS SUMMARY
-        ===================================================== */}
+              <KpiCard
+                label="ทำ My Money Map"
+                value={
+                  kpis.moneyMapDone
+                }
+              />
+            </div>
 
-        <ActivitySummary
-          breakdown={
-            activityBreakdown
-          }
-          totalActivities={
-            kpis.totalActivities
-          }
-        />
+            {/* =====================================================
+                SALES PROCESS SUMMARY
+            ===================================================== */}
 
-        {/* =====================================================
-            CLOSING + 9 STEPS
-        ===================================================== */}
+            <ActivitySummary
+              breakdown={
+                activityBreakdown
+              }
+              totalActivities={
+                kpis.totalActivities
+              }
+            />
 
-        <div className="dash-grid-2">
-          <ClosingStatusCard
-            closingData={
-              closingData
-            }
-            totalSubmissions={
-              kpis.totalSubmissions
-            }
-            closedSales={
-              kpis.closedSales
-            }
-          />
+            {/* =====================================================
+                CLOSING + 9 STEPS
+            ===================================================== */}
 
-          <ActivityBreakdownCard
-            data={
-              activityBreakdown
-            }
-          />
-        </div>
+            <div className="dash-grid-2">
+              <ClosingStatusCard
+                closingData={
+                  closingData
+                }
+                totalSubmissions={
+                  kpis.totalSubmissions
+                }
+                closedSales={
+                  kpis.closedSales
+                }
+              />
 
-        {/* =====================================================
-            MONEY MAP / CHANNEL / SOURCE
-        ===================================================== */}
+              <ActivityBreakdownCard
+                data={
+                  activityBreakdown
+                }
+              />
+            </div>
 
-        <div className="dash-grid-3">
-          <MoneyMapCard
-            data={
-              moneyMapData
-            }
-            total={
-              filtered.length
-            }
-          />
+            {/* =====================================================
+                MONEY MAP / CHANNEL / SOURCE
+            ===================================================== */}
 
-          <ChannelCard
-            data={
-              channelData
-            }
-          />
+            <div className="dash-grid-3">
+              <MoneyMapCard
+                data={
+                  moneyMapData
+                }
+                total={
+                  filtered.length
+                }
+              />
 
-          <SourceCard
-            data={
-              sourceData
-            }
-          />
-        </div>
+              <ChannelCard
+                data={
+                  channelData
+                }
+              />
 
-        {/* =====================================================
-            AGENT COMPARISON
-        ===================================================== */}
+              <SourceCard
+                data={
+                  sourceData
+                }
+              />
+            </div>
 
-        <SectionLabel>
-          เปรียบเทียบผลงานตัวแทน
-        </SectionLabel>
-
-        <AgentTable
-          rows={
-            agentTable
-          }
-          selectedAgent={
-            filters.agentFilter
-          }
-        />
-
+          </>
+        )}
       </section>
 
       <section id="dashboard-learning" className="dash-data-section" aria-labelledby="dashboard-learning-title">
@@ -978,6 +969,8 @@ export default function Dashboard({
           }}
         >
           <AnnualTargetCard
+            key={`${filters.agentFilter}:${currentYear}`}
+            refreshKey={learningRefreshKey}
             agentFilter={
               filters.agentFilter
             }
@@ -995,14 +988,20 @@ export default function Dashboard({
           PEP Insight
         </SectionLabel>
 
-        <PepInsightCard
-          agentFilter={
-            filters.agentFilter
-          }
-          insight={
-            pepInsight
-          }
-        />
+        {showBlockingLoading ? (
+          <p className="dash-loading-banner" role="status">กำลังโหลดกิจกรรมสำหรับ PEP Insight…</p>
+        ) : showHardError ? (
+          <p className="dash-error-banner" role="alert">ยังวิเคราะห์ PEP Insight ไม่ได้ เพราะโหลดกิจกรรมไม่สำเร็จ · ยังบันทึก PEP ด้วยตนเองได้</p>
+        ) : (
+          <PepInsightCard
+            agentFilter={
+              filters.agentFilter
+            }
+            insight={
+              pepInsight
+            }
+          />
+        )}
 
         <div
           style={{
@@ -1010,6 +1009,8 @@ export default function Dashboard({
           }}
         >
           <PepNotesPanel
+            key={pepAgentFilter}
+            refreshKey={learningRefreshKey}
             agentFilter={
               pepAgentFilter
             }
@@ -1024,6 +1025,29 @@ export default function Dashboard({
             }
           />
         </div>
+      </section>
+
+      <section id="dashboard-agent-performance" className="dash-data-section" aria-labelledby="dashboard-agent-performance-title">
+        <h2 id="dashboard-agent-performance-title" className="dash-section-title">เปรียบเทียบผลงานตัวแทน</h2>
+        <p className="dash-filter-guide">
+          ตารางท้ายหน้าแสดงตัวแทนตามสิทธิ์และเน้นชื่อที่เลือก · ใช้วันที่และช่องทางเดียวกับกิจกรรม
+          <br />ขีด (—) หมายถึงไม่มีบันทึกในช่วงที่เลือก · 0 หมายถึงมีบันทึกแต่ไม่มีรายการในหมวดนั้น
+        </p>
+        {agentsLoading ? (
+          <p className="dash-loading-banner" role="status">กำลังโหลดรายชื่อตัวแทน…</p>
+        ) : agentsError ? (
+          <p className="dash-error-banner" role="alert">ยังแสดงตารางไม่ได้ เพราะโหลดรายชื่อตัวแทนไม่สำเร็จ</p>
+        ) : showBlockingLoading ? (
+          <p className="dash-loading-banner" role="status">กำลังโหลดกิจกรรมสำหรับตารางเปรียบเทียบ…</p>
+        ) : showHardError ? (
+          <p className="dash-error-banner" role="alert">ยังแสดงตารางไม่ได้ เพราะโหลดกิจกรรมไม่สำเร็จ</p>
+        ) : (
+          <AgentTable
+            rows={agentTable}
+            selectedAgent={filters.agentFilter}
+            recordedAgents={Array.from(new Set(baseFiltered.map(row => row.agent)))}
+          />
+        )}
       </section>
     </div>
   );

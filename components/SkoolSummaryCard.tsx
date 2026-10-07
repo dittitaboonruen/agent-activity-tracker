@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { dataTimestampLabel } from "@/lib/date-utils";
 import { Card } from "./ui";
 import SkoolQuizSummary from "./SkoolQuizSummary";
 import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
@@ -39,22 +40,6 @@ const EMPTY_SUMMARY: SkoolSummary = {
   averageProgress: 0,
   syncedAt: null,
 };
-
-function formatSyncedAt(value: string | null) {
-  if (!value) return "ยังไม่มีข้อมูลนำเข้า";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "ไม่พบเวลาที่อัปเดต";
-  }
-
-  return new Intl.DateTimeFormat("th-TH", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Bangkok",
-  }).format(date);
-}
 
 export default function SkoolSummaryCard({ agentSelection = "all", agentName }: {
   agentSelection?: LearningAgentSelection;
@@ -152,7 +137,7 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
       </div>
 
       {error ? (
-        <div style={errorStyle}>
+        <div style={errorStyle} role="alert">
           {error}
           <button
             type="button"
@@ -178,13 +163,14 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
               {summary.courses} คอร์ส · {summary.records} รายการเรียน ·
               กำลังเรียน {summary.inProgress} · ยังไม่เริ่ม {summary.notStarted}
             </span>
-            <span>ข้อมูลล่าสุด: {formatSyncedAt(summary.syncedAt)}</span>
+            <span>นำเข้า CSV ล่าสุดในขอบเขตนี้: {dataTimestampLabel(summary.syncedAt, summary.records ? "ยังไม่พบเวลานำเข้า" : "ยังไม่มีข้อมูลนำเข้าที่จับคู่ได้")}</span>
           </div>
           {summary.records === 0 && (
             <p style={captionStyle}>{agentName ? "ยังไม่มีข้อมูลการเรียนที่นำเข้าหรือจับคู่กับตัวแทนคนนี้" : "ยังไม่มีข้อมูลการเรียนในขอบเขตที่คุณมีสิทธิ์ดู"}</p>
           )}
         </>
       )}
+      <p style={captionStyle}>รอบนำเข้า CSV: ทุกวันศุกร์ · ปุ่มอัปเดตอ่านข้อมูลที่นำเข้าแล้ว</p>
       <SkoolQuizSummary key={agentSelection ?? "unresolved"} refreshKey={quizRefreshKey} agentSelection={agentSelection} agentName={agentName} />
     </Card>
   );

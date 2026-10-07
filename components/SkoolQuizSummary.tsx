@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
+import { dataTimestampLabel } from "@/lib/date-utils";
 import { summarizeQuizResults, type QuizResultRow } from "@/lib/skool-quiz";
 import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
@@ -10,10 +11,6 @@ type QuizResponse = {
   rows?: QuizResultRow[];
   scope?: { canSeeAll: boolean };
 };
-const dateFormat = new Intl.DateTimeFormat("th-TH", {
-  timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short",
-});
-
 export default function SkoolQuizSummary({ refreshKey, agentSelection = "all", agentName }: {
   refreshKey: number;
   agentSelection?: LearningAgentSelection;
@@ -75,7 +72,7 @@ export default function SkoolQuizSummary({ refreshKey, agentSelection = "all", a
             <Metric label="คะแนนเฉลี่ย" value={summary.averageScore === null ? "—" : `${summary.averageScore}%`} />
           </div>
           <p style={{ ...captionStyle, marginBottom: 0 }}>
-            ผลสอบล่าสุด {summary.results} รายการ · {summary.updatedAt ? `ข้อมูลคะแนนอัปเดต: ${dateFormat.format(new Date(summary.updatedAt))}` : agentName ? "ยังไม่มีผลสอบของตัวแทนคนนี้" : "ยังไม่มีผลสอบในหน่วยที่คุณมีสิทธิ์ดู"}
+            ผลสอบล่าสุด {summary.results} รายการ · {summary.updatedAt ? `รับหรืออัปเดตคะแนนล่าสุด: ${dataTimestampLabel(summary.updatedAt)}` : agentName ? "ยังไม่มีผลสอบของตัวแทนคนนี้" : "ยังไม่มีผลสอบในหน่วยที่คุณมีสิทธิ์ดู"}
             <br />ยังไม่มีผลสอบไม่ถือว่าสอบไม่ผ่าน · ผลสอบแสดงได้โดยไม่ต้องรอ CSV และไม่เปลี่ยนเปอร์เซ็นต์เรียนจบใน Skool
           </p>
         </>

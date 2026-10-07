@@ -11,12 +11,16 @@ import type {
 interface AgentTableProps {
   rows: AgentRow[];
   selectedAgent: string;
+  recordedAgents?: string[];
 }
 
 export default function AgentTable({
   rows,
   selectedAgent,
+  recordedAgents,
 }: AgentTableProps) {
+  const recorded = recordedAgents ? new Set(recordedAgents) : null;
+
   return (
     <Card
       style={{
@@ -97,7 +101,9 @@ export default function AgentTable({
           </thead>
 
           <tbody>
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const hasRecords = recorded === null || recorded.has(row.agent);
+              return (
               <tr
                 key={row.agent}
                 className={
@@ -108,10 +114,11 @@ export default function AgentTable({
               >
                 <td>
                   ตัวแทน {row.agent}
+                  {!hasRecords && <div style={{ marginTop: 4, color: "var(--cream-muted)", fontSize: 12 }}>ไม่มีบันทึกในช่วงที่เลือก</div>}
                 </td>
 
                 <td className="dash-num">
-                  {row.customers}
+                  {hasRecords ? row.customers : "—"}
                 </td>
 
                 <td className="dash-num">
@@ -120,7 +127,7 @@ export default function AgentTable({
                       color: "#C9A24B",
                     }}
                   >
-                    {row.prospecting}
+                    {hasRecords ? row.prospecting : "—"}
                   </strong>
                 </td>
 
@@ -130,7 +137,7 @@ export default function AgentTable({
                       color: "#C9A24B",
                     }}
                   >
-                    {row.sales}
+                    {hasRecords ? row.sales : "—"}
                   </strong>
                 </td>
 
@@ -140,23 +147,24 @@ export default function AgentTable({
                       color: "#C9A24B",
                     }}
                   >
-                    {row.service}
+                    {hasRecords ? row.service : "—"}
                   </strong>
                 </td>
 
                 <td className="dash-num">
-                  {row.moneyMap}
+                  {hasRecords ? row.moneyMap : "—"}
                 </td>
 
                 <td className="dash-num">
-                  {row.closed}
+                  {hasRecords ? row.closed : "—"}
                 </td>
 
                 <td className="dash-num">
-                  {row.closedPct}%
+                  {hasRecords ? `${row.closedPct}%` : "—"}
                 </td>
               </tr>
-            ))}
+              );
+            })}
 
             {rows.length === 0 && (
               <tr>
@@ -168,7 +176,7 @@ export default function AgentTable({
                     color: "var(--text-muted)",
                   }}
                 >
-                  ไม่มีข้อมูลตัวแทนในช่วงเวลาที่เลือก
+                  ยังไม่มีรายชื่อตัวแทนในขอบเขตที่คุณมีสิทธิ์ดู
                 </td>
               </tr>
             )}

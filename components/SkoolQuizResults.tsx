@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { dataTimestampLabel, latestDataTimestamp } from "@/lib/date-utils";
 import { latestQuizAttempts, type QuizResultRow } from "@/lib/skool-quiz";
 import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type ResponseData = { success?: boolean; error?: string; rows?: QuizResultRow[]; scope?: { canSeeAll: boolean } };
 const control: CSSProperties = { padding: "10px 12px", minHeight: 42, border: "1px solid var(--hairline)", borderRadius: 9, background: "var(--surface-alt)", color: "var(--cream)", width: "100%" };
 const cell: CSSProperties = { padding: "12px 14px", textAlign: "left", borderBottom: "1px solid var(--hairline)", verticalAlign: "top" };
-const dateFormat = new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short" });
 const PAGE_SIZE = 25;
 
 export default function SkoolQuizResults({ refreshKey, agentSelection = "all" }: {
@@ -33,7 +33,7 @@ export default function SkoolQuizResults({ refreshKey, agentSelection = "all" }:
       try {
         const response = await fetch(learningApiUrl("/api/skool-quiz-results", agentSelection), { cache: "no-store", signal: controller.signal });
         const body: ResponseData = await response.json();
-        if (!response.ok || body.success !== true) throw new Error(body.error || "โหลดคะแนนไม่สำเร็จ");
+        if (!response.ok || body.success !== true || !Array.isArray(body.rows)) throw new Error(body.error || "โหลดคะแนนไม่สำเร็จ");
         if (!controller.signal.aborted) setData(body);
       } catch (err) {
         if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "เชื่อมต่อระบบคะแนนไม่สำเร็จ");
@@ -85,8 +85,11 @@ export default function SkoolQuizResults({ refreshKey, agentSelection = "all" }:
         <label>ครั้งสอบ<select style={control} value={mode} onChange={e => { setMode(e.target.value); setPage(0); }}><option value="latest">ครั้งล่าสุดต่อคน / บทเรียน</option><option value="all">ประวัติทุกครั้ง</option></select></label>
       </div>
       <button type="button" onClick={reset} style={{ background: "transparent", border: 0, color: "var(--gold-bright)", cursor: "pointer", marginBottom: 14 }}>ล้างตัวกรองคะแนน</button>
-      <div aria-live="polite" style={{ marginBottom: 14, color: "var(--cream-muted)" }}>ตัวแทน {new Set(filtered.map(r => r.agentId)).size} คน · ผลสอบ {filtered.length} รายการ · ผ่าน {passed} · ไม่ผ่าน {filtered.length - passed} · เฉลี่ย {filtered.length ? (filtered.reduce((sum, r) => sum + r.scorePercent, 0) / filtered.length).toFixed(1) : "0"}%</div>
-      {!filtered.length ? <p style={{ padding: 16 }}> {rows.length ? "ไม่พบคะแนนตามตัวกรอง" : "ยังไม่มีผลสอบในขอบเขตของคุณ เมื่อส่งคำตอบผ่านสคริปต์สำเร็จให้กดรีเฟรชคะแนน"} </p> : <>
+      <div aria-live="polite" style={{ marginBottom: 14, color: "var(--cream-muted)" }}>ตัวแทน {new Set(filtered.map(r => r.agentId)).size} คน · ผลสอบ {filtered.length} รายการ · ผ่าน {passed} · ไม่ผ่าน {filtered.length - passed} · เฉลี่ย {filtered.length ? (filtered.reduce((sum, r) => sum + r.scorePercent, 0) / filtered.length).toFixed(1) + "%" : "—"}</div>
+      <p style={{ color: "var(--cream-muted)", fontSize: 12 }}>
+        รับหรืออัปเดตคะแนนล่าสุดตามตัวกรอง: {dataTimestampLabel(latestDataTimestamp(filtered.map(row => row.updatedAt)), filtered.length ? "ยังไม่พบเวลารับคะแนน" : "ยังไม่มีผลสอบตามตัวกรอง")}
+      </p>
+      {!filtered.length ? <p style={{ padding: 16 }}> {rows.length ? "ไม่พบคะแนนตามตัวกรอง" : "ยังไม่มีผลสอบที่รับสำเร็จในขอบเขตนี้ เมื่อส่งคำตอบผ่านสคริปต์สำเร็จให้กดรีเฟรชคะแนน"} </p> : <>
         <div style={{ overflowX: "auto" }}><table style={{ width: "100%", minWidth: 1050, borderCollapse: "collapse", fontSize: 13 }}>
           <thead><tr>{["ตัวแทน", "หน่วย", "คอร์ส / บทหลัก", "ข้อสอบ", "คะแนน", "%", "ผลสอบ", "วันที่สอบ (ไทย)"].map(label => <th scope="col" key={label} style={{ ...cell, color: "var(--gold-bright)" }}>{label}</th>)}</tr></thead>
           <tbody>{shown.map(r => <tr key={r.id}>
@@ -95,7 +98,7 @@ export default function SkoolQuizResults({ refreshKey, agentSelection = "all" }:
             <td style={cell}>{r.lessonName}{!r.lessonActive ? <div>บทเรียนปิดใช้</div> : null}</td>
             <td style={cell}>{r.score} / {r.maxScore}</td><td style={cell}>{r.scorePercent}%</td>
             <td style={{ ...cell, color: r.passed ? "#70C89A" : "var(--rp-danger)", fontWeight: 700 }}>{r.passed ? "ผ่าน" : "ไม่ผ่าน"}</td>
-            <td style={cell}>{dateFormat.format(new Date(r.submittedAt))}</td>
+            <td style={cell}>{dataTimestampLabel(r.submittedAt)}</td>
           </tr>)}</tbody>
         </table></div>
         <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", alignItems: "center", marginTop: 14 }}>
