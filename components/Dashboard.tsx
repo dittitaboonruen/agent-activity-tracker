@@ -58,6 +58,12 @@ import AgentTable from "./AgentTable";
 import PepInsightCard from "./PepInsightCard";
 import PepNotesPanel from "./PepNotesPanel";
 import SkoolSummaryCard from "./SkoolSummaryCard";
+import {
+  dashboardAgentNames,
+  dashboardPepName,
+  matchDashboardActivities,
+  type DashboardAgent,
+} from "@/lib/dashboard-agents";
 
 const GOLD = "#C9A24B";
 const BRONZE = "#4A3B1E";
@@ -137,6 +143,48 @@ export default function Dashboard({
       )
     );
 
+  const [masterAgents, setMasterAgents] = useState<DashboardAgent[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(true);
+  const [agentsError, setAgentsError] = useState<string | null>(null);
+  const rosterRequestRef = useRef(0);
+
+  const fetchAgents = useCallback(async (signal?: AbortSignal) => {
+    const requestId = ++rosterRequestRef.current;
+    setAgentsLoading(true);
+    setAgentsError(null);
+    try {
+      const response = await fetch("/api/dashboard-agents", { cache: "no-store", signal });
+      const body = await response.json();
+      if (!response.ok || !Array.isArray(body.agents)) {
+        if (response.status === 401 || response.status === 403) {
+          if (!signal?.aborted && requestId === rosterRequestRef.current) {
+            setMasterAgents([]);
+            setFilters(current => ({ ...current, agentFilter: "all" }));
+          }
+        }
+        throw new Error(body.error || "ไม่สามารถโหลดทะเบียนตัวแทนได้");
+      }
+      if (signal?.aborted || requestId !== rosterRequestRef.current) return;
+      const roster = body.agents as DashboardAgent[];
+      setMasterAgents(roster);
+      const names = dashboardAgentNames(roster);
+      setFilters(current => current.agentFilter === "all" || names.includes(current.agentFilter)
+        ? current : { ...current, agentFilter: "all" });
+    } catch (loadError) {
+      if (!signal?.aborted && requestId === rosterRequestRef.current) {
+        setAgentsError(loadError instanceof Error ? loadError.message : "ไม่สามารถโหลดทะเบียนตัวแทนได้");
+      }
+    } finally {
+      if (!signal?.aborted && requestId === rosterRequestRef.current) setAgentsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchAgents(controller.signal);
+    return () => controller.abort();
+  }, [fetchAgents]);
+
   /* =========================================================
      FILTER OPTIONS
   ========================================================= */
@@ -144,11 +192,16 @@ export default function Dashboard({
   const agents =
     useMemo(
       () =>
-        getAllAgents(
-          submissions
-        ),
-      [submissions]
+        dashboardAgentNames(masterAgents),
+      [masterAgents]
     );
+
+  const activitySubmissions = useMemo(
+    () => matchDashboardActivities(submissions, masterAgents),
+    [submissions, masterAgents]
+  );
+  const activityAgents = useMemo(() => getAllAgents(activitySubmissions), [activitySubmissions]);
+  const pepAgentFilter = dashboardPepName(filters.agentFilter, masterAgents);
 
   const sources =
     useMemo(
@@ -307,11 +360,12 @@ export default function Dashboard({
   const handleRefreshClick =
     useCallback(
       () => {
-        fetchData(
+        void fetchAgents();
+        void fetchData(
           true
         );
       },
-      [fetchData]
+      [fetchData, fetchAgents]
     );
 
   /* =========================================================
@@ -345,12 +399,12 @@ export default function Dashboard({
     useMemo(
       () =>
         getFiltered(
-          submissions,
+          activitySubmissions,
           filters,
           todayStr
         ),
       [
-        submissions,
+        activitySubmissions,
         filters,
         todayStr,
       ]
@@ -360,12 +414,12 @@ export default function Dashboard({
     useMemo(
       () =>
         getBaseFiltered(
-          submissions,
+          activitySubmissions,
           filters,
           todayStr
         ),
       [
-        submissions,
+        activitySubmissions,
         filters,
         todayStr,
       ]
@@ -506,12 +560,12 @@ export default function Dashboard({
         computePepInsight(
           filters.agentFilter,
           baseFiltered,
-          agents
+          activityAgents
         ),
       [
         filters.agentFilter,
         baseFiltered,
-        agents,
+        activityAgents,
       ]
     );
 
@@ -700,6 +754,7 @@ export default function Dashboard({
         agents={
           agents
         }
+        agentsLoading={agentsLoading}
         channels={
           channels
         }
@@ -707,6 +762,15 @@ export default function Dashboard({
           todayStr
         }
       />
+
+      {agentsError && (
+        <div className="dash-error-banner" role="alert">
+          {agentsError}{" "}
+          <button type="button" className="dash-refresh-btn" onClick={() => void fetchAgents()} disabled={agentsLoading}>
+            ลองโหลดรายชื่ออีกครั้ง
+          </button>
+        </div>
+      )}
 
       {/* =====================================================
           OVERVIEW KPI
@@ -890,7 +954,7 @@ export default function Dashboard({
       >
         <PepNotesPanel
           agentFilter={
-            filters.agentFilter
+            pepAgentFilter
           }
           todayStr={
             todayStr

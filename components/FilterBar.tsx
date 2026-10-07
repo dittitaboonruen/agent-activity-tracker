@@ -8,6 +8,7 @@ interface FilterBarProps {
   filters: Filters;
   onChange: (next: Partial<Filters>) => void;
   agents: string[];
+  agentsLoading?: boolean;
   channels: string[];
   todayStr: string;
 }
@@ -17,7 +18,7 @@ const DATE_OPTIONS: { key: DateQuickOption; label: string }[] = [
   { key: "custom", label: "กำหนดเอง" },
 ];
 
-export default function FilterBar({ filters, onChange, agents, channels, todayStr }: FilterBarProps) {
+export default function FilterBar({ filters, onChange, agents, agentsLoading = false, channels, todayStr }: FilterBarProps) {
   return (
     <div className="dash-filter-bar">
       <div className="dash-filter dash-filter-date active">
@@ -66,8 +67,8 @@ export default function FilterBar({ filters, onChange, agents, channels, todaySt
 
       <div className="dash-filter-row">
         <div className={`dash-filter ${filters.agentFilter !== "all" ? "active" : ""}`}>
-          <label>ชื่อตัวแทน</label>
-          <select value={filters.agentFilter} onChange={(e) => onChange({ agentFilter: e.target.value })}>
+          <label htmlFor="dashboard-agent">ชื่อตัวแทน</label>
+          <select id="dashboard-agent" value={filters.agentFilter} disabled={agentsLoading} aria-busy={agentsLoading} onChange={(e) => onChange({ agentFilter: e.target.value })}>
             <option value="all">ทุกตัวแทน</option>
             {agents.map((a) => (
               <option key={a} value={a}>
@@ -75,6 +76,9 @@ export default function FilterBar({ filters, onChange, agents, channels, todaySt
               </option>
             ))}
           </select>
+          <div className="dash-date-caption" role="status">
+            {agentsLoading ? "กำลังโหลดทะเบียนตัวแทน…" : agents.length ? `รายชื่อจาก Agent Master · ${agents.length} คน` : "ยังไม่มีรายชื่อในทะเบียนตามสิทธิ์ของคุณ"}
+          </div>
         </div>
         <div className={`dash-filter ${filters.channelFilter !== "all" ? "active" : ""}`}>
           <label>ช่องทางที่ใช้ติดต่อ</label>
