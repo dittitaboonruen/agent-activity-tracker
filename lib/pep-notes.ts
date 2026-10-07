@@ -53,8 +53,7 @@ export async function listPepNotesForAgent(agentName: string): Promise<PepNote[]
 }
 
 /**
- * Inserts one new PEP note row. Each "บันทึก PEP" click creates a new history
- * entry — this is an append-only log, not an edit-in-place record.
+ * Inserts one new PEP note row. Editing an existing entry uses updatePepNote.
  * `created_at`/`updated_at` are left for the database's own defaults to set.
  */
 export async function createPepNote(input: PepNoteInput): Promise<PepNote> {
@@ -77,4 +76,30 @@ export async function createPepNote(input: PepNoteInput): Promise<PepNote> {
   }
 
   return mapRow(data as unknown as PepNoteRow);
+}
+
+/** All predicates are required: a submitted ID cannot target another agent. */
+export async function updatePepNote(id: number, expectedUpdatedAt: string, input: PepNoteInput): Promise<PepNote | null> {
+  const { data, error } = await getSupabaseClient().from(TABLE)
+    .update({ pep_date: input.pepDate, recommendation: input.recommendation,
+      coaching_question: input.coachingQuestion, action_plan: input.actionPlan,
+      updated_at: new Date().toISOString() })
+    .eq("id", id).eq("agent_name", input.agentName).eq("updated_at", expectedUpdatedAt)
+    .select(COLUMNS).maybeSingle();
+  if (error) {
+    console.error("[supabase] updatePepNote failed:", error);
+    throw new SupabaseQueryError("Unable to update the PEP note.");
+  }
+  return data ? mapRow(data as unknown as PepNoteRow) : null;
+}
+
+export async function deletePepNote(id: number, agentName: string, expectedUpdatedAt: string): Promise<boolean> {
+  const { data, error } = await getSupabaseClient().from(TABLE).delete()
+    .eq("id", id).eq("agent_name", agentName).eq("updated_at", expectedUpdatedAt)
+    .select("id").maybeSingle();
+  if (error) {
+    console.error("[supabase] deletePepNote failed:", error);
+    throw new SupabaseQueryError("Unable to delete the PEP note.");
+  }
+  return Boolean(data);
 }
