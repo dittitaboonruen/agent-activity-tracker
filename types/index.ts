@@ -169,9 +169,7 @@ export interface PepInsightResult {
  *
  * Entirely separate from Jotform-derived data.
  *
- * Each save creates a new history row.
- * This is an append-only log,
- * not an edit-in-place record.
+ * New saves create history rows; authorized managers can edit or delete them.
  */
 export interface PepNote {
   id: number;
@@ -199,7 +197,7 @@ export interface PepNote {
  * Payload for creating
  * a new PEP note via:
  *
- * POST /api/pep-notes
+ * POST /api/pep-notes (create), or PATCH with ID and expectedUpdatedAt (edit).
  */
 export interface PepNoteInput {
   agentName: string;
