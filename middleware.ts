@@ -45,6 +45,7 @@ const ADMIN_ALLOWED_PATHS = [
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
   "/api/agent-master",
+  "/api/dashboard-agents",
   "/api/admin/skool-import",
   "/api/admin/skool-courses",
   "/api/monthly-performance",
@@ -127,6 +128,10 @@ function isActivityDashboardPath(
     pathMatches(
       pathname,
       "/api/jotform"
+    ) ||
+    pathMatches(
+      pathname,
+      "/api/dashboard-agents"
     )
   );
 }
