@@ -4,8 +4,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "./ui";
 import { dataTimestampLabel, latestDataTimestamp, formatThaiDateLong } from "@/lib/date-utils";
 import type { PepNote } from "@/types";
+import type { PepExportContext } from "@/lib/pep-pdf";
+import PepPdfExport from "./PepPdfExport";
 
 interface PepNotesPanelProps {
+  exportContext?: PepExportContext | null;
   agentFilter: string;
   todayStr: string;
   refreshKey?: number;
@@ -15,6 +18,7 @@ interface PepNotesPanelProps {
 }
 
 function PepNotesPanel({
+  exportContext = null,
   agentFilter,
   todayStr,
   refreshKey = 0,
@@ -182,6 +186,7 @@ function PepNotesPanel({
   return (
     <Card>
       <div className="dash-section-title">บันทึก PEP — ตัวแทน {agentFilter}</div>
+      {exportContext && <PepPdfExport context={exportContext} notes={history} busy={busy} historyLoading={historyLoading} historyError={historyError} />}
       {editingNote && <p role="status">กำลังแก้ไขรายการวันที่ {formatThaiDateLong(editingNote.pepDate)} — บันทึกจะอัปเดตรายการเดิม</p>}
 
       <div className="dash-pepform-field">

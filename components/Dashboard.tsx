@@ -58,6 +58,7 @@ import SourceCard from "./SourceCard";
 import AgentTable from "./AgentTable";
 import PepInsightCard from "./PepInsightCard";
 import PepNotesPanel from "./PepNotesPanel";
+import type { PepExportContext } from "@/lib/pep-pdf";
 import SkoolSummaryCard from "./SkoolSummaryCard";
 import {
   dashboardAgentNames,
@@ -621,6 +622,22 @@ export default function Dashboard({
     loading ||
     refreshing;
 
+  const exportContext = useMemo<PepExportContext | null>(() => {
+    if (filters.agentFilter === "all" || typeof learningSelection !== "number" || agentsLoading || agentsError) return null;
+    const selected = masterAgents.find(agent => agent.id === learningSelection);
+    if (!selected) return null;
+    return {
+      agentId: selected.id, agentName: selected.agentName, agentCode: selected.agentCode,
+      pepAgentName: pepAgentFilter,
+      startDate: filters.dateQuick === "today" ? todayStr : filters.customStart,
+      endDate: filters.dateQuick === "today" ? todayStr : filters.customEnd,
+      channel: filters.channelFilter === "all" ? "ทุกช่องทาง" : filters.channelFilter,
+      year: currentYear,
+      activityState: isBusy ? "loading" : showHardError ? "error" : showStaleWarning ? "stale" : filtered.length ? "ready" : "empty",
+      kpis: showHardError || !filtered.length ? null : kpis, fetchedAt: lastFetchedUTC,
+    };
+  }, [filters, learningSelection, agentsLoading, agentsError, masterAgents, pepAgentFilter, todayStr, currentYear, isBusy, showHardError, showStaleWarning, filtered.length, kpis, lastFetchedUTC]);
+
   /* =========================================================
      RENDER
   ========================================================= */
@@ -1009,6 +1026,7 @@ export default function Dashboard({
           }}
         >
           <PepNotesPanel
+            exportContext={exportContext}
             key={pepAgentFilter}
             refreshKey={learningRefreshKey}
             agentFilter={
