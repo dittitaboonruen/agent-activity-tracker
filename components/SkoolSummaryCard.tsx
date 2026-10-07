@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Card } from "./ui";
 import SkoolQuizSummary from "./SkoolQuizSummary";
+import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type SkoolSummary = {
   linkedAgents: number;
@@ -55,22 +56,30 @@ function formatSyncedAt(value: string | null) {
   }).format(date);
 }
 
-export default function SkoolSummaryCard() {
+export default function SkoolSummaryCard({ agentSelection = "all", agentName }: {
+  agentSelection?: LearningAgentSelection;
+  agentName?: string;
+}) {
   const [summary, setSummary] = useState<SkoolSummary>(EMPTY_SUMMARY);
   const [unitName, setUnitName] = useState<string | null>(null);
   const [canSeeAll, setCanSeeAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizRefreshKey, setQuizRefreshKey] = useState(0);
+  const requestRef = useRef<AbortController | null>(null);
 
-  const loadSummary = useCallback(async (signal?: AbortSignal) => {
+  const loadSummary = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setError(null);
+    setSummary(EMPTY_SUMMARY);
 
     try {
-      const response = await fetch("/api/skool-progress", {
+      const response = await fetch(learningApiUrl("/api/skool-progress", agentSelection), {
         cache: "no-store",
-        signal,
+        signal: controller.signal,
       });
       const body = (await response.json()) as SkoolProgressResponse;
 
@@ -78,13 +87,12 @@ export default function SkoolSummaryCard() {
         throw new Error(body.error || "ไม่สามารถโหลดข้อมูล Skool ได้");
       }
 
+      if (controller.signal.aborted) return;
       setSummary(body.summary);
       setUnitName(body.scope?.unitName ?? null);
       setCanSeeAll(body.scope?.canSeeAll === true);
     } catch (loadError) {
-      if (loadError instanceof DOMException && loadError.name === "AbortError") {
-        return;
-      }
+      if (controller.signal.aborted) return;
 
       setError(
         loadError instanceof Error
@@ -92,17 +100,16 @@ export default function SkoolSummaryCard() {
           : "ไม่สามารถโหลดข้อมูล Skool ได้"
       );
     } finally {
-      if (!signal?.aborted) {
+      if (!controller.signal.aborted) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [agentSelection]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    void loadSummary(controller.signal);
+    void loadSummary();
 
-    return () => controller.abort();
+    return () => requestRef.current?.abort();
   }, [loadSummary]);
 
   const followUp = summary.inProgress + summary.notStarted;
@@ -114,7 +121,7 @@ export default function SkoolSummaryCard() {
           <div style={eyebrowStyle}>LEARNING PERFORMANCE</div>
           <h2 style={titleStyle}>สรุปความคืบหน้า Skool</h2>
           <div style={captionStyle}>
-            {canSeeAll
+            {agentName ? `ตัวแทน: ${agentName}` : canSeeAll
               ? "ข้อมูลตัวแทนทุกหน่วย"
               : `เฉพาะตัวแทนใน${unitName ? `หน่วย ${unitName}` : "หน่วยของคุณ"}`}
             {" · "}ไม่เปลี่ยนตามตัวกรองวันที่กิจกรรม
@@ -138,8 +145,8 @@ export default function SkoolSummaryCard() {
             {loading ? "กำลังโหลด..." : "↻ อัปเดต"}
           </button>
 
-          <Link href="/dashboard/skool" style={detailLinkStyle}>
-            ดูรายละเอียด →
+          <Link href={agentSelection === null ? "/dashboard/skool" : learningApiUrl("/dashboard/skool", agentSelection)} style={detailLinkStyle}>
+            เปิดหน้ารายละเอียด Skool →
           </Link>
         </div>
       </div>
@@ -155,11 +162,13 @@ export default function SkoolSummaryCard() {
             ลองใหม่
           </button>
         </div>
+      ) : loading ? (
+        <p role="status" style={{ ...captionStyle, marginTop: 18 }}>กำลังโหลดความคืบหน้าการเรียน...</p>
       ) : (
         <>
           <div style={metricGridStyle}>
             <Metric label="ตัวแทนที่เชื่อมแล้ว" value={summary.linkedAgents} suffix=" คน" />
-            <Metric label="ความคืบหน้าเฉลี่ย" value={summary.averageProgress} suffix="%" />
+            <Metric label="ความคืบหน้าเฉลี่ย" value={summary.records ? summary.averageProgress : "—"} suffix={summary.records ? "%" : ""} />
             <Metric label="เรียนจบแล้ว" value={summary.completed} suffix=" รายการ" />
             <Metric label="ต้องติดตาม" value={followUp} suffix=" รายการ" alert={followUp > 0} />
           </div>
@@ -171,9 +180,12 @@ export default function SkoolSummaryCard() {
             </span>
             <span>ข้อมูลล่าสุด: {formatSyncedAt(summary.syncedAt)}</span>
           </div>
+          {summary.records === 0 && (
+            <p style={captionStyle}>{agentName ? "ยังไม่มีข้อมูลการเรียนที่นำเข้าหรือจับคู่กับตัวแทนคนนี้" : "ยังไม่มีข้อมูลการเรียนในขอบเขตที่คุณมีสิทธิ์ดู"}</p>
+          )}
         </>
       )}
-      <SkoolQuizSummary refreshKey={quizRefreshKey} />
+      <SkoolQuizSummary key={agentSelection ?? "unresolved"} refreshKey={quizRefreshKey} agentSelection={agentSelection} agentName={agentName} />
     </Card>
   );
 }
@@ -185,7 +197,7 @@ function Metric({
   alert = false,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   suffix: string;
   alert?: boolean;
 }) {

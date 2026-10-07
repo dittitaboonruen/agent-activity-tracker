@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { summarizeQuizResults, type QuizResultRow } from "@/lib/skool-quiz";
+import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type QuizResponse = {
   success?: boolean;
@@ -13,7 +14,11 @@ const dateFormat = new Intl.DateTimeFormat("th-TH", {
   timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short",
 });
 
-export default function SkoolQuizSummary({ refreshKey }: { refreshKey: number }) {
+export default function SkoolQuizSummary({ refreshKey, agentSelection = "all", agentName }: {
+  refreshKey: number;
+  agentSelection?: LearningAgentSelection;
+  agentName?: string;
+}) {
   const [data, setData] = useState<QuizResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +32,7 @@ export default function SkoolQuizSummary({ refreshKey }: { refreshKey: number })
     async function load() {
       try {
         // This endpoint restricts agent IDs on the server before reading scores.
-        const response = await fetch("/api/skool-quiz-results", {
+        const response = await fetch(learningApiUrl("/api/skool-quiz-results", agentSelection), {
           cache: "no-store", signal: controller.signal,
         });
         const body: QuizResponse = await response.json();
@@ -45,7 +50,7 @@ export default function SkoolQuizSummary({ refreshKey }: { refreshKey: number })
     }
     void load();
     return () => controller.abort();
-  }, [refreshKey, retry]);
+  }, [refreshKey, retry, agentSelection]);
 
   const summary = summarizeQuizResults(data?.rows ?? []);
 
@@ -60,7 +65,7 @@ export default function SkoolQuizSummary({ refreshKey }: { refreshKey: number })
       ) : (
         <>
           <p style={captionStyle}>
-            {data?.scope?.canSeeAll ? "ข้อมูลตัวแทนทุกหน่วย" : "เฉพาะตัวแทนในหน่วยของคุณ"}
+            {agentName ? `ตัวแทน: ${agentName}` : data?.scope?.canSeeAll ? "ข้อมูลตัวแทนทุกหน่วย" : "เฉพาะตัวแทนในหน่วยของคุณ"}
             {" · "}นับครั้งล่าสุดต่อคนต่อข้อสอบที่เปิดใช้งาน
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: 10 }}>
@@ -70,7 +75,7 @@ export default function SkoolQuizSummary({ refreshKey }: { refreshKey: number })
             <Metric label="คะแนนเฉลี่ย" value={summary.averageScore === null ? "—" : `${summary.averageScore}%`} />
           </div>
           <p style={{ ...captionStyle, marginBottom: 0 }}>
-            ผลสอบล่าสุด {summary.results} รายการ · {summary.updatedAt ? `ข้อมูลคะแนนอัปเดต: ${dateFormat.format(new Date(summary.updatedAt))}` : "ยังไม่มีผลสอบในหน่วยที่คุณมีสิทธิ์ดู"}
+            ผลสอบล่าสุด {summary.results} รายการ · {summary.updatedAt ? `ข้อมูลคะแนนอัปเดต: ${dateFormat.format(new Date(summary.updatedAt))}` : agentName ? "ยังไม่มีผลสอบของตัวแทนคนนี้" : "ยังไม่มีผลสอบในหน่วยที่คุณมีสิทธิ์ดู"}
             <br />ยังไม่มีผลสอบไม่ถือว่าสอบไม่ผ่าน · ผลสอบแสดงได้โดยไม่ต้องรอ CSV และไม่เปลี่ยนเปอร์เซ็นต์เรียนจบใน Skool
           </p>
         </>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { latestQuizAttempts, type QuizResultRow } from "@/lib/skool-quiz";
+import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type ResponseData = { success?: boolean; error?: string; rows?: QuizResultRow[]; scope?: { canSeeAll: boolean } };
 const control: CSSProperties = { padding: "10px 12px", minHeight: 42, border: "1px solid var(--hairline)", borderRadius: 9, background: "var(--surface-alt)", color: "var(--cream)", width: "100%" };
@@ -9,7 +10,10 @@ const cell: CSSProperties = { padding: "12px 14px", textAlign: "left", borderBot
 const dateFormat = new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short" });
 const PAGE_SIZE = 25;
 
-export default function SkoolQuizResults({ refreshKey }: { refreshKey: number }) {
+export default function SkoolQuizResults({ refreshKey, agentSelection = "all" }: {
+  refreshKey: number;
+  agentSelection?: LearningAgentSelection;
+}) {
   const [data, setData] = useState<ResponseData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -27,7 +31,7 @@ export default function SkoolQuizResults({ refreshKey }: { refreshKey: number })
     setLoading(true); setError(""); setData(null);
     async function load() {
       try {
-        const response = await fetch("/api/skool-quiz-results", { cache: "no-store", signal: controller.signal });
+        const response = await fetch(learningApiUrl("/api/skool-quiz-results", agentSelection), { cache: "no-store", signal: controller.signal });
         const body: ResponseData = await response.json();
         if (!response.ok || body.success !== true) throw new Error(body.error || "โหลดคะแนนไม่สำเร็จ");
         if (!controller.signal.aborted) setData(body);
@@ -39,7 +43,7 @@ export default function SkoolQuizResults({ refreshKey }: { refreshKey: number })
     }
     void load();
     return () => controller.abort();
-  }, [refreshKey, reload]);
+  }, [refreshKey, reload, agentSelection]);
 
   const rows = useMemo(() => data?.rows ?? [], [data]);
   const options = useMemo(() => ({

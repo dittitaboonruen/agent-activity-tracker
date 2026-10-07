@@ -61,6 +61,7 @@ import SkoolSummaryCard from "./SkoolSummaryCard";
 import {
   dashboardAgentNames,
   dashboardPepName,
+  dashboardLearningSelection,
   matchDashboardActivities,
   type DashboardAgent,
 } from "@/lib/dashboard-agents";
@@ -147,6 +148,7 @@ export default function Dashboard({
   const [agentsLoading, setAgentsLoading] = useState(true);
   const [agentsError, setAgentsError] = useState<string | null>(null);
   const rosterRequestRef = useRef(0);
+  const [learningRefreshKey, setLearningRefreshKey] = useState(0);
 
   const fetchAgents = useCallback(async (signal?: AbortSignal) => {
     const requestId = ++rosterRequestRef.current;
@@ -202,6 +204,7 @@ export default function Dashboard({
   );
   const activityAgents = useMemo(() => getAllAgents(activitySubmissions), [activitySubmissions]);
   const pepAgentFilter = dashboardPepName(filters.agentFilter, masterAgents);
+  const learningSelection = dashboardLearningSelection(filters.agentFilter, masterAgents);
 
   const sources =
     useMemo(
@@ -360,6 +363,7 @@ export default function Dashboard({
   const handleRefreshClick =
     useCallback(
       () => {
+        setLearningRefreshKey(value => value + 1);
         void fetchAgents();
         void fetchData(
           true
@@ -860,7 +864,11 @@ export default function Dashboard({
           SKOOL LEARNING SUMMARY
       ===================================================== */}
 
-      <SkoolSummaryCard />
+      <SkoolSummaryCard
+        key={`${learningSelection ?? "unresolved"}:${learningRefreshKey}`}
+        agentSelection={learningSelection}
+        agentName={filters.agentFilter === "all" ? undefined : filters.agentFilter}
+      />
 
       {/* =====================================================
           CLOSING + 9 STEPS
