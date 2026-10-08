@@ -253,10 +253,14 @@ export default function PerformanceDashboardPage() {
   }, [agents, units]);
 
   const unitList = useMemo(() => {
-    const names = units.map((u) => u.unit_name);
+    // แสดงเฉพาะหน่วยที่มีตัวแทนสังกัดอยู่จริง (หน่วยว่างไม่ต้องโชว์)
+    const usedIds = new Set(agents.map((a) => a.unit_id).filter(Boolean));
+    const names = units
+      .filter((u) => usedIds.has(u.id))
+      .map((u) => u.unit_name);
     const hasNoUnit = rows.some((r) => unitLookup(r) === NO_UNIT);
     return [...names, ...(hasNoUnit ? [NO_UNIT] : [])];
-  }, [units, rows, unitLookup]);
+  }, [units, agents, rows, unitLookup]);
 
   // เลือกหน่วยแรกให้อัตโนมัติเมื่อโหลดเสร็จ
   useEffect(() => {
