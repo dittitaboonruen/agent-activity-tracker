@@ -130,6 +130,10 @@ export default function DailyProductionPage() {
   const [rows, setRows] =
     useState<ProductionRow[]>([]);
 
+  // ค่าตอนโหลด ใช้เช็กว่าแถวไหนถูกแก้แต่ยังไม่บันทึก
+  const [originalRows, setOriginalRows] =
+    useState<ProductionRow[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -197,6 +201,7 @@ export default function DailyProductionPage() {
       );
 
       setRows(builtRows);
+      setOriginalRows(builtRows);
     } catch {
       setStatus("เกิดข้อผิดพลาดในการโหลดข้อมูล");
     } finally {
@@ -258,6 +263,19 @@ export default function DailyProductionPage() {
     );
   }
 
+  function rowIsDirty(index: number) {
+    const original = originalRows[index];
+    if (!original) return false;
+    return (
+      JSON.stringify(rows[index]) !==
+      JSON.stringify(original)
+    );
+  }
+
+  const dirtyCount = rows.filter((_, i) =>
+    rowIsDirty(i)
+  ).length;
+
   const activeRows = useMemo(
     () =>
       rows.filter((row) =>
@@ -276,18 +294,22 @@ export default function DailyProductionPage() {
       return;
     }
 
-    const rowsToSave = rows.filter((row) => {
+    // บันทึกเฉพาะแถวที่เพิ่ม/แก้ไข
+    const rowsToSave = rows.filter((row, i) => {
       const existed = savedRows.some(
         (saved) =>
           saved.agent_name === row.agentName
       );
 
-      return rowHasProduction(row) || existed;
+      return (
+        rowIsDirty(i) &&
+        (rowHasProduction(row) || existed)
+      );
     });
 
     if (!rowsToSave.length) {
       setStatus(
-        "ยังไม่มี Production ที่ต้องบันทึก"
+        "ยังไม่มีรายการที่เพิ่มหรือแก้ไข"
       );
       return;
     }
@@ -719,9 +741,14 @@ export default function DailyProductionPage() {
                             "1px solid var(--hairline-soft)",
 
                           background:
-                            rowHasProduction(row)
+                            rowHasProduction(row) ||
+                            rowIsDirty(index)
                               ? "var(--rp-soft-gold)"
                               : "transparent",
+
+                          boxShadow: rowIsDirty(index)
+                            ? "inset 4px 0 0 var(--gold)"
+                            : "none",
                         }}
                       >
                         <Cell>
@@ -874,6 +901,23 @@ export default function DailyProductionPage() {
                         </Cell>
 
                         <Cell>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
+                          {rowIsDirty(index) ? (
+                            <span style={dirtyTagStyle}>
+                              ● แก้แล้ว รอกดบันทึก
+                            </span>
+                          ) : saved ? (
+                            <span style={savedTagStyle}>
+                              ✓ บันทึกแล้ว
+                            </span>
+                          ) : null}
+
                           {saved ? (
                             <button
                               type="button"
@@ -889,7 +933,7 @@ export default function DailyProductionPage() {
                             >
                               🗑️ ลบ
                             </button>
-                          ) : (
+                          ) : !rowIsDirty(index) ? (
                             <span
                               style={{
                                 color:
@@ -897,9 +941,10 @@ export default function DailyProductionPage() {
                                 fontSize: 12,
                               }}
                             >
-                              ยังไม่บันทึก
+                              -
                             </span>
-                          )}
+                          ) : null}
+                          </div>
                         </Cell>
                       </tr>
                     );
@@ -932,7 +977,8 @@ export default function DailyProductionPage() {
                 fontSize: 12,
               }}
             >
-              รายชื่อดึงจาก Agent Master อัตโนมัติ
+              ✏️ แก้ไข: เปลี่ยนตัวเลขในช่อง แล้วกดบันทึก ·
+              🗑️ ลบ: กดปุ่มลบท้ายแถว (มีเฉพาะแถวที่บันทึกแล้ว)
             </div>
 
             <button
@@ -974,7 +1020,9 @@ export default function DailyProductionPage() {
             >
               {loading
                 ? "กำลังบันทึก..."
-                : "บันทึก Production สิ้นวัน"}
+                : dirtyCount > 0
+                  ? `บันทึก Production (${dirtyCount} คน)`
+                  : "บันทึก Production สิ้นวัน"}
             </button>
           </div>
         </div>
@@ -1199,6 +1247,20 @@ const dateInputStyle = {
     "10px 12px",
 
   fontSize: 14,
+};
+
+const savedTagStyle = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "var(--gold-bright)",
+  whiteSpace: "nowrap" as const,
+};
+
+const dirtyTagStyle = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "var(--gold)",
+  whiteSpace: "nowrap" as const,
 };
 
 const deleteRowButtonStyle = {
