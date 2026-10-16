@@ -1,0 +1,10 @@
+TypeScript tsc --noEmit: PASS.
+Production Next.js build including type validation: PASS.
+Existing PDF + learning detail tests: 12/12 passed.
+Actual browser export button: 13 courses, 1 failed quiz, all 3 PEP comments = 1 A4 page.
+Verified all 13 primary course names and all comments were drawn.
+Large content test: 100 courses and long PEP recommendation = 4 pages; all courses and final comment sentinel retained.
+No data, zero target, optional source errors: safe and 1 page.
+Visual inspection: normal page and overflow PDF pages rendered and inspected.
+API loader, identity/scope validation, result selection and source data functions unchanged (compared with baseline).
+No production deployment or database mutation performed.
