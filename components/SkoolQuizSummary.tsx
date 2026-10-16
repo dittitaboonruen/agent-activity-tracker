@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { dataTimestampLabel } from "@/lib/date-utils";
 import { summarizeQuizResults, type QuizResultRow } from "@/lib/skool-quiz";
 import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
+import { failedQuizAttempts, quizLessonTitle } from "@/lib/learning-details";
 
 type QuizResponse = {
   success?: boolean;
@@ -50,6 +51,7 @@ export default function SkoolQuizSummary({ refreshKey, agentSelection = "all", a
   }, [refreshKey, retry, agentSelection]);
 
   const summary = summarizeQuizResults(data?.rows ?? []);
+  const failed = failedQuizAttempts(data?.rows ?? [], agentSelection);
 
   return (
     <section aria-labelledby="skool-quiz-summary-title" style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid var(--hairline)" }}>
@@ -75,6 +77,15 @@ export default function SkoolQuizSummary({ refreshKey, agentSelection = "all", a
             ผลสอบล่าสุด {summary.results} รายการ · {summary.updatedAt ? `รับหรืออัปเดตคะแนนล่าสุด: ${dataTimestampLabel(summary.updatedAt)}` : agentName ? "ยังไม่มีผลสอบของตัวแทนคนนี้" : "ยังไม่มีผลสอบในหน่วยที่คุณมีสิทธิ์ดู"}
             <br />ยังไม่มีผลสอบไม่ถือว่าสอบไม่ผ่าน · ผลสอบแสดงได้โดยไม่ต้องรอ CSV และไม่เปลี่ยนเปอร์เซ็นต์เรียนจบใน Skool
           </p>
+          <div style={{ marginTop: 14, padding: "12px 14px", border: "1px solid var(--hairline)", borderRadius: 12 }}>
+            <h4 style={{ margin: 0, fontSize: 14, color: "var(--gold-bright)" }}>บทที่ต้องทบทวน / สอบไม่ผ่าน · {failed.length} รายการ</h4>
+            {!failed.length ? <p style={captionStyle}>{summary.results ? "ไม่มีผลสอบครั้งล่าสุดที่ไม่ผ่านในข้อสอบที่เปิดใช้งาน" : "ยังไม่มีผลสอบ จึงยังระบุบทที่สอบไม่ผ่านไม่ได้"}</p> :
+              <ul style={{ paddingLeft: 20, margin: "10px 0 0" }}>{failed.map(row => <li key={`${row.agentId}:${row.lessonId}`} style={{ marginBottom: 10, fontSize: 13, lineHeight: 1.6 }}>
+                <strong>{quizLessonTitle(row)}</strong>
+                <div style={{ color: "var(--rp-danger, #ad402f)" }}>{row.score}/{row.maxScore} คะแนน ({row.scorePercent}%) · ไม่ผ่าน</div>
+                <div style={captionStyle}>{agentSelection === "all" && `${row.agentName} (${row.agentCode}) · `}สอบเมื่อ {dataTimestampLabel(row.submittedAt)}</div>
+              </li>)}</ul>}
+          </div>
         </>
       )}
     </section>

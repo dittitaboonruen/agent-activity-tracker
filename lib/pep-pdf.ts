@@ -2,6 +2,7 @@ import type { KpiSummary, PepNote } from "@/types";
 import type { QuizResultRow } from "@/lib/skool-quiz";
 import { summarizeQuizResults } from "@/lib/skool-quiz";
 import { dataTimestampLabel, formatThaiDateLong } from "@/lib/date-utils";
+import { courseProgressGroups, failedQuizAttempts, quizLessonTitle, selectCourseRows, type CourseLearningRow } from "@/lib/learning-details";
 
 export type PepExportContext = {
   agentId: number;
@@ -33,6 +34,8 @@ export type PepPdfReport = {
   target: PdfTarget | null;
   targetError: boolean;
   generatedAt: string;
+  skoolRows?: CourseLearningRow[];
+  quizRows?: QuizResultRow[];
 };
 
 /** Only authenticated existing APIs supply data; no keys or privileged DB access in the browser. */
@@ -74,6 +77,8 @@ export async function loadPepPdfReport(context: PepExportContext, note: PepNote 
     quiz: quizOk ? summarizeQuizResults((quiz.value.rows as QuizResultRow[]).filter(row => row.agentId === context.agentId)) : null, quizError: !quizOk,
     target: targetOk ? target.value.target as PdfTarget | null : null, targetError: !targetOk,
     generatedAt: new Date().toISOString(),
+    skoolRows: skoolOk && Array.isArray(skool.value.rows) ? selectCourseRows(skool.value.rows as CourseLearningRow[], context.agentId) : [],
+    quizRows: quizOk ? (quiz.value.rows as QuizResultRow[]).filter(row => row.agentId === context.agentId) : [],
   };
 }
 function validDate(value: string) {
@@ -103,6 +108,25 @@ export function reportLearningLines(report: PepPdfReport): Array<[string, string
 }
 
 let fontsReady: Promise<void> | null = null;
+export function reportLearningDetailLines(report: PepPdfReport): Array<[string, string]> {
+  const lines: Array<[string, string]> = [];
+  if (!report.quizError && report.quizRows) {
+    const failed = failedQuizAttempts(report.quizRows, report.context.agentId);
+    lines.push(["บทที่ต้องทบทวน / สอบไม่ผ่าน", report.quiz?.results ? `${failed.length} รายการ (ครั้งล่าสุดต่อข้อสอบ)` : "ยังไม่มีผลสอบ จึงยังระบุไม่ได้"]);
+    for (const row of failed) lines.push([quizLessonTitle(row), `${row.score}/${row.maxScore} คะแนน (${row.scorePercent}%) • ไม่ผ่าน • ${dataTimestampLabel(row.submittedAt)}`]);
+  }
+  if (!report.skoolError) {
+    const rows = selectCourseRows(report.skoolRows ?? [], report.context.agentId);
+    lines.push(["รายละเอียด Skool", "ข้อมูลรายคอร์สจาก CSV ยังระบุการเรียนจบรายบทภายในคอร์สไม่ได้"]);
+    if (rows.length) {
+      for (const group of courseProgressGroups(rows)) {
+        lines.push([group.label, `${group.rows.length} คอร์ส`]);
+        for (const row of group.rows) lines.push([row.courseName, `${row.progressPercent}%`]);
+      }
+    } else lines.push(["รายคอร์ส", "ยังไม่มีรายละเอียดการเรียนที่นำเข้าหรือจับคู่ จึงยังระบุคอร์สที่ไม่เริ่มเรียนไม่ได้"]);
+  }
+  return lines;
+}
 async function loadFonts() {
   if (!fontsReady) {
     fontsReady = Promise.all([
@@ -210,6 +234,7 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
   paragraph(`ดึงกิจกรรมล่าสุด: ${dataTimestampLabel(report.context.fetchedAt)}`, 7.8, false, 13, colors.muted);
   heading("02  การเรียนและเป้าหมาย");
   for (const [label, value] of reportLearningLines(report)) paragraph(`${label}: ${value}`, 9, false, 16);
+  for (const [label, value] of reportLearningDetailLines(report)) paragraph(`${label}: ${value}`, 9, false, 16);
   paragraph("ผลสอบนับครั้งล่าสุดต่อข้อสอบที่เปิดใช้งาน • Skool อัปเดตตาม CSV ที่นำเข้า", 7.8, false, 13, colors.muted);
   heading("03  คอมเมนต์และแผนทำต่อ");
   if (!report.note) paragraph("ไม่แนบคอมเมนต์ PEP ในรายงานนี้", 10);

@@ -1,0 +1,155 @@
+[dashboard-access] profile error: { code: 'TEST' }
+[dashboard-access] agents error: { code: 'TEST_FAILURE', message: 'private DB details' }
+[dashboard-agents] roster query failed: TEST_FAILURE
+✔ manager roster includes TEST without Jotform and excludes other units/inactive agents (185.924581ms)
+✔ global view comes from profile permission, not role or email (67.823633ms)
+✔ signed out, disabled profile, unauthorized role, missing unit and missing activity permission denied (216.171732ms)
+✔ caller cannot supply a team override or force global scope (90.802788ms)
+✔ roster paginates beyond 1000 without truncating active agents (50.624939ms)
+✔ query failures return an error, never a partial roster or raw DB details (56.21159ms)
+✔ endpoint is read-only (17.825292ms)
+✔ registered alias, whitespace and case map to master name without changing activity content (34.937093ms)
+✔ shared aliases are not assigned to an arbitrary agent (6.032918ms)
+✔ TEST is selectable and has a zero activity row without a fake submission (96.299822ms)
+✔ PEP keeps the legacy Jotform history key; new agents use master name (59.35492ms)
+✔ filter renders the master roster, clearly labelled loading state and accessible select (94.533743ms)
+✔ middleware authenticates roster and enforces activity flag for managers and admins (77.602548ms)
+✔ editing PEP updates the original ID and returns to the preserved new-entry draft (385.503077ms)
+✔ PEP edit conflict keeps the draft and does not announce save success (91.61673ms)
+✔ PEP delete requires confirmation, cancellation sends nothing, failure keeps the entry (192.545485ms)
+✔ late PEP delete response cannot alter the newly selected agent (35.54748ms)
+✔ timestamps show Bangkok date/time and safely ignore missing or malformed data (4.099102ms)
+✔ target failure is an error with retry, never an absent target (14.987496ms)
+✔ missing target differs from a recorded zero target and uses the stored update time (45.888869ms)
+✔ late target response cannot replace a newer selected person (31.685222ms)
+✔ PEP history error and retry preserve an unsaved Action Plan (47.82621ms)
+✔ PEP save success shows its history and database timestamp, failure preserves draft (86.521178ms)
+✔ late PEP save never appears under the next selected person (54.000355ms)
+✔ Agent Performance keeps roster and distinguishes no submission from real zero counts (12.722622ms)
+✔ Quiz detail missing results has no invented 0% and still displays a real score of zero (120.914805ms)
+✔ Dashboard keeps learning and PEP available with no activities, and comparison is last (159.856821ms)
+✔ Annual target API returns the persisted updated_at using real PostgreSQL (2114.343957ms)
+✔ PEP read/write check activity permission and own-unit names before touching notes (58.220594ms)
+✔ initial Jotform failure shows source error without hiding learning or manual PEP (72.844298ms)
+✔ real PostgreSQL PEP flow reads/writes only a permitted unit through the actual access helper (1306.438299ms)
+✔ latest failed list clears after passing retake and does not revive regraded older failure (12.726458ms)
+✔ course groups preserve actual CSV status, separate access, and never invent unimported lessons (0.714111ms)
+✔ PDF learning detail includes named failures, CSV course groups and only selected agent (12.017475ms)
+✔ PDF missing CSV and missing quiz do not mean not-started or failed (0.301864ms)
+✔ PDF loader captures selected course and quiz rows from existing scoped APIs (1.318079ms)
+[skool-access] profile error: { code: 'TEST' }
+[skool-access] profile error: { code: 'TEST' }
+✔ both learning APIs filter one agent within the authorized unit (284.972137ms)
+✔ selected Skool summary and quiz summary preserve a genuine zero (99.309206ms)
+✔ all means all permitted agents and retains the old endpoint behavior (89.463001ms)
+✔ global permission permits selecting another unit without returning other agents (86.856385ms)
+✔ other unit, inactive and nonexistent selections have the same generic 404 (212.745751ms)
+✔ malformed, duplicate and scope override query parameters are rejected (583.567271ms)
+✔ authentication and profile checks still apply when an agent ID is supplied (140.321799ms)
+✔ TEST can have quiz results with no Jotform or Skool member/CSV data (35.949943ms)
+✔ no quiz means no attempts or failures, never another agent results (56.170211ms)
+✔ selected IDs resolve from master roster and ambiguous/missing names cannot become all (9.743097ms)
+✔ Skool card requests the selected ID, shows loading and a dash for missing CSV, and passes ID to quiz (129.274773ms)
+✔ Quiz summary requests selected ID independently and preserves latest result behavior (79.208298ms)
+✔ old response cannot replace selected data after unmount or cancelled selection (94.304282ms)
+✔ unresolved selection displays an error and never fetches all-agent data (77.270052ms)
+✔ quiz detail receives the same selected ID as the summary and contains only that agent (52.614274ms)
+✔ PDF requests one numeric agent ID, uses legacy PEP alias, and excludes unrelated quiz rows (3.220058ms)
+✔ invalid dates, impossible dates, reversed range, all-agent sentinel and loading are rejected before requests (0.811033ms)
+✔ current permission and roster mismatch block exporting cached data (1.319152ms)
+✔ deleted or concurrently changed PEP comments cannot be attached (1.402093ms)
+✔ optional learning failure remains visibly unavailable and no-comment export remains valid (33.800831ms)
+✔ no activity differs from recorded zero and missing learning differs from failed quizzes (12.025926ms)
+✔ aborted loading cannot publish a report and filename safely retains leading zeros (4.391323ms)
+✔ real PostgreSQL migration: order, hierarchy, retry, rollback, permissions (3052.046843ms)
+✔ new Classroom becomes a visible course and progress without invented lessons; repeat is idempotent (507.391484ms)
+✔ preserves inactive courses, description, order, code, lessons and member links (81.137319ms)
+✔ two new classrooms are inserted in order after existing courses (66.231084ms)
+✔ handles an insert race using the database unique-constraint winner (57.224795ms)
+✔ blocks signed out without writes (44.637207ms)
+✔ blocks wrong email without writes (68.566466ms)
+✔ blocks inactive admin without writes (53.234508ms)
+✔ blocks rate limit without writes (38.845934ms)
+✔ rejects blank progress before writes (88.183578ms)
+✔ rejects out of range before writes (35.087644ms)
+✔ rejects wrong columns before writes (42.519691ms)
+✔ rejects unclosed quote before writes (28.28926ms)
+✔ rejects missing headers before writes (18.065645ms)
+✔ rejects impossible date before writes (25.843441ms)
+✔ supports BOM, CRLF and quoted classroom with comma (27.493383ms)
+[skool-import] progress upsert error: { code: 'TEST_FAILURE' }
+[skool-courses] import stats error: { code: 'TEST_FAILURE' }
+[skool-courses] save lesson error: {
+  code: '23502',
+  message: 'null value in column "lesson_code" violates not-null constraint'
+}
+[skool-courses] outline error: {
+  code: '23502',
+  message: 'null value in column "lesson_code" violates not-null constraint'
+}
+[skool-courses] save lesson error: { code: '23505', message: 'LESSON_NAME_EXISTS' }
+[skool-courses] save lesson error: { code: 'PGRST202' }
+[skool-courses] save lesson error: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "learning_lessons_google_form_id_uidx"',
+  details: 'Key (google_form_id)=(example-form-id) already exists.'
+}
+✔ a later progress failure is not reported as successful (27.339782ms)
+✔ aggregates beyond one API page without dropping members (12.413989ms)
+✔ manager still loads courses if optional import summary fails, with a visible warning (40.92909ms)
+✔ middleware permits training@royalpartner.org admin to load Manager and its API (24.394107ms)
+✔ middleware permits newagent@royalpartner.org admin to load Manager and its API (19.474879ms)
+✔ middleware blocks other manager accounts from Skool administration (21.934399ms)
+✔ middleware blocks other admin accounts from Skool administration (6.550409ms)
+✔ generated codes are stable, nonempty and different for different Thai Classrooms (4.398552ms)
+✔ manual course creation with blank code supplies a nonnull code (39.886305ms)
+✔ editing with blank code keeps the original manual code (34.067448ms)
+✔ outline parser preserves repeated subtopic names under different parents (4.754717ms)
+✔ tree numbers children within each parent, keeps orphaned legacy lessons visible (5.474416ms)
+✔ recommended ordering moves About to 2, preserves remaining courses (5.712957ms)
+✔ outline request is parsed and committed through one atomic RPC (31.662143ms)
+✔ outline and reorder retain admin-only authorization (29.911938ms)
+✔ lesson NOT NULL errors explain the missing automatic code instead of blaming parent selection (62.518529ms)
+✔ outline NOT NULL error points to the same default-code hotfix (61.489631ms)
+✔ single-lesson route delegates module creation and unique-order moves to an atomic RPC (51.521186ms)
+✔ duplicate lesson errors say to edit the existing row (31.662908ms)
+✔ quiz form ID reaches the atomic save; a URL in the ID field is rejected before writes (45.417764ms)
+✔ a missing lesson RPC explains which SQL to install (37.119072ms)
+✔ unique Google Form ID errors identify the existing link, including disabled lessons (30.449407ms)
+✔ CSV reimport preserves quiz scores, lesson hierarchy and Form IDs (42.70711ms)
+[google-form-quiz] save error: { code: 'TEST_DB_FAILURE' }
+[skool-access] profile error: { message: 'error' }
+[skool-quiz-results] query failed: { code: 'TEST_DB_FAILURE' }
+✔ webhook requires secret, even though middleware allows machine requests (181.369098ms)
+✔ pass, fail, leading zero agent code, and correctly named child in dashboard (130.978043ms)
+✔ retry and regrade update same response, retake creates new attempt (22.320322ms)
+✔ null, booleans, arrays, numeric strings and invalid scores rejected (22.113312ms)
+✔ rounded 80.00% cannot incorrectly pass below true 80% threshold (19.409276ms)
+✔ 60 percent lesson: 2/5 fails, 3/5 passes, zero fails, rounded sub-threshold stays failed (32.194943ms)
+✔ missing lesson threshold defaults to 60 percent while an explicit threshold is respected (68.454356ms)
+✔ unlinked, inactive or INFO lesson and unknown agent cannot write (59.739527ms)
+✔ DB failure produces sanitized error and preserves no result (23.551908ms)
+✔ manager sees own unit, all-data sees both, no CSV/member linkage required (46.739431ms)
+✔ signed out, inactive, unauthorized and missing unit denied (151.003831ms)
+✔ quiz results paginate above 1000 and retain disabled historical lesson (76.943706ms)
+✔ empty scope safe, query errors reported without returning partial results (80.635879ms)
+✔ latest attempt uses submission time, not regrade date; tie uses ID (4.922995ms)
+✔ Activity quiz summary counts latest per agent/lesson, excludes closed lessons and preserves a real zero (8.264131ms)
+✔ Activity quiz summary uses scoped API results: manager only own unit, global permission sees both (57.933491ms)
+✔ middleware exact webhook bypass, dashboard still requires login, admin allowed (41.523047ms)
+✔ Apps Script setup repeat creates exactly three own triggers, keeps unrelated (2.674355ms)
+✔ Apps Script Form event sends correct IDs, real score, denominator and timestamp (24.418443ms)
+✔ Apps Script null grade waits and resumes, zero score sent as genuine fail (1.152065ms)
+✔ Apps Script failures stay queued, manual test catches bad secret/server failure (1.147699ms)
+✔ Apps Script distinguishes quiz-link and agent 404 without exposing arbitrary response data (2.69792ms)
+✔ Apps Script lock contention preserves queue; manual event Run rejected (0.886785ms)
+✔ Apps Script secret never in queue metadata, grade sync and backfill safe to retry (1.411256ms)
+✔ real PostgreSQL: Form payload → webhook upsert → scoped dashboard, retry and retake (1863.284321ms)
+ℹ tests 122
+ℹ suites 0
+ℹ pass 122
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5238.543467

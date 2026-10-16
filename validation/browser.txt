@@ -1,0 +1,8 @@
+PASS: dashboard shows named latest failure, score, date and actual course groups; no old/disabled/other-agent rows
+PASS: actual PDF download through export component
+PASS: long course list PDF generated with PEP comments
+PASS: passing retake clears focus list
+PASS: changing selected agent removes previous-agent details
+PASS: absent imported/matched course data stays unknown
+PASS: load failure clears stale course details
+PASS: no browser runtime errors

@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { dataTimestampLabel } from "@/lib/date-utils";
 import { Card } from "./ui";
 import SkoolQuizSummary from "./SkoolQuizSummary";
+import SkoolCourseDetails from "./SkoolCourseDetails";
+import type { CourseLearningRow } from "@/lib/learning-details";
 import { learningApiUrl, type LearningAgentSelection } from "@/lib/learning-filter";
 
 type SkoolSummary = {
@@ -28,6 +30,7 @@ type SkoolProgressResponse = {
     unitName: string | null;
   };
   summary?: SkoolSummary;
+  rows?: CourseLearningRow[];
 };
 
 const EMPTY_SUMMARY: SkoolSummary = {
@@ -46,6 +49,7 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
   agentName?: string;
 }) {
   const [summary, setSummary] = useState<SkoolSummary>(EMPTY_SUMMARY);
+  const [courseRows, setCourseRows] = useState<CourseLearningRow[] | null>(null);
   const [unitName, setUnitName] = useState<string | null>(null);
   const [canSeeAll, setCanSeeAll] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -60,6 +64,7 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
     setLoading(true);
     setError(null);
     setSummary(EMPTY_SUMMARY);
+    setCourseRows(null);
 
     try {
       const response = await fetch(learningApiUrl("/api/skool-progress", agentSelection), {
@@ -74,6 +79,7 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
 
       if (controller.signal.aborted) return;
       setSummary(body.summary);
+      setCourseRows(Array.isArray(body.rows) ? body.rows : null);
       setUnitName(body.scope?.unitName ?? null);
       setCanSeeAll(body.scope?.canSeeAll === true);
     } catch (loadError) {
@@ -168,6 +174,7 @@ export default function SkoolSummaryCard({ agentSelection = "all", agentName }: 
           {summary.records === 0 && (
             <p style={captionStyle}>{agentName ? "ยังไม่มีข้อมูลการเรียนที่นำเข้าหรือจับคู่กับตัวแทนคนนี้" : "ยังไม่มีข้อมูลการเรียนในขอบเขตที่คุณมีสิทธิ์ดู"}</p>
           )}
+          <SkoolCourseDetails rows={courseRows} selection={agentSelection} />
         </>
       )}
       <p style={captionStyle}>รอบนำเข้า CSV: ทุกวันศุกร์ · ปุ่มอัปเดตอ่านข้อมูลที่นำเข้าแล้ว</p>

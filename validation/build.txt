@@ -1,0 +1,70 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> agent-activity-tracker-dashboard@1.0.0 build
+> next build
+
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ ✓ Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    2.54 kB        90.3 kB
+├ ○ /_not-found                          876 B          88.6 kB
+├ ○ /admin/agents                        4.59 kB         101 kB
+├ ○ /admin/production                    4.41 kB         101 kB
+├ ○ /admin/skool-courses                 10.1 kB         107 kB
+├ ○ /admin/skool-import                  2.22 kB        98.7 kB
+├ ○ /agent                               2.32 kB        90.1 kB
+├ ○ /agent/calculators                   176 B          96.7 kB
+├ ○ /agent/forms                         4.31 kB        92.1 kB
+├ ○ /annual-target                       2.42 kB        90.2 kB
+├ ƒ /api/admin/skool-courses             0 B                0 B
+├ ƒ /api/admin/skool-import              0 B                0 B
+├ ƒ /api/agent-master                    0 B                0 B
+├ ƒ /api/annual-target                   0 B                0 B
+├ ƒ /api/auth/magic-link                 0 B                0 B
+├ ƒ /api/daily-production                0 B                0 B
+├ ƒ /api/dashboard-agents                0 B                0 B
+├ ƒ /api/integrations/google-form-quiz   0 B                0 B
+├ ƒ /api/jotform                         0 B                0 B
+├ ƒ /api/monthly-performance             0 B                0 B
+├ ƒ /api/pep-notes                       0 B                0 B
+├ ƒ /api/skool-progress                  0 B                0 B
+├ ƒ /api/skool-quiz-results              0 B                0 B
+├ ○ /auth/callback                       69.8 kB         158 kB
+├ ƒ /auth/confirm                        0 B                0 B
+├ ƒ /dashboard/activity                  126 kB          222 kB
+├ ○ /dashboard/performance               3.83 kB         100 kB
+├ ○ /dashboard/skool                     7.26 kB         104 kB
+└ ○ /login                               1.56 kB        89.3 kB
++ First Load JS shared by all            87.8 kB
+  ├ chunks/117-99a6b6e5d30fa2d9.js       31.9 kB
+  ├ chunks/fd9d1056-b6d640d2729d35f8.js  53.6 kB
+  └ other shared chunks (total)          2.23 kB
+
+
+ƒ Middleware                             87.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
