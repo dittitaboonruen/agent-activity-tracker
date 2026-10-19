@@ -2,6 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell as RechartsCell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 import PageTopBar from "@/components/PageTopBar";
 
 /* ------------------------------------------------------------------ */
@@ -41,6 +57,7 @@ type Unit = {
 type Totals = {
   caseSubmitted: number;
   caseApproved: number;
+
   fypSubmitted: number;
   fypApproved: number;
   fycApproved: number;
@@ -67,7 +84,22 @@ type UnitLine = {
   activeAgents: number;
 };
 
-type View = "agent" | "unit" | "rank";
+type PerformanceChartRow = {
+  name: string;
+  fullName?: string;
+  unit?: string;
+
+  caseApproved: number;
+  fyp: number;
+  fyc: number;
+
+  activeAgents?: number;
+};
+
+type View =
+  | "agent"
+  | "unit"
+  | "rank";
 
 /* ------------------------------------------------------------------ */
 /* CONSTANTS                                                           */
@@ -88,11 +120,13 @@ const MONTHS: [string, string][] = [
   ["12", "ธันวาคม"],
 ];
 
-const NO_UNIT = "ไม่ระบุหน่วย";
+const NO_UNIT =
+  "ไม่ระบุหน่วย";
 
 const EMPTY: Totals = {
   caseSubmitted: 0,
   caseApproved: 0,
+
   fypSubmitted: 0,
   fypApproved: 0,
   fycApproved: 0,
@@ -102,64 +136,140 @@ const EMPTY: Totals = {
   paFyc: 0,
 };
 
+const PIE_COLORS = [
+  "#C9972B",
+  "#D9B85D",
+  "#8D6B25",
+  "#E5C978",
+  "#A67C22",
+  "#F0DDA5",
+  "#755619",
+  "#B99542",
+  "#E2C36F",
+  "#967020",
+];
+
 /* ------------------------------------------------------------------ */
 /* HELPERS                                                             */
 /* ------------------------------------------------------------------ */
 
 function currentBangkokYearMonth() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Bangkok",
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(new Date());
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Bangkok",
+        year: "numeric",
+        month: "2-digit",
+      }
+    ).formatToParts(
+      new Date()
+    );
 
   return {
     year:
-      parts.find((part) => part.type === "year")?.value ?? "",
+      parts.find(
+        (part) =>
+          part.type ===
+          "year"
+      )?.value ?? "",
+
     month:
-      parts.find((part) => part.type === "month")?.value ?? "",
+      parts.find(
+        (part) =>
+          part.type ===
+          "month"
+      )?.value ?? "",
   };
 }
 
-function money(value: number) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+function money(
+  value: number
+) {
+  return value.toLocaleString(
+    "en-US",
+    {
+      minimumFractionDigits:
+        2,
+      maximumFractionDigits:
+        2,
+    }
+  );
 }
 
-function n(value: unknown) {
-  return Number(value ?? 0) || 0;
+function compactMoney(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      notation: "compact",
+      maximumFractionDigits:
+        1,
+    }
+  ).format(value);
 }
 
-function sumRows(list: DailyProduction[]): Totals {
+function n(
+  value: unknown
+) {
+  return (
+    Number(value ?? 0) ||
+    0
+  );
+}
+
+function sumRows(
+  list: DailyProduction[]
+): Totals {
   return list.reduce(
     (acc, row) => ({
       caseSubmitted:
-        acc.caseSubmitted + n(row.aia_case_submitted),
+        acc.caseSubmitted +
+        n(
+          row.aia_case_submitted
+        ),
 
       caseApproved:
-        acc.caseApproved + n(row.aia_case_approved),
+        acc.caseApproved +
+        n(
+          row.aia_case_approved
+        ),
 
       fypSubmitted:
-        acc.fypSubmitted + n(row.aia_fyp_submitted),
+        acc.fypSubmitted +
+        n(
+          row.aia_fyp_submitted
+        ),
 
       fypApproved:
-        acc.fypApproved + n(row.aia_fyp_approved),
+        acc.fypApproved +
+        n(
+          row.aia_fyp_approved
+        ),
 
       fycApproved:
-        acc.fycApproved + n(row.aia_fyc_approved),
+        acc.fycApproved +
+        n(
+          row.aia_fyc_approved
+        ),
 
       paCase:
-        acc.paCase + n(row.pa_case),
+        acc.paCase +
+        n(row.pa_case),
 
       paFyp:
-        acc.paFyp + n(row.pa_fyp),
+        acc.paFyp +
+        n(row.pa_fyp),
 
       paFyc:
-        acc.paFyc + n(row.pa_fyc),
+        acc.paFyc +
+        n(row.pa_fyc),
     }),
-    { ...EMPTY }
+    {
+      ...EMPTY,
+    }
   );
 }
 
@@ -169,52 +279,73 @@ function addTotals(
 ): Totals {
   return {
     caseSubmitted:
-      a.caseSubmitted + b.caseSubmitted,
+      a.caseSubmitted +
+      b.caseSubmitted,
 
     caseApproved:
-      a.caseApproved + b.caseApproved,
+      a.caseApproved +
+      b.caseApproved,
 
     fypSubmitted:
-      a.fypSubmitted + b.fypSubmitted,
+      a.fypSubmitted +
+      b.fypSubmitted,
 
     fypApproved:
-      a.fypApproved + b.fypApproved,
+      a.fypApproved +
+      b.fypApproved,
 
     fycApproved:
-      a.fycApproved + b.fycApproved,
+      a.fycApproved +
+      b.fycApproved,
 
     paCase:
-      a.paCase + b.paCase,
+      a.paCase +
+      b.paCase,
 
     paFyp:
-      a.paFyp + b.paFyp,
+      a.paFyp +
+      b.paFyp,
 
     paFyc:
-      a.paFyc + b.paFyc,
+      a.paFyc +
+      b.paFyc,
   };
 }
 
 /**
  * Active Agent =
- * ตัวแทนที่มี AIA Case อนุมัติอย่างน้อย 1 Case ในช่วงนั้น
+ * มี AIA Case อนุมัติอย่างน้อย 1 Case
  */
 function countActive(
   list: DailyProduction[]
 ) {
   const totalsByAgent =
-    new Map<string, number>();
+    new Map<
+      string,
+      number
+    >();
 
-  list.forEach((row) => {
-    totalsByAgent.set(
-      row.agent_name,
-      (totalsByAgent.get(row.agent_name) ?? 0) +
-        n(row.aia_case_approved)
-    );
-  });
+  list.forEach(
+    (row) => {
+      totalsByAgent.set(
+        row.agent_name,
+
+        (totalsByAgent.get(
+          row.agent_name
+        ) ?? 0) +
+          n(
+            row.aia_case_approved
+          )
+      );
+    }
+  );
 
   return Array.from(
     totalsByAgent.values()
-  ).filter((value) => value > 0).length;
+  ).filter(
+    (value) =>
+      value > 0
+  ).length;
 }
 
 /* ------------------------------------------------------------------ */
@@ -225,33 +356,70 @@ export default function PerformanceDashboardPage() {
   const initial =
     currentBangkokYearMonth();
 
-  const [year, setYear] =
-    useState(initial.year);
+  const [
+    year,
+    setYear,
+  ] =
+    useState(
+      initial.year
+    );
 
-  const [month, setMonth] =
-    useState(initial.month);
+  const [
+    month,
+    setMonth,
+  ] =
+    useState(
+      initial.month
+    );
 
-  const [view, setView] =
-    useState<View>("agent");
+  const [
+    view,
+    setView,
+  ] =
+    useState<View>(
+      "agent"
+    );
 
   const [
     selectedUnit,
     setSelectedUnit,
-  ] = useState("");
+  ] =
+    useState("");
 
-  const [rows, setRows] =
-    useState<DailyProduction[]>([]);
+  const [
+    rows,
+    setRows,
+  ] =
+    useState<
+      DailyProduction[]
+    >([]);
 
-  const [agents, setAgents] =
-    useState<AgentMaster[]>([]);
+  const [
+    agents,
+    setAgents,
+  ] =
+    useState<
+      AgentMaster[]
+    >([]);
 
-  const [units, setUnits] =
-    useState<Unit[]>([]);
+  const [
+    units,
+    setUnits,
+  ] =
+    useState<Unit[]>(
+      []
+    );
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(false);
 
-  const [error, setError] =
+  const [
+    error,
+    setError,
+  ] =
     useState("");
 
   /* ---------------------------------------------------------------- */
@@ -266,21 +434,26 @@ export default function PerformanceDashboardPage() {
       const [
         productionResponse,
         agentResponse,
-      ] = await Promise.all([
-        fetch(
-          "/api/monthly-performance",
-          {
-            cache: "no-store",
-          }
-        ),
+      ] =
+        await Promise.all(
+          [
+            fetch(
+              "/api/monthly-performance",
+              {
+                cache:
+                  "no-store",
+              }
+            ),
 
-        fetch(
-          "/api/agent-master",
-          {
-            cache: "no-store",
-          }
-        ),
-      ]);
+            fetch(
+              "/api/agent-master",
+              {
+                cache:
+                  "no-store",
+              }
+            ),
+          ]
+        );
 
       const data =
         await productionResponse.json();
@@ -298,21 +471,29 @@ export default function PerformanceDashboardPage() {
         return;
       }
 
-      setRows(data.rows ?? []);
+      setRows(
+        data.rows ?? []
+      );
 
-      if (agentResponse.ok) {
+      if (
+        agentResponse.ok
+      ) {
         const agentData =
           await agentResponse.json();
 
         setAgents(
-          agentData.agents ?? []
+          agentData.agents ??
+            []
         );
 
         setUnits(
-          agentData.units ?? []
+          agentData.units ??
+            []
         );
       }
-    } catch (error) {
+    } catch (
+      error
+    ) {
       console.error(
         "[monthly-performance-page] load error:",
         error
@@ -339,50 +520,66 @@ export default function PerformanceDashboardPage() {
   const unitLookup =
     useMemo(() => {
       const unitName =
-        new Map<number, string>();
+        new Map<
+          number,
+          string
+        >();
 
-      units.forEach((unit) => {
-        unitName.set(
-          unit.id,
-          unit.unit_name
-        );
-      });
+      units.forEach(
+        (unit) => {
+          unitName.set(
+            unit.id,
+            unit.unit_name
+          );
+        }
+      );
 
       const byCode =
-        new Map<string, string>();
+        new Map<
+          string,
+          string
+        >();
 
       const byName =
-        new Map<string, string>();
+        new Map<
+          string,
+          string
+        >();
 
-      agents.forEach((agent) => {
-        const unit =
-          agent.unit_id
-            ? unitName.get(
-                agent.unit_id
-              )
-            : undefined;
+      agents.forEach(
+        (agent) => {
+          const unit =
+            agent.unit_id
+              ? unitName.get(
+                  agent.unit_id
+                )
+              : undefined;
 
-        if (!unit) return;
+          if (!unit) {
+            return;
+          }
 
-        if (
-          agent.agent_code
-        ) {
-          byCode.set(
-            agent.agent_code,
+          if (
+            agent.agent_code
+          ) {
+            byCode.set(
+              agent.agent_code,
+              unit
+            );
+          }
+
+          byName.set(
+            agent.agent_name,
             unit
           );
         }
-
-        byName.set(
-          agent.agent_name,
-          unit
-        );
-      });
+      );
 
       return (row: {
         agent_code:
           | string
           | null;
+
         agent_name: string;
       }) =>
         (row.agent_code &&
@@ -393,7 +590,10 @@ export default function PerformanceDashboardPage() {
           row.agent_name
         ) ||
         NO_UNIT;
-    }, [agents, units]);
+    }, [
+      agents,
+      units,
+    ]);
 
   const unitList =
     useMemo(() => {
@@ -404,15 +604,22 @@ export default function PerformanceDashboardPage() {
               (agent) =>
                 agent.unit_id
             )
-            .filter(Boolean)
+            .filter(
+              (
+                value
+              ): value is number =>
+                typeof value ===
+                "number"
+            )
         );
 
       const names =
         units
-          .filter((unit) =>
-            usedIds.has(
-              unit.id
-            )
+          .filter(
+            (unit) =>
+              usedIds.has(
+                unit.id
+              )
           )
           .map(
             (unit) =>
@@ -422,7 +629,9 @@ export default function PerformanceDashboardPage() {
       const hasNoUnit =
         rows.some(
           (row) =>
-            unitLookup(row) ===
+            unitLookup(
+              row
+            ) ===
             NO_UNIT
         );
 
@@ -463,12 +672,16 @@ export default function PerformanceDashboardPage() {
   const monthRows =
     useMemo(
       () =>
-        rows.filter((row) =>
-          row.production_date.startsWith(
-            selectedMonth
-          )
+        rows.filter(
+          (row) =>
+            row.production_date.startsWith(
+              selectedMonth
+            )
         ),
-      [rows, selectedMonth]
+      [
+        rows,
+        selectedMonth,
+      ]
     );
 
   const ytdRows =
@@ -502,7 +715,9 @@ export default function PerformanceDashboardPage() {
                 (row) =>
                   row.agent_name
               )
-              .filter(Boolean)
+              .filter(
+                Boolean
+              )
           )
         );
 
@@ -531,7 +746,8 @@ export default function PerformanceDashboardPage() {
                   b.production_date.localeCompare(
                     a.production_date
                   )
-              )[0] ?? null;
+              )[0] ??
+              null;
 
             const approvedMonths =
               new Set(
@@ -542,11 +758,12 @@ export default function PerformanceDashboardPage() {
                         row.aia_case_approved
                       ) > 0
                   )
-                  .map((row) =>
-                    row.production_date.slice(
-                      0,
-                      7
-                    )
+                  .map(
+                    (row) =>
+                      row.production_date.slice(
+                        0,
+                        7
+                      )
                   )
               ).size;
 
@@ -637,12 +854,16 @@ export default function PerformanceDashboardPage() {
               row.production_date.startsWith(
                 year
               ) &&
-              unitLookup(row) ===
+              unitLookup(
+                row
+              ) ===
                 selectedUnit
           );
 
         let running: Totals =
-          { ...EMPTY };
+          {
+            ...EMPTY,
+          };
 
         return MONTHS
           .filter(
@@ -708,42 +929,47 @@ export default function PerformanceDashboardPage() {
     useMemo(
       (): UnitLine[] => {
         return unitList
-          .map((unit) => {
-            const inMonth =
-              monthRows.filter(
-                (row) =>
-                  unitLookup(
-                    row
-                  ) === unit
-              );
+          .map(
+            (unit) => {
+              const inMonth =
+                monthRows.filter(
+                  (row) =>
+                    unitLookup(
+                      row
+                    ) ===
+                    unit
+                );
 
-            const inYtd =
-              ytdRows.filter(
-                (row) =>
-                  unitLookup(
-                    row
-                  ) === unit
-              );
+              const inYtd =
+                ytdRows.filter(
+                  (row) =>
+                    unitLookup(
+                      row
+                    ) ===
+                    unit
+                );
 
-            return {
-              label: unit,
+              return {
+                label:
+                  unit,
 
-              month:
-                sumRows(
-                  inMonth
-                ),
+                month:
+                  sumRows(
+                    inMonth
+                  ),
 
-              ytd:
-                sumRows(
-                  inYtd
-                ),
+                ytd:
+                  sumRows(
+                    inYtd
+                  ),
 
-              activeAgents:
-                countActive(
-                  inMonth
-                ),
-            };
-          })
+                activeAgents:
+                  countActive(
+                    inMonth
+                  ),
+              };
+            }
+          )
           .filter(
             (line) =>
               line.label !==
@@ -775,14 +1001,139 @@ export default function PerformanceDashboardPage() {
       ]
     );
 
+  /* ---------------------------------------------------------------- */
+  /* LABELS                                                            */
+  /* ---------------------------------------------------------------- */
+
   const monthLabel =
     MONTHS.find(
       ([value]) =>
-        value === month
+        value ===
+        month
     )?.[1] ?? "";
 
   const thaiYear =
-    Number(year) + 543;
+    Number(year) +
+    543;
+
+  /* ---------------------------------------------------------------- */
+  /* CHART DATA                                                        */
+  /* ---------------------------------------------------------------- */
+
+  const agentChartData =
+    useMemo(() => {
+      return agentSummary
+        .filter(
+          (row) =>
+            row.month
+              .fycApproved >
+              0 ||
+            row.month
+              .fypApproved >
+              0 ||
+            row.month
+              .caseApproved >
+              0
+        )
+        .slice(
+          0,
+          12
+        )
+        .map(
+          (row) => ({
+            name:
+              row.nickname ||
+              row.name,
+
+            fullName:
+              row.name,
+
+            unit:
+              row.unit,
+
+            caseApproved:
+              row.month
+                .caseApproved,
+
+            fyp:
+              row.month
+                .fypApproved,
+
+            fyc:
+              row.month
+                .fycApproved,
+          })
+        );
+    }, [
+      agentSummary,
+    ]);
+
+  const unitTrendChartData =
+    useMemo(() => {
+      return unitMonthly.map(
+        (row) => ({
+          name:
+            row.label,
+
+          caseApproved:
+            row.month
+              .caseApproved,
+
+          fyp:
+            row.month
+              .fypApproved,
+
+          fyc:
+            row.month
+              .fycApproved,
+
+          activeAgents:
+            row.activeAgents,
+        })
+      );
+    }, [
+      unitMonthly,
+    ]);
+
+  const rankingChartData =
+    useMemo(() => {
+      return unitRanking
+        .filter(
+          (row) =>
+            row.month
+              .fycApproved >
+              0 ||
+            row.month
+              .fypApproved >
+              0 ||
+            row.month
+              .caseApproved >
+              0
+        )
+        .map(
+          (row) => ({
+            name:
+              row.label,
+
+            caseApproved:
+              row.month
+                .caseApproved,
+
+            fyp:
+              row.month
+                .fypApproved,
+
+            fyc:
+              row.month
+                .fycApproved,
+
+            activeAgents:
+              row.activeAgents,
+          })
+        );
+    }, [
+      unitRanking,
+    ]);
 
   /* ---------------------------------------------------------------- */
   /* EXPORT EXCEL                                                      */
@@ -798,107 +1149,139 @@ export default function PerformanceDashboardPage() {
       const workbook =
         XLSX.utils.book_new();
 
-      /* ---------------- SUMMARY ---------------- */
-
       const viewLabel =
         view === "agent"
           ? "รายตัวแทน"
-          : view === "unit"
+          : view ===
+            "unit"
           ? `รายหน่วย - ${
               selectedUnit ||
               "-"
             }`
           : "อันดับเครือ";
 
-      const summaryData = [
-        ["ROYAL PARTNER"],
+      /* ---------------- SUMMARY SHEET ---------------- */
+
+      const summaryData =
         [
-          "Monthly Performance Report",
-        ],
-        [],
-        [
-          "เดือน",
-          monthLabel,
-        ],
-        [
-          "ปี",
-          thaiYear,
-        ],
-        [
-          "มุมมอง",
-          viewLabel,
-        ],
-        [],
-        [
-          "KPI",
-          "ผลรวม",
-        ],
-        [
-          "AIA Case อนุมัติ",
-          totals.month
-            .caseApproved,
-        ],
-        [
-          "AIA FYP อนุมัติ",
-          totals.month
-            .fypApproved,
-        ],
-        [
-          "AIA FYC อนุมัติ",
-          totals.month
-            .fycApproved,
-        ],
-        [
-          "Active Agent",
-          countActive(
-            monthRows
-          ),
-        ],
-        [
-          "PA Case",
-          totals.month.paCase,
-        ],
-        [
-          "PA FYP",
-          totals.month.paFyp,
-        ],
-        [
-          "PA FYC",
-          totals.month.paFyc,
-        ],
-        [],
-        [
-          "YTD KPI",
-          "ผลรวม",
-        ],
-        [
-          "AIA Case YTD",
-          totals.ytd
-            .caseApproved,
-        ],
-        [
-          "AIA FYP YTD",
-          totals.ytd
-            .fypApproved,
-        ],
-        [
-          "AIA FYC YTD",
-          totals.ytd
-            .fycApproved,
-        ],
-        [
-          "PA Case YTD",
-          totals.ytd.paCase,
-        ],
-        [
-          "PA FYP YTD",
-          totals.ytd.paFyp,
-        ],
-        [
-          "PA FYC YTD",
-          totals.ytd.paFyc,
-        ],
-      ];
+          [
+            "ROYAL PARTNER",
+          ],
+
+          [
+            "Monthly Performance Report",
+          ],
+
+          [],
+
+          [
+            "เดือน",
+            monthLabel,
+          ],
+
+          [
+            "ปี",
+            thaiYear,
+          ],
+
+          [
+            "มุมมอง",
+            viewLabel,
+          ],
+
+          [],
+
+          [
+            "KPI",
+            "ผลรวม",
+          ],
+
+          [
+            "AIA Case อนุมัติ",
+            totals.month
+              .caseApproved,
+          ],
+
+          [
+            "AIA FYP อนุมัติ",
+            totals.month
+              .fypApproved,
+          ],
+
+          [
+            "AIA FYC อนุมัติ",
+            totals.month
+              .fycApproved,
+          ],
+
+          [
+            "Active Agent",
+            countActive(
+              monthRows
+            ),
+          ],
+
+          [
+            "PA Case",
+            totals.month
+              .paCase,
+          ],
+
+          [
+            "PA FYP",
+            totals.month
+              .paFyp,
+          ],
+
+          [
+            "PA FYC",
+            totals.month
+              .paFyc,
+          ],
+
+          [],
+
+          [
+            "YTD KPI",
+            "ผลรวม",
+          ],
+
+          [
+            "AIA Case YTD",
+            totals.ytd
+              .caseApproved,
+          ],
+
+          [
+            "AIA FYP YTD",
+            totals.ytd
+              .fypApproved,
+          ],
+
+          [
+            "AIA FYC YTD",
+            totals.ytd
+              .fycApproved,
+          ],
+
+          [
+            "PA Case YTD",
+            totals.ytd
+              .paCase,
+          ],
+
+          [
+            "PA FYP YTD",
+            totals.ytd
+              .paFyp,
+          ],
+
+          [
+            "PA FYC YTD",
+            totals.ytd
+              .paFyc,
+          ],
+        ];
 
       const summarySheet =
         XLSX.utils.aoa_to_sheet(
@@ -908,8 +1291,12 @@ export default function PerformanceDashboardPage() {
       summarySheet[
         "!cols"
       ] = [
-        { wch: 28 },
-        { wch: 24 },
+        {
+          wch: 28,
+        },
+        {
+          wch: 24,
+        },
       ];
 
       XLSX.utils.book_append_sheet(
@@ -918,10 +1305,11 @@ export default function PerformanceDashboardPage() {
         "Summary"
       );
 
-      /* ---------------- AGENT ---------------- */
+      /* ---------------- AGENT SHEET ---------------- */
 
       if (
-        view === "agent"
+        view ===
+        "agent"
       ) {
         const exportRows =
           agentSummary.map(
@@ -1015,32 +1403,66 @@ export default function PerformanceDashboardPage() {
         worksheet[
           "!cols"
         ] = [
-          { wch: 7 },
-          { wch: 12 },
-          { wch: 30 },
-          { wch: 18 },
-          { wch: 20 },
-
-          { wch: 13 },
-          { wch: 13 },
-
-          { wch: 16 },
-          { wch: 16 },
-          { wch: 16 },
-
-          { wch: 15 },
-          { wch: 16 },
-          { wch: 16 },
-
-          { wch: 18 },
-
-          { wch: 12 },
-          { wch: 14 },
-          { wch: 14 },
-
-          { wch: 15 },
-          { wch: 15 },
-          { wch: 15 },
+          {
+            wch: 7,
+          },
+          {
+            wch: 12,
+          },
+          {
+            wch: 30,
+          },
+          {
+            wch: 18,
+          },
+          {
+            wch: 20,
+          },
+          {
+            wch: 13,
+          },
+          {
+            wch: 13,
+          },
+          {
+            wch: 16,
+          },
+          {
+            wch: 16,
+          },
+          {
+            wch: 16,
+          },
+          {
+            wch: 15,
+          },
+          {
+            wch: 16,
+          },
+          {
+            wch: 16,
+          },
+          {
+            wch: 18,
+          },
+          {
+            wch: 12,
+          },
+          {
+            wch: 14,
+          },
+          {
+            wch: 14,
+          },
+          {
+            wch: 15,
+          },
+          {
+            wch: 15,
+          },
+          {
+            wch: 15,
+          },
         ];
 
         XLSX.utils.book_append_sheet(
@@ -1050,10 +1472,11 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ---------------- UNIT ---------------- */
+      /* ---------------- UNIT SHEET ---------------- */
 
       if (
-        view === "unit"
+        view ===
+        "unit"
       ) {
         const exportRows =
           unitMonthly.map(
@@ -1121,14 +1544,15 @@ export default function PerformanceDashboardPage() {
 
         worksheet[
           "!cols"
-        ] = Array.from(
-          {
-            length: 14,
-          },
-          () => ({
-            wch: 18,
-          })
-        );
+        ] =
+          Array.from(
+            {
+              length: 14,
+            },
+            () => ({
+              wch: 18,
+            })
+          );
 
         XLSX.utils.book_append_sheet(
           workbook,
@@ -1137,10 +1561,11 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ---------------- RANKING ---------------- */
+      /* ---------------- RANK SHEET ---------------- */
 
       if (
-        view === "rank"
+        view ===
+        "rank"
       ) {
         const exportRows =
           unitRanking.map(
@@ -1215,8 +1640,12 @@ export default function PerformanceDashboardPage() {
         worksheet[
           "!cols"
         ] = [
-          { wch: 10 },
-          { wch: 25 },
+          {
+            wch: 10,
+          },
+          {
+            wch: 25,
+          },
 
           ...Array.from(
             {
@@ -1235,7 +1664,7 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ---------------- FILE ---------------- */
+      /* ---------------- FILE NAME ---------------- */
 
       const safeUnit =
         selectedUnit
@@ -1249,9 +1678,11 @@ export default function PerformanceDashboardPage() {
           );
 
       const fileView =
-        view === "agent"
+        view ===
+        "agent"
           ? "Agent"
-          : view === "unit"
+          : view ===
+            "unit"
           ? `Unit_${
               safeUnit ||
               "All"
@@ -1266,7 +1697,9 @@ export default function PerformanceDashboardPage() {
         workbook,
         fileName
       );
-    } catch (error) {
+    } catch (
+      error
+    ) {
       console.error(
         "[monthly-performance] Excel export failed:",
         error
@@ -1303,8 +1736,11 @@ export default function PerformanceDashboardPage() {
     >
       <div
         style={{
-          maxWidth: 1900,
-          margin: "0 auto",
+          maxWidth:
+            1900,
+
+          margin:
+            "0 auto",
         }}
       >
         <PageTopBar />
@@ -1313,7 +1749,8 @@ export default function PerformanceDashboardPage() {
 
         <div
           style={{
-            marginBottom: 26,
+            marginBottom:
+              26,
           }}
         >
           <div
@@ -1321,11 +1758,14 @@ export default function PerformanceDashboardPage() {
               color:
                 "var(--gold)",
 
-              fontSize: 12,
+              fontSize:
+                12,
 
-              fontWeight: 800,
+              fontWeight:
+                800,
 
-              letterSpacing: 2,
+              letterSpacing:
+                2,
             }}
           >
             ROYAL PARTNER ·
@@ -1334,7 +1774,8 @@ export default function PerformanceDashboardPage() {
 
           <h1
             style={{
-              fontSize: 34,
+              fontSize:
+                34,
 
               margin:
                 "8px 0",
@@ -1352,12 +1793,11 @@ export default function PerformanceDashboardPage() {
                 "var(--cream-muted)",
             }}
           >
-            สรุปผลงานรายเดือน ·
-            YTD
+            สรุปผลงานรายเดือน · YTD
           </div>
         </div>
 
-        {/* FILTER + VIEW SWITCH */}
+        {/* FILTER */}
 
         <div
           style={{
@@ -1370,12 +1810,14 @@ export default function PerformanceDashboardPage() {
             borderRadius:
               14,
 
-            padding: 14,
+            padding:
+              14,
 
             display:
               "flex",
 
-            gap: 12,
+            gap:
+              12,
 
             flexWrap:
               "wrap",
@@ -1390,21 +1832,22 @@ export default function PerformanceDashboardPage() {
               22,
           }}
         >
-          {/* FILTER LEFT */}
-
           <div
             style={{
               display:
                 "flex",
 
-              gap: 12,
+              gap:
+                12,
 
               flexWrap:
                 "wrap",
             }}
           >
             <select
-              value={month}
+              value={
+                month
+              }
               onChange={(
                 event
               ) =>
@@ -1437,7 +1880,9 @@ export default function PerformanceDashboardPage() {
             </select>
 
             <select
-              value={year}
+              value={
+                year
+              }
               onChange={(
                 event
               ) =>
@@ -1469,7 +1914,8 @@ export default function PerformanceDashboardPage() {
                   >
                     {Number(
                       value
-                    ) + 543}
+                    ) +
+                      543}
                   </option>
                 )
               )}
@@ -1485,8 +1931,7 @@ export default function PerformanceDashboardPage() {
                   event
                 ) =>
                   setSelectedUnit(
-                    event
-                      .target
+                    event.target
                       .value
                   )
                 }
@@ -1534,14 +1979,15 @@ export default function PerformanceDashboardPage() {
             </button>
           </div>
 
-          {/* RIGHT ACTIONS */}
+          {/* VIEW + EXPORT */}
 
           <div
             style={{
               display:
                 "flex",
 
-              gap: 10,
+              gap:
+                10,
 
               flexWrap:
                 "wrap",
@@ -1550,16 +1996,16 @@ export default function PerformanceDashboardPage() {
                 "center",
             }}
           >
-            {/* VIEW SWITCH */}
-
             <div
               style={{
                 display:
                   "flex",
 
-                gap: 4,
+                gap:
+                  4,
 
-                padding: 4,
+                padding:
+                  4,
 
                 borderRadius:
                   999,
@@ -1613,8 +2059,6 @@ export default function PerformanceDashboardPage() {
                 อันดับเครือ
               </ViewButton>
             </div>
-
-            {/* EXPORT EXCEL */}
 
             <button
               type="button"
@@ -1706,7 +2150,7 @@ export default function PerformanceDashboardPage() {
           </div>
         )}
 
-        {/* SUMMARY */}
+        {/* SUMMARY CARDS */}
 
         <div
           style={{
@@ -1716,7 +2160,8 @@ export default function PerformanceDashboardPage() {
             gridTemplateColumns:
               "repeat(auto-fit,minmax(180px,1fr))",
 
-            gap: 12,
+            gap:
+              12,
 
             marginBottom:
               22,
@@ -1767,7 +2212,33 @@ export default function PerformanceDashboardPage() {
           />
         </div>
 
-        {/* AGENT VIEW */}
+        {/* PERFORMANCE CHARTS */}
+
+        <PerformanceOverview
+          view={
+            view
+          }
+          monthLabel={
+            monthLabel
+          }
+          thaiYear={
+            thaiYear
+          }
+          selectedUnit={
+            selectedUnit
+          }
+          agentData={
+            agentChartData
+          }
+          unitTrendData={
+            unitTrendChartData
+          }
+          rankingData={
+            rankingChartData
+          }
+        />
+
+        {/* AGENT TABLE */}
 
         {view ===
           "agent" && (
@@ -1778,6 +2249,7 @@ export default function PerformanceDashboardPage() {
             <table
               style={{
                 ...tableStyle,
+
                 minWidth:
                   2000,
               }}
@@ -2224,7 +2696,856 @@ export default function PerformanceDashboardPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* COMPONENTS                                                          */
+/* PERFORMANCE OVERVIEW                                                */
+/* ------------------------------------------------------------------ */
+
+function PerformanceOverview({
+  view,
+  monthLabel,
+  thaiYear,
+  selectedUnit,
+  agentData,
+  unitTrendData,
+  rankingData,
+}: {
+  view: View;
+
+  monthLabel: string;
+
+  thaiYear: number;
+
+  selectedUnit: string;
+
+  agentData:
+    PerformanceChartRow[];
+
+  unitTrendData:
+    PerformanceChartRow[];
+
+  rankingData:
+    PerformanceChartRow[];
+}) {
+  /* ---------------- AGENT ---------------- */
+
+  if (
+    view === "agent"
+  ) {
+    const pieData =
+      agentData.filter(
+        (row) =>
+          row.fyc > 0
+      );
+
+    return (
+      <section
+        style={{
+          marginBottom:
+            22,
+        }}
+      >
+        <ChartSectionHeader
+          title="Performance Overview"
+          subtitle={`ภาพรวมผลงานรายตัวแทน ${monthLabel} ${thaiYear}`}
+        />
+
+        {agentData.length ===
+        0 ? (
+          <ChartEmpty />
+        ) : (
+          <div
+            style={{
+              display:
+                "grid",
+
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(420px,1fr))",
+
+              gap:
+                16,
+            }}
+          >
+            <ChartCard
+              title="FYC อนุมัติรายตัวแทน"
+              subtitle="เปรียบเทียบ FYC ของเดือนที่เลือก"
+            >
+              <ResponsiveContainer
+                width="100%"
+                height={320}
+              >
+                <BarChart
+                  data={
+                    agentData
+                  }
+                  margin={{
+                    top: 15,
+                    right: 18,
+                    left: 8,
+                    bottom: 55,
+                  }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--hairline)"
+                  />
+
+                  <XAxis
+                    dataKey="name"
+                    interval={0}
+                    angle={-25}
+                    textAnchor="end"
+                    height={75}
+                    tick={{
+                      fill:
+                        "var(--cream-muted)",
+                      fontSize:
+                        11,
+                    }}
+                  />
+
+                  <YAxis
+                    tickFormatter={
+                      compactMoney
+                    }
+                    tick={{
+                      fill:
+                        "var(--cream-muted)",
+                      fontSize:
+                        11,
+                    }}
+                  />
+
+                  <Tooltip
+                    formatter={(
+                      value
+                    ) =>
+                      money(
+                        Number(
+                          value
+                        )
+                      )
+                    }
+                    contentStyle={{
+                      background:
+                        "var(--surface)",
+
+                      border:
+                        "1px solid var(--hairline)",
+
+                      borderRadius:
+                        10,
+
+                      color:
+                        "var(--cream)",
+                    }}
+                  />
+
+                  <Bar
+                    dataKey="fyc"
+                    name="FYC อนุมัติ"
+                    fill="#C9972B"
+                    radius={[
+                      6,
+                      6,
+                      0,
+                      0,
+                    ]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard
+              title="สัดส่วน FYC รายตัวแทน"
+              subtitle="Contribution ต่อ FYC รวมของเดือน"
+            >
+              {pieData.length ===
+              0 ? (
+                <MiniEmpty />
+              ) : (
+                <ResponsiveContainer
+                  width="100%"
+                  height={320}
+                >
+                  <PieChart>
+                    <Pie
+                      data={
+                        pieData
+                      }
+                      dataKey="fyc"
+                      nameKey="name"
+                      cx="50%"
+                      cy="46%"
+                      innerRadius={
+                        60
+                      }
+                      outerRadius={
+                        105
+                      }
+                      paddingAngle={
+                        2
+                      }
+                    >
+                      {pieData.map(
+                        (
+                          _,
+                          index
+                        ) => (
+                          <RechartsCell
+                            key={`agent-pie-${index}`}
+                            fill={
+                              PIE_COLORS[
+                                index %
+                                  PIE_COLORS.length
+                              ]
+                            }
+                          />
+                        )
+                      )}
+                    </Pie>
+
+                    <Tooltip
+                      formatter={(
+                        value
+                      ) =>
+                        money(
+                          Number(
+                            value
+                          )
+                        )
+                      }
+                      contentStyle={{
+                        background:
+                          "var(--surface)",
+
+                        border:
+                          "1px solid var(--hairline)",
+
+                        borderRadius:
+                          10,
+
+                        color:
+                          "var(--cream)",
+                      }}
+                    />
+
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </ChartCard>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  /* ---------------- UNIT ---------------- */
+
+  if (
+    view === "unit"
+  ) {
+    return (
+      <section
+        style={{
+          marginBottom:
+            22,
+        }}
+      >
+        <ChartSectionHeader
+          title="Performance Overview"
+          subtitle={`แนวโน้มรายเดือน หน่วย ${
+            selectedUnit ||
+            "-"
+          } · มกราคม – ${monthLabel} ${thaiYear}`}
+        />
+
+        <div
+          style={{
+            display:
+              "grid",
+
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(420px,1fr))",
+
+            gap:
+              16,
+          }}
+        >
+          <ChartCard
+            title="FYP / FYC รายเดือน"
+            subtitle="แนวโน้มผลงานตั้งแต่มกราคมถึงเดือนที่เลือก"
+          >
+            <ResponsiveContainer
+              width="100%"
+              height={320}
+            >
+              <LineChart
+                data={
+                  unitTrendData
+                }
+                margin={{
+                  top: 15,
+                  right: 22,
+                  left: 8,
+                  bottom: 10,
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--hairline)"
+                />
+
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <YAxis
+                  tickFormatter={
+                    compactMoney
+                  }
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <Tooltip
+                  formatter={(
+                    value
+                  ) =>
+                    money(
+                      Number(
+                        value
+                      )
+                    )
+                  }
+                  contentStyle={{
+                    background:
+                      "var(--surface)",
+
+                    border:
+                      "1px solid var(--hairline)",
+
+                    borderRadius:
+                      10,
+
+                    color:
+                      "var(--cream)",
+                  }}
+                />
+
+                <Legend />
+
+                <Line
+                  type="monotone"
+                  dataKey="fyp"
+                  name="FYP อนุมัติ"
+                  stroke="#D9B85D"
+                  strokeWidth={
+                    3
+                  }
+                  dot={{
+                    r: 4,
+                  }}
+                />
+
+                <Line
+                  type="monotone"
+                  dataKey="fyc"
+                  name="FYC อนุมัติ"
+                  stroke="#C9972B"
+                  strokeWidth={
+                    3
+                  }
+                  dot={{
+                    r: 4,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard
+            title="Active Agent รายเดือน"
+            subtitle="จำนวนตัวแทนที่มี AIA Case อนุมัติอย่างน้อย 1 Case"
+          >
+            <ResponsiveContainer
+              width="100%"
+              height={320}
+            >
+              <BarChart
+                data={
+                  unitTrendData
+                }
+                margin={{
+                  top: 15,
+                  right: 22,
+                  left: 8,
+                  bottom: 10,
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--hairline)"
+                />
+
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <YAxis
+                  allowDecimals={
+                    false
+                  }
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <Tooltip
+                  contentStyle={{
+                    background:
+                      "var(--surface)",
+
+                    border:
+                      "1px solid var(--hairline)",
+
+                    borderRadius:
+                      10,
+
+                    color:
+                      "var(--cream)",
+                  }}
+                />
+
+                <Bar
+                  dataKey="activeAgents"
+                  name="Active Agent"
+                  fill="#C9972B"
+                  radius={[
+                    6,
+                    6,
+                    0,
+                    0,
+                  ]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+      </section>
+    );
+  }
+
+  /* ---------------- RANK ---------------- */
+
+  const pieData =
+    rankingData.filter(
+      (row) =>
+        row.fyc > 0
+    );
+
+  return (
+    <section
+      style={{
+        marginBottom:
+          22,
+      }}
+    >
+      <ChartSectionHeader
+        title="Performance Overview"
+        subtitle={`อันดับเครือ Royal Partner · ${monthLabel} ${thaiYear}`}
+      />
+
+      {rankingData.length ===
+      0 ? (
+        <ChartEmpty />
+      ) : (
+        <div
+          style={{
+            display:
+              "grid",
+
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(420px,1fr))",
+
+            gap:
+              16,
+          }}
+        >
+          <ChartCard
+            title="FYC อนุมัติแยกตามหน่วย"
+            subtitle="เปรียบเทียบผลงานของแต่ละหน่วย"
+          >
+            <ResponsiveContainer
+              width="100%"
+              height={320}
+            >
+              <BarChart
+                data={
+                  rankingData
+                }
+                margin={{
+                  top: 15,
+                  right: 22,
+                  left: 8,
+                  bottom: 55,
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--hairline)"
+                />
+
+                <XAxis
+                  dataKey="name"
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={70}
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <YAxis
+                  tickFormatter={
+                    compactMoney
+                  }
+                  tick={{
+                    fill:
+                      "var(--cream-muted)",
+                    fontSize:
+                      11,
+                  }}
+                />
+
+                <Tooltip
+                  formatter={(
+                    value
+                  ) =>
+                    money(
+                      Number(
+                        value
+                      )
+                    )
+                  }
+                  contentStyle={{
+                    background:
+                      "var(--surface)",
+
+                    border:
+                      "1px solid var(--hairline)",
+
+                    borderRadius:
+                      10,
+
+                    color:
+                      "var(--cream)",
+                  }}
+                />
+
+                <Bar
+                  dataKey="fyc"
+                  name="FYC อนุมัติ"
+                  fill="#C9972B"
+                  radius={[
+                    6,
+                    6,
+                    0,
+                    0,
+                  ]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard
+            title="สัดส่วน FYC แต่ละหน่วย"
+            subtitle="Contribution ต่อ FYC รวมทั้งเครือ"
+          >
+            {pieData.length ===
+            0 ? (
+              <MiniEmpty />
+            ) : (
+              <ResponsiveContainer
+                width="100%"
+                height={320}
+              >
+                <PieChart>
+                  <Pie
+                    data={
+                      pieData
+                    }
+                    dataKey="fyc"
+                    nameKey="name"
+                    cx="50%"
+                    cy="46%"
+                    innerRadius={
+                      60
+                    }
+                    outerRadius={
+                      105
+                    }
+                    paddingAngle={
+                      2
+                    }
+                  >
+                    {pieData.map(
+                      (
+                        _,
+                        index
+                      ) => (
+                        <RechartsCell
+                          key={`unit-pie-${index}`}
+                          fill={
+                            PIE_COLORS[
+                              index %
+                                PIE_COLORS.length
+                            ]
+                          }
+                        />
+                      )
+                    )}
+                  </Pie>
+
+                  <Tooltip
+                    formatter={(
+                      value
+                    ) =>
+                      money(
+                        Number(
+                          value
+                        )
+                      )
+                    }
+                    contentStyle={{
+                      background:
+                        "var(--surface)",
+
+                      border:
+                        "1px solid var(--hairline)",
+
+                      borderRadius:
+                        10,
+
+                      color:
+                        "var(--cream)",
+                    }}
+                  />
+
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* CHART COMPONENTS                                                    */
+/* ------------------------------------------------------------------ */
+
+function ChartSectionHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div
+      style={{
+        marginBottom:
+          12,
+      }}
+    >
+      <div
+        style={{
+          fontSize:
+            18,
+
+          fontWeight:
+            800,
+
+          color:
+            "var(--cream)",
+        }}
+      >
+        📊 {title}
+      </div>
+
+      <div
+        style={{
+          color:
+            "var(--cream-faint)",
+
+          fontSize:
+            12,
+
+          marginTop:
+            4,
+        }}
+      >
+        {subtitle}
+      </div>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children:
+    React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        background:
+          "var(--surface)",
+
+        border:
+          "1px solid var(--hairline)",
+
+        borderRadius:
+          16,
+
+        padding:
+          "16px 16px 8px",
+
+        minWidth:
+          0,
+      }}
+    >
+      <div
+        style={{
+          fontSize:
+            15,
+
+          fontWeight:
+            800,
+
+          color:
+            "var(--cream)",
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          fontSize:
+            11,
+
+          color:
+            "var(--cream-faint)",
+
+          marginTop:
+            4,
+
+          marginBottom:
+            8,
+        }}
+      >
+        {subtitle}
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+function ChartEmpty() {
+  return (
+    <div
+      style={{
+        background:
+          "var(--surface)",
+
+        border:
+          "1px solid var(--hairline)",
+
+        borderRadius:
+          16,
+
+        padding:
+          34,
+
+        textAlign:
+          "center",
+
+        color:
+          "var(--cream-faint)",
+      }}
+    >
+      ยังไม่มี Production
+      สำหรับสร้างกราฟในช่วงเวลาที่เลือก
+    </div>
+  );
+}
+
+function MiniEmpty() {
+  return (
+    <div
+      style={{
+        height:
+          320,
+
+        display:
+          "flex",
+
+        alignItems:
+          "center",
+
+        justifyContent:
+          "center",
+
+        textAlign:
+          "center",
+
+        color:
+          "var(--cream-faint)",
+
+        fontSize:
+          13,
+      }}
+    >
+      ยังไม่มี FYC
+      สำหรับแสดงสัดส่วน
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* TABLE COMPONENTS                                                    */
 /* ------------------------------------------------------------------ */
 
 function UnitTable({
@@ -2238,7 +3559,10 @@ function UnitTable({
 }) {
   const sum =
     lines.reduce(
-      (acc, line) => ({
+      (
+        acc,
+        line
+      ) => ({
         month:
           addTotals(
             acc.month,
@@ -2254,7 +3578,8 @@ function UnitTable({
           ...EMPTY,
         },
 
-        active: 0,
+        active:
+          0,
       }
     );
 
@@ -2262,7 +3587,9 @@ function UnitTable({
     <table
       style={{
         ...tableStyle,
-        minWidth: 1100,
+
+        minWidth:
+          1100,
       }}
     >
       <thead>
@@ -2465,7 +3792,9 @@ function UnitTable({
                 <Cell />
 
                 <NumberCell>
-                  {sum.active}
+                  {
+                    sum.active
+                  }
                 </NumberCell>
               </tr>
             )}
@@ -2671,7 +4000,8 @@ function UnitTag({
   unit: string;
 }) {
   const missing =
-    unit === NO_UNIT;
+    unit ===
+    NO_UNIT;
 
   return (
     <span
@@ -2889,7 +4219,8 @@ function NumberCell({
 /* ------------------------------------------------------------------ */
 
 const tableStyle = {
-  width: "100%",
+  width:
+    "100%",
 
   borderCollapse:
     "collapse" as const,
