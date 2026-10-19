@@ -5861,6 +5861,83 @@
   line-height: 1.25 !important;
   font-weight: 700 !important;
 }
+
+  /* ---------- Group 4: Retirement / Annuity ---------- */
+  .tab.active.retirement{
+    background:var(--navy);color:var(--cream);border-color:var(--navy);
+    box-shadow:inset 0 -3px 0 var(--gold);
+  }
+  .ann-controls{
+    margin:14px 22px 0;padding:12px;border:1px solid #d9d2bf;background:#F7F3EA;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;
+  }
+  .ann-control label{display:block;font-size:10px;color:#6b6455;margin-bottom:4px;font-weight:700;}
+  .ann-control input,.ann-control select{
+    width:100%;box-sizing:border-box;border:1px solid #cfc7b3;background:#fffdf8;color:#0F1B2E;
+    padding:8px 9px;font-family:'IBM Plex Sans Thai Looped',sans-serif;font-size:12px;
+  }
+  .ann-inline-note{margin:8px 22px 0;padding:8px 10px;border-left:3px solid #B8985A;background:#fffaf0;color:#625b50;font-size:10.5px;line-height:1.5;}
+  .ann-warning{margin:8px 22px 0;padding:8px 10px;border:1px solid #C62828;background:#FFF1F1;color:#B71C1C;font-size:11px;font-weight:700;}
+  .ann-benefit-map{margin:14px 22px 6px;border:1px solid #d9d2bf;background:#fffdf8;padding:12px;}
+  .ann-benefit-title{font-size:12px;font-weight:800;color:#D4154E;margin-bottom:8px;}
+  .ann-benefit-row{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;margin-bottom:6px;}
+  .ann-benefit-label{font-size:10px;color:#5f584d;font-weight:700;}
+  .ann-benefit-track{min-height:28px;display:flex;align-items:center;padding:4px 9px;box-sizing:border-box;background:#ece8e2;color:#3e3934;font-size:9.5px;font-weight:700;}
+  .ann-benefit-track.pension{background:#D4154E;color:#fff;}
+  .ann-benefit-track.cover{background:#4C474A;color:#fff;}
+
+  .ann-report-page{
+    width:794px;min-height:1123px;max-height:1123px;background:#fffdf8;color:#20262f;
+    font-family:'IBM Plex Sans Thai Looped',sans-serif;border:1px solid #d9d2bf;box-sizing:border-box;overflow:hidden;
+  }
+  .ann-report-inner{min-height:1123px;display:flex;flex-direction:column;}
+  .ann-report-head{padding:10px 16px 8px;background:#0F1B2E;color:#fff;display:flex;justify-content:space-between;gap:16px;align-items:flex-end;}
+  .ann-report-title{font-size:20px;font-weight:800;color:#fff;}
+  .ann-report-sub{font-size:8px;color:#d8d0be;margin-top:2px;}
+  .ann-report-main{text-align:right;}
+  .ann-report-main .l{font-size:7px;color:#d8d0be;}
+  .ann-report-main .v{font-size:18px;font-weight:800;color:#D9B85D;}
+  .ann-report-customer{padding:5px 14px;border-bottom:1px solid #d9d2bf;}
+  .ann-report-customer .l{font-size:7px;color:#847c69;}
+  .ann-report-customer .v{font-size:11.5px;font-weight:700;color:#0F1B2E;}
+  .ann-report-meta{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #d9d2bf;}
+  .ann-report-meta .cell{padding:5px 8px;border-right:1px solid #e5dece;}
+  .ann-report-meta .cell:last-child{border-right:none;}
+  .ann-report-meta .l{font-size:6.5px;color:#847c69;}
+  .ann-report-meta .v{font-size:9.5px;font-weight:800;color:#0F1B2E;margin-top:1px;}
+  .ann-report-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:5px 12px 0;}
+  .ann-summary-box{border:1px solid #d9d2bf;background:#fff;padding:5px 6px;}
+  .ann-summary-box .l{font-size:6.2px;color:#847c69;}
+  .ann-summary-box .v{font-size:11px;font-weight:800;color:#0F1B2E;margin-top:2px;}
+  .ann-summary-box.em .v{color:#9A6B0A;}
+  .ann-report-map{margin:5px 12px 0;border:1px solid #d9d2bf;padding:6px 7px;}
+  .ann-report-map .ann-benefit-map{margin:0;border:0;padding:0;}
+  .ann-report-map .ann-benefit-title{font-size:8px;margin-bottom:4px;}
+  .ann-report-map .ann-benefit-row{grid-template-columns:110px 1fr;gap:5px;margin-bottom:3px;}
+  .ann-report-map .ann-benefit-label{font-size:6.5px;}
+  .ann-report-map .ann-benefit-track{min-height:19px;padding:2px 5px;font-size:6.3px;}
+  .ann-table-title{margin:5px 12px 3px;padding:4px 6px;background:#F3EAD9;border-left:3px solid #B8985A;font-size:7.5px;font-weight:800;}
+  .ann-ledger-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0 12px;}
+  .ann-mini-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:5.2px;line-height:1.05;}
+  .ann-mini-table th{background:#0F1B2E;color:#fff;padding:2px 1px;border:1px solid #ddd5c5;font-weight:700;text-align:right;}
+  .ann-mini-table th:first-child,.ann-mini-table td:first-child{text-align:center;}
+  .ann-mini-table td{border:1px solid #e6dfd2;padding:1.55px 1.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .ann-mini-table tr.pension td{background:#fff4f7;}
+  .ann-report-bottom{display:grid;grid-template-columns:160px 1fr;gap:6px;margin:5px 12px 0;align-items:stretch;}
+  .ann-report-bottom .rp-resource-section{margin:0!important;}
+  .ann-report-bottom .compact-report .rp-resource-title{font-size:7px;padding:4px 5px;}
+  .ann-report-bottom .compact-report .rp-resource-grid{grid-template-columns:1fr;gap:4px;margin-top:3px;}
+  .ann-report-bottom .compact-report .rp-resource-card[data-resource-type="brochure"]{grid-template-columns:56px 1fr;gap:5px;padding:4px;}
+  .ann-report-bottom .compact-report .rp-resource-qr{width:56px;height:56px;}
+  .ann-report-bottom .compact-report .rp-resource-qr img{width:52px;height:52px;}
+  .ann-report-bottom .rp-red-remark,.ann-report-bottom .rp-resource-payment-row{display:none;}
+  .ann-condition-box{border:1px solid #d9d2bf;background:#fff;padding:6px 7px;font-size:6.3px;line-height:1.35;color:#4b463d;}
+  .ann-condition-box b{color:#0F1B2E;}
+  .ann-report-note{margin:4px 12px 0;font-size:5.8px;line-height:1.3;color:#7a7165;}
+  .ann-report-spacer{flex:1 1 auto;min-height:2px;}
+  .ann-report-page .rp-page-number{font-size:6px;padding:3px 12px 5px;}
+  @media(max-width:760px){.ann-benefit-row{grid-template-columns:1fr;}}
+
 </style>
 </head>
 <body>
@@ -7818,7 +7895,26 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
       version: '',
       active: false,
     },
+  },,
+  annuityfix: {
+    brochure: {
+      title: 'โบรชัวร์ AIA Annuity Fix',
+      targetUrl: 'https://www.aia.co.th/content/dam/th-wise/images/th/our-products/si_154_aia-annuity-fix/aia-annuity-fix-brochure.pdf',
+      qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAEtElEQVR4nO2dXa6jOBCFTw1IeQRpFtBLgZ2NsqTeASylFzASPLYEqnmoH0xyp3tanfhmouOHKATnk5FK5eOqshHF77b5j99GAGSQQQYZZJBBBhlkkHEwxFsLGQGI9LvYjREAsIpglhYiPSDjGv3HB4+DDDL+pamqKgZVVV0a9cvFb6guAAbrskFVN5T9VFWnV3kWMt6fsYZ3nHsAc98ogF1E+kYx97votW9UpPf+ItI+YxxkkPFRa2+uBd3elrGqbgGARmVY9laBHTJ8ffw4yCDj1xjrRc2pAo2aNMXaQq/SArPcGvbTxkEGGUW70af247A0qlO3uTRF59L0TsdSn5JRkzGLiInPIYxV/vp2UWBtgeHbRWVc/VJG7Lbcf/w4yCDj46bnZr5zQqMAGg1/Gt52CFdaNPpTMp7OKOZ9DAtgIakJjerUabGg0unmW8d5n4xqDPenZpNdushOw3eGF4Utq9J2D89KOyXj6Yzwp4v7SVs9ubPcoLrAA/sT0jABRNifdkpGDUbhT12fHubYZT5qcWP1u2eRSjsl4+mMtNOtUKXhY5uTPo0p3/yu0p+SUY8RtmZr+w2lNNUNAHzKh+vTzf82Hf99lWch430ZOHyn69Nc6pchqewel+aBaadk1GEU6ygPnXYZRM0s1HHjCF1x3iejOsNdqeWe2oiQrheV0b618WE6FlZX5Xdf61nIeEdGoU9tCTUBsOl9Si2awSnTp+58ud4noxqjrEOZMlE6RFzKLRZlSKpYTNFOyajDKMv0BgV07hfoLIBawenamlEqsEthosDeyjA9ahxkkPFfGMeWJ5Oh6rVR0u8iY/ddosYfiKKpp4yDDDI+bKdU6CmDmoLABSkiq2oBK3DeJ6MyQ0YAvqKPiL/vhVpb2y7l6nVp9Fj5P3wcZJDxQ4bH9DfAdu/JpYipYlhcmsq4isRvKQNe7FnIeEOGT++Fd8yMU5GFKpKnKPqx/pSMSoxSn2Y1n92wmGrRtckwFfOmZNRlFMdJRN5e9bRTb4ttfcU2lI31p2R8BmPuG5XRFGgEnWwP9HpRvfaAS4O1hU62dZr6lIxqjPSnaXXdufQ0ilHK9FQGp6hPyajDyP2mG44Cfg+nLi5Sy28x77tSoJ2SUYUR630clSYpV3WLwP5S1kmrnTix0E7JqMYo6qSPUJOXmWY9vx47T/VUrEo7JaMO47SPbykrom4MM/zu6cge2ikZdRin86XCgdqH799H/pZR04XxUzLqMopze4rZPg+RsD65e6rcmgLqUzJqM2bxvL1e5ZLp0V3i5L7vElVSUYeSeauXexYy3pCR837sJzm+5WyPI78/pI9lfp+Mioy78/qK9VF3U3/ahD0r530yPoNxvO/EFIDJgDhK2tqw7FHUz/pTMioz7t53kuv4O9+ZJ/cNp7v0p2Q8n1GeM2FGuGTpaXrMrI0q/9gxfkrGpzH0+mXLjSaIZf3a+ot4yjjrU8dBBhllu399yXpRAXZR2IH8f6rkPZ37v1udx0Zl+CrQx42DDDJ+2G71qddL3R0lfcSlbhvnfTKezjjrzrDEu8VUpPs9v38cOU07JaMGQ/TnfX7S5ld5FjLIIIMMMsgggwwy/v+MfwDZU0TYR6vDtQAAAABJRU5ErkJggg==',
+      version: 'Official AIA',
+      active: true,
+    },
   },
+
+  annuitysure: {
+    brochure: {
+      title: 'โบรชัวร์ AIA Annuity Sure',
+      targetUrl: 'https://www.aia.co.th/content/dam/th-wise/docs/our-product/aia-annuity-sure/aia-annuity-sure-brochure-26102023.pdf',
+      qrImagePath: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISAQAAAACxRhsSAAAE9UlEQVR4nO2dUW7jOAyGP64N5NEBeoAcRbnBHGnP1BvYR+kBFrAfC9jgPoiSlbYYzGBSbzb49dBJNe4HCSAo/hTpmPOnY/rrjxEghhhiiCGGGGKIIYYYO8Ni9JhZD5P1MJ3BrosZLD12XXrMylwe1zuvQwwxvh59/ieNAMsLwGYkB1j61WHtjWHF4d18+rH1ztKtANj91iGGGL/CWIp3THPn+692XXp8ZDNYTp4fAcLv3n8dYojx1eg//B5u8+IYbObTZe1Jbyc3hhXSuGHp9f7rEEOM32GY2clJbz0kXylR6WZ5juWjYX/TOsQQox3F7AYHFnCWswGYQ+eWRrD0+rKWILU+d991iCHGLzAmMwsxT+ekuXO7LrcOtIr+K1uW+/dfhxhifDmyFe7eMcenLJvB8G4wrACbMV3ezafLu4Xzve86xBDjp8Pd3Um+lolhzT98HLzY4+Ce59zd83+kGUju7uOj7EWM52UUO53B3cNESXVuzE91vn+Kh2eK2T7KXsR4XkbYms/FEtPcuY/DSvaYu9nmT3NXPOuM/KkYRzHCn9ZDPWwS8DF70a75tbjSLixb/lSMYxg15FyBapPZdukicA0vGlYctruHq4+yFzGel1Fsjc6LcIq8VISrhANtAoI8ZKdiHMdodFQIp6z33fdYtJhoCVJj6NwX4zBGa6ehj7piosQcDFVqDZ71Vogu2akYhzAaHdWe9kXR+1iP90bgExGA/KkYBzGqZoIm3wTVd+aMf4lUQ0IVMSV/KsaRjPCObyc3O8ehHqX8dG7X4kDtb19L7n941/2+GEcx8v2+MYAxvBtp3HrSfDaHrTeGrXcWg/R2ciaLYgCDk6ueX4yDGDfnfh1pd5tAe79/I7AUn4pxEKPN8+db/Q+X/NWKa+qqzCkvJcZhjObch+Ul6yUH8hmf59IIRC9Kt1o8t1m0/z3KXsR4esae04dok27nasX0dN6szf3fex1iiPH1+BifRiVq9zlmnbu2TrVGBTr3xfh+RlvX19z0Nz9oFFWbSZWOEuM4RnQ/TT9WYHlZLTnREs3wj5HmlxXoVmDrSTNOTlhxKi73UfYixvMy6r1puXvynJLqQtGPUC5U5+pem0tW+VMxjmC0dlqvTPfCkxyB5pt+iOg1lb9QfCrGQYzSb7oYpNEh+ve33qdrB7D1MKw9+fBfzjjLGVj6IqkeZS9iPC/jpu9krrLKb+tPGy9a9f6M6vrEOIpx0xddgtTSfrrHrHsLVTRMq15KjCMZty35IY3aev5dTO2udm79ruxUjO9ntHXS4U+9kfVF/gPcplOl98U4kPEpII23S9Q8f6mTDrOdAdgDV9mpGEcwar8pNDmompKi2qT73iGN3ocixrGMVkftRXsfL/mHm4K/mNO9qRiHMVpBVCVUc7yHU90frhkq5E/FOJixf98JsJnZxT3bZC7pG6oVQ8w1rdOPtRcxnphRQ9PcBhXv5DVrD3o2y1/Yw7CWStR7r0MMMb4eRerTvoxvBKIrqnwKK65eNLniUzH+Y0ZOTi21qJ/wnTl/Wiun7PrN6xBDjK8Z+T50utxqe8Ds4m52WbEr5T3+37cOMcRox8fvO4k6qKXH0rzh02XFp2sP6dXw6VqC0skq41H2IsbzMm77o8prTvci1LE+GPf77ev7FJ+KcRDDPvXr/faYHmUvYoghhhhiiCGGGGL8/xn/AtAZlXoCG60OAAAAAElFTkSuQmCC',
+      version: 'Official AIA',
+      active: true,
+    },
+  }
 });
 
 function normalizeProductResourceKey(productKey, options = {}){
@@ -7900,6 +7996,8 @@ function getProductResourceLabel(productKey, options = {}){
     cisupercare_20:'AIA CI SuperCare 20/99',
     pay25:'15 Pay 25',
     pay20life:'20Pay Life',
+    annuityfix:'AIA Annuity Fix',
+    annuitysure:'AIA Annuity Sure',
   };
 
   return labels[key] || 'แบบประกัน';
@@ -11130,6 +11228,381 @@ async function download20PayLifePDF(btn){
   }
 }
 
+
+/* ===================== Annuity full report / PDF ===================== */
+
+const ANNUITY_FIX_REPORT_VERSION = "1.0.0";
+const ANNUITY_SURE_REPORT_VERSION = "1.0.0";
+
+function buildAnnuityFixReportData(){
+  const cfg = state.annuityfix;
+  const result = calcAnnuityFix(
+    state.age,
+    state.gender,
+    cfg.annualPension,
+    cfg.income,
+    cfg.frequency
+  );
+
+  return {
+    key:'annuityfix',
+    reportVersion:ANNUITY_FIX_REPORT_VERSION,
+    title:'AIA Annuity Fix',
+    subtitle:'เอไอเอ บำนาญ มั่นคง',
+    customer:{
+      fullName:`${state.customer.firstName || ''} ${state.customer.lastName || ''}`.trim(),
+      age:state.age,
+      gender:state.gender,
+    },
+    agent:{...state.agent},
+    result
+  };
+}
+
+function buildAnnuitySureReportData(){
+  const cfg = state.annuitysure;
+  const result = calcAnnuitySure(
+    state.age,
+    state.gender,
+    state.sum,
+    state.tax,
+    cfg.payPlan
+  );
+
+  return {
+    key:'annuitysure',
+    reportVersion:ANNUITY_SURE_REPORT_VERSION,
+    title:'AIA Annuity Sure',
+    subtitle:'เอไอเอ บำนาญ ได้ชัวร์',
+    customer:{
+      fullName:`${state.customer.firstName || ''} ${state.customer.lastName || ''}`.trim(),
+      age:state.age,
+      gender:state.gender,
+      sumInsured:state.sum,
+    },
+    agent:{...state.agent},
+    result
+  };
+}
+
+function validateAnnuityFixReportData(data){
+  const errors=[];
+  const r=data?.result;
+
+  if(!r) errors.push('ไม่พบข้อมูลคำนวณ');
+  if(r && !r.validAge) errors.push('อายุสำหรับ Annuity Fix ต้องอยู่ระหว่าง 20–55 ปี');
+  if(r && !r.validInitial) errors.push('มูลค่าบำนาญตั้งต้นต้องไม่น้อยกว่า 200,000 บาท');
+  if(r && (!Number.isFinite(r.annualPremium) || r.annualPremium < 0)) errors.push('เบี้ยประกันภัยไม่ถูกต้อง');
+  if(r && (!Number.isFinite(r.annualPension) || r.annualPension <= 0)) errors.push('เงินบำนาญต่อปีไม่ถูกต้อง');
+
+  return {ok:errors.length===0,errors};
+}
+
+function validateAnnuitySureReportData(data){
+  const errors=[];
+  const r=data?.result;
+
+  if(!r) errors.push('ไม่พบข้อมูลคำนวณ');
+  if(r && !r.validAge) errors.push(`อายุสำหรับแผนนี้ต้องอยู่ระหว่าง ${r.isNine?'20–50':'20–55'} ปี`);
+  if(r && !r.minSumOk) errors.push('จำนวนเงินเอาประกันภัยขั้นต่ำ 100,000 บาท');
+  if(r && (!Number.isFinite(r.annualPremium) || r.annualPremium < 0)) errors.push('เบี้ยประกันภัยไม่ถูกต้อง');
+
+  return {ok:errors.length===0,errors};
+}
+
+function buildAnnuityReportRows(rows){
+  return rows.map(row=>`
+    <tr class="${row.pension>0?'pension':''}">
+      <td>${row.year}</td>
+      <td>${row.age}</td>
+      <td>${row.premium ? fmt(row.premium) : '—'}</td>
+      <td>${row.pension ? fmt(row.pension) : '—'}</td>
+      <td>${fmt(row.cumulativePremium)}</td>
+      <td>${fmt(row.cumulativePension)}</td>
+      <td>${row.deathBenefit ? fmt(row.deathBenefit) : '—'}</td>
+      <td>${row.taxRelief ? fmt(row.taxRelief) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+function buildAnnuityReportTable(rows){
+  return `
+    <table class="ann-mini-table">
+      <thead>
+        <tr>
+          <th>ปี</th>
+          <th>อายุ</th>
+          <th>เบี้ย</th>
+          <th>บำนาญ</th>
+          <th>สะสมเบี้ย</th>
+          <th>สะสมบำนาญ</th>
+          <th>เสียชีวิต</th>
+          <th>ลดหย่อนภาษี</th>
+        </tr>
+      </thead>
+      <tbody>${buildAnnuityReportRows(rows)}</tbody>
+    </table>
+  `;
+}
+
+function buildAnnuityAgentBlock(agent){
+  return `
+    <div class="ann-condition-box">
+      <b>ข้อมูลตัวแทน</b><br>
+      ${escapeResourceHtml(agent?.name || '—')}<br>
+      โทร ${escapeResourceHtml(agent?.phone || '—')} • LINE ${escapeResourceHtml(agent?.line || '—')}<br>
+      วันที่ ${escapeResourceHtml(agent?.date || '—')}
+    </div>
+  `;
+}
+
+function buildAnnuityConditions(type,data){
+  if(type==='fix'){
+    const r=data.result;
+    return `
+      <div class="ann-condition-box">
+        <b>เงื่อนไขหลักตามข้อมูลที่ใช้คำนวณ</b><br>
+        อายุรับประกัน 20–55 ปี • มูลค่าบำนาญตั้งต้นขั้นต่ำ 200,000 บาท<br>
+        ชำระเบี้ยถึงอายุ 60 ปี • รับเงินบำนาญอายุ 60–85 ปี รวม 26 งวด<br>
+        เงินบำนาญที่อายุ 60 ปี: ชาย 6.25% / หญิง 5.95% ของมูลค่าบำนาญตั้งต้น<br>
+        ฐานภาษีตามสูตรในตาราง: ${Math.round(r.taxRate*100)}%
+      </div>
+    `;
+  }
+
+  const r=data.result;
+  return `
+    <div class="ann-condition-box">
+      <b>เงื่อนไขหลักตามข้อมูลที่ใช้คำนวณ</b><br>
+      ${r.isNine?'ชำระเบี้ย 9 ปี • อายุรับประกัน 20–50 ปี':'ชำระเบี้ยถึงอายุ 60 ปี • อายุรับประกัน 20–55 ปี'}<br>
+      จำนวนเงินเอาประกันภัยขั้นต่ำ 100,000 บาท<br>
+      รับเงินบำนาญปีละ 15% ของจำนวนเงินเอาประกันภัย อายุ 60–90 ปี รวม 31 งวด
+    </div>
+  `;
+}
+
+function buildAnnuityReportPage({
+  data,
+  pageNumber,
+  totalPages,
+  rows,
+  showSummary=false,
+  showResources=false
+}){
+  const r=data.result;
+  const isFix=data.key==='annuityfix';
+
+  const headlineValue=isFix
+    ? `${fmt(r.annualPension)} บาท/ปี`
+    : `${fmt(r.annualPension)} บาท/ปี`;
+
+  const meta4=isFix
+    ? `<div class="cell"><div class="l">งวดชำระเบี้ย</div><div class="v">${escapeResourceHtml(r.frequency)}</div></div>`
+    : `<div class="cell"><div class="l">แผนชำระเบี้ย</div><div class="v">${escapeResourceHtml(r.payPlan)}</div></div>`;
+
+  const summary = isFix
+    ? [
+        ['มูลค่าบำนาญตั้งต้น',fmt(r.initialAnnuity)+' บาท'],
+        ['เบี้ยประกันภัยต่อปี',fmt(r.annualPremium)+' บาท'],
+        ['เงินบำนาญต่อปี',fmt(r.annualPension)+' บาท'],
+        ['เงินบำนาญรวม 26 งวด',fmt(r.annualPension*26)+' บาท']
+      ]
+    : [
+        ['จำนวนเงินเอาประกันภัย',fmt(r.sumInsured)+' บาท'],
+        ['เบี้ยประกันภัยต่อปี',fmt(r.annualPremium)+' บาท'],
+        ['เงินบำนาญต่อปี',fmt(r.annualPension)+' บาท'],
+        ['เงินบำนาญรวม 31 งวด',fmt(r.totalPension)+' บาท']
+      ];
+
+  const mapHtml=buildAnnuityMapHTML(isFix?'fix':'sure',r);
+
+  return `
+    <section class="ann-report-page" id="${data.key}-report-page-${pageNumber}">
+      <div class="ann-report-inner">
+        <div class="ann-report-head">
+          <div>
+            <div class="ann-report-title">${escapeResourceHtml(data.title)}</div>
+            <div class="ann-report-sub">${escapeResourceHtml(data.subtitle)} • ใบสรุปประกอบการอธิบาย</div>
+          </div>
+          <div class="ann-report-main">
+            <div class="l">เงินบำนาญตามข้อมูลที่เลือก</div>
+            <div class="v">${headlineValue}</div>
+          </div>
+        </div>
+
+        <div class="ann-report-customer">
+          <div class="l">ชื่อลูกค้า</div>
+          <div class="v">${escapeResourceHtml(data.customer.fullName || '—')}</div>
+        </div>
+
+        <div class="ann-report-meta">
+          <div class="cell"><div class="l">เพศ</div><div class="v">${escapeResourceHtml(data.customer.gender)}</div></div>
+          <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
+          <div class="cell"><div class="l">ผลิตภัณฑ์</div><div class="v">${isFix?'Annuity Fix':'Annuity Sure'}</div></div>
+          ${meta4}
+        </div>
+
+        ${showSummary ? `
+          <div class="ann-report-summary">
+            ${summary.map((item,index)=>`
+              <div class="ann-summary-box ${index===2?'em':''}">
+                <div class="l">${item[0]}</div>
+                <div class="v">${item[1]}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="ann-report-map">${mapHtml}</div>
+        ` : ''}
+
+        <div class="ann-table-title">
+          ตารางแสดงเบี้ย ผลประโยชน์ และเงินบำนาญรายปี
+          ${pageNumber===1?'':' (ต่อ)'}
+        </div>
+
+        <div class="ann-ledger-grid">
+          ${buildAnnuityReportTable(rows.slice(0,Math.ceil(rows.length/2)))}
+          ${buildAnnuityReportTable(rows.slice(Math.ceil(rows.length/2)))}
+        </div>
+
+        ${showResources ? `
+          <div class="ann-report-bottom">
+            ${buildReportResourceSection(data.key)}
+            <div style="display:grid;gap:5px;">
+              ${buildAnnuityConditions(isFix?'fix':'sure',data)}
+              ${buildAnnuityAgentBlock(data.agent)}
+            </div>
+          </div>
+
+          <div class="ann-report-note">
+            หมายเหตุ: เอกสารนี้เป็นเครื่องมือช่วยอธิบายจากสูตรและตารางที่ Royal Partner ได้รับมา
+            ไม่ใช่เอกสารสัญญาประกันภัย และผลประโยชน์จริงให้ยึดกรมธรรม์/เอกสารเสนอขายของบริษัทเป็นหลัก
+          </div>
+        ` : ''}
+
+        <div class="ann-report-spacer"></div>
+        <div class="rp-page-number">หน้า ${pageNumber} / ${totalPages} • Report v${data.reportVersion}</div>
+      </div>
+    </section>
+  `;
+}
+
+function buildAnnuityFixReportHTML(){
+  const data=buildAnnuityFixReportData();
+  const validation=validateAnnuityFixReportData(data);
+
+  if(!validation.ok){
+    return `<div class="rp-report"><div class="rp-report-error">
+      ไม่สามารถสร้างใบสรุป Annuity Fix ได้<br>
+      ${validation.errors.map(e=>`• ${escapeResourceHtml(e)}`).join('<br>')}
+    </div></div>`;
+  }
+
+  const rows=data.result.rows;
+  const split=Math.ceil(rows.length/2);
+
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      ${buildAnnuityReportPage({
+        data,pageNumber:1,totalPages:2,
+        rows:rows.slice(0,split),
+        showSummary:true,showResources:false
+      })}
+      ${buildAnnuityReportPage({
+        data,pageNumber:2,totalPages:2,
+        rows:rows.slice(split),
+        showSummary:false,showResources:true
+      })}
+    </div>
+  </div>`;
+}
+
+function buildAnnuitySureReportHTML(){
+  const data=buildAnnuitySureReportData();
+  const validation=validateAnnuitySureReportData(data);
+
+  if(!validation.ok){
+    return `<div class="rp-report"><div class="rp-report-error">
+      ไม่สามารถสร้างใบสรุป Annuity Sure ได้<br>
+      ${validation.errors.map(e=>`• ${escapeResourceHtml(e)}`).join('<br>')}
+    </div></div>`;
+  }
+
+  const rows=data.result.rows;
+  const split=Math.ceil(rows.length/2);
+
+  return `<div class="rp-report" data-report-version="${data.reportVersion}">
+    <div class="rp-report-pages">
+      ${buildAnnuityReportPage({
+        data,pageNumber:1,totalPages:2,
+        rows:rows.slice(0,split),
+        showSummary:true,showResources:false
+      })}
+      ${buildAnnuityReportPage({
+        data,pageNumber:2,totalPages:2,
+        rows:rows.slice(split),
+        showSummary:false,showResources:true
+      })}
+    </div>
+  </div>`;
+}
+
+async function downloadAnnuityPDF(key,btn){
+  if(btn.dataset.busy==='1') return;
+
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('ไม่พบไฟล์ /vendor/jspdf.umd.min.js กรุณาตรวจว่าอัปโหลดและ Deploy แล้ว');
+    return;
+  }
+
+  const pagePrefix=key==='annuityfix'?'annuityfix':'annuitysure';
+  const pages=[
+    document.getElementById(`${pagePrefix}-report-page-1`),
+    document.getElementById(`${pagePrefix}-report-page-2`)
+  ].filter(Boolean);
+
+  if(!pages.length){
+    alert('ไม่พบใบสรุปบำนาญ');
+    return;
+  }
+
+  const old=btn.textContent;
+  btn.dataset.busy='1';
+  btn.disabled=true;
+  btn.textContent='กำลังสร้าง PDF...';
+
+  try{
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+
+    for(let i=0;i<pages.length;i++){
+      if(i>0) pdf.addPage('a4','portrait');
+      const canvas=await renderReportPageToCanvas(pages[i]);
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
+
+    const customerName=(state.customer.firstName || state.customer.lastName)
+      ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
+      : 'customer';
+
+    const version=key==='annuityfix'
+      ? ANNUITY_FIX_REPORT_VERSION
+      : ANNUITY_SURE_REPORT_VERSION;
+
+    await savePdfCrossDevice(
+      pdf,
+      `royal-partner-${key}-${customerName}-v${version.replaceAll('.','-')}-${Date.now()}.pdf`
+    );
+  }catch(error){
+    console.error('Annuity PDF export error:',error);
+    alert(error?.message || 'สร้าง PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }finally{
+    btn.dataset.busy='0';
+    btn.disabled=false;
+    btn.textContent=old;
+  }
+}
+
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
 }
@@ -11190,6 +11663,26 @@ function showReportPreview(key){
       }
 
       reportHTML = build20PayLifeReportHTML();
+    }else if(key==='annuityfix'){
+      const data = buildAnnuityFixReportData();
+      const validation = validateAnnuityFixReportData(data);
+
+      if(!validation.ok){
+        alert('ไม่สามารถสร้างใบสรุปได้:\n- ' + validation.errors.join('\n- '));
+        return;
+      }
+
+      reportHTML = buildAnnuityFixReportHTML();
+    }else if(key==='annuitysure'){
+      const data = buildAnnuitySureReportData();
+      const validation = validateAnnuitySureReportData(data);
+
+      if(!validation.ok){
+        alert('ไม่สามารถสร้างใบสรุปได้:\n- ' + validation.errors.join('\n- '));
+        return;
+      }
+
+      reportHTML = buildAnnuitySureReportHTML();
     }else{
       reportHTML = buildCardHTML(productCardData(key), key);
     }
@@ -11198,10 +11691,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 2 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 2 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -11220,7 +11713,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='annuityfix' || key==='annuitysure'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -11235,8 +11728,10 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
       }else if(key==='pay25'){
         pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
-      }else{
+      }else if(key==='paylife20'){
         pdfBtn.addEventListener('click', ()=>download20PayLifePDF(pdfBtn));
+      }else if(key==='annuityfix' || key==='annuitysure'){
+        pdfBtn.addEventListener('click', ()=>downloadAnnuityPDF(key,pdfBtn));
       }
     }else{
       const reportEl = host.querySelector('.rp-report, .card');
@@ -11267,7 +11762,7 @@ function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
   row.innerHTML = `<button class="btn-export">${
-      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20'
+      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='annuityfix' || key==='annuitysure'
         ? 'ดูใบสรุปฉบับเต็ม'
         : 'ดูตัวอย่างภาพสรุป'
     }</button>`;
