@@ -44,6 +44,7 @@ type Totals = {
   fypSubmitted: number;
   fypApproved: number;
   fycApproved: number;
+
   paCase: number;
   paFyp: number;
   paFyc: number;
@@ -60,7 +61,7 @@ type AgentSummary = {
 };
 
 type UnitLine = {
-  label: string; // ชื่อเดือน หรือ ชื่อหน่วย
+  label: string;
   month: Totals;
   ytd: Totals;
   activeAgents: number;
@@ -95,6 +96,7 @@ const EMPTY: Totals = {
   fypSubmitted: 0,
   fypApproved: 0,
   fycApproved: 0,
+
   paCase: 0,
   paFyp: 0,
   paFyc: 0,
@@ -112,8 +114,10 @@ function currentBangkokYearMonth() {
   }).formatToParts(new Date());
 
   return {
-    year: parts.find((p) => p.type === "year")?.value ?? "",
-    month: parts.find((p) => p.type === "month")?.value ?? "",
+    year:
+      parts.find((part) => part.type === "year")?.value ?? "",
+    month:
+      parts.find((part) => part.type === "month")?.value ?? "",
   };
 }
 
@@ -131,42 +135,86 @@ function n(value: unknown) {
 function sumRows(list: DailyProduction[]): Totals {
   return list.reduce(
     (acc, row) => ({
-      caseSubmitted: acc.caseSubmitted + n(row.aia_case_submitted),
-      caseApproved: acc.caseApproved + n(row.aia_case_approved),
-      fypSubmitted: acc.fypSubmitted + n(row.aia_fyp_submitted),
-      fypApproved: acc.fypApproved + n(row.aia_fyp_approved),
-      fycApproved: acc.fycApproved + n(row.aia_fyc_approved),
-      paCase: acc.paCase + n(row.pa_case),
-      paFyp: acc.paFyp + n(row.pa_fyp),
-      paFyc: acc.paFyc + n(row.pa_fyc),
+      caseSubmitted:
+        acc.caseSubmitted + n(row.aia_case_submitted),
+
+      caseApproved:
+        acc.caseApproved + n(row.aia_case_approved),
+
+      fypSubmitted:
+        acc.fypSubmitted + n(row.aia_fyp_submitted),
+
+      fypApproved:
+        acc.fypApproved + n(row.aia_fyp_approved),
+
+      fycApproved:
+        acc.fycApproved + n(row.aia_fyc_approved),
+
+      paCase:
+        acc.paCase + n(row.pa_case),
+
+      paFyp:
+        acc.paFyp + n(row.pa_fyp),
+
+      paFyc:
+        acc.paFyc + n(row.pa_fyc),
     }),
     { ...EMPTY }
   );
 }
 
-function addTotals(a: Totals, b: Totals): Totals {
+function addTotals(
+  a: Totals,
+  b: Totals
+): Totals {
   return {
-    caseSubmitted: a.caseSubmitted + b.caseSubmitted,
-    caseApproved: a.caseApproved + b.caseApproved,
-    fypSubmitted: a.fypSubmitted + b.fypSubmitted,
-    fypApproved: a.fypApproved + b.fypApproved,
-    fycApproved: a.fycApproved + b.fycApproved,
-    paCase: a.paCase + b.paCase,
-    paFyp: a.paFyp + b.paFyp,
-    paFyc: a.paFyc + b.paFyc,
+    caseSubmitted:
+      a.caseSubmitted + b.caseSubmitted,
+
+    caseApproved:
+      a.caseApproved + b.caseApproved,
+
+    fypSubmitted:
+      a.fypSubmitted + b.fypSubmitted,
+
+    fypApproved:
+      a.fypApproved + b.fypApproved,
+
+    fycApproved:
+      a.fycApproved + b.fycApproved,
+
+    paCase:
+      a.paCase + b.paCase,
+
+    paFyp:
+      a.paFyp + b.paFyp,
+
+    paFyc:
+      a.paFyc + b.paFyc,
   };
 }
 
-// Active agent = คนที่มี Case อนุมัติ ≥ 1 ในเดือนนั้น
-function countActive(list: DailyProduction[]) {
-  const totalsByAgent = new Map<string, number>();
+/**
+ * Active Agent =
+ * ตัวแทนที่มี AIA Case อนุมัติอย่างน้อย 1 Case ในช่วงนั้น
+ */
+function countActive(
+  list: DailyProduction[]
+) {
+  const totalsByAgent =
+    new Map<string, number>();
+
   list.forEach((row) => {
     totalsByAgent.set(
       row.agent_name,
-      (totalsByAgent.get(row.agent_name) ?? 0) + n(row.aia_case_approved)
+      (totalsByAgent.get(row.agent_name) ?? 0) +
+        n(row.aia_case_approved)
     );
   });
-  return Array.from(totalsByAgent.values()).filter((v) => v > 0).length;
+
+  return Array.from(
+    totalsByAgent.values()
+  ).filter((value) => value > 0).length;
 }
 
 /* ------------------------------------------------------------------ */
@@ -174,52 +222,107 @@ function countActive(list: DailyProduction[]) {
 /* ------------------------------------------------------------------ */
 
 export default function PerformanceDashboardPage() {
-  const initial = currentBangkokYearMonth();
+  const initial =
+    currentBangkokYearMonth();
 
-  const [year, setYear] = useState(initial.year);
-  const [month, setMonth] = useState(initial.month);
-  const [view, setView] = useState<View>("agent");
-  const [selectedUnit, setSelectedUnit] = useState("");
+  const [year, setYear] =
+    useState(initial.year);
 
-  const [rows, setRows] = useState<DailyProduction[]>([]);
-  const [agents, setAgents] = useState<AgentMaster[]>([]);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [month, setMonth] =
+    useState(initial.month);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [view, setView] =
+    useState<View>("agent");
+
+  const [
+    selectedUnit,
+    setSelectedUnit,
+  ] = useState("");
+
+  const [rows, setRows] =
+    useState<DailyProduction[]>([]);
+
+  const [agents, setAgents] =
+    useState<AgentMaster[]>([]);
+
+  const [units, setUnits] =
+    useState<Unit[]>([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  /* ---------------------------------------------------------------- */
+  /* LOAD DATA                                                         */
+  /* ---------------------------------------------------------------- */
 
   async function loadData() {
     setLoading(true);
     setError("");
 
     try {
-      const [productionResponse, agentResponse] = await Promise.all([
-        fetch("/api/monthly-performance", { cache: "no-store" }),
-        fetch("/api/agent-master", { cache: "no-store" }),
+      const [
+        productionResponse,
+        agentResponse,
+      ] = await Promise.all([
+        fetch(
+          "/api/monthly-performance",
+          {
+            cache: "no-store",
+          }
+        ),
+
+        fetch(
+          "/api/agent-master",
+          {
+            cache: "no-store",
+          }
+        ),
       ]);
 
-      const data = await productionResponse.json();
+      const data =
+        await productionResponse.json();
 
-      if (!productionResponse.ok) {
+      if (
+        !productionResponse.ok
+      ) {
         setRows([]);
+
         setError(
-          data.error || "ไม่สามารถโหลดข้อมูล Monthly Performance ได้"
+          data.error ||
+            "ไม่สามารถโหลดข้อมูล Monthly Performance ได้"
         );
+
         return;
       }
 
       setRows(data.rows ?? []);
 
-      // โหลดหน่วยไม่ได้ก็ยังแสดงหน้าได้ (จะขึ้น "ไม่ระบุหน่วย")
       if (agentResponse.ok) {
-        const agentData = await agentResponse.json();
-        setAgents(agentData.agents ?? []);
-        setUnits(agentData.units ?? []);
+        const agentData =
+          await agentResponse.json();
+
+        setAgents(
+          agentData.agents ?? []
+        );
+
+        setUnits(
+          agentData.units ?? []
+        );
       }
     } catch (error) {
-      console.error("[monthly-performance-page] load error:", error);
+      console.error(
+        "[monthly-performance-page] load error:",
+        error
+      );
+
       setRows([]);
-      setError("เกิดข้อผิดพลาดในการโหลด Monthly Performance");
+
+      setError(
+        "เกิดข้อผิดพลาดในการโหลด Monthly Performance"
+      );
     } finally {
       setLoading(false);
     }
@@ -229,213 +332,582 @@ export default function PerformanceDashboardPage() {
     loadData();
   }, []);
 
-  /* ---------- หน่วยของตัวแทน ---------- */
+  /* ---------------------------------------------------------------- */
+  /* UNIT LOOKUP                                                       */
+  /* ---------------------------------------------------------------- */
 
-  // หน่วยมาจาก unit_id ใน Agent Master (ตั้งที่หน้า จัดการตัวแทน)
-  const unitLookup = useMemo(() => {
-    const unitName = new Map<number, string>();
-    units.forEach((u) => unitName.set(u.id, u.unit_name));
+  const unitLookup =
+    useMemo(() => {
+      const unitName =
+        new Map<number, string>();
 
-    const byCode = new Map<string, string>();
-    const byName = new Map<string, string>();
+      units.forEach((unit) => {
+        unitName.set(
+          unit.id,
+          unit.unit_name
+        );
+      });
 
-    agents.forEach((agent) => {
-      const unit = agent.unit_id ? unitName.get(agent.unit_id) : undefined;
-      if (!unit) return;
-      if (agent.agent_code) byCode.set(agent.agent_code, unit);
-      byName.set(agent.agent_name, unit);
-    });
+      const byCode =
+        new Map<string, string>();
 
-    return (row: { agent_code: string | null; agent_name: string }) =>
-      (row.agent_code && byCode.get(row.agent_code)) ||
-      byName.get(row.agent_name) ||
-      NO_UNIT;
-  }, [agents, units]);
+      const byName =
+        new Map<string, string>();
 
-  const unitList = useMemo(() => {
-    // แสดงเฉพาะหน่วยที่มีตัวแทนสังกัดอยู่จริง (หน่วยว่างไม่ต้องโชว์)
-    const usedIds = new Set(agents.map((a) => a.unit_id).filter(Boolean));
-    const names = units
-      .filter((u) => usedIds.has(u.id))
-      .map((u) => u.unit_name);
-    const hasNoUnit = rows.some((r) => unitLookup(r) === NO_UNIT);
-    return [...names, ...(hasNoUnit ? [NO_UNIT] : [])];
-  }, [units, agents, rows, unitLookup]);
+      agents.forEach((agent) => {
+        const unit =
+          agent.unit_id
+            ? unitName.get(
+                agent.unit_id
+              )
+            : undefined;
 
-  // เลือกหน่วยแรกให้อัตโนมัติเมื่อโหลดเสร็จ
+        if (!unit) return;
+
+        if (
+          agent.agent_code
+        ) {
+          byCode.set(
+            agent.agent_code,
+            unit
+          );
+        }
+
+        byName.set(
+          agent.agent_name,
+          unit
+        );
+      });
+
+      return (row: {
+        agent_code:
+          | string
+          | null;
+        agent_name: string;
+      }) =>
+        (row.agent_code &&
+          byCode.get(
+            row.agent_code
+          )) ||
+        byName.get(
+          row.agent_name
+        ) ||
+        NO_UNIT;
+    }, [agents, units]);
+
+  const unitList =
+    useMemo(() => {
+      const usedIds =
+        new Set(
+          agents
+            .map(
+              (agent) =>
+                agent.unit_id
+            )
+            .filter(Boolean)
+        );
+
+      const names =
+        units
+          .filter((unit) =>
+            usedIds.has(
+              unit.id
+            )
+          )
+          .map(
+            (unit) =>
+              unit.unit_name
+          );
+
+      const hasNoUnit =
+        rows.some(
+          (row) =>
+            unitLookup(row) ===
+            NO_UNIT
+        );
+
+      return [
+        ...names,
+        ...(hasNoUnit
+          ? [NO_UNIT]
+          : []),
+      ];
+    }, [
+      units,
+      agents,
+      rows,
+      unitLookup,
+    ]);
+
   useEffect(() => {
-    if (!selectedUnit && unitList.length) setSelectedUnit(unitList[0]);
-  }, [unitList, selectedUnit]);
-
-  /* ---------- ช่วงเวลา ---------- */
-
-  const selectedMonth = `${year}-${month}`;
-
-  const monthRows = useMemo(
-    () => rows.filter((r) => r.production_date.startsWith(selectedMonth)),
-    [rows, selectedMonth]
-  );
-
-  const ytdRows = useMemo(
-    () =>
-      rows.filter(
-        (r) =>
-          r.production_date >= `${year}-01-01` &&
-          r.production_date <= `${year}-${month}-31`
-      ),
-    [rows, year, month]
-  );
-
-  /* ---------- 🔵 รายตัวแทน (เรียงตาม FYC) ---------- */
-
-  const agentSummary = useMemo(() => {
-    const names = Array.from(
-      new Set(ytdRows.map((r) => r.agent_name).filter(Boolean))
-    );
-
-    const list = names.map((agentName): AgentSummary => {
-      const monthly = monthRows.filter((r) => r.agent_name === agentName);
-      const ytd = ytdRows.filter((r) => r.agent_name === agentName);
-
-      const latest =
-        [...ytd].sort((a, b) =>
-          b.production_date.localeCompare(a.production_date)
-        )[0] ?? null;
-
-      const approvedMonths = new Set(
-        ytd
-          .filter((r) => n(r.aia_case_approved) > 0)
-          .map((r) => r.production_date.slice(0, 7))
-      ).size;
-
-      return {
-        code: latest?.agent_code ?? "",
-        name: agentName,
-        nickname: latest?.agent_nickname ?? "",
-        unit: latest ? unitLookup(latest) : NO_UNIT,
-        month: sumRows(monthly),
-        ytd: sumRows(ytd),
-        approvedMonths,
-      };
-    });
-
-    // เรียง FYC เดือนนี้มากไปน้อย ถ้าเท่ากันดู FYC YTD
-    return list.sort(
-      (a, b) =>
-        b.month.fycApproved - a.month.fycApproved ||
-        b.ytd.fycApproved - a.ytd.fycApproved
-    );
-  }, [monthRows, ytdRows, unitLookup]);
-
-  const totals = useMemo(
-    () => ({
-      month: sumRows(monthRows),
-      ytd: sumRows(ytdRows),
-    }),
-    [monthRows, ytdRows]
-  );
-
-  /* ---------- 🩷 รายหน่วย (ม.ค. → เดือนที่เลือก) ---------- */
-
-  const unitMonthly = useMemo((): UnitLine[] => {
-    const unitRows = rows.filter(
-      (r) => r.production_date.startsWith(year) && unitLookup(r) === selectedUnit
-    );
-
-    let running: Totals = { ...EMPTY };
-
-    return MONTHS.filter(([m]) => m <= month).map(([m, label]) => {
-      const inMonth = unitRows.filter((r) =>
-        r.production_date.startsWith(`${year}-${m}`)
+    if (
+      !selectedUnit &&
+      unitList.length
+    ) {
+      setSelectedUnit(
+        unitList[0]
       );
-      const monthTotals = sumRows(inMonth);
-      running = addTotals(running, monthTotals);
+    }
+  }, [
+    unitList,
+    selectedUnit,
+  ]);
 
-      return {
-        label,
-        month: monthTotals,
-        ytd: running,
-        activeAgents: countActive(inMonth),
-      };
-    });
-  }, [rows, year, month, selectedUnit, unitLookup]);
+  /* ---------------------------------------------------------------- */
+  /* PERIOD                                                            */
+  /* ---------------------------------------------------------------- */
 
-  /* ---------- 🟢 อันดับเครือ (เดือนที่เลือก) ---------- */
+  const selectedMonth =
+    `${year}-${month}`;
 
-  const unitRanking = useMemo((): UnitLine[] => {
-    return unitList
-      .map((unit) => {
-        const inMonth = monthRows.filter((r) => unitLookup(r) === unit);
-        const inYtd = ytdRows.filter((r) => unitLookup(r) === unit);
+  const monthRows =
+    useMemo(
+      () =>
+        rows.filter((row) =>
+          row.production_date.startsWith(
+            selectedMonth
+          )
+        ),
+      [rows, selectedMonth]
+    );
 
-        return {
-          label: unit,
-          month: sumRows(inMonth),
-          ytd: sumRows(inYtd),
-          activeAgents: countActive(inMonth),
-        };
-      })
-      .filter((line) => line.label !== NO_UNIT || line.ytd.caseApproved > 0 || line.ytd.fycApproved > 0)
-      .sort(
+  const ytdRows =
+    useMemo(
+      () =>
+        rows.filter(
+          (row) =>
+            row.production_date >=
+              `${year}-01-01` &&
+            row.production_date <=
+              `${year}-${month}-31`
+        ),
+      [
+        rows,
+        year,
+        month,
+      ]
+    );
+
+  /* ---------------------------------------------------------------- */
+  /* AGENT SUMMARY                                                     */
+  /* ---------------------------------------------------------------- */
+
+  const agentSummary =
+    useMemo(() => {
+      const names =
+        Array.from(
+          new Set(
+            ytdRows
+              .map(
+                (row) =>
+                  row.agent_name
+              )
+              .filter(Boolean)
+          )
+        );
+
+      const list =
+        names.map(
+          (
+            agentName
+          ): AgentSummary => {
+            const monthly =
+              monthRows.filter(
+                (row) =>
+                  row.agent_name ===
+                  agentName
+              );
+
+            const ytd =
+              ytdRows.filter(
+                (row) =>
+                  row.agent_name ===
+                  agentName
+              );
+
+            const latest =
+              [...ytd].sort(
+                (a, b) =>
+                  b.production_date.localeCompare(
+                    a.production_date
+                  )
+              )[0] ?? null;
+
+            const approvedMonths =
+              new Set(
+                ytd
+                  .filter(
+                    (row) =>
+                      n(
+                        row.aia_case_approved
+                      ) > 0
+                  )
+                  .map((row) =>
+                    row.production_date.slice(
+                      0,
+                      7
+                    )
+                  )
+              ).size;
+
+            return {
+              code:
+                latest?.agent_code ??
+                "",
+
+              name:
+                agentName,
+
+              nickname:
+                latest?.agent_nickname ??
+                "",
+
+              unit:
+                latest
+                  ? unitLookup(
+                      latest
+                    )
+                  : NO_UNIT,
+
+              month:
+                sumRows(
+                  monthly
+                ),
+
+              ytd:
+                sumRows(
+                  ytd
+                ),
+
+              approvedMonths,
+            };
+          }
+        );
+
+      return list.sort(
         (a, b) =>
-          b.month.fycApproved - a.month.fycApproved ||
-          b.ytd.fycApproved - a.ytd.fycApproved
+          b.month
+            .fycApproved -
+            a.month
+              .fycApproved ||
+          b.ytd
+            .fycApproved -
+            a.ytd
+              .fycApproved
       );
-  }, [unitList, monthRows, ytdRows, unitLookup]);
+    }, [
+      monthRows,
+      ytdRows,
+      unitLookup,
+    ]);
 
-  const monthLabel = MONTHS.find(([m]) => m === month)?.[1] ?? "";
-  const thaiYear = Number(year) + 543;
+  /* ---------------------------------------------------------------- */
+  /* TOTALS                                                            */
+  /* ---------------------------------------------------------------- */
+
+  const totals =
+    useMemo(
+      () => ({
+        month:
+          sumRows(
+            monthRows
+          ),
+
+        ytd:
+          sumRows(
+            ytdRows
+          ),
+      }),
+      [
+        monthRows,
+        ytdRows,
+      ]
+    );
+
+  /* ---------------------------------------------------------------- */
+  /* UNIT MONTHLY                                                      */
+  /* ---------------------------------------------------------------- */
+
+  const unitMonthly =
+    useMemo(
+      (): UnitLine[] => {
+        const unitRows =
+          rows.filter(
+            (row) =>
+              row.production_date.startsWith(
+                year
+              ) &&
+              unitLookup(row) ===
+                selectedUnit
+          );
+
+        let running: Totals =
+          { ...EMPTY };
+
+        return MONTHS
+          .filter(
+            ([value]) =>
+              value <= month
+          )
+          .map(
+            ([
+              value,
+              label,
+            ]) => {
+              const inMonth =
+                unitRows.filter(
+                  (row) =>
+                    row.production_date.startsWith(
+                      `${year}-${value}`
+                    )
+                );
+
+              const monthTotals =
+                sumRows(
+                  inMonth
+                );
+
+              running =
+                addTotals(
+                  running,
+                  monthTotals
+                );
+
+              return {
+                label,
+
+                month:
+                  monthTotals,
+
+                ytd: {
+                  ...running,
+                },
+
+                activeAgents:
+                  countActive(
+                    inMonth
+                  ),
+              };
+            }
+          );
+      },
+      [
+        rows,
+        year,
+        month,
+        selectedUnit,
+        unitLookup,
+      ]
+    );
+
+  /* ---------------------------------------------------------------- */
+  /* UNIT RANKING                                                      */
+  /* ---------------------------------------------------------------- */
+
+  const unitRanking =
+    useMemo(
+      (): UnitLine[] => {
+        return unitList
+          .map((unit) => {
+            const inMonth =
+              monthRows.filter(
+                (row) =>
+                  unitLookup(
+                    row
+                  ) === unit
+              );
+
+            const inYtd =
+              ytdRows.filter(
+                (row) =>
+                  unitLookup(
+                    row
+                  ) === unit
+              );
+
+            return {
+              label: unit,
+
+              month:
+                sumRows(
+                  inMonth
+                ),
+
+              ytd:
+                sumRows(
+                  inYtd
+                ),
+
+              activeAgents:
+                countActive(
+                  inMonth
+                ),
+            };
+          })
+          .filter(
+            (line) =>
+              line.label !==
+                NO_UNIT ||
+              line.ytd
+                .caseApproved >
+                0 ||
+              line.ytd
+                .fycApproved >
+                0
+          )
+          .sort(
+            (a, b) =>
+              b.month
+                .fycApproved -
+                a.month
+                  .fycApproved ||
+              b.ytd
+                .fycApproved -
+                a.ytd
+                  .fycApproved
+          );
+      },
+      [
+        unitList,
+        monthRows,
+        ytdRows,
+        unitLookup,
+      ]
+    );
+
+  const monthLabel =
+    MONTHS.find(
+      ([value]) =>
+        value === month
+    )?.[1] ?? "";
+
+  const thaiYear =
+    Number(year) + 543;
+
   /* ---------------------------------------------------------------- */
   /* EXPORT EXCEL                                                      */
   /* ---------------------------------------------------------------- */
 
   async function exportExcel() {
     try {
-      const XLSX = await import("xlsx");
+      const XLSX =
+        await import(
+          "xlsx"
+        );
 
-      const workbook = XLSX.utils.book_new();
+      const workbook =
+        XLSX.utils.book_new();
 
-      /* ==============================================================
-         SHEET 1 — SUMMARY
-         ============================================================== */
+      /* ---------------- SUMMARY ---------------- */
 
       const viewLabel =
         view === "agent"
           ? "รายตัวแทน"
           : view === "unit"
-          ? `รายหน่วย - ${selectedUnit || "-"}`
+          ? `รายหน่วย - ${
+              selectedUnit ||
+              "-"
+            }`
           : "อันดับเครือ";
 
       const summaryData = [
         ["ROYAL PARTNER"],
-        ["Monthly Performance Report"],
+        [
+          "Monthly Performance Report",
+        ],
         [],
-        ["เดือน", monthLabel],
-        ["ปี", thaiYear],
-        ["มุมมอง", viewLabel],
+        [
+          "เดือน",
+          monthLabel,
+        ],
+        [
+          "ปี",
+          thaiYear,
+        ],
+        [
+          "มุมมอง",
+          viewLabel,
+        ],
         [],
-        ["KPI", "ผลรวม"],
-        ["AIA Case อนุมัติ", totals.month.caseApproved],
-        ["AIA FYP อนุมัติ", totals.month.fypApproved],
-        ["AIA FYC อนุมัติ", totals.month.fycApproved],
-        ["Active Agent", countActive(monthRows)],
-        ["PA Case", totals.month.paCase],
-        ["PA FYP", totals.month.paFyp],
-        ["PA FYC", totals.month.paFyc],
+        [
+          "KPI",
+          "ผลรวม",
+        ],
+        [
+          "AIA Case อนุมัติ",
+          totals.month
+            .caseApproved,
+        ],
+        [
+          "AIA FYP อนุมัติ",
+          totals.month
+            .fypApproved,
+        ],
+        [
+          "AIA FYC อนุมัติ",
+          totals.month
+            .fycApproved,
+        ],
+        [
+          "Active Agent",
+          countActive(
+            monthRows
+          ),
+        ],
+        [
+          "PA Case",
+          totals.month.paCase,
+        ],
+        [
+          "PA FYP",
+          totals.month.paFyp,
+        ],
+        [
+          "PA FYC",
+          totals.month.paFyc,
+        ],
         [],
-        ["YTD KPI", "ผลรวม"],
-        ["AIA Case YTD", totals.ytd.caseApproved],
-        ["AIA FYP YTD", totals.ytd.fypApproved],
-        ["AIA FYC YTD", totals.ytd.fycApproved],
-        ["PA Case YTD", totals.ytd.paCase],
-        ["PA FYP YTD", totals.ytd.paFyp],
-        ["PA FYC YTD", totals.ytd.paFyc],
+        [
+          "YTD KPI",
+          "ผลรวม",
+        ],
+        [
+          "AIA Case YTD",
+          totals.ytd
+            .caseApproved,
+        ],
+        [
+          "AIA FYP YTD",
+          totals.ytd
+            .fypApproved,
+        ],
+        [
+          "AIA FYC YTD",
+          totals.ytd
+            .fycApproved,
+        ],
+        [
+          "PA Case YTD",
+          totals.ytd.paCase,
+        ],
+        [
+          "PA FYP YTD",
+          totals.ytd.paFyp,
+        ],
+        [
+          "PA FYC YTD",
+          totals.ytd.paFyc,
+        ],
       ];
 
       const summarySheet =
-        XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.aoa_to_sheet(
+          summaryData
+        );
 
-      summarySheet["!cols"] = [
+      summarySheet[
+        "!cols"
+      ] = [
         { wch: 28 },
         { wch: 24 },
       ];
@@ -446,46 +918,103 @@ export default function PerformanceDashboardPage() {
         "Summary"
       );
 
-      /* ==============================================================
-         SHEET 2 — CURRENT VIEW
-         ============================================================== */
+      /* ---------------- AGENT ---------------- */
 
-      if (view === "agent") {
-        const exportRows = agentSummary.map(
-          (row, index) => ({
-            "No.": index + 1,
-            Code: row.code || "",
-            Name: row.name,
-            "Nick Name": row.nickname || "",
-            หน่วย: row.unit,
+      if (
+        view === "agent"
+      ) {
+        const exportRows =
+          agentSummary.map(
+            (
+              row,
+              index
+            ) => ({
+              "No.":
+                index + 1,
 
-            "Case นำส่ง": row.month.caseSubmitted,
-            "Case อนุมัติ": row.month.caseApproved,
+              Code:
+                row.code ||
+                "",
 
-            "FYP นำส่ง": row.month.fypSubmitted,
-            "FYP อนุมัติ": row.month.fypApproved,
-            "FYC อนุมัติ": row.month.fycApproved,
+              Name:
+                row.name,
 
-            "AIA Case YTD": row.ytd.caseApproved,
-            "AIA FYP YTD": row.ytd.fypApproved,
-            "AIA FYC YTD": row.ytd.fycApproved,
+              "Nick Name":
+                row.nickname ||
+                "",
 
-            "Approved Months": row.approvedMonths,
+              หน่วย:
+                row.unit,
 
-            "PA Case": row.month.paCase,
-            "PA FYP": row.month.paFyp,
-            "PA FYC": row.month.paFyc,
+              "Case นำส่ง":
+                row.month
+                  .caseSubmitted,
 
-            "PA Case YTD": row.ytd.paCase,
-            "PA FYP YTD": row.ytd.paFyp,
-            "PA FYC YTD": row.ytd.paFyc,
-          })
-        );
+              "Case อนุมัติ":
+                row.month
+                  .caseApproved,
+
+              "FYP นำส่ง":
+                row.month
+                  .fypSubmitted,
+
+              "FYP อนุมัติ":
+                row.month
+                  .fypApproved,
+
+              "FYC อนุมัติ":
+                row.month
+                  .fycApproved,
+
+              "AIA Case YTD":
+                row.ytd
+                  .caseApproved,
+
+              "AIA FYP YTD":
+                row.ytd
+                  .fypApproved,
+
+              "AIA FYC YTD":
+                row.ytd
+                  .fycApproved,
+
+              "Approved Months":
+                row.approvedMonths,
+
+              "PA Case":
+                row.month
+                  .paCase,
+
+              "PA FYP":
+                row.month
+                  .paFyp,
+
+              "PA FYC":
+                row.month
+                  .paFyc,
+
+              "PA Case YTD":
+                row.ytd
+                  .paCase,
+
+              "PA FYP YTD":
+                row.ytd
+                  .paFyp,
+
+              "PA FYC YTD":
+                row.ytd
+                  .paFyc,
+            })
+          );
 
         const worksheet =
-          XLSX.utils.json_to_sheet(exportRows);
+          XLSX.utils.json_to_sheet(
+            exportRows
+          );
 
-        worksheet["!cols"] = [
+        worksheet[
+          "!cols"
+        ] = [
           { wch: 7 },
           { wch: 12 },
           { wch: 30 },
@@ -521,75 +1050,85 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ==============================================================
-         UNIT VIEW
-         ============================================================== */
+      /* ---------------- UNIT ---------------- */
 
-      if (view === "unit") {
-        const exportRows = unitMonthly.map(
-          (row) => ({
-            เดือน: row.label,
+      if (
+        view === "unit"
+      ) {
+        const exportRows =
+          unitMonthly.map(
+            (row) => ({
+              เดือน:
+                row.label,
 
-            "AIA Case อนุมัติ":
-              row.month.caseApproved,
+              "AIA Case อนุมัติ":
+                row.month
+                  .caseApproved,
 
-            "AIA FYP อนุมัติ":
-              row.month.fypApproved,
+              "AIA FYP อนุมัติ":
+                row.month
+                  .fypApproved,
 
-            "AIA FYC อนุมัติ":
-              row.month.fycApproved,
+              "AIA FYC อนุมัติ":
+                row.month
+                  .fycApproved,
 
-            "AIA Case YTD":
-              row.ytd.caseApproved,
+              "AIA Case YTD":
+                row.ytd
+                  .caseApproved,
 
-            "AIA FYP YTD":
-              row.ytd.fypApproved,
+              "AIA FYP YTD":
+                row.ytd
+                  .fypApproved,
 
-            "AIA FYC YTD":
-              row.ytd.fycApproved,
+              "AIA FYC YTD":
+                row.ytd
+                  .fycApproved,
 
-            "Active Agent":
-              row.activeAgents,
+              "Active Agent":
+                row.activeAgents,
 
-            "PA Case":
-              row.month.paCase,
+              "PA Case":
+                row.month
+                  .paCase,
 
-            "PA FYP":
-              row.month.paFyp,
+              "PA FYP":
+                row.month
+                  .paFyp,
 
-            "PA FYC":
-              row.month.paFyc,
+              "PA FYC":
+                row.month
+                  .paFyc,
 
-            "PA Case YTD":
-              row.ytd.paCase,
+              "PA Case YTD":
+                row.ytd
+                  .paCase,
 
-            "PA FYP YTD":
-              row.ytd.paFyp,
+              "PA FYP YTD":
+                row.ytd
+                  .paFyp,
 
-            "PA FYC YTD":
-              row.ytd.paFyc,
-          })
-        );
+              "PA FYC YTD":
+                row.ytd
+                  .paFyc,
+            })
+          );
 
         const worksheet =
-          XLSX.utils.json_to_sheet(exportRows);
+          XLSX.utils.json_to_sheet(
+            exportRows
+          );
 
-        worksheet["!cols"] = [
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 15 },
-          { wch: 14 },
-          { wch: 14 },
-          { wch: 14 },
-          { wch: 15 },
-          { wch: 15 },
-          { wch: 15 },
-        ];
+        worksheet[
+          "!cols"
+        ] = Array.from(
+          {
+            length: 14,
+          },
+          () => ({
+            wch: 18,
+          })
+        );
 
         XLSX.utils.book_append_sheet(
           workbook,
@@ -598,76 +1137,95 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ==============================================================
-         RANKING VIEW
-         ============================================================== */
+      /* ---------------- RANKING ---------------- */
 
-      if (view === "rank") {
-        const exportRows = unitRanking.map(
-          (row, index) => ({
-            อันดับ: index + 1,
-            หน่วย: row.label,
+      if (
+        view === "rank"
+      ) {
+        const exportRows =
+          unitRanking.map(
+            (
+              row,
+              index
+            ) => ({
+              อันดับ:
+                index + 1,
 
-            "AIA Case อนุมัติ":
-              row.month.caseApproved,
+              หน่วย:
+                row.label,
 
-            "AIA FYP อนุมัติ":
-              row.month.fypApproved,
+              "AIA Case อนุมัติ":
+                row.month
+                  .caseApproved,
 
-            "AIA FYC อนุมัติ":
-              row.month.fycApproved,
+              "AIA FYP อนุมัติ":
+                row.month
+                  .fypApproved,
 
-            "AIA Case YTD":
-              row.ytd.caseApproved,
+              "AIA FYC อนุมัติ":
+                row.month
+                  .fycApproved,
 
-            "AIA FYP YTD":
-              row.ytd.fypApproved,
+              "AIA Case YTD":
+                row.ytd
+                  .caseApproved,
 
-            "AIA FYC YTD":
-              row.ytd.fycApproved,
+              "AIA FYP YTD":
+                row.ytd
+                  .fypApproved,
 
-            "Active Agent":
-              row.activeAgents,
+              "AIA FYC YTD":
+                row.ytd
+                  .fycApproved,
 
-            "PA Case":
-              row.month.paCase,
+              "Active Agent":
+                row.activeAgents,
 
-            "PA FYP":
-              row.month.paFyp,
+              "PA Case":
+                row.month
+                  .paCase,
 
-            "PA FYC":
-              row.month.paFyc,
+              "PA FYP":
+                row.month
+                  .paFyp,
 
-            "PA Case YTD":
-              row.ytd.paCase,
+              "PA FYC":
+                row.month
+                  .paFyc,
 
-            "PA FYP YTD":
-              row.ytd.paFyp,
+              "PA Case YTD":
+                row.ytd
+                  .paCase,
 
-            "PA FYC YTD":
-              row.ytd.paFyc,
-          })
-        );
+              "PA FYP YTD":
+                row.ytd
+                  .paFyp,
+
+              "PA FYC YTD":
+                row.ytd
+                  .paFyc,
+            })
+          );
 
         const worksheet =
-          XLSX.utils.json_to_sheet(exportRows);
+          XLSX.utils.json_to_sheet(
+            exportRows
+          );
 
-        worksheet["!cols"] = [
+        worksheet[
+          "!cols"
+        ] = [
           { wch: 10 },
           { wch: 25 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 18 },
-          { wch: 15 },
-          { wch: 14 },
-          { wch: 14 },
-          { wch: 14 },
-          { wch: 15 },
-          { wch: 15 },
-          { wch: 15 },
+
+          ...Array.from(
+            {
+              length: 13,
+            },
+            () => ({
+              wch: 18,
+            })
+          ),
         ];
 
         XLSX.utils.book_append_sheet(
@@ -677,19 +1235,27 @@ export default function PerformanceDashboardPage() {
         );
       }
 
-      /* ==============================================================
-         FILE NAME
-         ============================================================== */
+      /* ---------------- FILE ---------------- */
 
-      const safeUnit = selectedUnit
-        .replace(/[\\/:*?"<>|]/g, "-")
-        .replace(/\s+/g, "_");
+      const safeUnit =
+        selectedUnit
+          .replace(
+            /[\\/:*?"<>|]/g,
+            "-"
+          )
+          .replace(
+            /\s+/g,
+            "_"
+          );
 
       const fileView =
         view === "agent"
           ? "Agent"
           : view === "unit"
-          ? `Unit_${safeUnit || "All"}`
+          ? `Unit_${
+              safeUnit ||
+              "All"
+            }`
           : "Ranking";
 
       const fileName =
@@ -711,6 +1277,7 @@ export default function PerformanceDashboardPage() {
       );
     }
   }
+
   /* ---------------------------------------------------------------- */
   /* RENDER                                                            */
   /* ---------------------------------------------------------------- */
@@ -718,313 +1285,897 @@ export default function PerformanceDashboardPage() {
   return (
     <main
       style={{
-        minHeight: "100vh",
-        background: "var(--rp-page-gradient), var(--bg)",
-        color: "var(--cream)",
-        padding: "24px 18px 60px",
-        transition: "background .2s ease, color .2s ease",
+        minHeight:
+          "100vh",
+
+        background:
+          "var(--rp-page-gradient), var(--bg)",
+
+        color:
+          "var(--cream)",
+
+        padding:
+          "24px 18px 60px",
+
+        transition:
+          "background .2s ease, color .2s ease",
       }}
     >
-      <div style={{ maxWidth: 1900, margin: "0 auto" }}>
+      <div
+        style={{
+          maxWidth: 1900,
+          margin: "0 auto",
+        }}
+      >
         <PageTopBar />
 
         {/* HEADER */}
-        <div style={{ marginBottom: 26 }}>
+
+        <div
+          style={{
+            marginBottom: 26,
+          }}
+        >
           <div
             style={{
-              color: "var(--gold)",
+              color:
+                "var(--gold)",
+
               fontSize: 12,
+
               fontWeight: 800,
+
               letterSpacing: 2,
             }}
           >
-            ROYAL PARTNER · PERFORMANCE
+            ROYAL PARTNER ·
+            PERFORMANCE
           </div>
 
-          <h1 style={{ fontSize: 34, margin: "8px 0", color: "var(--cream)" }}>
+          <h1
+            style={{
+              fontSize: 34,
+
+              margin:
+                "8px 0",
+
+              color:
+                "var(--cream)",
+            }}
+          >
             Monthly Performance
           </h1>
 
-          <div style={{ color: "var(--cream-muted)" }}>
-            สรุปผลงานรายเดือน · YTD
+          <div
+            style={{
+              color:
+                "var(--cream-muted)",
+            }}
+          >
+            สรุปผลงานรายเดือน ·
+            YTD
           </div>
         </div>
 
         {/* FILTER + VIEW SWITCH */}
+
         <div
           style={{
-            background: "var(--surface)",
-            border: "1px solid var(--hairline)",
-            borderRadius: 14,
+            background:
+              "var(--surface)",
+
+            border:
+              "1px solid var(--hairline)",
+
+            borderRadius:
+              14,
+
             padding: 14,
-            display: "flex",
+
+            display:
+              "flex",
+
             gap: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 22,
+
+            flexWrap:
+              "wrap",
+
+            alignItems:
+              "center",
+
+            justifyContent:
+              "space-between",
+
+            marginBottom:
+              22,
           }}
         >
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {/* FILTER LEFT */}
+
+          <div
+            style={{
+              display:
+                "flex",
+
+              gap: 12,
+
+              flexWrap:
+                "wrap",
+            }}
+          >
             <select
               value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              style={filterStyle}
+              onChange={(
+                event
+              ) =>
+                setMonth(
+                  event.target
+                    .value
+                )
+              }
+              style={
+                filterStyle
+              }
             >
-              {MONTHS.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              {MONTHS.map(
+                ([
+                  value,
+                  label,
+                ]) => (
+                  <option
+                    key={
+                      value
+                    }
+                    value={
+                      value
+                    }
+                  >
+                    {label}
+                  </option>
+                )
+              )}
             </select>
 
             <select
               value={year}
-              onChange={(e) => setYear(e.target.value)}
-              style={filterStyle}
+              onChange={(
+                event
+              ) =>
+                setYear(
+                  event.target
+                    .value
+                )
+              }
+              style={
+                filterStyle
+              }
             >
-              {["2025", "2026", "2027", "2028", "2029", "2030"].map((value) => (
-                <option key={value} value={value}>
-                  {Number(value) + 543}
-                </option>
-              ))}
+              {[
+                "2025",
+                "2026",
+                "2027",
+                "2028",
+                "2029",
+                "2030",
+              ].map(
+                (value) => (
+                  <option
+                    key={
+                      value
+                    }
+                    value={
+                      value
+                    }
+                  >
+                    {Number(
+                      value
+                    ) + 543}
+                  </option>
+                )
+              )}
             </select>
 
-            {view === "unit" && (
+            {view ===
+              "unit" && (
               <select
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
-                style={filterStyle}
+                value={
+                  selectedUnit
+                }
+                onChange={(
+                  event
+                ) =>
+                  setSelectedUnit(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                style={
+                  filterStyle
+                }
               >
-                {unitList.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
+                {unitList.map(
+                  (unit) => (
+                    <option
+                      key={
+                        unit
+                      }
+                      value={
+                        unit
+                      }
+                    >
+                      {unit}
+                    </option>
+                  )
+                )}
               </select>
             )}
 
             <button
               type="button"
-              onClick={loadData}
-              disabled={loading}
-              style={{ ...filterStyle, opacity: loading ? 0.6 : 1 }}
+              onClick={
+                loadData
+              }
+              disabled={
+                loading
+              }
+              style={{
+                ...filterStyle,
+
+                opacity:
+                  loading
+                    ? 0.6
+                    : 1,
+              }}
             >
-              {loading ? "กำลังโหลด..." : "↻ รีเฟรช"}
+              {loading
+                ? "กำลังโหลด..."
+                : "↻ รีเฟรช"}
             </button>
           </div>
 
+          {/* RIGHT ACTIONS */}
+
           <div
-  style={{
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-    alignItems: "center",
-  }}
->
-  {/* VIEW SWITCH */}
+            style={{
+              display:
+                "flex",
 
-  <div
-    style={{
-      display: "flex",
-      gap: 4,
-      padding: 4,
-      borderRadius: 999,
-      border:
-        "1px solid var(--hairline)",
-      background:
-        "var(--surface-alt)",
-    }}
-  >
-    <ViewButton
-      active={view === "agent"}
-      onClick={() =>
-        setView("agent")
-      }
-    >
-      รายตัวแทน
-    </ViewButton>
+              gap: 10,
 
-    <ViewButton
-      active={view === "unit"}
-      onClick={() =>
-        setView("unit")
-      }
-    >
-      รายหน่วย
-    </ViewButton>
+              flexWrap:
+                "wrap",
 
-    <ViewButton
-      active={view === "rank"}
-      onClick={() =>
-        setView("rank")
-      }
-    >
-      อันดับเครือ
-    </ViewButton>
-  </div>
+              alignItems:
+                "center",
+            }}
+          >
+            {/* VIEW SWITCH */}
 
-  {/* EXPORT EXCEL */}
+            <div
+              style={{
+                display:
+                  "flex",
 
-  <button
-    type="button"
-    onClick={exportExcel}
-    disabled={loading}
-    style={{
-      background:
-        "var(--gold)",
-      color: "#18120A",
-      border:
-        "1px solid var(--gold)",
-      borderRadius: 10,
-      padding: "10px 15px",
-      fontSize: 13,
-      fontWeight: 800,
-      cursor: loading
-        ? "not-allowed"
-        : "pointer",
-      opacity: loading
-        ? 0.6
-        : 1,
-      whiteSpace: "nowrap",
-    }}
-  >
-    📥 Export Excel
-  </button>
-</div>
+                gap: 4,
+
+                padding: 4,
+
+                borderRadius:
+                  999,
+
+                border:
+                  "1px solid var(--hairline)",
+
+                background:
+                  "var(--surface-alt)",
+              }}
+            >
+              <ViewButton
+                active={
+                  view ===
+                  "agent"
+                }
+                onClick={() =>
+                  setView(
+                    "agent"
+                  )
+                }
+              >
+                รายตัวแทน
+              </ViewButton>
+
+              <ViewButton
+                active={
+                  view ===
+                  "unit"
+                }
+                onClick={() =>
+                  setView(
+                    "unit"
+                  )
+                }
+              >
+                รายหน่วย
+              </ViewButton>
+
+              <ViewButton
+                active={
+                  view ===
+                  "rank"
+                }
+                onClick={() =>
+                  setView(
+                    "rank"
+                  )
+                }
+              >
+                อันดับเครือ
+              </ViewButton>
+            </div>
+
+            {/* EXPORT EXCEL */}
+
+            <button
+              type="button"
+              onClick={
+                exportExcel
+              }
+              disabled={
+                loading
+              }
+              style={{
+                background:
+                  "var(--gold)",
+
+                color:
+                  "#18120A",
+
+                border:
+                  "1px solid var(--gold)",
+
+                borderRadius:
+                  10,
+
+                padding:
+                  "10px 15px",
+
+                fontSize:
+                  13,
+
+                fontWeight:
+                  800,
+
+                cursor:
+                  loading
+                    ? "not-allowed"
+                    : "pointer",
+
+                opacity:
+                  loading
+                    ? 0.6
+                    : 1,
+
+                whiteSpace:
+                  "nowrap",
+              }}
+            >
+              📥 Export Excel
+            </button>
+          </div>
+        </div>
+
+        {/* LOADING */}
+
+        {loading && (
+          <div
+            style={{
+              marginBottom:
+                16,
+
+              color:
+                "var(--cream-muted)",
+            }}
+          >
+            กำลังโหลดข้อมูล...
+          </div>
         )}
+
+        {/* ERROR */}
 
         {error && (
           <div
             style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              border: "1px solid var(--rp-danger-border)",
-              borderRadius: 10,
-              color: "var(--rp-danger)",
+              marginBottom:
+                16,
+
+              padding:
+                "12px 14px",
+
+              border:
+                "1px solid var(--rp-danger-border)",
+
+              borderRadius:
+                10,
+
+              color:
+                "var(--rp-danger)",
             }}
           >
             {error}
           </div>
         )}
 
-        {/* SUMMARY CARDS (ทั้งเครือ เดือนที่เลือก) */}
+        {/* SUMMARY */}
+
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+            display:
+              "grid",
+
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(180px,1fr))",
+
             gap: 12,
-            marginBottom: 22,
+
+            marginBottom:
+              22,
           }}
         >
           <SummaryCard
             label="AIA Case อนุมัติ"
             value={totals.month.caseApproved.toLocaleString()}
           />
+
           <SummaryCard
             label="AIA FYP อนุมัติ"
-            value={money(totals.month.fypApproved)}
+            value={money(
+              totals.month
+                .fypApproved
+            )}
           />
+
           <SummaryCard
             label="AIA FYC อนุมัติ"
-            value={money(totals.month.fycApproved)}
+            value={money(
+              totals.month
+                .fycApproved
+            )}
           />
+
           <SummaryCard
             label="Active Agent"
-            value={countActive(monthRows).toLocaleString()}
+            value={countActive(
+              monthRows
+            ).toLocaleString()}
           />
-          <SummaryCard label="PA FYP" value={money(totals.month.paFyp)} />
-          <SummaryCard label="PA FYC" value={money(totals.month.paFyc)} />
+
+          <SummaryCard
+            label="PA FYP"
+            value={money(
+              totals.month
+                .paFyp
+            )}
+          />
+
+          <SummaryCard
+            label="PA FYC"
+            value={money(
+              totals.month
+                .paFyc
+            )}
+          />
         </div>
 
-        {/* ---------------- 🔵 รายตัวแทน ---------------- */}
-        {view === "agent" && (
+        {/* AGENT VIEW */}
+
+        {view ===
+          "agent" && (
           <TableBox
             title={`ผลผลิตรายตัวแทน ${monthLabel} ${thaiYear}`}
             hint="เรียงตาม FYC อนุมัติของเดือนนี้ มากไปน้อย"
           >
-            <table style={{ ...tableStyle, minWidth: 2000 }}>
+            <table
+              style={{
+                ...tableStyle,
+                minWidth:
+                  2000,
+              }}
+            >
               <thead>
-                <tr style={{ background: "var(--rp-soft-gold)" }}>
-                  <HeaderCell>No.</HeaderCell>
-                  <HeaderCell>Code</HeaderCell>
-                  <HeaderCell>Name</HeaderCell>
-                  <HeaderCell>Nick Name</HeaderCell>
-                  <HeaderCell>หน่วย</HeaderCell>
-                  <HeaderCell>Case นำส่ง</HeaderCell>
-                  <HeaderCell>Case อนุมัติ</HeaderCell>
-                  <HeaderCell>FYP นำส่ง</HeaderCell>
-                  <HeaderCell>FYP อนุมัติ</HeaderCell>
-                  <HeaderCell>FYC อนุมัติ</HeaderCell>
-                  <HeaderCell>AIA Case YTD</HeaderCell>
-                  <HeaderCell>AIA FYP YTD</HeaderCell>
-                  <HeaderCell>AIA FYC YTD</HeaderCell>
-                  <HeaderCell>Approved Months</HeaderCell>
-                  <HeaderCell>PA Case</HeaderCell>
-                  <HeaderCell>PA FYP</HeaderCell>
-                  <HeaderCell>PA FYC</HeaderCell>
-                  <HeaderCell>PA Case YTD</HeaderCell>
-                  <HeaderCell>PA FYP YTD</HeaderCell>
-                  <HeaderCell>PA FYC YTD</HeaderCell>
+                <tr
+                  style={{
+                    background:
+                      "var(--rp-soft-gold)",
+                  }}
+                >
+                  <HeaderCell>
+                    No.
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Code
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Nick Name
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    หน่วย
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Case อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP นำส่ง
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYP อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    FYC อนุมัติ
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA Case YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA FYP YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    AIA FYC YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    Approved Months
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA Case
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYP
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYC
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA Case YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYP YTD
+                  </HeaderCell>
+
+                  <HeaderCell>
+                    PA FYC YTD
+                  </HeaderCell>
                 </tr>
               </thead>
 
               <tbody>
-                {agentSummary.length === 0 ? (
-                  <EmptyRow colSpan={20} />
+                {agentSummary.length ===
+                0 ? (
+                  <EmptyRow
+                    colSpan={
+                      20
+                    }
+                  />
                 ) : (
                   <>
-                    {agentSummary.map((row, index) => (
-                      <tr
-                        key={row.name}
-                        style={{ borderTop: "1px solid var(--hairline-soft)" }}
-                      >
-                        <Cell>{index + 1}</Cell>
-                        <Cell>{row.code || "-"}</Cell>
-                        <Cell>{row.name}</Cell>
-                        <Cell>{row.nickname || "-"}</Cell>
-                        <Cell>
-                          <UnitTag unit={row.unit} />
-                        </Cell>
-                        <NumberCell>{row.month.caseSubmitted}</NumberCell>
-                        <NumberCell>{row.month.caseApproved}</NumberCell>
-                        <NumberCell>{money(row.month.fypSubmitted)}</NumberCell>
-                        <NumberCell>{money(row.month.fypApproved)}</NumberCell>
-                        <NumberCell strong>{money(row.month.fycApproved)}</NumberCell>
-                        <NumberCell>{row.ytd.caseApproved}</NumberCell>
-                        <NumberCell>{money(row.ytd.fypApproved)}</NumberCell>
-                        <NumberCell>{money(row.ytd.fycApproved)}</NumberCell>
-                        <NumberCell>{row.approvedMonths}</NumberCell>
-                        <NumberCell>{row.month.paCase}</NumberCell>
-                        <NumberCell>{money(row.month.paFyp)}</NumberCell>
-                        <NumberCell>{money(row.month.paFyc)}</NumberCell>
-                        <NumberCell>{row.ytd.paCase}</NumberCell>
-                        <NumberCell>{money(row.ytd.paFyp)}</NumberCell>
-                        <NumberCell>{money(row.ytd.paFyc)}</NumberCell>
-                      </tr>
-                    ))}
+                    {agentSummary.map(
+                      (
+                        row,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            row.name
+                          }
+                          style={{
+                            borderTop:
+                              "1px solid var(--hairline-soft)",
+                          }}
+                        >
+                          <Cell>
+                            {index +
+                              1}
+                          </Cell>
 
-                    <tr style={totalRowStyle}>
-                      <Cell>รวม</Cell>
+                          <Cell>
+                            {row.code ||
+                              "-"}
+                          </Cell>
+
+                          <Cell>
+                            {
+                              row.name
+                            }
+                          </Cell>
+
+                          <Cell>
+                            {row.nickname ||
+                              "-"}
+                          </Cell>
+
+                          <Cell>
+                            <UnitTag
+                              unit={
+                                row.unit
+                              }
+                            />
+                          </Cell>
+
+                          <NumberCell>
+                            {
+                              row
+                                .month
+                                .caseSubmitted
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row
+                                .month
+                                .caseApproved
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .month
+                                .fypSubmitted
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .month
+                                .fypApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell
+                            strong
+                          >
+                            {money(
+                              row
+                                .month
+                                .fycApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row
+                                .ytd
+                                .caseApproved
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .ytd
+                                .fypApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .ytd
+                                .fycApproved
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row.approvedMonths
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row
+                                .month
+                                .paCase
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .month
+                                .paFyp
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .month
+                                .paFyc
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {
+                              row
+                                .ytd
+                                .paCase
+                            }
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .ytd
+                                .paFyp
+                            )}
+                          </NumberCell>
+
+                          <NumberCell>
+                            {money(
+                              row
+                                .ytd
+                                .paFyc
+                            )}
+                          </NumberCell>
+                        </tr>
+                      )
+                    )}
+
+                    <tr
+                      style={
+                        totalRowStyle
+                      }
+                    >
+                      <Cell>
+                        รวม
+                      </Cell>
+
                       <Cell />
                       <Cell />
                       <Cell />
                       <Cell />
-                      <NumberCell>{totals.month.caseSubmitted}</NumberCell>
-                      <NumberCell>{totals.month.caseApproved}</NumberCell>
-                      <NumberCell>{money(totals.month.fypSubmitted)}</NumberCell>
-                      <NumberCell>{money(totals.month.fypApproved)}</NumberCell>
-                      <NumberCell>{money(totals.month.fycApproved)}</NumberCell>
-                      <NumberCell>{totals.ytd.caseApproved}</NumberCell>
-                      <NumberCell>{money(totals.ytd.fypApproved)}</NumberCell>
-                      <NumberCell>{money(totals.ytd.fycApproved)}</NumberCell>
-                      <Cell>-</Cell>
-                      <NumberCell>{totals.month.paCase}</NumberCell>
-                      <NumberCell>{money(totals.month.paFyp)}</NumberCell>
-                      <NumberCell>{money(totals.month.paFyc)}</NumberCell>
-                      <NumberCell>{totals.ytd.paCase}</NumberCell>
-                      <NumberCell>{money(totals.ytd.paFyp)}</NumberCell>
-                      <NumberCell>{money(totals.ytd.paFyc)}</NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals
+                            .month
+                            .caseSubmitted
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals
+                            .month
+                            .caseApproved
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .month
+                            .fypSubmitted
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .month
+                            .fypApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .month
+                            .fycApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals
+                            .ytd
+                            .caseApproved
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .ytd
+                            .fypApproved
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .ytd
+                            .fycApproved
+                        )}
+                      </NumberCell>
+
+                      <Cell>
+                        -
+                      </Cell>
+
+                      <NumberCell>
+                        {
+                          totals
+                            .month
+                            .paCase
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .month
+                            .paFyp
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .month
+                            .paFyc
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {
+                          totals
+                            .ytd
+                            .paCase
+                        }
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .ytd
+                            .paFyp
+                        )}
+                      </NumberCell>
+
+                      <NumberCell>
+                        {money(
+                          totals
+                            .ytd
+                            .paFyc
+                        )}
+                      </NumberCell>
                     </tr>
                   </>
                 )}
@@ -1033,23 +2184,38 @@ export default function PerformanceDashboardPage() {
           </TableBox>
         )}
 
-        {/* ---------------- 🩷 รายหน่วย ---------------- */}
-        {view === "unit" && (
+        {/* UNIT VIEW */}
+
+        {view ===
+          "unit" && (
           <TableBox
             title={`รายงานผลผลิต หน่วย ${selectedUnit} ปี ${thaiYear}`}
             hint={`มกราคม – ${monthLabel} · YTD สะสมให้อัตโนมัติ`}
           >
-            <UnitTable firstColumn="เดือน" lines={unitMonthly} />
+            <UnitTable
+              firstColumn="เดือน"
+              lines={
+                unitMonthly
+              }
+            />
           </TableBox>
         )}
 
-        {/* ---------------- 🟢 อันดับเครือ ---------------- */}
-        {view === "rank" && (
+        {/* RANK VIEW */}
+
+        {view ===
+          "rank" && (
           <TableBox
             title={`รายงานผลผลิต เครือ Royal Partner ${monthLabel} ${thaiYear}`}
             hint="จัดอันดับหน่วยตาม FYC อนุมัติของเดือนนี้"
           >
-            <UnitTable firstColumn="หน่วย" lines={unitRanking} ranked />
+            <UnitTable
+              firstColumn="หน่วย"
+              lines={
+                unitRanking
+              }
+              ranked
+            />
           </TableBox>
         )}
       </div>
@@ -1070,75 +2236,237 @@ function UnitTable({
   lines: UnitLine[];
   ranked?: boolean;
 }) {
-  const sum = lines.reduce(
-    (acc, l) => ({
-      month: addTotals(acc.month, l.month),
-      active: acc.active + l.activeAgents,
-    }),
-    { month: { ...EMPTY }, active: 0 }
-  );
+  const sum =
+    lines.reduce(
+      (acc, line) => ({
+        month:
+          addTotals(
+            acc.month,
+            line.month
+          ),
+
+        active:
+          acc.active +
+          line.activeAgents,
+      }),
+      {
+        month: {
+          ...EMPTY,
+        },
+
+        active: 0,
+      }
+    );
 
   return (
-    <table style={{ ...tableStyle, minWidth: 1100 }}>
+    <table
+      style={{
+        ...tableStyle,
+        minWidth: 1100,
+      }}
+    >
       <thead>
-        <tr style={{ background: "var(--rp-soft-gold)" }}>
-          {ranked && <HeaderCell>อันดับ</HeaderCell>}
-          <HeaderCell>{firstColumn}</HeaderCell>
-          <HeaderCell>Cases</HeaderCell>
-          <HeaderCell>FYP</HeaderCell>
-          <HeaderCell>FYC</HeaderCell>
-          <HeaderCell>Cases YTD</HeaderCell>
-          <HeaderCell>FYP YTD</HeaderCell>
-          <HeaderCell>FYC YTD</HeaderCell>
-          <HeaderCell>Active Agent</HeaderCell>
+        <tr
+          style={{
+            background:
+              "var(--rp-soft-gold)",
+          }}
+        >
+          {ranked && (
+            <HeaderCell>
+              อันดับ
+            </HeaderCell>
+          )}
+
+          <HeaderCell>
+            {firstColumn}
+          </HeaderCell>
+
+          <HeaderCell>
+            Cases
+          </HeaderCell>
+
+          <HeaderCell>
+            FYP
+          </HeaderCell>
+
+          <HeaderCell>
+            FYC
+          </HeaderCell>
+
+          <HeaderCell>
+            Cases YTD
+          </HeaderCell>
+
+          <HeaderCell>
+            FYP YTD
+          </HeaderCell>
+
+          <HeaderCell>
+            FYC YTD
+          </HeaderCell>
+
+          <HeaderCell>
+            Active Agent
+          </HeaderCell>
         </tr>
       </thead>
 
       <tbody>
-        {lines.length === 0 ? (
-          <EmptyRow colSpan={ranked ? 9 : 8} />
+        {lines.length ===
+        0 ? (
+          <EmptyRow
+            colSpan={
+              ranked
+                ? 9
+                : 8
+            }
+          />
         ) : (
           <>
-            {lines.map((line, index) => (
-              <tr
-                key={line.label}
-                style={{ borderTop: "1px solid var(--hairline-soft)" }}
-              >
-                {ranked && (
+            {lines.map(
+              (
+                line,
+                index
+              ) => (
+                <tr
+                  key={
+                    line.label
+                  }
+                  style={{
+                    borderTop:
+                      "1px solid var(--hairline-soft)",
+                  }}
+                >
+                  {ranked && (
+                    <Cell>
+                      <RankBadge
+                        rank={
+                          index +
+                          1
+                        }
+                        empty={
+                          line
+                            .month
+                            .fycApproved ===
+                          0
+                        }
+                      />
+                    </Cell>
+                  )}
+
                   <Cell>
-                    <RankBadge rank={index + 1} empty={line.month.fycApproved === 0} />
+                    {
+                      line.label
+                    }
                   </Cell>
-                )}
-                <Cell>{line.label}</Cell>
-                <NumberCell>{line.month.caseApproved || "-"}</NumberCell>
-                <NumberCell>
-                  {line.month.fypApproved ? money(line.month.fypApproved) : "-"}
-                </NumberCell>
-                <NumberCell strong>
-                  {line.month.fycApproved ? money(line.month.fycApproved) : "-"}
-                </NumberCell>
-                <NumberCell>{line.ytd.caseApproved || "-"}</NumberCell>
-                <NumberCell>
-                  {line.ytd.fypApproved ? money(line.ytd.fypApproved) : "-"}
-                </NumberCell>
-                <NumberCell>
-                  {line.ytd.fycApproved ? money(line.ytd.fycApproved) : "-"}
-                </NumberCell>
-                <NumberCell>{line.activeAgents || "-"}</NumberCell>
-              </tr>
-            ))}
+
+                  <NumberCell>
+                    {line.month
+                      .caseApproved ||
+                      "-"}
+                  </NumberCell>
+
+                  <NumberCell>
+                    {line.month
+                      .fypApproved
+                      ? money(
+                          line
+                            .month
+                            .fypApproved
+                        )
+                      : "-"}
+                  </NumberCell>
+
+                  <NumberCell
+                    strong
+                  >
+                    {line.month
+                      .fycApproved
+                      ? money(
+                          line
+                            .month
+                            .fycApproved
+                        )
+                      : "-"}
+                  </NumberCell>
+
+                  <NumberCell>
+                    {line.ytd
+                      .caseApproved ||
+                      "-"}
+                  </NumberCell>
+
+                  <NumberCell>
+                    {line.ytd
+                      .fypApproved
+                      ? money(
+                          line
+                            .ytd
+                            .fypApproved
+                        )
+                      : "-"}
+                  </NumberCell>
+
+                  <NumberCell>
+                    {line.ytd
+                      .fycApproved
+                      ? money(
+                          line
+                            .ytd
+                            .fycApproved
+                        )
+                      : "-"}
+                  </NumberCell>
+
+                  <NumberCell>
+                    {line.activeAgents ||
+                      "-"}
+                  </NumberCell>
+                </tr>
+              )
+            )}
 
             {ranked && (
-              <tr style={totalRowStyle}>
+              <tr
+                style={
+                  totalRowStyle
+                }
+              >
                 <Cell />
-                <Cell>รวมทั้งเครือ</Cell>
-                <NumberCell>{sum.month.caseApproved}</NumberCell>
-                <NumberCell>{money(sum.month.fypApproved)}</NumberCell>
-                <NumberCell>{money(sum.month.fycApproved)}</NumberCell>
+
+                <Cell>
+                  รวมทั้งเครือ
+                </Cell>
+
+                <NumberCell>
+                  {
+                    sum.month
+                      .caseApproved
+                  }
+                </NumberCell>
+
+                <NumberCell>
+                  {money(
+                    sum.month
+                      .fypApproved
+                  )}
+                </NumberCell>
+
+                <NumberCell>
+                  {money(
+                    sum.month
+                      .fycApproved
+                  )}
+                </NumberCell>
+
                 <Cell />
                 <Cell />
                 <Cell />
-                <NumberCell>{sum.active}</NumberCell>
+
+                <NumberCell>
+                  {sum.active}
+                </NumberCell>
               </tr>
             )}
           </>
@@ -1155,31 +2483,73 @@ function TableBox({
 }: {
   title: string;
   hint: string;
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
 }) {
   return (
     <div
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--hairline)",
-        borderRadius: 16,
-        overflow: "hidden",
+        background:
+          "var(--surface)",
+
+        border:
+          "1px solid var(--hairline)",
+
+        borderRadius:
+          16,
+
+        overflow:
+          "hidden",
       }}
     >
       <div
         style={{
-          padding: "14px 16px",
-          borderBottom: "1px solid var(--hairline)",
+          padding:
+            "14px 16px",
+
+          borderBottom:
+            "1px solid var(--hairline)",
         }}
       >
-        <div style={{ fontWeight: 800, color: "var(--cream)", fontSize: 16 }}>
+        <div
+          style={{
+            fontWeight:
+              800,
+
+            color:
+              "var(--cream)",
+
+            fontSize:
+              16,
+          }}
+        >
           {title}
         </div>
-        <div style={{ color: "var(--cream-faint)", fontSize: 12, marginTop: 4 }}>
+
+        <div
+          style={{
+            color:
+              "var(--cream-faint)",
+
+            fontSize:
+              12,
+
+            marginTop:
+              4,
+          }}
+        >
           {hint}
         </div>
       </div>
-      <div style={{ overflowX: "auto" }}>{children}</div>
+
+      <div
+        style={{
+          overflowX:
+            "auto",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -1191,22 +2561,46 @@ function ViewButton({
 }: {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={
+        onClick
+      }
       style={{
-        border: "none",
-        borderRadius: 999,
-        padding: "8px 16px",
-        fontSize: 13,
-        fontWeight: 800,
-        cursor: "pointer",
-        background: active ? "var(--gold)" : "transparent",
-        color: active ? "#18120A" : "var(--cream-muted)",
-        transition: "background .15s ease, color .15s ease",
+        border:
+          "none",
+
+        borderRadius:
+          999,
+
+        padding:
+          "8px 16px",
+
+        fontSize:
+          13,
+
+        fontWeight:
+          800,
+
+        cursor:
+          "pointer",
+
+        background:
+          active
+            ? "var(--gold)"
+            : "transparent",
+
+        color:
+          active
+            ? "#18120A"
+            : "var(--cream-muted)",
+
+        transition:
+          "background .15s ease, color .15s ease",
       }}
     >
       {children}
@@ -1214,22 +2608,56 @@ function ViewButton({
   );
 }
 
-function RankBadge({ rank, empty }: { rank: number; empty: boolean }) {
-  const top = !empty && rank <= 3;
+function RankBadge({
+  rank,
+  empty,
+}: {
+  rank: number;
+  empty: boolean;
+}) {
+  const top =
+    !empty &&
+    rank <= 3;
+
   return (
     <span
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: 26,
-        height: 26,
-        borderRadius: 999,
-        fontWeight: 800,
-        fontSize: 12,
-        background: top ? "var(--gold)" : "var(--surface-alt)",
-        color: top ? "#18120A" : "var(--cream-muted)",
-        border: "1px solid var(--hairline)",
+        display:
+          "inline-flex",
+
+        alignItems:
+          "center",
+
+        justifyContent:
+          "center",
+
+        minWidth:
+          26,
+
+        height:
+          26,
+
+        borderRadius:
+          999,
+
+        fontWeight:
+          800,
+
+        fontSize:
+          12,
+
+        background:
+          top
+            ? "var(--gold)"
+            : "var(--surface-alt)",
+
+        color:
+          top
+            ? "#18120A"
+            : "var(--cream-muted)",
+
+        border:
+          "1px solid var(--hairline)",
       }}
     >
       {rank}
@@ -1237,16 +2665,37 @@ function RankBadge({ rank, empty }: { rank: number; empty: boolean }) {
   );
 }
 
-function UnitTag({ unit }: { unit: string }) {
-  const missing = unit === NO_UNIT;
+function UnitTag({
+  unit,
+}: {
+  unit: string;
+}) {
+  const missing =
+    unit === NO_UNIT;
+
   return (
     <span
       style={{
-        fontSize: 12,
-        padding: "3px 8px",
-        borderRadius: 999,
-        border: `1px solid ${missing ? "var(--rp-danger-border)" : "var(--hairline)"}`,
-        color: missing ? "var(--rp-danger)" : "var(--cream-muted)",
+        fontSize:
+          12,
+
+        padding:
+          "3px 8px",
+
+        borderRadius:
+          999,
+
+        border:
+          `1px solid ${
+            missing
+              ? "var(--rp-danger-border)"
+              : "var(--hairline)"
+          }`,
+
+        color:
+          missing
+            ? "var(--rp-danger)"
+            : "var(--cream-muted)",
       }}
     >
       {unit}
@@ -1254,52 +2703,114 @@ function UnitTag({ unit }: { unit: string }) {
   );
 }
 
-function EmptyRow({ colSpan }: { colSpan: number }) {
+function EmptyRow({
+  colSpan,
+}: {
+  colSpan: number;
+}) {
   return (
     <tr>
       <td
-        colSpan={colSpan}
+        colSpan={
+          colSpan
+        }
         style={{
-          padding: 30,
-          textAlign: "center",
-          color: "var(--cream-faint)",
+          padding:
+            30,
+
+          textAlign:
+            "center",
+
+          color:
+            "var(--cream-faint)",
         }}
       >
-        ยังไม่มี Production ในช่วงเวลาที่เลือก
+        ยังไม่มี Production
+        ในช่วงเวลาที่เลือก
       </td>
     </tr>
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
+function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--hairline)",
-        borderRadius: 14,
-        padding: 16,
+        background:
+          "var(--surface)",
+
+        border:
+          "1px solid var(--hairline)",
+
+        borderRadius:
+          14,
+
+        padding:
+          16,
       }}
     >
-      <div style={{ color: "var(--cream-faint)", fontSize: 12, marginBottom: 7 }}>
+      <div
+        style={{
+          color:
+            "var(--cream-faint)",
+
+          fontSize:
+            12,
+
+          marginBottom:
+            7,
+        }}
+      >
         {label}
       </div>
-      <div style={{ color: "var(--gold-bright)", fontSize: 21, fontWeight: 800 }}>
+
+      <div
+        style={{
+          color:
+            "var(--gold-bright)",
+
+          fontSize:
+            21,
+
+          fontWeight:
+            800,
+        }}
+      >
         {value}
       </div>
     </div>
   );
 }
 
-function HeaderCell({ children }: { children: React.ReactNode }) {
+function HeaderCell({
+  children,
+}: {
+  children:
+    React.ReactNode;
+}) {
   return (
     <th
       style={{
-        padding: "13px 10px",
-        color: "var(--gold-bright)",
-        fontSize: 12,
-        textAlign: "left",
-        whiteSpace: "nowrap",
+        padding:
+          "13px 10px",
+
+        color:
+          "var(--gold-bright)",
+
+        fontSize:
+          12,
+
+        textAlign:
+          "left",
+
+        whiteSpace:
+          "nowrap",
       }}
     >
       {children}
@@ -1307,14 +2818,26 @@ function HeaderCell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Cell({ children }: { children?: React.ReactNode }) {
+function Cell({
+  children,
+}: {
+  children?:
+    React.ReactNode;
+}) {
   return (
     <td
       style={{
-        padding: "11px 10px",
-        fontSize: 13,
-        color: "var(--cream)",
-        whiteSpace: "nowrap",
+        padding:
+          "11px 10px",
+
+        fontSize:
+          13,
+
+        color:
+          "var(--cream)",
+
+        whiteSpace:
+          "nowrap",
       }}
     >
       {children}
@@ -1326,18 +2849,34 @@ function NumberCell({
   children,
   strong = false,
 }: {
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
   strong?: boolean;
 }) {
   return (
     <td
       style={{
-        padding: "11px 10px",
-        fontSize: 13,
-        color: strong ? "var(--gold-bright)" : "var(--cream)",
-        fontWeight: strong ? 800 : 400,
-        textAlign: "right",
-        whiteSpace: "nowrap",
+        padding:
+          "11px 10px",
+
+        fontSize:
+          13,
+
+        color:
+          strong
+            ? "var(--gold-bright)"
+            : "var(--cream)",
+
+        fontWeight:
+          strong
+            ? 800
+            : 400,
+
+        textAlign:
+          "right",
+
+        whiteSpace:
+          "nowrap",
       }}
     >
       {children}
@@ -1351,21 +2890,41 @@ function NumberCell({
 
 const tableStyle = {
   width: "100%",
-  borderCollapse: "collapse" as const,
+
+  borderCollapse:
+    "collapse" as const,
 };
 
 const totalRowStyle = {
-  background: "var(--rp-soft-gold)",
-  borderTop: "1px solid var(--gold)",
-  fontWeight: 800,
+  background:
+    "var(--rp-soft-gold)",
+
+  borderTop:
+    "1px solid var(--gold)",
+
+  fontWeight:
+    800,
 };
 
 const filterStyle = {
-  background: "var(--surface-alt)",
-  color: "var(--cream)",
-  border: "1px solid var(--hairline)",
-  borderRadius: 9,
-  padding: "10px 12px",
-  fontSize: 14,
-  cursor: "pointer",
+  background:
+    "var(--surface-alt)",
+
+  color:
+    "var(--cream)",
+
+  border:
+    "1px solid var(--hairline)",
+
+  borderRadius:
+    9,
+
+  padding:
+    "10px 12px",
+
+  fontSize:
+    14,
+
+  cursor:
+    "pointer",
 };
