@@ -136,18 +136,34 @@ const EMPTY: Totals = {
   paFyc: 0,
 };
 
-const PIE_COLORS = [
-  "#C9972B",
+const UNIT_COLORS: Record<string, string> = {
+  "หน่วยกลาง": "#C9972B",
+  "หน่วย A": "#3B82F6",
+  "หน่วย B": "#22A06B",
+  "หน่วย C": "#8B5CF6",
+};
+
+const FALLBACK_UNIT_COLORS = [
   "#D9B85D",
-  "#8D6B25",
-  "#E5C978",
-  "#A67C22",
-  "#F0DDA5",
-  "#755619",
-  "#B99542",
-  "#E2C36F",
-  "#967020",
+  "#0EA5E9",
+  "#14B8A6",
+  "#EC4899",
+  "#F97316",
+  "#6366F1",
 ];
+
+function getUnitColor(
+  unit: string,
+  index = 0
+) {
+  return (
+    UNIT_COLORS[unit] ??
+    FALLBACK_UNIT_COLORS[
+      index %
+        FALLBACK_UNIT_COLORS.length
+    ]
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* HELPERS                                                             */
@@ -2842,14 +2858,29 @@ function PerformanceOverview({
                   <Bar
                     dataKey="fyc"
                     name="FYC อนุมัติ"
-                    fill="#C9972B"
                     radius={[
                       6,
                       6,
                       0,
                       0,
                     ]}
-                  />
+                  >
+                    {agentData.map(
+                      (
+                        row,
+                        index
+                      ) => (
+                        <RechartsCell
+                          key={`agent-bar-${index}`}
+                          fill={getUnitColor(
+                            row.unit ??
+                              NO_UNIT,
+                            index
+                          )}
+                        />
+                      )
+                    )}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -2887,17 +2918,16 @@ function PerformanceOverview({
                     >
                       {pieData.map(
                         (
-                          _,
+                          row,
                           index
                         ) => (
                           <RechartsCell
                             key={`agent-pie-${index}`}
-                            fill={
-                              PIE_COLORS[
-                                index %
-                                  PIE_COLORS.length
-                              ]
-                            }
+                            fill={getUnitColor(
+                              row.unit ??
+                                NO_UNIT,
+                              index
+                            )}
                           />
                         )
                       )}
@@ -3048,7 +3078,12 @@ function PerformanceOverview({
                   type="monotone"
                   dataKey="fyp"
                   name="FYP อนุมัติ"
-                  stroke="#D9B85D"
+                  stroke={getUnitColor(
+                    selectedUnit
+                  )}
+                  strokeOpacity={
+                    0.55
+                  }
                   strokeWidth={
                     3
                   }
@@ -3061,7 +3096,9 @@ function PerformanceOverview({
                   type="monotone"
                   dataKey="fyc"
                   name="FYC อนุมัติ"
-                  stroke="#C9972B"
+                  stroke={getUnitColor(
+                    selectedUnit
+                  )}
                   strokeWidth={
                     3
                   }
@@ -3138,7 +3175,9 @@ function PerformanceOverview({
                 <Bar
                   dataKey="activeAgents"
                   name="Active Agent"
-                  fill="#C9972B"
+                  fill={getUnitColor(
+                    selectedUnit
+                  )}
                   radius={[
                     6,
                     6,
@@ -3268,14 +3307,28 @@ function PerformanceOverview({
                 <Bar
                   dataKey="fyc"
                   name="FYC อนุมัติ"
-                  fill="#C9972B"
                   radius={[
                     6,
                     6,
                     0,
                     0,
                   ]}
-                />
+                >
+                  {rankingData.map(
+                    (
+                      row,
+                      index
+                    ) => (
+                      <RechartsCell
+                        key={`unit-bar-${index}`}
+                        fill={getUnitColor(
+                          row.name,
+                          index
+                        )}
+                      />
+                    )
+                  )}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -3313,17 +3366,15 @@ function PerformanceOverview({
                   >
                     {pieData.map(
                       (
-                        _,
+                        row,
                         index
                       ) => (
                         <RechartsCell
                           key={`unit-pie-${index}`}
-                          fill={
-                            PIE_COLORS[
-                              index %
-                                PIE_COLORS.length
-                            ]
-                          }
+                          fill={getUnitColor(
+                            row.name,
+                            index
+                          )}
                         />
                       )
                     )}
