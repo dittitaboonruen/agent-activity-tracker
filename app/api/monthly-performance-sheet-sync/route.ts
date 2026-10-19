@@ -10,6 +10,8 @@ import {
 export const dynamic =
   "force-dynamic";
 
+// Redeploy marker: sheet sync env enabled
+
 export const revalidate = 0;
 
 const NO_STORE_HEADERS = {
