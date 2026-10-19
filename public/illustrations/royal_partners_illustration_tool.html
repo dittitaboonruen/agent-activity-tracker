@@ -7447,13 +7447,20 @@ function buildAnnuityMapHTML(type,data){
 
 function viewAnnuityFix(app){
   const cfg=state.annuityfix;
-  const r=calcAnnuityFix(state.age,state.gender,cfg.annualPension,cfg.income,cfg.frequency);
+  const r=calcAnnuityFix(
+    state.age,
+    state.gender,
+    cfg.annualPension,
+    cfg.income,
+    cfg.frequency
+  );
 
   app.innerHTML=panelShell(
     'retirement',
     'AIA Annuity Fix — เอไอเอ บำนาญ มั่นคง',
     'ชำระเบี้ยถึงอายุ 60 ปี รับเงินบำนาญอายุ 60–85 ปี และใช้สิทธิลดหย่อนภาษีตามเงื่อนไข'
   );
+
   const panel=app.querySelector('.panel');
 
   const controls=document.createElement('div');
@@ -7463,26 +7470,33 @@ function viewAnnuityFix(app){
       <label>เงินบำนาญที่ต้องการ / ปี</label>
       <input id="ann-fix-pension" type="text" inputmode="numeric" value="${annMoneyInput(cfg.annualPension)}">
     </div>
+
     <div class="ann-control">
       <label>รายได้ต่อปี (ใช้คำนวณฐานภาษีตามไฟล์)</label>
       <input id="ann-fix-income" type="text" inputmode="numeric" value="${annMoneyInput(cfg.income)}">
     </div>
+
     <div class="ann-control">
       <label>งวดชำระเบี้ย</label>
       <select id="ann-fix-frequency">
-        ${Object.keys(ANNUITY_FIX_FREQUENCY).map(x=>`<option ${x===cfg.frequency?'selected':''}>${x}</option>`).join('')}
+        ${Object.keys(ANNUITY_FIX_FREQUENCY)
+          .map(x=>`<option ${x===cfg.frequency?'selected':''}>${x}</option>`)
+          .join('')}
       </select>
-    </div>`;
+    </div>
+  `;
   panel.appendChild(controls);
 
   controls.querySelector('#ann-fix-pension').addEventListener('change',e=>{
     state.annuityfix.annualPension=annParseMoney(e.target.value);
     render();
   });
+
   controls.querySelector('#ann-fix-income').addEventListener('change',e=>{
     state.annuityfix.income=annParseMoney(e.target.value);
     render();
   });
+
   controls.querySelector('#ann-fix-frequency').addEventListener('change',e=>{
     state.annuityfix.frequency=e.target.value;
     render();
@@ -7497,7 +7511,13 @@ function viewAnnuityFix(app){
 
   const noteBox=document.createElement('div');
   noteBox.className='ann-inline-note';
-  noteBox.innerHTML=`ฐานภาษีตามสูตรในไฟล์: <b>${Math.round(r.taxRate*100)}%</b> • วงเงินเบี้ยที่ใช้คำนวณลดหย่อนสูงสุด <b>${fmt(r.deductionCap)} บาท/ปี</b> • ช่อง “ทุนประกัน” ด้านบนไม่ใช้ในสูตร Annuity Fix`;
+  noteBox.innerHTML=`
+    ฐานภาษีตามสูตรในไฟล์:
+    <b>${Math.round(r.taxRate*100)}%</b>
+    • วงเงินเบี้ยที่ใช้คำนวณลดหย่อนสูงสุด
+    <b>${fmt(r.deductionCap)} บาท/ปี</b>
+    • ช่อง “ทุนประกัน” ด้านบนไม่ใช้ในสูตร Annuity Fix
+  `;
   panel.appendChild(noteBox);
 
   if(!r.validAge || !r.validInitial){
@@ -7515,35 +7535,46 @@ function viewAnnuityFix(app){
 
   const ledger=document.createElement('div');
   ledger.className='ledger-wrap';
-  ledger.innerHTML='<h3>ตารางแสดงผลประโยชน์รายปี</h3><div class="ann-fix-ledger"></div>';
+  ledger.innerHTML=`
+    <h3>ตารางแสดงผลประโยชน์รายปี</h3>
+    <div class="ann-fix-ledger"></div>
+  `;
   panel.appendChild(ledger);
-  renderLedger(ledger.querySelector('.ann-fix-ledger'),r.rows,[
-    {key:'year',label:'ปีที่'},
-    {key:'age',label:'อายุ'},
-    {key:'premium',label:'เบี้ยที่ชำระ'},
-    {key:'pension',label:'เงินบำนาญ'},
-    {key:'cumulativePremium',label:'สะสมเบี้ย'},
-    {key:'cumulativePension',label:'สะสมบำนาญ'},
-    {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
-    {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
-  ]);
 
-  const resource=document.createElement('div');
-  resource.innerHTML=buildFrontResourceSection('annuityfix');
-  panel.appendChild(resource.firstElementChild);
+  renderLedger(
+    ledger.querySelector('.ann-fix-ledger'),
+    r.rows,
+    [
+      {key:'year',label:'ปีที่'},
+      {key:'age',label:'อายุ'},
+      {key:'premium',label:'เบี้ยที่ชำระ'},
+      {key:'pension',label:'เงินบำนาญ'},
+      {key:'cumulativePremium',label:'สะสมเบี้ย'},
+      {key:'cumulativePension',label:'สะสมบำนาญ'},
+      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
+      {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+    ]
+  );
 
   addExportButton(app,'annuityfix');
 }
 
 function viewAnnuitySure(app){
   const cfg=state.annuitysure;
-  const r=calcAnnuitySure(state.age,state.gender,state.sum,state.tax,cfg.payPlan);
+  const r=calcAnnuitySure(
+    state.age,
+    state.gender,
+    state.sum,
+    state.tax,
+    cfg.payPlan
+  );
 
   app.innerHTML=panelShell(
     'retirement',
     'AIA Annuity Sure — เอไอเอ บำนาญ ได้ชัวร์',
     'เลือกชำระเบี้ย 9 ปี หรือชำระถึงอายุ 60 ปี รับเงินบำนาญ 15% ของทุนประกันทุกปี อายุ 60–90 ปี'
   );
+
   const panel=app.querySelector('.panel');
 
   const controls=document.createElement('div');
@@ -7555,8 +7586,10 @@ function viewAnnuitySure(app){
         <option ${cfg.payPlan==='ชำระเบี้ยฯ 9 ปี'?'selected':''}>ชำระเบี้ยฯ 9 ปี</option>
         <option ${cfg.payPlan==='ชำระเบี้ยฯ จนถึงอายุ 60 ปี'?'selected':''}>ชำระเบี้ยฯ จนถึงอายุ 60 ปี</option>
       </select>
-    </div>`;
+    </div>
+  `;
   panel.appendChild(controls);
+
   controls.querySelector('#ann-sure-plan').addEventListener('change',e=>{
     state.annuitysure.payPlan=e.target.value;
     render();
@@ -7584,22 +7617,26 @@ function viewAnnuitySure(app){
 
   const ledger=document.createElement('div');
   ledger.className='ledger-wrap';
-  ledger.innerHTML='<h3>ตารางแสดงผลประโยชน์รายปี</h3><div class="ann-sure-ledger"></div>';
+  ledger.innerHTML=`
+    <h3>ตารางแสดงผลประโยชน์รายปี</h3>
+    <div class="ann-sure-ledger"></div>
+  `;
   panel.appendChild(ledger);
-  renderLedger(ledger.querySelector('.ann-sure-ledger'),r.rows,[
-    {key:'year',label:'ปีที่'},
-    {key:'age',label:'อายุ'},
-    {key:'premium',label:'เบี้ยที่ชำระ'},
-    {key:'pension',label:'เงินบำนาญ'},
-    {key:'cumulativePremium',label:'สะสมเบี้ย'},
-    {key:'cumulativePension',label:'สะสมบำนาญ'},
-    {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
-    {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
-  ]);
 
-  const resource=document.createElement('div');
-  resource.innerHTML=buildFrontResourceSection('annuitysure');
-  panel.appendChild(resource.firstElementChild);
+  renderLedger(
+    ledger.querySelector('.ann-sure-ledger'),
+    r.rows,
+    [
+      {key:'year',label:'ปีที่'},
+      {key:'age',label:'อายุ'},
+      {key:'premium',label:'เบี้ยที่ชำระ'},
+      {key:'pension',label:'เงินบำนาญ'},
+      {key:'cumulativePremium',label:'สะสมเบี้ย'},
+      {key:'cumulativePension',label:'สะสมบำนาญ'},
+      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
+      {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+    ]
+  );
 
   addExportButton(app,'annuitysure');
 }
@@ -11231,8 +11268,8 @@ async function download20PayLifePDF(btn){
 
 /* ===================== Annuity full report / PDF ===================== */
 
-const ANNUITY_FIX_REPORT_VERSION = "1.0.0";
-const ANNUITY_SURE_REPORT_VERSION = "1.0.0";
+const ANNUITY_FIX_REPORT_VERSION = "1.1.0";
+const ANNUITY_SURE_REPORT_VERSION = "1.1.0";
 
 function buildAnnuityFixReportData(){
   const cfg = state.annuityfix;
@@ -11310,7 +11347,60 @@ function validateAnnuitySureReportData(data){
   return {ok:errors.length===0,errors};
 }
 
-function buildAnnuityReportRows(rows){
+function pickAnnuityKeyRows(data){
+  const r = data.result;
+  const startAge = Number(data.customer?.age || 0);
+
+  let ages = [];
+
+  if(data.key === 'annuityfix'){
+    const payStopAge = Math.min(
+      59,
+      startAge + Math.max(0, r.payYears - 1)
+    );
+
+    ages = [
+      startAge,
+      payStopAge,
+      60,
+      61,
+      65,
+      70,
+      75,
+      85
+    ];
+  }else{
+    const payStopAge = r.isNine
+      ? startAge + 8
+      : Math.min(
+          59,
+          startAge + Math.max(0, r.payYears - 1)
+        );
+
+    ages = [
+      startAge,
+      payStopAge,
+      60,
+      61,
+      65,
+      70,
+      75,
+      90
+    ];
+  }
+
+  const uniqueAges = [
+    ...new Set(
+      ages.filter(age => Number.isFinite(age))
+    )
+  ];
+
+  return uniqueAges
+    .map(age => r.rows.find(row => row.age === age))
+    .filter(Boolean);
+}
+
+function buildAnnuityKeyRowsHTML(rows){
   return rows.map(row=>`
     <tr class="${row.pension>0?'pension':''}">
       <td>${row.year}</td>
@@ -11318,14 +11408,13 @@ function buildAnnuityReportRows(rows){
       <td>${row.premium ? fmt(row.premium) : '—'}</td>
       <td>${row.pension ? fmt(row.pension) : '—'}</td>
       <td>${fmt(row.cumulativePremium)}</td>
-      <td>${fmt(row.cumulativePension)}</td>
       <td>${row.deathBenefit ? fmt(row.deathBenefit) : '—'}</td>
       <td>${row.taxRelief ? fmt(row.taxRelief) : '—'}</td>
     </tr>
   `).join('');
 }
 
-function buildAnnuityReportTable(rows){
+function buildAnnuityCompactTable(rows){
   return `
     <table class="ann-mini-table">
       <thead>
@@ -11335,12 +11424,13 @@ function buildAnnuityReportTable(rows){
           <th>เบี้ย</th>
           <th>บำนาญ</th>
           <th>สะสมเบี้ย</th>
-          <th>สะสมบำนาญ</th>
           <th>เสียชีวิต</th>
           <th>ลดหย่อนภาษี</th>
         </tr>
       </thead>
-      <tbody>${buildAnnuityReportRows(rows)}</tbody>
+      <tbody>
+        ${buildAnnuityKeyRowsHTML(rows)}
+      </tbody>
     </table>
   `;
 }
@@ -11350,7 +11440,8 @@ function buildAnnuityAgentBlock(agent){
     <div class="ann-condition-box">
       <b>ข้อมูลตัวแทน</b><br>
       ${escapeResourceHtml(agent?.name || '—')}<br>
-      โทร ${escapeResourceHtml(agent?.phone || '—')} • LINE ${escapeResourceHtml(agent?.line || '—')}<br>
+      โทร ${escapeResourceHtml(agent?.phone || '—')}
+      • LINE ${escapeResourceHtml(agent?.line || '—')}<br>
       วันที่ ${escapeResourceHtml(agent?.date || '—')}
     </div>
   `;
@@ -11359,210 +11450,243 @@ function buildAnnuityAgentBlock(agent){
 function buildAnnuityConditions(type,data){
   if(type==='fix'){
     const r=data.result;
+
     return `
       <div class="ann-condition-box">
-        <b>เงื่อนไขหลักตามข้อมูลที่ใช้คำนวณ</b><br>
+        <b>เงื่อนไขหลัก</b><br>
         อายุรับประกัน 20–55 ปี • มูลค่าบำนาญตั้งต้นขั้นต่ำ 200,000 บาท<br>
         ชำระเบี้ยถึงอายุ 60 ปี • รับเงินบำนาญอายุ 60–85 ปี รวม 26 งวด<br>
         เงินบำนาญที่อายุ 60 ปี: ชาย 6.25% / หญิง 5.95% ของมูลค่าบำนาญตั้งต้น<br>
-        ฐานภาษีตามสูตรในตาราง: ${Math.round(r.taxRate*100)}%
+        ฐานภาษีตามสูตร: ${Math.round(r.taxRate*100)}%
       </div>
     `;
   }
 
   const r=data.result;
+
   return `
     <div class="ann-condition-box">
-      <b>เงื่อนไขหลักตามข้อมูลที่ใช้คำนวณ</b><br>
-      ${r.isNine?'ชำระเบี้ย 9 ปี • อายุรับประกัน 20–50 ปี':'ชำระเบี้ยถึงอายุ 60 ปี • อายุรับประกัน 20–55 ปี'}<br>
+      <b>เงื่อนไขหลัก</b><br>
+      ${r.isNine
+        ? 'ชำระเบี้ย 9 ปี • อายุรับประกัน 20–50 ปี'
+        : 'ชำระเบี้ยถึงอายุ 60 ปี • อายุรับประกัน 20–55 ปี'
+      }<br>
       จำนวนเงินเอาประกันภัยขั้นต่ำ 100,000 บาท<br>
       รับเงินบำนาญปีละ 15% ของจำนวนเงินเอาประกันภัย อายุ 60–90 ปี รวม 31 งวด
     </div>
   `;
 }
 
-function buildAnnuityReportPage({
-  data,
-  pageNumber,
-  totalPages,
-  rows,
-  showSummary=false,
-  showResources=false
-}){
-  const r=data.result;
-  const isFix=data.key==='annuityfix';
+function buildAnnuitySinglePageHTML(data){
+  const r = data.result;
+  const isFix = data.key === 'annuityfix';
+  const type = isFix ? 'fix' : 'sure';
+  const keyRows = pickAnnuityKeyRows(data);
+  const resources = getProductResources(data.key);
 
-  const headlineValue=isFix
-    ? `${fmt(r.annualPension)} บาท/ปี`
-    : `${fmt(r.annualPension)} บาท/ปี`;
+  const summaryBoxes = isFix
+    ? `
+      <div class="ann-summary-box">
+        <div class="l">มูลค่าบำนาญตั้งต้น</div>
+        <div class="v">${fmt(r.initialAnnuity)}</div>
+      </div>
 
-  const meta4=isFix
-    ? `<div class="cell"><div class="l">งวดชำระเบี้ย</div><div class="v">${escapeResourceHtml(r.frequency)}</div></div>`
-    : `<div class="cell"><div class="l">แผนชำระเบี้ย</div><div class="v">${escapeResourceHtml(r.payPlan)}</div></div>`;
+      <div class="ann-summary-box">
+        <div class="l">เบี้ยประกันภัยต่อปี</div>
+        <div class="v">${fmt(r.annualPremium)}</div>
+      </div>
 
-  const summary = isFix
-    ? [
-        ['มูลค่าบำนาญตั้งต้น',fmt(r.initialAnnuity)+' บาท'],
-        ['เบี้ยประกันภัยต่อปี',fmt(r.annualPremium)+' บาท'],
-        ['เงินบำนาญต่อปี',fmt(r.annualPension)+' บาท'],
-        ['เงินบำนาญรวม 26 งวด',fmt(r.annualPension*26)+' บาท']
-      ]
-    : [
-        ['จำนวนเงินเอาประกันภัย',fmt(r.sumInsured)+' บาท'],
-        ['เบี้ยประกันภัยต่อปี',fmt(r.annualPremium)+' บาท'],
-        ['เงินบำนาญต่อปี',fmt(r.annualPension)+' บาท'],
-        ['เงินบำนาญรวม 31 งวด',fmt(r.totalPension)+' บาท']
-      ];
+      <div class="ann-summary-box">
+        <div class="l">เงินบำนาญต่อปี</div>
+        <div class="v">${fmt(r.annualPension)}</div>
+      </div>
 
-  const mapHtml=buildAnnuityMapHTML(isFix?'fix':'sure',r);
+      <div class="ann-summary-box em">
+        <div class="l">เงินบำนาญรวม</div>
+        <div class="v">${fmt(r.annualPension * 26)}</div>
+      </div>
+    `
+    : `
+      <div class="ann-summary-box">
+        <div class="l">ทุนประกัน</div>
+        <div class="v">${fmt(r.sumInsured)}</div>
+      </div>
+
+      <div class="ann-summary-box">
+        <div class="l">เบี้ยประกันภัยต่อปี</div>
+        <div class="v">${fmt(r.annualPremium)}</div>
+      </div>
+
+      <div class="ann-summary-box">
+        <div class="l">เงินบำนาญต่อปี</div>
+        <div class="v">${fmt(r.annualPension)}</div>
+      </div>
+
+      <div class="ann-summary-box em">
+        <div class="l">เงินบำนาญรวม</div>
+        <div class="v">${fmt(r.totalPension)}</div>
+      </div>
+    `;
+
+  const metaPlan = isFix
+    ? `
+      <div class="cell">
+        <div class="l">งวดชำระเบี้ย</div>
+        <div class="v">${escapeResourceHtml(r.frequency)}</div>
+      </div>
+    `
+    : `
+      <div class="cell">
+        <div class="l">แผนชำระเบี้ย</div>
+        <div class="v">${escapeResourceHtml(r.payPlan)}</div>
+      </div>
+    `;
+
+  const mainValue = `${fmt(r.annualPension)} บาท/ปี`;
+  const reportMap = buildAnnuityMapHTML(type,r);
 
   return `
-    <section class="ann-report-page" id="${data.key}-report-page-${pageNumber}">
+    <div class="ann-report-page">
       <div class="ann-report-inner">
+
         <div class="ann-report-head">
           <div>
-            <div class="ann-report-title">${escapeResourceHtml(data.title)}</div>
-            <div class="ann-report-sub">${escapeResourceHtml(data.subtitle)} • ใบสรุปประกอบการอธิบาย</div>
+            <div class="ann-report-title">
+              ${escapeResourceHtml(data.title)}
+            </div>
+
+            <div class="ann-report-sub">
+              ${escapeResourceHtml(data.subtitle)}
+            </div>
           </div>
+
           <div class="ann-report-main">
-            <div class="l">เงินบำนาญตามข้อมูลที่เลือก</div>
-            <div class="v">${headlineValue}</div>
+            <div class="l">เงินบำนาญต่อปี</div>
+            <div class="v">${mainValue}</div>
           </div>
         </div>
 
         <div class="ann-report-customer">
           <div class="l">ชื่อลูกค้า</div>
-          <div class="v">${escapeResourceHtml(data.customer.fullName || '—')}</div>
+          <div class="v">
+            ${escapeResourceHtml(data.customer.fullName || '—')}
+          </div>
         </div>
 
         <div class="ann-report-meta">
-          <div class="cell"><div class="l">เพศ</div><div class="v">${escapeResourceHtml(data.customer.gender)}</div></div>
-          <div class="cell"><div class="l">อายุ</div><div class="v">${data.customer.age} ปี</div></div>
-          <div class="cell"><div class="l">ผลิตภัณฑ์</div><div class="v">${isFix?'Annuity Fix':'Annuity Sure'}</div></div>
-          ${meta4}
-        </div>
-
-        ${showSummary ? `
-          <div class="ann-report-summary">
-            ${summary.map((item,index)=>`
-              <div class="ann-summary-box ${index===2?'em':''}">
-                <div class="l">${item[0]}</div>
-                <div class="v">${item[1]}</div>
-              </div>
-            `).join('')}
-          </div>
-
-          <div class="ann-report-map">${mapHtml}</div>
-        ` : ''}
-
-        <div class="ann-table-title">
-          ตารางแสดงเบี้ย ผลประโยชน์ และเงินบำนาญรายปี
-          ${pageNumber===1?'':' (ต่อ)'}
-        </div>
-
-        <div class="ann-ledger-grid">
-          ${buildAnnuityReportTable(rows.slice(0,Math.ceil(rows.length/2)))}
-          ${buildAnnuityReportTable(rows.slice(Math.ceil(rows.length/2)))}
-        </div>
-
-        ${showResources ? `
-          <div class="ann-report-bottom">
-            ${buildReportResourceSection(data.key)}
-            <div style="display:grid;gap:5px;">
-              ${buildAnnuityConditions(isFix?'fix':'sure',data)}
-              ${buildAnnuityAgentBlock(data.agent)}
+          <div class="cell">
+            <div class="l">เพศ</div>
+            <div class="v">
+              ${escapeResourceHtml(data.customer.gender || '—')}
             </div>
           </div>
 
-          <div class="ann-report-note">
-            หมายเหตุ: เอกสารนี้เป็นเครื่องมือช่วยอธิบายจากสูตรและตารางที่ Royal Partner ได้รับมา
-            ไม่ใช่เอกสารสัญญาประกันภัย และผลประโยชน์จริงให้ยึดกรมธรรม์/เอกสารเสนอขายของบริษัทเป็นหลัก
+          <div class="cell">
+            <div class="l">อายุ</div>
+            <div class="v">
+              ${escapeResourceHtml(String(data.customer.age || '—'))} ปี
+            </div>
           </div>
-        ` : ''}
+
+          <div class="cell">
+            <div class="l">แบบประกัน</div>
+            <div class="v">
+              ${escapeResourceHtml(data.title)}
+            </div>
+          </div>
+
+          ${metaPlan}
+        </div>
+
+        <div class="ann-report-summary">
+          ${summaryBoxes}
+        </div>
+
+        <div class="ann-report-map">
+          ${reportMap}
+        </div>
+
+        <div class="ann-table-title">
+          ตารางสรุปช่วงสำคัญของสัญญา
+        </div>
+
+        <div style="margin:0 12px;">
+          ${buildAnnuityCompactTable(keyRows)}
+        </div>
+
+        <div class="ann-report-bottom">
+
+          <div class="rp-resource-section compact-report">
+            <div class="rp-resource-title">โบรชัวร์</div>
+
+            <div class="rp-resource-grid">
+              ${buildBrochureSlot(
+                data.key,
+                resources.brochure,
+                {},
+                true
+              )}
+            </div>
+          </div>
+
+          <div>
+            ${buildAnnuityConditions(type,data)}
+
+            <div style="height:6px"></div>
+
+            ${buildAnnuityAgentBlock(data.agent)}
+          </div>
+
+        </div>
+
+        <div style="margin:6px 12px 0;">
+          <div class="rp-resource-payment-row" style="display:block;">
+            ${buildPaymentCard(resources.payment,true)}
+          </div>
+        </div>
+
+        <div class="ann-report-note">
+          หมายเหตุ:
+          ใช้สำหรับประกอบการเรียนการสอนเท่านั้น
+          ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย
+          • ตารางนี้เป็นการสรุปช่วงสำคัญของสัญญา
+          เพื่อให้รายงานจบภายใน 1 หน้า
+          โดยไม่ได้เปลี่ยนสูตรคำนวณ
+        </div>
 
         <div class="ann-report-spacer"></div>
-        <div class="rp-page-number">หน้า ${pageNumber} / ${totalPages} • Report v${data.reportVersion}</div>
+
+        <div class="rp-page-number">
+          หน้า 1 / 1
+        </div>
+
       </div>
-    </section>
+    </div>
   `;
 }
 
 function buildAnnuityFixReportHTML(){
-  const data=buildAnnuityFixReportData();
-  const validation=validateAnnuityFixReportData(data);
-
-  if(!validation.ok){
-    return `<div class="rp-report"><div class="rp-report-error">
-      ไม่สามารถสร้างใบสรุป Annuity Fix ได้<br>
-      ${validation.errors.map(e=>`• ${escapeResourceHtml(e)}`).join('<br>')}
-    </div></div>`;
-  }
-
-  const rows=data.result.rows;
-  const split=Math.ceil(rows.length/2);
-
-  return `<div class="rp-report" data-report-version="${data.reportVersion}">
-    <div class="rp-report-pages">
-      ${buildAnnuityReportPage({
-        data,pageNumber:1,totalPages:2,
-        rows:rows.slice(0,split),
-        showSummary:true,showResources:false
-      })}
-      ${buildAnnuityReportPage({
-        data,pageNumber:2,totalPages:2,
-        rows:rows.slice(split),
-        showSummary:false,showResources:true
-      })}
-    </div>
-  </div>`;
+  return buildAnnuitySinglePageHTML(
+    buildAnnuityFixReportData()
+  );
 }
 
 function buildAnnuitySureReportHTML(){
-  const data=buildAnnuitySureReportData();
-  const validation=validateAnnuitySureReportData(data);
-
-  if(!validation.ok){
-    return `<div class="rp-report"><div class="rp-report-error">
-      ไม่สามารถสร้างใบสรุป Annuity Sure ได้<br>
-      ${validation.errors.map(e=>`• ${escapeResourceHtml(e)}`).join('<br>')}
-    </div></div>`;
-  }
-
-  const rows=data.result.rows;
-  const split=Math.ceil(rows.length/2);
-
-  return `<div class="rp-report" data-report-version="${data.reportVersion}">
-    <div class="rp-report-pages">
-      ${buildAnnuityReportPage({
-        data,pageNumber:1,totalPages:2,
-        rows:rows.slice(0,split),
-        showSummary:true,showResources:false
-      })}
-      ${buildAnnuityReportPage({
-        data,pageNumber:2,totalPages:2,
-        rows:rows.slice(split),
-        showSummary:false,showResources:true
-      })}
-    </div>
-  </div>`;
+  return buildAnnuitySinglePageHTML(
+    buildAnnuitySureReportData()
+  );
 }
 
 async function downloadAnnuityPDF(key,btn){
-  if(btn.dataset.busy==='1') return;
+  const page=document.querySelector('.ann-report-page');
 
-  if(!window.jspdf || !window.jspdf.jsPDF){
-    alert('ไม่พบไฟล์ /vendor/jspdf.umd.min.js กรุณาตรวจว่าอัปโหลดและ Deploy แล้ว');
+  if(!page){
+    alert('ไม่พบใบสรุป Annuity');
     return;
   }
 
-  const pagePrefix=key==='annuityfix'?'annuityfix':'annuitysure';
-  const pages=[
-    document.getElementById(`${pagePrefix}-report-page-1`),
-    document.getElementById(`${pagePrefix}-report-page-2`)
-  ].filter(Boolean);
-
-  if(!pages.length){
-    alert('ไม่พบใบสรุปบำนาญ');
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('ไม่พบ jsPDF');
     return;
   }
 
@@ -11573,26 +11697,44 @@ async function downloadAnnuityPDF(key,btn){
 
   try{
     const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
 
-    for(let i=0;i<pages.length;i++){
-      if(i>0) pdf.addPage('a4','portrait');
-      const canvas=await renderReportPageToCanvas(pages[i]);
-      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
-    }
+    const pdf=new jsPDF({
+      orientation:'portrait',
+      unit:'mm',
+      format:'a4',
+      compress:true
+    });
 
-    const customerName=(state.customer.firstName || state.customer.lastName)
-      ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
-      : 'customer';
+    const canvas=await renderReportPageToCanvas(page);
 
-    const version=key==='annuityfix'
-      ? ANNUITY_FIX_REPORT_VERSION
-      : ANNUITY_SURE_REPORT_VERSION;
+    pdf.addImage(
+      canvas.toDataURL('image/png'),
+      'PNG',
+      0,
+      0,
+      210,
+      297,
+      undefined,
+      'FAST'
+    );
+
+    const customerName=
+      (state.customer.firstName || state.customer.lastName)
+        ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`
+            .trim()
+            .replace(/\s+/g,'-')
+        : 'customer';
+
+    const version=
+      key==='annuityfix'
+        ? ANNUITY_FIX_REPORT_VERSION
+        : ANNUITY_SURE_REPORT_VERSION;
 
     await savePdfCrossDevice(
       pdf,
       `royal-partner-${key}-${customerName}-v${version.replaceAll('.','-')}-${Date.now()}.pdf`
     );
+
   }catch(error){
     console.error('Annuity PDF export error:',error);
     alert(error?.message || 'สร้าง PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
@@ -11602,6 +11744,7 @@ async function downloadAnnuityPDF(key,btn){
     btn.textContent=old;
   }
 }
+
 
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
@@ -11691,7 +11834,7 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 2 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 2 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='annuityfix' || key==='annuitysure' ? `
