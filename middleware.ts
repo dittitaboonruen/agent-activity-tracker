@@ -279,7 +279,10 @@ export async function middleware(
 
   // Machine-to-machine endpoint authenticates its Bearer secret in the route.
   // Exact path only: no session lookup and no public dashboard access.
-  if (pathname === "/api/integrations/google-form-quiz") {
+  if (
+    pathname === "/api/integrations/google-form-quiz" ||
+    pathname === "/api/monthly-performance-sheet-sync"
+  ) {
     return NextResponse.next();
   }
 
