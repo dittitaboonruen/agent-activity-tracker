@@ -200,6 +200,22 @@ function currentBangkokYearMonth() {
   };
 }
 
+function bangkokGeneratedLabel() {
+  return new Intl.DateTimeFormat(
+    "th-TH",
+    {
+      timeZone:
+        "Asia/Bangkok",
+      dateStyle:
+        "medium",
+      timeStyle:
+        "short",
+    }
+  ).format(
+    new Date()
+  );
+}
+
 function money(
   value: number
 ) {
@@ -857,6 +873,82 @@ export default function PerformanceDashboardPage() {
       ]
     );
 
+  const selectedUnitMonthRows =
+    useMemo(
+      () =>
+        monthRows.filter(
+          (row) =>
+            unitLookup(
+              row
+            ) ===
+            selectedUnit
+        ),
+      [
+        monthRows,
+        selectedUnit,
+        unitLookup,
+      ]
+    );
+
+  const selectedUnitYtdRows =
+    useMemo(
+      () =>
+        ytdRows.filter(
+          (row) =>
+            unitLookup(
+              row
+            ) ===
+            selectedUnit
+        ),
+      [
+        ytdRows,
+        selectedUnit,
+        unitLookup,
+      ]
+    );
+
+  const viewTotals =
+    useMemo(
+      () => {
+        if (
+          view === "unit"
+        ) {
+          return {
+            month:
+              sumRows(
+                selectedUnitMonthRows
+              ),
+            ytd:
+              sumRows(
+                selectedUnitYtdRows
+              ),
+            active:
+              countActive(
+                selectedUnitMonthRows
+              ),
+          };
+        }
+
+        return {
+          month:
+            totals.month,
+          ytd:
+            totals.ytd,
+          active:
+            countActive(
+              monthRows
+            ),
+        };
+      },
+      [
+        view,
+        selectedUnitMonthRows,
+        selectedUnitYtdRows,
+        totals,
+        monthRows,
+      ]
+    );
+
   /* ---------------------------------------------------------------- */
   /* UNIT MONTHLY                                                      */
   /* ---------------------------------------------------------------- */
@@ -1150,6 +1242,60 @@ export default function PerformanceDashboardPage() {
     }, [
       unitRanking,
     ]);
+
+  const reportViewLabel =
+    view === "agent"
+      ? "รายตัวแทน"
+      : view === "unit"
+      ? `รายหน่วย - ${
+          selectedUnit ||
+          "-"
+        }`
+      : "อันดับเครือ";
+
+  const topAgent =
+    agentSummary[0] ??
+    null;
+
+  const topUnit =
+    unitRanking[0] ??
+    null;
+
+  const reportChartData =
+    view === "agent"
+      ? agentChartData.slice(
+          0,
+          8
+        )
+      : view === "unit"
+      ? unitTrendChartData
+      : rankingChartData;
+
+  function exportPDF() {
+    const previousTitle =
+      document.title;
+
+    const safeView =
+      reportViewLabel
+        .replace(
+          /[\\/:*?"<>|]/g,
+          "-"
+        )
+        .replace(
+          /\s+/g,
+          "_"
+        );
+
+    document.title =
+      `RoyalPartner_MonthlyPerformance_${safeView}_${year}-${month}`;
+
+    try {
+      window.print();
+    } finally {
+      document.title =
+        previousTitle;
+    }
+  }
 
   /* ---------------------------------------------------------------- */
   /* EXPORT EXCEL                                                      */
@@ -1750,6 +1896,85 @@ export default function PerformanceDashboardPage() {
           "background .2s ease, color .2s ease",
       }}
     >
+      <style>{`
+        .rp-print-report {
+          position: fixed;
+          left: -220vw;
+          top: 0;
+          width: 277mm;
+          background: #ffffff;
+          color: #18120A;
+          font-family: Arial, "Noto Sans Thai", "Tahoma", sans-serif;
+        }
+
+        @page {
+          size: A4 landscape;
+          margin: 10mm;
+        }
+
+        @media print {
+          html,
+          body {
+            background: #ffffff !important;
+          }
+
+          body * {
+            visibility: hidden !important;
+          }
+
+          .rp-print-report,
+          .rp-print-report * {
+            visibility: visible !important;
+          }
+
+          .rp-print-report {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
+
+      <PrintManagementReport
+        view={
+          view
+        }
+        viewLabel={
+          reportViewLabel
+        }
+        monthLabel={
+          monthLabel
+        }
+        thaiYear={
+          thaiYear
+        }
+        selectedUnit={
+          selectedUnit
+        }
+        monthTotals={
+          viewTotals.month
+        }
+        ytdTotals={
+          viewTotals.ytd
+        }
+        activeAgents={
+          viewTotals.active
+        }
+        chartData={
+          reportChartData
+        }
+        topAgent={
+          topAgent
+        }
+        topUnit={
+          topUnit
+        }
+        generatedAt={
+          bangkokGeneratedLabel()
+        }
+      />
+
       <div
         style={{
           maxWidth:
@@ -2075,6 +2300,53 @@ export default function PerformanceDashboardPage() {
                 อันดับเครือ
               </ViewButton>
             </div>
+
+            <button
+              type="button"
+              onClick={
+                exportPDF
+              }
+              disabled={
+                loading
+              }
+              style={{
+                background:
+                  "transparent",
+
+                color:
+                  "var(--gold-bright)",
+
+                border:
+                  "1px solid var(--gold)",
+
+                borderRadius:
+                  10,
+
+                padding:
+                  "10px 15px",
+
+                fontSize:
+                  13,
+
+                fontWeight:
+                  800,
+
+                cursor:
+                  loading
+                    ? "not-allowed"
+                    : "pointer",
+
+                opacity:
+                  loading
+                    ? 0.6
+                    : 1,
+
+                whiteSpace:
+                  "nowrap",
+              }}
+            >
+              📄 Export PDF
+            </button>
 
             <button
               type="button"
@@ -3413,6 +3685,700 @@ function PerformanceOverview({
         </div>
       )}
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* PRINT / PDF REPORT                                                  */
+/* ------------------------------------------------------------------ */
+
+function PrintManagementReport({
+  view,
+  viewLabel,
+  monthLabel,
+  thaiYear,
+  selectedUnit,
+  monthTotals,
+  ytdTotals,
+  activeAgents,
+  chartData,
+  topAgent,
+  topUnit,
+  generatedAt,
+}: {
+  view: View;
+  viewLabel: string;
+  monthLabel: string;
+  thaiYear: number;
+  selectedUnit: string;
+  monthTotals: Totals;
+  ytdTotals: Totals;
+  activeAgents: number;
+  chartData:
+    PerformanceChartRow[];
+  topAgent:
+    AgentSummary | null;
+  topUnit:
+    UnitLine | null;
+  generatedAt: string;
+}) {
+  const maxFyc =
+    Math.max(
+      1,
+      ...chartData.map(
+        (row) =>
+          row.fyc
+      )
+    );
+
+  const chartTitle =
+    view === "agent"
+      ? "Top Performer - FYC อนุมัติ"
+      : view === "unit"
+      ? `แนวโน้ม FYC - ${
+          selectedUnit ||
+          "-"
+        }`
+      : "อันดับหน่วย - FYC อนุมัติ";
+
+  const summaryText =
+    view === "unit"
+      ? `${
+          selectedUnit ||
+          "หน่วยที่เลือก"
+        } มียอด FYC อนุมัติเดือนนี้ ${money(
+          monthTotals.fycApproved
+        )} บาท จาก ${activeAgents.toLocaleString()} Active Agent และยอด FYC YTD ${money(
+          ytdTotals.fycApproved
+        )} บาท`
+      : view === "rank"
+      ? topUnit
+        ? `หน่วยอันดับ 1 เดือนนี้คือ ${topUnit.label} ด้วย FYC อนุมัติ ${money(
+            topUnit.month
+              .fycApproved
+          )} บาท โดยทั้งเครือมี FYC อนุมัติ ${money(
+            monthTotals.fycApproved
+          )} บาท`
+        : "ยังไม่มีข้อมูลเพียงพอสำหรับสรุปอันดับหน่วย"
+      : topAgent
+      ? `ตัวแทนผลงาน FYC สูงสุดเดือนนี้คือ ${topAgent.nickname ||
+          topAgent.name} (${topAgent.unit}) ที่ ${money(
+          topAgent.month
+            .fycApproved
+        )} บาท โดยมี Active Agent รวม ${activeAgents.toLocaleString()} คน`
+      : "ยังไม่มีข้อมูลเพียงพอสำหรับสรุปผลงานตัวแทน";
+
+  return (
+    <section
+      className="rp-print-report"
+      aria-hidden="true"
+      style={{
+        padding:
+          "0",
+      }}
+    >
+      <div
+        style={{
+          borderBottom:
+            "3px solid #C9972B",
+          paddingBottom:
+            12,
+          marginBottom:
+            14,
+          display:
+            "flex",
+          alignItems:
+            "flex-end",
+          justifyContent:
+            "space-between",
+          gap:
+            20,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize:
+                12,
+              fontWeight:
+                800,
+              letterSpacing:
+                2,
+              color:
+                "#9A6B0A",
+            }}
+          >
+            ROYAL PARTNER
+          </div>
+
+          <div
+            style={{
+              fontSize:
+                25,
+              fontWeight:
+                900,
+              marginTop:
+                3,
+            }}
+          >
+            Monthly Performance Report
+          </div>
+
+          <div
+            style={{
+              fontSize:
+                12,
+              color:
+                "#5F574D",
+              marginTop:
+                4,
+            }}
+          >
+            {monthLabel} {thaiYear} · {viewLabel}
+          </div>
+        </div>
+
+        <div
+          style={{
+            textAlign:
+              "right",
+            fontSize:
+              10,
+            color:
+              "#746B60",
+            lineHeight:
+              1.6,
+          }}
+        >
+          <div>
+            Management Report
+          </div>
+          <div>
+            สร้างเมื่อ {generatedAt}
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display:
+            "grid",
+          gridTemplateColumns:
+            "repeat(4, 1fr)",
+          gap:
+            8,
+          marginBottom:
+            12,
+        }}
+      >
+        <PrintKpi
+          label="AIA Case อนุมัติ"
+          value={
+            monthTotals.caseApproved.toLocaleString()
+          }
+        />
+        <PrintKpi
+          label="AIA FYP อนุมัติ"
+          value={
+            money(
+              monthTotals.fypApproved
+            )
+          }
+        />
+        <PrintKpi
+          label="AIA FYC อนุมัติ"
+          value={
+            money(
+              monthTotals.fycApproved
+            )
+          }
+          highlight
+        />
+        <PrintKpi
+          label="Active Agent"
+          value={
+            activeAgents.toLocaleString()
+          }
+        />
+      </div>
+
+      <div
+        style={{
+          display:
+            "grid",
+          gridTemplateColumns:
+            "1.55fr 1fr",
+          gap:
+            12,
+          alignItems:
+            "stretch",
+        }}
+      >
+        <div
+          style={{
+            border:
+              "1px solid #DDD4C7",
+            borderRadius:
+              10,
+            padding:
+              12,
+            minHeight:
+              245,
+          }}
+        >
+          <div
+            style={{
+              fontSize:
+                13,
+              fontWeight:
+                800,
+              marginBottom:
+                10,
+            }}
+          >
+            {chartTitle}
+          </div>
+
+          {chartData.length ===
+          0 ? (
+            <div
+              style={{
+                padding:
+                  "65px 10px",
+                textAlign:
+                  "center",
+                color:
+                  "#8B8175",
+                fontSize:
+                  12,
+              }}
+            >
+              ยังไม่มีข้อมูลสำหรับสร้างกราฟ
+            </div>
+          ) : (
+            <div
+              style={{
+                display:
+                  "grid",
+                gap:
+                  7,
+              }}
+            >
+              {chartData.map(
+                (
+                  row,
+                  index
+                ) => {
+                  const width =
+                    Math.max(
+                      2,
+                      (row.fyc /
+                        maxFyc) *
+                        100
+                    );
+
+                  const unitName =
+                    view ===
+                    "unit"
+                      ? selectedUnit
+                      : row.unit ||
+                        row.name;
+
+                  return (
+                    <div
+                      key={`print-bar-${row.name}-${index}`}
+                      style={{
+                        display:
+                          "grid",
+                        gridTemplateColumns:
+                          "105px 1fr 82px",
+                        gap:
+                          8,
+                        alignItems:
+                          "center",
+                        fontSize:
+                          10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          whiteSpace:
+                            "nowrap",
+                          overflow:
+                            "hidden",
+                          textOverflow:
+                            "ellipsis",
+                          fontWeight:
+                            700,
+                        }}
+                      >
+                        {row.name}
+                      </div>
+
+                      <div
+                        style={{
+                          height:
+                            13,
+                          background:
+                            "#F1ECE4",
+                          borderRadius:
+                            999,
+                          overflow:
+                            "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width:
+                              `${width}%`,
+                            height:
+                              "100%",
+                            borderRadius:
+                              999,
+                            background:
+                              getUnitColor(
+                                unitName,
+                                index
+                              ),
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        style={{
+                          textAlign:
+                            "right",
+                          fontVariantNumeric:
+                            "tabular-nums",
+                        }}
+                      >
+                        {money(
+                          row.fyc
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            display:
+              "grid",
+            gap:
+              10,
+          }}
+        >
+          <div
+            style={{
+              border:
+                "1px solid #DDD4C7",
+              borderRadius:
+                10,
+              padding:
+                12,
+            }}
+          >
+            <div
+              style={{
+                fontSize:
+                  12,
+                fontWeight:
+                  800,
+                marginBottom:
+                  7,
+                color:
+                  "#9A6B0A",
+              }}
+            >
+              Management Summary
+            </div>
+
+            <div
+              style={{
+                fontSize:
+                  11,
+                lineHeight:
+                  1.7,
+                color:
+                  "#3E3832",
+              }}
+            >
+              {summaryText}
+            </div>
+          </div>
+
+          <div
+            style={{
+              border:
+                "1px solid #DDD4C7",
+              borderRadius:
+                10,
+              padding:
+                12,
+            }}
+          >
+            <div
+              style={{
+                fontSize:
+                  12,
+                fontWeight:
+                  800,
+                marginBottom:
+                  7,
+              }}
+            >
+              YTD Snapshot
+            </div>
+
+            <PrintMetricRow
+              label="AIA Case YTD"
+              value={
+                ytdTotals.caseApproved.toLocaleString()
+              }
+            />
+            <PrintMetricRow
+              label="AIA FYP YTD"
+              value={
+                money(
+                  ytdTotals.fypApproved
+                )
+              }
+            />
+            <PrintMetricRow
+              label="AIA FYC YTD"
+              value={
+                money(
+                  ytdTotals.fycApproved
+                )
+              }
+            />
+            <PrintMetricRow
+              label="PA FYP เดือนนี้"
+              value={
+                money(
+                  monthTotals.paFyp
+                )
+              }
+            />
+            <PrintMetricRow
+              label="PA FYC เดือนนี้"
+              value={
+                money(
+                  monthTotals.paFyc
+                )
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop:
+            12,
+          border:
+            "1px solid #DDD4C7",
+          borderRadius:
+            10,
+          overflow:
+            "hidden",
+        }}
+      >
+        <div
+          style={{
+            padding:
+              "8px 10px",
+            background:
+              "#F7F1E6",
+            fontWeight:
+              800,
+            fontSize:
+              11,
+          }}
+        >
+          Executive Highlights
+        </div>
+
+        <div
+          style={{
+            display:
+              "grid",
+            gridTemplateColumns:
+              "1fr 1fr",
+            gap:
+              0,
+          }}
+        >
+          <div
+            style={{
+              padding:
+                "9px 10px",
+              borderRight:
+                "1px solid #E4DDD3",
+              fontSize:
+                10,
+              lineHeight:
+                1.6,
+            }}
+          >
+            <strong>
+              Top Performer:
+            </strong>{" "}
+            {topAgent
+              ? `${topAgent.nickname ||
+                  topAgent.name} · ${topAgent.unit} · FYC ${money(
+                  topAgent.month
+                    .fycApproved
+                )}`
+              : "-"}
+          </div>
+
+          <div
+            style={{
+              padding:
+                "9px 10px",
+              fontSize:
+                10,
+              lineHeight:
+                1.6,
+            }}
+          >
+            <strong>
+              Top Unit:
+            </strong>{" "}
+            {topUnit
+              ? `${topUnit.label} · FYC ${money(
+                  topUnit.month
+                    .fycApproved
+                )} · Active ${topUnit.activeAgents}`
+              : "-"}
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop:
+            10,
+          display:
+            "flex",
+          justifyContent:
+            "space-between",
+          color:
+            "#8B8175",
+          fontSize:
+            9,
+        }}
+      >
+        <span>
+          Source: Royal Partner Agent Performance Hub
+        </span>
+        <span>
+          Confidential - Internal Management Use
+        </span>
+      </div>
+    </section>
+  );
+}
+
+function PrintKpi({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        border:
+          highlight
+            ? "1.5px solid #C9972B"
+            : "1px solid #DDD4C7",
+        borderRadius:
+          9,
+        padding:
+          "9px 10px",
+        background:
+          highlight
+            ? "#FFF9EC"
+            : "#FFFFFF",
+      }}
+    >
+      <div
+        style={{
+          fontSize:
+            9,
+          color:
+            "#746B60",
+          marginBottom:
+            4,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          fontSize:
+            17,
+          fontWeight:
+            900,
+          color:
+            highlight
+              ? "#9A6B0A"
+              : "#18120A",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function PrintMetricRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        display:
+          "flex",
+        justifyContent:
+          "space-between",
+        gap:
+          12,
+        padding:
+          "4px 0",
+        borderBottom:
+          "1px solid #EFE9E0",
+        fontSize:
+          10,
+      }}
+    >
+      <span
+        style={{
+          color:
+            "#746B60",
+        }}
+      >
+        {label}
+      </span>
+
+      <strong>
+        {value}
+      </strong>
+    </div>
   );
 }
 
