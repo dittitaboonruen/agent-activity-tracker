@@ -5931,6 +5931,9 @@
 
   <div class="tabgroup-label">3. กลุ่มโรคร้ายแรง</div>
   <div class="tabs" id="tabs-ci"></div>
+
+  <div class="tabgroup-label">4. กลุ่มบำนาญ</div>
+  <div class="tabs" id="tabs-retirement"></div>
 </div>
 
 <main id="app"></main>
@@ -6583,7 +6586,9 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   },
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7 },
-  pay25: { subtab:'planA', planBTerm:7 }
+  pay25: { subtab:'planA', planBTerm:7 },
+  annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
+  annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' }
 };
 
 const TABS = [
@@ -6592,12 +6597,15 @@ const TABS = [
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
   {id:'cisupercare', label:'CI SuperCare', group:'ci'},
+  {id:'annuityfix', label:'Annuity Fix', group:'retirement'},
+  {id:'annuitysure', label:'Annuity Sure', group:'retirement'},
 ];
 
 function buildTabs(){
   const lEl = document.getElementById('tabs-life');
   const sEl = document.getElementById('tabs-savings');
   const cEl = document.getElementById('tabs-ci');
+  const rEl = document.getElementById('tabs-retirement');
 
   TABS.forEach(t=>{
     const b = document.createElement('button');
@@ -6608,7 +6616,8 @@ function buildTabs(){
 
     if(t.group==='life') lEl.appendChild(b);
     else if(t.group==='savings') sEl.appendChild(b);
-    else cEl.appendChild(b);
+    else if(t.group==='ci') cEl.appendChild(b);
+    else rEl.appendChild(b);
   });
 }
 
@@ -7107,6 +7116,415 @@ function viewCISuperCare(app){
     '<b>ข้อมูลเพิ่มเติม:</b> เบี้ยประกันคงที่ • ถ้าไม่เป็นโรคร้าย มีมูลค่าเวนคืนให้ (ตามปีนั้นๆ)';
   panel.appendChild(displayNote);
 addExportButton(app, 'cisupercare');
+}
+
+
+/* ===================== Group 4: Retirement / Annuity ===================== */
+
+const ANNUITY_FIX_RATE = Object.freeze({
+  20:[16.2,16.5],21:[16.9,17.2],22:[17.7,18],23:[18.5,18.7],24:[19.3,19.6],
+  25:[20.2,20.5],26:[21.2,21.4],27:[22.2,22.4],28:[23.3,23.5],29:[24.4,24.6],
+  30:[25.7,25.8],31:[27,27.1],32:[28.4,28.5],33:[29.9,30],34:[31.6,31.7],
+  35:[33.4,33.4],36:[35.4,35.4],37:[37.5,37.5],38:[39.9,39.8],39:[42.4,42.4],
+  40:[45.3,45.2],41:[48.5,48.3],42:[52,51.7],43:[56,55.6],44:[60.4,60.1],
+  45:[65.6,65.2],46:[71.5,70.9],47:[78.3,77.6],48:[86.3,85.6],49:[95.83,95.07],
+  50:[107.2,106.33],51:[121.1,120.1],52:[138.6,137.6],53:[161.5,160.3],
+  54:[192.4,191],55:[236.5,234.8]
+});
+
+const ANNUITY_FIX_PV = Object.freeze({
+  60:772,61:724,62:675,63:624,64:573,65:521,66:467,67:413,
+  68:358,69:301,70:243,71:184,72:124,73:63,74:0
+});
+
+const ANNUITY_FIX_FREQUENCY = Object.freeze({
+  'รายปี':1,
+  'ราย 6 เดือน':0.5103,
+  'ราย 3 เดือน':0.2703,
+  'รายเดือน':0.0903
+});
+
+const ANNUITY_SURE_RATE_9 = Object.freeze({
+  20:[154,168],21:[157,172],22:[161,176],23:[164,179],24:[167,183],25:[171,187],
+  26:[175,190],27:[179,194],28:[183,199],29:[187,202],30:[191,207],31:[195,212],
+  32:[200,216],33:[204,221],34:[209,225],35:[213,230],36:[218,236],37:[223,242],
+  38:[228,247],39:[235,254],40:[241,260],41:[247,267],42:[255,273],43:[262,281],
+  44:[270,288],45:[279,296],46:[287,304],47:[296,313],48:[306,321],49:[316,331],
+  50:[328,340]
+});
+
+const ANNUITY_SURE_RATE_60 = Object.freeze({
+  20:[44,47],21:[46,50],22:[48,51],23:[50,54],24:[51,56],25:[55,58],26:[56,61],
+  27:[59,64],28:[61,67],29:[64,70],30:[70,73],31:[70,77],32:[74,80],33:[79,85],
+  34:[82,89],35:[90,95],36:[92,99],37:[98,106],38:[105,112],39:[111,119],
+  40:[123,129],41:[127,136],42:[137,146],43:[148,157],44:[160,170],45:[178,186],
+  46:[191,201],47:[210,220],48:[232,243],49:[259,270],50:[292,304],51:[333,345],
+  52:[387,398],53:[458,467],54:[557,564],55:[649,676]
+});
+
+const ANNUITY_SURE_PV = Object.freeze({
+  60:1852,61:1736,62:1618,63:1497,64:1374,65:1249,66:1121,67:990,
+  68:857,69:721,70:583,71:441,72:297,73:150,74:0
+});
+
+function annuityGenderIndex(gender){
+  return gender==='ชาย' ? 0 : 1;
+}
+
+function annuityFixTaxRate(income){
+  const taxable=Math.max(0,Number(income||0)-160000);
+  if(taxable<=150000) return 0;
+  if(taxable<=300000) return 0.05;
+  if(taxable<=500000) return 0.10;
+  if(taxable<=750000) return 0.15;
+  if(taxable<=1000000) return 0.20;
+  if(taxable<=2000000) return 0.25;
+  if(taxable<=5000000) return 0.30;
+  return 0.35;
+}
+
+function calcAnnuityFix(age,gender,annualPension,income,frequency){
+  age=Number(age);
+  annualPension=Number(annualPension)||0;
+  income=Number(income)||0;
+
+  const pensionRate=gender==='ชาย' ? 0.0625 : 0.0595;
+  const initialAnnuity=annualPension/pensionRate;
+  const rateRow=ANNUITY_FIX_RATE[age] || null;
+  const rate=rateRow ? rateRow[annuityGenderIndex(gender)] : null;
+  const frequencyFactor=ANNUITY_FIX_FREQUENCY[frequency] ?? 1;
+  const annualPremium=rate===null ? 0 : rate*(initialAnnuity/1000);
+  const installmentPremium=rate===null ? 0 : Math.round((rate*frequencyFactor)*100)/100*(initialAnnuity/1000);
+  const payYears=60-age;
+  const taxRate=annuityFixTaxRate(income);
+  const deductionCap=Math.min(200000,0.15*income);
+
+  const rows=[];
+  let cumulativePremium=0;
+  let cumulativePension=0;
+
+  if(Number.isInteger(age) && age>=20 && age<=55){
+    for(let offset=0; age+offset<=85; offset++){
+      const rowAge=age+offset;
+      const premium=offset<payYears ? annualPremium : 0;
+      const pension=(rowAge>=60 && rowAge<=85) ? annualPension : 0;
+      cumulativePremium += premium;
+      cumulativePension += pension;
+
+      let deathBenefit=0;
+      if(rowAge<60){
+        deathBenefit=Math.max(cumulativePremium*1.05,0);
+      }else if(rowAge<=74){
+        deathBenefit=(ANNUITY_FIX_PV[rowAge]||0)*(initialAnnuity/1000);
+      }
+
+      const taxRelief=Math.min(premium,deductionCap)*taxRate;
+
+      rows.push({
+        year:offset,
+        age:rowAge,
+        premium,
+        pension,
+        cumulativePremium,
+        cumulativePension,
+        deathBenefit,
+        taxRelief
+      });
+    }
+  }
+
+  return {
+    validAge:Number.isInteger(age) && age>=20 && age<=55,
+    validInitial:initialAnnuity>=200000,
+    pensionRate,
+    initialAnnuity,
+    rate,
+    annualPremium,
+    installmentPremium,
+    payYears,
+    taxRate,
+    deductionCap,
+    annualPension,
+    income,
+    frequency,
+    rows
+  };
+}
+
+function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
+  age=Number(age);
+  sumInsured=Number(sumInsured)||0;
+  taxRate=Number(taxRate)||0;
+
+  const isNine=payPlan==='ชำระเบี้ยฯ 9 ปี';
+  const validAge=Number.isInteger(age) && age>=20 && age<=(isNine?50:55);
+  const rateTable=isNine ? ANNUITY_SURE_RATE_9 : ANNUITY_SURE_RATE_60;
+  const rateRow=rateTable[age] || null;
+  const rate=rateRow ? rateRow[annuityGenderIndex(gender)] : null;
+  const annualPremium=rate===null ? 0 : rate*(sumInsured/1000);
+  const payYears=isNine ? 9 : 60-age;
+  const annualPension=sumInsured*0.15;
+
+  const rows=[];
+  let cumulativePremium=0;
+  let cumulativePension=0;
+
+  if(validAge){
+    for(let offset=0; age+offset<=90; offset++){
+      const rowAge=age+offset;
+      const premium=offset<payYears ? annualPremium : 0;
+      const pension=(rowAge>=60 && rowAge<=90) ? annualPension : 0;
+      cumulativePremium += premium;
+      cumulativePension += pension;
+
+      let deathBenefit=0;
+      if(rowAge<60){
+        deathBenefit=Math.max(cumulativePremium*1.10,0);
+      }else if(rowAge<=74){
+        deathBenefit=Math.max(
+          cumulativePremium-cumulativePension,
+          (ANNUITY_SURE_PV[rowAge]||0)*(sumInsured/1000)+pension
+        );
+      }else{
+        deathBenefit=Math.max(cumulativePremium-cumulativePension,0);
+      }
+
+      const taxRelief=Math.min(premium,200000)*taxRate;
+
+      rows.push({
+        year:offset,
+        age:rowAge,
+        premium,
+        pension,
+        cumulativePremium,
+        cumulativePension,
+        deathBenefit,
+        taxRelief
+      });
+    }
+  }
+
+  return {
+    validAge,
+    minSumOk:sumInsured>=100000,
+    isNine,
+    rate,
+    annualPremium,
+    payYears,
+    annualPension,
+    totalPension:annualPension*31,
+    sumInsured,
+    taxRate,
+    payPlan,
+    rows
+  };
+}
+
+function annMoneyInput(value){
+  const n=Number(value)||0;
+  return Math.round(n).toLocaleString('en-US');
+}
+
+function annParseMoney(value){
+  const n=Number(String(value??'').replace(/,/g,'').replace(/[^\d.-]/g,''));
+  return Number.isFinite(n)?n:0;
+}
+
+function buildAnnuityMapHTML(type,data){
+  if(type==='fix'){
+    return `
+      <div class="ann-benefit-map">
+        <div class="ann-benefit-title">ภาพสรุปช่วงชำระเบี้ยและรับเงินบำนาญ</div>
+        <div class="ann-benefit-row">
+          <div class="ann-benefit-label">ช่วงชำระเบี้ย</div>
+          <div class="ann-benefit-track cover">อายุ ${state.age}–59 ปี • ชำระเบี้ยถึงอายุ 60 ปี</div>
+        </div>
+        <div class="ann-benefit-row">
+          <div class="ann-benefit-label">ช่วงรับเงินบำนาญ</div>
+          <div class="ann-benefit-track pension">อายุ 60–85 ปี • ${fmt(data.annualPension)} บาท/ปี • รวม 26 งวด</div>
+        </div>
+        <div class="ann-benefit-row" style="margin-bottom:0">
+          <div class="ann-benefit-label">ก่อนรับเงินบำนาญ</div>
+          <div class="ann-benefit-track">ตารางคำนวณแสดง 105% ของเบี้ยสะสม; กรมธรรม์จริงเทียบมูลค่าเวนคืนและใช้จำนวนที่สูงกว่า</div>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="ann-benefit-map">
+      <div class="ann-benefit-title">ภาพสรุปช่วงชำระเบี้ยและรับเงินบำนาญ</div>
+      <div class="ann-benefit-row">
+        <div class="ann-benefit-label">ช่วงชำระเบี้ย</div>
+        <div class="ann-benefit-track cover">${data.isNine?'ชำระเบี้ย 9 ปี':'ชำระเบี้ยถึงอายุ 60 ปี'} • ${data.payYears} ปี</div>
+      </div>
+      <div class="ann-benefit-row">
+        <div class="ann-benefit-label">ช่วงรับเงินบำนาญ</div>
+        <div class="ann-benefit-track pension">อายุ 60–90 ปี • 15% ของทุนประกัน = ${fmt(data.annualPension)} บาท/ปี • รวม 31 งวด</div>
+      </div>
+      <div class="ann-benefit-row" style="margin-bottom:0">
+        <div class="ann-benefit-label">ก่อนรับเงินบำนาญ</div>
+        <div class="ann-benefit-track">ตารางคำนวณแสดง 110% ของเบี้ยสะสม; กรมธรรม์จริงเทียบมูลค่าเวนคืนและใช้จำนวนที่สูงกว่า</div>
+      </div>
+    </div>`;
+}
+
+function viewAnnuityFix(app){
+  const cfg=state.annuityfix;
+  const r=calcAnnuityFix(state.age,state.gender,cfg.annualPension,cfg.income,cfg.frequency);
+
+  app.innerHTML=panelShell(
+    'retirement',
+    'AIA Annuity Fix — เอไอเอ บำนาญ มั่นคง',
+    'ชำระเบี้ยถึงอายุ 60 ปี รับเงินบำนาญอายุ 60–85 ปี และใช้สิทธิลดหย่อนภาษีตามเงื่อนไข'
+  );
+  const panel=app.querySelector('.panel');
+
+  const controls=document.createElement('div');
+  controls.className='ann-controls';
+  controls.innerHTML=`
+    <div class="ann-control">
+      <label>เงินบำนาญที่ต้องการ / ปี</label>
+      <input id="ann-fix-pension" type="text" inputmode="numeric" value="${annMoneyInput(cfg.annualPension)}">
+    </div>
+    <div class="ann-control">
+      <label>รายได้ต่อปี (ใช้คำนวณฐานภาษีตามไฟล์)</label>
+      <input id="ann-fix-income" type="text" inputmode="numeric" value="${annMoneyInput(cfg.income)}">
+    </div>
+    <div class="ann-control">
+      <label>งวดชำระเบี้ย</label>
+      <select id="ann-fix-frequency">
+        ${Object.keys(ANNUITY_FIX_FREQUENCY).map(x=>`<option ${x===cfg.frequency?'selected':''}>${x}</option>`).join('')}
+      </select>
+    </div>`;
+  panel.appendChild(controls);
+
+  controls.querySelector('#ann-fix-pension').addEventListener('change',e=>{
+    state.annuityfix.annualPension=annParseMoney(e.target.value);
+    render();
+  });
+  controls.querySelector('#ann-fix-income').addEventListener('change',e=>{
+    state.annuityfix.income=annParseMoney(e.target.value);
+    render();
+  });
+  controls.querySelector('#ann-fix-frequency').addEventListener('change',e=>{
+    state.annuityfix.frequency=e.target.value;
+    render();
+  });
+
+  fillSummary(app,[
+    {lbl:'มูลค่าบำนาญตั้งต้น',val:fmt(r.initialAnnuity)},
+    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:fmt(r.annualPremium)},
+    {lbl:`เบี้ยต่อหนึ่งงวด (${r.frequency})`,val:fmt(r.installmentPremium)},
+    {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension)}
+  ]);
+
+  const noteBox=document.createElement('div');
+  noteBox.className='ann-inline-note';
+  noteBox.innerHTML=`ฐานภาษีตามสูตรในไฟล์: <b>${Math.round(r.taxRate*100)}%</b> • วงเงินเบี้ยที่ใช้คำนวณลดหย่อนสูงสุด <b>${fmt(r.deductionCap)} บาท/ปี</b> • ช่อง “ทุนประกัน” ด้านบนไม่ใช้ในสูตร Annuity Fix`;
+  panel.appendChild(noteBox);
+
+  if(!r.validAge || !r.validInitial){
+    const warning=document.createElement('div');
+    warning.className='ann-warning';
+    warning.textContent=!r.validAge
+      ? 'อายุรับประกันสำหรับ Annuity Fix คือ 20–55 ปี'
+      : 'มูลค่าบำนาญตั้งต้นต้องไม่น้อยกว่า 200,000 บาท';
+    panel.appendChild(warning);
+  }
+
+  const mapWrap=document.createElement('div');
+  mapWrap.innerHTML=buildAnnuityMapHTML('fix',r);
+  panel.appendChild(mapWrap.firstElementChild);
+
+  const ledger=document.createElement('div');
+  ledger.className='ledger-wrap';
+  ledger.innerHTML='<h3>ตารางแสดงผลประโยชน์รายปี</h3><div class="ann-fix-ledger"></div>';
+  panel.appendChild(ledger);
+  renderLedger(ledger.querySelector('.ann-fix-ledger'),r.rows,[
+    {key:'year',label:'ปีที่'},
+    {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยที่ชำระ'},
+    {key:'pension',label:'เงินบำนาญ'},
+    {key:'cumulativePremium',label:'สะสมเบี้ย'},
+    {key:'cumulativePension',label:'สะสมบำนาญ'},
+    {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
+    {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+  ]);
+
+  const resource=document.createElement('div');
+  resource.innerHTML=buildFrontResourceSection('annuityfix');
+  panel.appendChild(resource.firstElementChild);
+
+  addExportButton(app,'annuityfix');
+}
+
+function viewAnnuitySure(app){
+  const cfg=state.annuitysure;
+  const r=calcAnnuitySure(state.age,state.gender,state.sum,state.tax,cfg.payPlan);
+
+  app.innerHTML=panelShell(
+    'retirement',
+    'AIA Annuity Sure — เอไอเอ บำนาญ ได้ชัวร์',
+    'เลือกชำระเบี้ย 9 ปี หรือชำระถึงอายุ 60 ปี รับเงินบำนาญ 15% ของทุนประกันทุกปี อายุ 60–90 ปี'
+  );
+  const panel=app.querySelector('.panel');
+
+  const controls=document.createElement('div');
+  controls.className='ann-controls';
+  controls.innerHTML=`
+    <div class="ann-control">
+      <label>แผนชำระเบี้ย</label>
+      <select id="ann-sure-plan">
+        <option ${cfg.payPlan==='ชำระเบี้ยฯ 9 ปี'?'selected':''}>ชำระเบี้ยฯ 9 ปี</option>
+        <option ${cfg.payPlan==='ชำระเบี้ยฯ จนถึงอายุ 60 ปี'?'selected':''}>ชำระเบี้ยฯ จนถึงอายุ 60 ปี</option>
+      </select>
+    </div>`;
+  panel.appendChild(controls);
+  controls.querySelector('#ann-sure-plan').addEventListener('change',e=>{
+    state.annuitysure.payPlan=e.target.value;
+    render();
+  });
+
+  fillSummary(app,[
+    {lbl:'เบี้ยประกันภัยต่อปี',val:fmt(r.annualPremium)},
+    {lbl:'จำนวนปีที่ชำระเบี้ย',val:String(r.payYears)},
+    {lbl:'เงินบำนาญต่อปี (15%)',val:fmt(r.annualPension)},
+    {lbl:'เงินบำนาญรวม 31 งวด',val:fmt(r.totalPension)}
+  ]);
+
+  if(!r.validAge || !r.minSumOk){
+    const warning=document.createElement('div');
+    warning.className='ann-warning';
+    warning.textContent=!r.minSumOk
+      ? 'จำนวนเงินเอาประกันภัยขั้นต่ำ 100,000 บาท'
+      : `อายุรับประกันสำหรับแผนนี้คือ ${r.isNine?'20–50':'20–55'} ปี`;
+    panel.appendChild(warning);
+  }
+
+  const mapWrap=document.createElement('div');
+  mapWrap.innerHTML=buildAnnuityMapHTML('sure',r);
+  panel.appendChild(mapWrap.firstElementChild);
+
+  const ledger=document.createElement('div');
+  ledger.className='ledger-wrap';
+  ledger.innerHTML='<h3>ตารางแสดงผลประโยชน์รายปี</h3><div class="ann-sure-ledger"></div>';
+  panel.appendChild(ledger);
+  renderLedger(ledger.querySelector('.ann-sure-ledger'),r.rows,[
+    {key:'year',label:'ปีที่'},
+    {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยที่ชำระ'},
+    {key:'pension',label:'เงินบำนาญ'},
+    {key:'cumulativePremium',label:'สะสมเบี้ย'},
+    {key:'cumulativePension',label:'สะสมบำนาญ'},
+    {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
+    {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+  ]);
+
+  const resource=document.createElement('div');
+  resource.innerHTML=buildFrontResourceSection('annuitysure');
+  panel.appendChild(resource.firstElementChild);
+
+  addExportButton(app,'annuitysure');
 }
 
 /* ---------- shared render helpers ---------- */
@@ -11101,7 +11519,7 @@ function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, ciprocare:viewCIProCare, cisupercare:viewCISuperCare };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
   map[state.tab](app);
 }
 
