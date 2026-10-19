@@ -1298,582 +1298,6 @@ export default function PerformanceDashboardPage() {
   }
 
   /* ---------------------------------------------------------------- */
-  /* EXPORT EXCEL                                                      */
-  /* ---------------------------------------------------------------- */
-
-  async function exportExcel() {
-    try {
-      const XLSX =
-        await import(
-          "xlsx"
-        );
-
-      const workbook =
-        XLSX.utils.book_new();
-
-      const viewLabel =
-        view === "agent"
-          ? "รายตัวแทน"
-          : view ===
-            "unit"
-          ? `รายหน่วย - ${
-              selectedUnit ||
-              "-"
-            }`
-          : "อันดับเครือ";
-
-      /* ---------------- SUMMARY SHEET ---------------- */
-
-      const summaryData =
-        [
-          [
-            "ROYAL PARTNER",
-          ],
-
-          [
-            "Monthly Performance Report",
-          ],
-
-          [],
-
-          [
-            "เดือน",
-            monthLabel,
-          ],
-
-          [
-            "ปี",
-            thaiYear,
-          ],
-
-          [
-            "มุมมอง",
-            viewLabel,
-          ],
-
-          [],
-
-          [
-            "KPI",
-            "ผลรวม",
-          ],
-
-          [
-            "AIA Case อนุมัติ",
-            totals.month
-              .caseApproved,
-          ],
-
-          [
-            "AIA FYP อนุมัติ",
-            totals.month
-              .fypApproved,
-          ],
-
-          [
-            "AIA FYC อนุมัติ",
-            totals.month
-              .fycApproved,
-          ],
-
-          [
-            "Active Agent",
-            countActive(
-              monthRows
-            ),
-          ],
-
-          [
-            "PA Case",
-            totals.month
-              .paCase,
-          ],
-
-          [
-            "PA FYP",
-            totals.month
-              .paFyp,
-          ],
-
-          [
-            "PA FYC",
-            totals.month
-              .paFyc,
-          ],
-
-          [],
-
-          [
-            "YTD KPI",
-            "ผลรวม",
-          ],
-
-          [
-            "AIA Case YTD",
-            totals.ytd
-              .caseApproved,
-          ],
-
-          [
-            "AIA FYP YTD",
-            totals.ytd
-              .fypApproved,
-          ],
-
-          [
-            "AIA FYC YTD",
-            totals.ytd
-              .fycApproved,
-          ],
-
-          [
-            "PA Case YTD",
-            totals.ytd
-              .paCase,
-          ],
-
-          [
-            "PA FYP YTD",
-            totals.ytd
-              .paFyp,
-          ],
-
-          [
-            "PA FYC YTD",
-            totals.ytd
-              .paFyc,
-          ],
-        ];
-
-      const summarySheet =
-        XLSX.utils.aoa_to_sheet(
-          summaryData
-        );
-
-      summarySheet[
-        "!cols"
-      ] = [
-        {
-          wch: 28,
-        },
-        {
-          wch: 24,
-        },
-      ];
-
-      XLSX.utils.book_append_sheet(
-        workbook,
-        summarySheet,
-        "Summary"
-      );
-
-      /* ---------------- AGENT SHEET ---------------- */
-
-      if (
-        view ===
-        "agent"
-      ) {
-        const exportRows =
-          agentSummary.map(
-            (
-              row,
-              index
-            ) => ({
-              "No.":
-                index + 1,
-
-              Code:
-                row.code ||
-                "",
-
-              Name:
-                row.name,
-
-              "Nick Name":
-                row.nickname ||
-                "",
-
-              หน่วย:
-                row.unit,
-
-              "Case นำส่ง":
-                row.month
-                  .caseSubmitted,
-
-              "Case อนุมัติ":
-                row.month
-                  .caseApproved,
-
-              "FYP นำส่ง":
-                row.month
-                  .fypSubmitted,
-
-              "FYP อนุมัติ":
-                row.month
-                  .fypApproved,
-
-              "FYC อนุมัติ":
-                row.month
-                  .fycApproved,
-
-              "AIA Case YTD":
-                row.ytd
-                  .caseApproved,
-
-              "AIA FYP YTD":
-                row.ytd
-                  .fypApproved,
-
-              "AIA FYC YTD":
-                row.ytd
-                  .fycApproved,
-
-              "Approved Months":
-                row.approvedMonths,
-
-              "PA Case":
-                row.month
-                  .paCase,
-
-              "PA FYP":
-                row.month
-                  .paFyp,
-
-              "PA FYC":
-                row.month
-                  .paFyc,
-
-              "PA Case YTD":
-                row.ytd
-                  .paCase,
-
-              "PA FYP YTD":
-                row.ytd
-                  .paFyp,
-
-              "PA FYC YTD":
-                row.ytd
-                  .paFyc,
-            })
-          );
-
-        const worksheet =
-          XLSX.utils.json_to_sheet(
-            exportRows
-          );
-
-        worksheet[
-          "!cols"
-        ] = [
-          {
-            wch: 7,
-          },
-          {
-            wch: 12,
-          },
-          {
-            wch: 30,
-          },
-          {
-            wch: 18,
-          },
-          {
-            wch: 20,
-          },
-          {
-            wch: 13,
-          },
-          {
-            wch: 13,
-          },
-          {
-            wch: 16,
-          },
-          {
-            wch: 16,
-          },
-          {
-            wch: 16,
-          },
-          {
-            wch: 15,
-          },
-          {
-            wch: 16,
-          },
-          {
-            wch: 16,
-          },
-          {
-            wch: 18,
-          },
-          {
-            wch: 12,
-          },
-          {
-            wch: 14,
-          },
-          {
-            wch: 14,
-          },
-          {
-            wch: 15,
-          },
-          {
-            wch: 15,
-          },
-          {
-            wch: 15,
-          },
-        ];
-
-        XLSX.utils.book_append_sheet(
-          workbook,
-          worksheet,
-          "Agent Performance"
-        );
-      }
-
-      /* ---------------- UNIT SHEET ---------------- */
-
-      if (
-        view ===
-        "unit"
-      ) {
-        const exportRows =
-          unitMonthly.map(
-            (row) => ({
-              เดือน:
-                row.label,
-
-              "AIA Case อนุมัติ":
-                row.month
-                  .caseApproved,
-
-              "AIA FYP อนุมัติ":
-                row.month
-                  .fypApproved,
-
-              "AIA FYC อนุมัติ":
-                row.month
-                  .fycApproved,
-
-              "AIA Case YTD":
-                row.ytd
-                  .caseApproved,
-
-              "AIA FYP YTD":
-                row.ytd
-                  .fypApproved,
-
-              "AIA FYC YTD":
-                row.ytd
-                  .fycApproved,
-
-              "Active Agent":
-                row.activeAgents,
-
-              "PA Case":
-                row.month
-                  .paCase,
-
-              "PA FYP":
-                row.month
-                  .paFyp,
-
-              "PA FYC":
-                row.month
-                  .paFyc,
-
-              "PA Case YTD":
-                row.ytd
-                  .paCase,
-
-              "PA FYP YTD":
-                row.ytd
-                  .paFyp,
-
-              "PA FYC YTD":
-                row.ytd
-                  .paFyc,
-            })
-          );
-
-        const worksheet =
-          XLSX.utils.json_to_sheet(
-            exportRows
-          );
-
-        worksheet[
-          "!cols"
-        ] =
-          Array.from(
-            {
-              length: 14,
-            },
-            () => ({
-              wch: 18,
-            })
-          );
-
-        XLSX.utils.book_append_sheet(
-          workbook,
-          worksheet,
-          "Unit Performance"
-        );
-      }
-
-      /* ---------------- RANK SHEET ---------------- */
-
-      if (
-        view ===
-        "rank"
-      ) {
-        const exportRows =
-          unitRanking.map(
-            (
-              row,
-              index
-            ) => ({
-              อันดับ:
-                index + 1,
-
-              หน่วย:
-                row.label,
-
-              "AIA Case อนุมัติ":
-                row.month
-                  .caseApproved,
-
-              "AIA FYP อนุมัติ":
-                row.month
-                  .fypApproved,
-
-              "AIA FYC อนุมัติ":
-                row.month
-                  .fycApproved,
-
-              "AIA Case YTD":
-                row.ytd
-                  .caseApproved,
-
-              "AIA FYP YTD":
-                row.ytd
-                  .fypApproved,
-
-              "AIA FYC YTD":
-                row.ytd
-                  .fycApproved,
-
-              "Active Agent":
-                row.activeAgents,
-
-              "PA Case":
-                row.month
-                  .paCase,
-
-              "PA FYP":
-                row.month
-                  .paFyp,
-
-              "PA FYC":
-                row.month
-                  .paFyc,
-
-              "PA Case YTD":
-                row.ytd
-                  .paCase,
-
-              "PA FYP YTD":
-                row.ytd
-                  .paFyp,
-
-              "PA FYC YTD":
-                row.ytd
-                  .paFyc,
-            })
-          );
-
-        const worksheet =
-          XLSX.utils.json_to_sheet(
-            exportRows
-          );
-
-        worksheet[
-          "!cols"
-        ] = [
-          {
-            wch: 10,
-          },
-          {
-            wch: 25,
-          },
-
-          ...Array.from(
-            {
-              length: 13,
-            },
-            () => ({
-              wch: 18,
-            })
-          ),
-        ];
-
-        XLSX.utils.book_append_sheet(
-          workbook,
-          worksheet,
-          "Unit Ranking"
-        );
-      }
-
-      /* ---------------- FILE NAME ---------------- */
-
-      const safeUnit =
-        selectedUnit
-          .replace(
-            /[\\/:*?"<>|]/g,
-            "-"
-          )
-          .replace(
-            /\s+/g,
-            "_"
-          );
-
-      const fileView =
-        view ===
-        "agent"
-          ? "Agent"
-          : view ===
-            "unit"
-          ? `Unit_${
-              safeUnit ||
-              "All"
-            }`
-          : "Ranking";
-
-      const fileName =
-        `RoyalPartner_MonthlyPerformance_` +
-        `${fileView}_${year}-${month}.xlsx`;
-
-      XLSX.writeFile(
-        workbook,
-        fileName
-      );
-    } catch (
-      error
-    ) {
-      console.error(
-        "[monthly-performance] Excel export failed:",
-        error
-      );
-
-      window.alert(
-        "ไม่สามารถ Export Excel ได้ กรุณาลองใหม่อีกครั้ง"
-      );
-    }
-  }
-
-  /* ---------------------------------------------------------------- */
   /* RENDER                                                            */
   /* ---------------------------------------------------------------- */
 
@@ -1916,22 +1340,30 @@ export default function PerformanceDashboardPage() {
           html,
           body {
             background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
-          body * {
-            visibility: hidden !important;
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
-          .rp-print-report,
-          .rp-print-report * {
-            visibility: visible !important;
+          .rp-screen-content {
+            display: none !important;
           }
 
           .rp-print-report {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
             width: 100% !important;
+            max-height: 185mm !important;
+            overflow: hidden !important;
+            page-break-after: avoid !important;
+            break-after: avoid-page !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
@@ -1976,6 +1408,7 @@ export default function PerformanceDashboardPage() {
       />
 
       <div
+        className="rp-screen-content"
         style={{
           maxWidth:
             1900,
@@ -2348,52 +1781,7 @@ export default function PerformanceDashboardPage() {
               📄 Export PDF
             </button>
 
-            <button
-              type="button"
-              onClick={
-                exportExcel
-              }
-              disabled={
-                loading
-              }
-              style={{
-                background:
-                  "var(--gold)",
 
-                color:
-                  "#18120A",
-
-                border:
-                  "1px solid var(--gold)",
-
-                borderRadius:
-                  10,
-
-                padding:
-                  "10px 15px",
-
-                fontSize:
-                  13,
-
-                fontWeight:
-                  800,
-
-                cursor:
-                  loading
-                    ? "not-allowed"
-                    : "pointer",
-
-                opacity:
-                  loading
-                    ? 0.6
-                    : 1,
-
-                whiteSpace:
-                  "nowrap",
-              }}
-            >
-              📥 Export Excel
-            </button>
           </div>
         </div>
 
@@ -3961,7 +3349,7 @@ function PrintManagementReport({
                 display:
                   "grid",
                 gap:
-                  7,
+                  8,
               }}
             >
               {chartData.map(
@@ -3984,6 +3372,12 @@ function PrintManagementReport({
                       : row.unit ||
                         row.name;
 
+                  const barColor =
+                    getUnitColor(
+                      unitName,
+                      index
+                    );
+
                   return (
                     <div
                       key={`print-bar-${row.name}-${index}`}
@@ -3991,7 +3385,7 @@ function PrintManagementReport({
                         display:
                           "grid",
                         gridTemplateColumns:
-                          "105px 1fr 82px",
+                          "110px 1fr 88px",
                         gap:
                           8,
                         alignItems:
@@ -4015,34 +3409,40 @@ function PrintManagementReport({
                         {row.name}
                       </div>
 
-                      <div
+                      <svg
+                        viewBox="0 0 100 12"
+                        preserveAspectRatio="none"
                         style={{
+                          width:
+                            "100%",
                           height:
-                            13,
-                          background:
-                            "#F1ECE4",
-                          borderRadius:
-                            999,
-                          overflow:
-                            "hidden",
+                            14,
+                          display:
+                            "block",
                         }}
+                        aria-hidden="true"
                       >
-                        <div
-                          style={{
-                            width:
-                              `${width}%`,
-                            height:
-                              "100%",
-                            borderRadius:
-                              999,
-                            background:
-                              getUnitColor(
-                                unitName,
-                                index
-                              ),
-                          }}
+                        <rect
+                          x="0"
+                          y="1"
+                          width="100"
+                          height="10"
+                          rx="5"
+                          fill="#F1ECE4"
                         />
-                      </div>
+                        <rect
+                          x="0"
+                          y="1"
+                          width={
+                            width
+                          }
+                          height="10"
+                          rx="5"
+                          fill={
+                            barColor
+                          }
+                        />
+                      </svg>
 
                       <div
                         style={{
