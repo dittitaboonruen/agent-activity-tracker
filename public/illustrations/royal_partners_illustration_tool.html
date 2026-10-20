@@ -7112,217 +7112,6 @@ tbody td{
 }
 </style>
 
-
-<style>
-/* =========================================================
-   FULL SCREEN REPORT PREVIEW — PHASE 1
-   Single-scroll workspace, calculator background locked
-========================================================= */
-
-body.rp-preview-open{
-  overflow:hidden !important;
-  overscroll-behavior:none;
-}
-
-.rp-preview-overlay{
-  position:fixed !important;
-  inset:0 !important;
-  z-index:99999 !important;
-  display:block !important;
-  padding:0 !important;
-  overflow:hidden !important;
-  background:#eee9de !important;
-}
-
-.rp-preview-dialog{
-  width:100vw !important;
-  max-width:none !important;
-  height:100dvh !important;
-  min-height:100vh !important;
-  display:flex !important;
-  flex-direction:column !important;
-  background:#eee9de !important;
-  border:0 !important;
-  box-shadow:none !important;
-}
-
-.rp-preview-toolbar{
-  position:relative !important;
-  top:auto !important;
-  flex:0 0 auto;
-  min-height:68px;
-  padding:10px clamp(14px,2.2vw,32px) !important;
-  display:grid !important;
-  grid-template-columns:minmax(0,1fr) auto auto !important;
-  align-items:center !important;
-  gap:14px !important;
-  background:linear-gradient(135deg,#102542 0%,#0f1b2e 100%) !important;
-  border-bottom:1px solid rgba(201,151,43,.38);
-  box-shadow:0 6px 22px rgba(15,27,46,.14);
-}
-
-.rp-preview-toolbar strong{
-  min-width:0;
-  font-size:clamp(14px,.45vw + 11px,17px) !important;
-  line-height:1.3;
-  color:#fffdf8;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.rp-preview-status{
-  color:#d9c99e !important;
-  font-size:clamp(10px,.2vw + 8px,12px) !important;
-  white-space:nowrap;
-}
-
-.rp-preview-actions{
-  display:flex !important;
-  align-items:center;
-  justify-content:flex-end;
-  gap:8px !important;
-  flex-wrap:nowrap !important;
-}
-
-.rp-preview-actions button{
-  min-height:38px;
-  border-radius:999px !important;
-  padding:8px 14px !important;
-  font-size:clamp(11px,.2vw + 9px,13px) !important;
-  white-space:nowrap;
-}
-
-.rp-preview-actions .rp-preview-download-pdf,
-.rp-preview-actions .rp-preview-download{
-  background:linear-gradient(135deg,#d0a64d,#b88725) !important;
-  color:#0f1b2e !important;
-  box-shadow:0 6px 16px rgba(0,0,0,.14) !important;
-}
-
-.rp-preview-close{
-  background:rgba(255,255,255,.10) !important;
-  color:#fffdf8 !important;
-  border:1px solid rgba(255,255,255,.22) !important;
-}
-
-.rp-preview-close:hover{
-  background:rgba(255,255,255,.18) !important;
-}
-
-/* Only this workspace scrolls. The calculator page behind it is locked. */
-.rp-preview-content{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-  width:100% !important;
-  overflow:auto !important;
-  overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-  padding:clamp(18px,2.5vw,36px) 16px 46px !important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(255,255,255,.72),transparent 34%),
-    linear-gradient(180deg,#f2eee5 0%,#e9e3d7 100%) !important;
-  scrollbar-gutter:stable;
-}
-
-/* Paper sits clearly above workspace */
-.rp-preview-content > *{
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-.rp-preview-content .rp-report-page,
-.rp-preview-content .ann-report-page,
-.rp-preview-content .card{
-  box-shadow:0 20px 55px rgba(15,27,46,.16) !important;
-}
-
-/* No nested scrolling inside the report itself */
-.rp-preview-content .rp-report,
-.rp-preview-content .rp-report-pages,
-.rp-preview-content .rp-report-page,
-.rp-preview-content .ann-report-page,
-.rp-preview-content .ann-report-inner{
-  overflow:visible;
-}
-
-/* Tablet */
-@media(max-width:900px){
-  .rp-preview-toolbar{
-    grid-template-columns:minmax(0,1fr) auto !important;
-    min-height:64px;
-  }
-
-  .rp-preview-status{
-    display:none;
-  }
-
-  .rp-preview-content{
-    padding:18px 10px 34px !important;
-  }
-}
-
-/* Mobile */
-@media(max-width:600px){
-  .rp-preview-toolbar{
-    grid-template-columns:1fr !important;
-    gap:8px !important;
-    padding:10px 12px !important;
-  }
-
-  .rp-preview-toolbar strong{
-    white-space:normal;
-  }
-
-  .rp-preview-actions{
-    justify-content:space-between;
-    width:100%;
-  }
-
-  .rp-preview-actions button{
-    flex:1 1 auto;
-    min-width:0;
-    padding:8px 10px !important;
-  }
-
-  .rp-preview-content{
-    padding:12px 8px 28px !important;
-  }
-}
-</style>
-
-
-<style>
-/* =========================================================
-   FULL SCREEN REPORT PREVIEW — PHASE 1.1
-   True viewport bridge + fit-to-width paper
-========================================================= */
-
-.rp-preview-content{
-  display:block !important;
-}
-
-.rp-preview-content .rp-report-pages,
-.rp-preview-content > .ann-report-page,
-.rp-preview-content > .card{
-  transform-origin:top center;
-}
-
-.rp-preview-fit-target{
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-/* desktop keeps paper at real preview size */
-@media(min-width:901px){
-  .rp-preview-content{
-    padding-left:clamp(18px,3vw,48px) !important;
-    padding-right:clamp(18px,3vw,48px) !important;
-  }
-}
-</style>
-
 </head>
 <body>
 
@@ -13213,116 +13002,12 @@ async function downloadAnnuityPDF(key,btn){
 
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
-  document.body.classList.remove('rp-preview-open');
-  window.removeEventListener(
-    'resize',
-    handleReportPreviewResize
-  );
-
-  if(window.parent && window.parent !== window){
-    window.parent.postMessage(
-      {
-        type:'rp-report-preview',
-        open:false
-      },
-      '*'
-    );
-  }
-}
-
-function fitReportPreviewToViewport(){
-  const host=
-    document.getElementById(
-      'report-preview-host'
-    );
-
-  const content=
-    host?.querySelector(
-      '.rp-preview-content'
-    );
-
-  if(!content){
-    return;
-  }
-
-  const candidates=[
-    content.querySelector(
-      '.rp-report-pages'
-    ),
-    content.querySelector(
-      '.ann-report-page'
-    ),
-    content.querySelector(
-      '.card'
-    )
-  ].filter(Boolean);
-
-  const target=
-    candidates[0];
-
-  if(!target){
-    return;
-  }
-
-  target.classList.add(
-    'rp-preview-fit-target'
-  );
-
-  target.style.zoom='1';
-
-  const firstPaper=
-    target.matches(
-      '.rp-report-pages'
-    )
-      ? target.querySelector(
-          '.rp-report-page'
-        )
-      : target;
-
-  if(!firstPaper){
-    return;
-  }
-
-  const naturalWidth=
-    firstPaper.getBoundingClientRect().width;
-
-  const availableWidth=
-    Math.max(
-      260,
-      content.clientWidth -
-      24
-    );
-
-  const scale=
-    Math.min(
-      1,
-      availableWidth /
-      naturalWidth
-    );
-
-  target.style.zoom=
-    String(scale);
-}
-
-let rpPreviewResizeTimer=null;
-
-function handleReportPreviewResize(){
-  clearTimeout(
-    rpPreviewResizeTimer
-  );
-
-  rpPreviewResizeTimer=
-    setTimeout(
-      fitReportPreviewToViewport,
-      80
-    );
 }
 
 function showReportPreview(key){
   const host = document.getElementById('report-preview-host');
 
   try{
-    document.body.classList.add('rp-preview-open');
     let reportHTML = '';
 
     if(key==='ciprocare'){
@@ -13411,31 +13096,12 @@ function showReportPreview(key){
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
               `}
-              <button type="button" class="rp-preview-close">← กลับไป Calculator</button>
+              <button type="button" class="rp-preview-close">ปิด</button>
             </div>
           </div>
           <div class="rp-preview-content">${reportHTML}</div>
         </div>
       </div>`;
-
-    if(window.parent && window.parent !== window){
-      window.parent.postMessage(
-        {
-          type:'rp-report-preview',
-          open:true
-        },
-        '*'
-      );
-    }
-
-    requestAnimationFrame(()=>{
-      fitReportPreviewToViewport();
-    });
-
-    window.addEventListener(
-      'resize',
-      handleReportPreviewResize
-    );
 
     const overlay = host.querySelector('.rp-preview-overlay');
     const closeBtn = host.querySelector('.rp-preview-close');
@@ -13478,34 +13144,9 @@ function showReportPreview(key){
     closeBtn.addEventListener('click', closeReportPreview);
 
     overlay.addEventListener('click', e=>{
-      // Full-screen workspace: do not close from background clicks.
-      // Use the explicit “กลับไป Calculator” button instead.
+      if(e.target === overlay) closeReportPreview();
     });
-
-    const onPreviewKeydown = e=>{
-      if(e.key === 'Escape'){
-        document.removeEventListener('keydown', onPreviewKeydown);
-        closeReportPreview();
-      }
-    };
-    document.addEventListener('keydown', onPreviewKeydown);
   }catch(error){
-    document.body.classList.remove('rp-preview-open');
-    window.removeEventListener(
-      'resize',
-      handleReportPreviewResize
-    );
-
-    if(window.parent && window.parent !== window){
-      window.parent.postMessage(
-        {
-          type:'rp-report-preview',
-          open:false
-        },
-        '*'
-      );
-    }
-
     console.error('Report preview error:', error);
     alert('เกิดข้อผิดพลาดในการเปิดใบสรุป กรุณาลองใหม่อีกครั้ง');
   }
