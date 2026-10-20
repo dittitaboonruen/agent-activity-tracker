@@ -7645,29 +7645,41 @@ tbody td{
 
 
 /* Health combination 4-plan comparative presentation (screen only). */
-.hc-comparison{padding:10px 18px 20px;min-width:0}
-.hc-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
-.hc-card{cursor:pointer;text-align:left;font-family:inherit;background:#fff;border:1px solid #e0dacf;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;color:#0f1b2e;box-shadow:0 5px 14px rgba(15,27,46,.05)}
-.hc-card small{font-size:11px;color:#6d7580;min-height:29px}.hc-card-caption{font-size:11px;color:#697380}
-.hc-card strong{font-size:clamp(16px,1.6vw,23px);color:#438a35;line-height:1.25}
-.hc-card b{font-size:clamp(17px,1.7vw,23px);line-height:1.25}
+.hc-comparison{padding:10px 18px 20px;min-width:0;max-width:100%;box-sizing:border-box}
+.hc-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 18px;max-width:100%}
+.hc-card{box-sizing:border-box;cursor:pointer;text-align:left;font-family:inherit;background:#fff;border:1px solid #dcd5c7;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;max-width:100%;color:#0f1b2e;box-shadow:0 5px 14px rgba(15,27,46,.05);overflow-wrap:anywhere;overflow:hidden}
+.hc-card small{font-size:11px;color:#6d7580;line-height:1.4;display:block;min-width:0}
+.hc-card-caption{font-size:11px;color:#697380}
+.hc-card strong{font-size:clamp(16px,1.6vw,23px);color:#438a35;line-height:1.3;max-width:100%;overflow-wrap:anywhere}
+.hc-card b{font-size:clamp(17px,1.7vw,23px);line-height:1.3;max-width:100%;overflow-wrap:anywhere}
 .hc-card.hc-selected{border:2px solid #4d8f3f;padding:13px;background:#fbfdf9}
 .hc-card:focus-visible,.hc-tab:focus-visible{outline:3px solid #b8985a;outline-offset:2px}
 .hc-tabs{display:flex;gap:0;margin:10px 0 0;border-bottom:1px solid #ddd6c9}
 .hc-tab{font-family:inherit;border:0;background:transparent;padding:12px 16px;cursor:pointer;color:#716d64;font-weight:700}
 .hc-tab.active{background:white;border-bottom:3px solid #568a41;color:#0f1b2e}
-.hc-view{margin-top:12px;background:#fff;border:1px solid #eee8dd;border-radius:12px;min-width:0}
+.hc-view{margin-top:12px;background:#fff;border:1px solid #eee8dd;border-radius:12px;min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden}
 .hc-view[hidden]{display:none !important}
 .hc-heading{font-size:13px;font-weight:800;color:#0f1b2e;padding:12px 15px}
 .hc-view>.hc-heading{border-bottom:1px solid #efeadd}
 .hc-analysis{margin-top:16px;border-top:1px solid #e8e0d4}
+.health-combo-ledger{display:block;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.health-combo-ledger .ledger{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;table-layout:auto}
+.health-combo-ledger .ledger thead th{background:#16304b !important;color:#fff !important;padding:12px 10px !important;font-size:12px !important;line-height:1.4 !important;font-weight:800 !important;vertical-align:middle;text-align:center;white-space:normal !important;opacity:1 !important}
+.health-combo-ledger .ledger thead th:first-child{text-align:left;min-width:260px}
+.health-combo-ledger .ledger thead th *{color:#fff !important;opacity:1 !important}
+.hc-title-col{font-weight:800 !important;color:#fff !important}
+.hc-th-plan,.hc-th-limit{display:block;color:#fff !important;line-height:1.4;white-space:normal}
+.hc-th-plan{font-size:12px;font-weight:800}
+.hc-th-limit{font-size:11px;font-weight:700}
+.health-combo-ledger .ledger thead th.hc-current-plan{background:#245075 !important}
+.hc-current-plan-cell{background:#fbf4e3;font-weight:700}
 .hc-table td:first-child,.hc-table th:first-child{text-align:left;min-width:260px}
 .hc-table td{font-variant-numeric:tabular-nums}
 .hc-current{background:#fbf4e3}.hc-best{background:#edf6e9}
 .hc-best-banner{background:#eaf4e8;color:#315d36;padding:11px 15px;font-weight:700;font-size:12px}
 .hc-summary-line{padding:11px 16px;border-bottom:1px solid #eee7db}
 .hc-summary-total{padding:16px;background:#0f1b2e;color:#fff;font-weight:800}
-@media(max-width:1050px){.hc-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1100px){.hc-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.hc-comparison{padding:8px}.hc-cards{grid-template-columns:minmax(0,1fr)}.hc-tab{flex:1;padding:12px 8px}}
 
 </style>
@@ -14124,10 +14136,13 @@ function comboDisplay(v){
 }
 function healthComboTable(model){
  const {info,premiums,main,selected}=model;
+ const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
  const tr=(label,values)=>'<tr><td>'+label+'</td>'+values.map((v,i)=>
-   '<td'+(i===selected?' style="background:#fbf4e3;font-weight:700"':'')+'>'+comboDisplay(v)+'</td>').join('')+'</tr>';
- return '<div class="ledger-wrap health-combo-ledger"><table class="ledger"><thead><tr><th>รายการเปรียบเทียบ</th>'+
- info.limits.map((l,i)=>'<th>แผน '+(i+1)+'<br>'+fmt(l)+' บาท</th>').join('')+'</tr></thead><tbody>'+
+  '<td'+(i===selected?' class="hc-current-plan-cell"':'')+'>'+comboDisplay(v)+'</td>').join('')+'</tr>';
+ return '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table"><thead><tr>'+
+ '<th class="hc-title-col">'+productName+'</th>'+
+ info.limits.map((l,i)=>'<th'+(i===selected?' class="hc-current-plan"':'')+'><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(l)+' บาท</span></th>').join('')+
+ '</tr></thead><tbody>'+
  tr('ทุนประกันสัญญาหลัก',Array(4).fill(state.sum))+
  info.rows.map(row=>tr(row[0],row[1])).join('')+
  tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
@@ -14145,6 +14160,7 @@ function healthComboAnalysis(model){
 }
 function healthComboAnalysisTable(model){
  const {info,premiums,main,selected,isEligible}=model;
+ const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
  const {base,total,unitCost,best}=healthComboAnalysis(model);
  const display=(n,digits=0)=>n===null||!Number.isFinite(n)?'—':n.toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
  const row=(label,values,format=(v)=>display(v))=>
@@ -14159,8 +14175,8 @@ function healthComboAnalysisTable(model){
   'แผนที่มีค่าเบี้ยต่อวงเงิน 100,000 บาทต่ำที่สุด: แผน '+(best+1)+' ('+display(info.limits[best])+' บาท)';
  return '<section class="hc-analysis">'+
  '<div class="hc-heading">เปรียบเทียบความคุ้มค่า 4 แผน</div>'+
- '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-table"><thead><tr><th>รายการ</th>'+
- info.limits.map((_,i)=>'<th>แผน '+(i+1)+'</th>').join('')+'</tr></thead><tbody>'+
+ '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-table"><thead><tr><th class="hc-title-col">รายการ ('+productName+')</th>'+
+ info.limits.map((limit,i)=>'<th'+(i===selected?' class="hc-current-plan"':'')+'><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(limit)+' บาท</span></th>').join('')+'</tr></thead><tbody>'+
  row('เบี้ย '+(info.title.includes('Happy')?'Health Happy':'Health Saver')+' เพิ่มจากแผน 1 (บาท/ปี)',increase)+
  row('เบี้ยเพิ่มเติมจากแผน 1 (%)',increasePct,v=>v===null?'—':display(v,1)+'%')+
  row('เบี้ยรวม เพิ่มจากแผน 1 (บาท/ปี)',total.map(t=>t===null||total[0]===null?null:t-total[0]))+
