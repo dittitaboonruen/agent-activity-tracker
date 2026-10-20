@@ -7627,6 +7627,22 @@ tbody td{
   }
 }
 
+
+/* HEALTH COMBINATION — XLSX UI */
+.health-combo-controls{margin:12px 22px;padding:14px;background:#f7f3ea;border:1px solid #e7e1d0;border-radius:12px}
+.health-combo-controls label{font-size:13px;font-weight:700;color:#0f1b2e}
+.health-combo-select{display:block;max-width:100%;width:min(460px,100%);margin-top:7px;padding:10px;border:1px solid #d9d2bf;border-radius:9px;background:white;font-family:inherit}
+.health-combo-ledger table.ledger{min-width:660px}
+.health-combo-ledger table.ledger td:first-child,.health-combo-ledger table.ledger th:first-child{text-align:left}
+.health-combo-report-page .rp-report-head{padding:16px 22px}
+.health-combo-report-page .rp-report-title{font-size:22px}
+.health-combo-report-page .rp-report-kpis{padding:10px 18px}
+.health-combo-report-page .rp-kpi{min-height:68px;padding:8px}
+.health-combo-report-page .rp-kpi .v{font-size:18px}
+.health-combo-report-page .rp-benefit-table{font-size:10px}
+.health-combo-report-page .rp-benefit-table td{padding:6px 9px}
+.health-combo-report-page .rp-benefit-table td:last-child{text-align:right}
+
 </style>
 
 </head>
@@ -8370,6 +8386,7 @@ const SUM_INSURED_MAX = 50000000;
 const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20',
   customer: { firstName:'', lastName:'' },
   agent: { name:'', phone:'', line:'', date:'' },
+  healthCombo:{happyPlan:0,saverPlan:0},
   paylife20: {
     mode:'full',
     riders: {
@@ -8416,6 +8433,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
 
 const TABS = [
   {id:'paylife20', label:'20Pay Life', group:'life'},
+  {id:'pay20happy', label:'20Pay + Health Happy', group:'life'},
+  {id:'pay20saver', label:'20Pay + Health Saver', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -13619,6 +13638,8 @@ function showReportPreview(key){
       }
 
       reportHTML = build20PayLifeReportHTML();
+    }else if(key==='pay20happy' || key==='pay20saver'){
+      reportHTML = build20HealthComboReportHTML(key==='pay20happy'?'happy':'saver');
     }else if(key==='annuityfix'){
       const data = buildAnnuityFixReportData();
       const validation = validateAnnuityFixReportData(data);
@@ -13647,10 +13668,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20Pay Life — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20Pay + Health Happy — ใบสรุป A4':key==='pay20saver'?'20Pay + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='annuityfix' || key==='annuitysure' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -13738,6 +13759,8 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
       }else if(key==='paylife20'){
         pdfBtn.addEventListener('click', ()=>download20PayLifePDF(pdfBtn));
+      }else if(key==='pay20happy' || key==='pay20saver'){
+        pdfBtn.addEventListener('click', ()=>download20HealthComboPDF(key,pdfBtn));
       }else if(key==='annuityfix' || key==='annuitysure'){
         pdfBtn.addEventListener('click', ()=>downloadAnnuityPDF(key,pdfBtn));
       }
@@ -14017,12 +14040,146 @@ function computeRiderTotal(){
 }
 
 
+
+/* HEALTH COMBINATION — XLSX-ALIGNED PRODUCTS */
+const HEALTH_COMBO_BENEFITS = {
+ happy:{
+  title:'AIA 20Pay Life + AIA Health Happy',
+  limits:[1000000,5000000,15000000,25000000],
+  rows:[
+   ['ค่าห้อง ค่าอาหาร (ต่อวัน)',[1500,3000,6000,9000]],
+   ['ค่าห้อง ICU (ไม่เกิน 365 วัน)',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['ค่ารักษาพยาบาลในโรงพยาบาล หมวด 2.1–2.3',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['ค่ายาและเวชภัณฑ์กลับบ้าน (ไม่เกิน 7 วัน)/ครั้ง',[20000,20000,20000,'เหมาจ่ายตามจริง']],
+   ['ค่าแพทย์ตรวจ / วัน',[1000,2000,4000,6000]],
+   ['ผ่าตัด ห้องผ่าตัด วิสัญญี และ Day Surgery',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['รังสีรักษา เคมีบำบัด และล้างไต',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['รักษาต่อเนื่อง 30 วัน / อุบัติเหตุ 24 ชม. / ผ่าตัดเล็ก',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['ผู้ป่วยนอกทั่วไป สูงสุด 30 ครั้ง/ปี',['ไม่คุ้มครอง','ไม่คุ้มครอง','ไม่คุ้มครอง','2,000 บาท/ครั้ง']],
+   ['เงินช่วยเหลือกรณีเสียชีวิต',[10000,10000,10000,10000]],
+   ['ผลประโยชน์โรคร้ายแรง (2 เท่า สูงสุด 3 ปีกรมธรรม์)',[2000000,10000000,30000000,50000000]],
+   ['ผลประโยชน์สูงสุดต่อรอบปีกรมธรรม์',[1000000,5000000,15000000,25000000]]
+  ]
+ },
+ saver:{
+  title:'AIA 20Pay Life + AIA Health Saver',
+  limits:[200000,300000,400000,500000],
+  rows:[
+   ['ค่าห้อง ค่าอาหาร (ต่อวัน)',[1500,2000,3000,4000]],
+   ['ค่าห้อง ICU (6 เท่าค่าห้อง)',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['หมวด 2.1–2.3 ตรวจวินิจฉัย/บำบัด/สารอาหาร ต่อครั้ง',[25000,35000,40000,50000]],
+   ['ค่ายาและเวชภัณฑ์กลับบ้าน (ไม่เกิน 7 วัน)/ครั้ง',[5000,5000,5000,5000]],
+   ['ค่าแพทย์ / ผ่าตัด / Day Surgery หมวด 3–5',Array(4).fill('เหมาจ่ายตามจริง')],
+   ['อุบัติเหตุผู้ป่วยนอกภายใน 24 ชม. / ครั้ง',[7000,8000,9000,10000]],
+   ['รังสีรักษา เคมีบำบัด ล้างไต ต่อรอบปีกรมธรรม์',[200000,300000,400000,500000]],
+   ['ผ่าตัดเล็ก (หมวด 13) / ครั้ง',[10000,15000,20000,25000]],
+   ['ผู้ป่วยนอกทั่วไป สูงสุด 30 ครั้ง/ปี',['ไม่คุ้มครอง','ไม่คุ้มครอง','1,000 บาท/ครั้ง','1,500 บาท/ครั้ง']],
+   ['เงินช่วยเหลือกรณีเสียชีวิต',[10000,10000,10000,10000]],
+   ['ผลประโยชน์โรคร้ายแรง (2 เท่า สูงสุด 4 ปีกรมธรรม์)',[400000,600000,800000,1000000]],
+   ['วงเงินค่ารักษาพยาบาลสูงสุดต่อรอบปีกรมธรรม์',[200000,300000,400000,500000]]
+  ]
+ }
+};
+function healthComboModel(type){
+ const info=HEALTH_COMBO_BENEFITS[type],age=state.age,gender=state.gender;
+ const isEligible=age>=11&&age<=70&&state.sum>=100000;
+ const main=isEligible?calc20PayLife(age,gender,state.sum,state.tax):null;
+ const premiums=info.limits.map((_,i)=>isEligible?(type==='happy'
+  ?riderHealthHappy(age,gender,i)
+  :riderHealthSaver(age,gender,info.limits[i])):null);
+ const selected=state.healthCombo[type+'Plan'];
+ return {info,age,gender,isEligible,main,premiums,selected,
+   premium:isEligible?premiums[selected]:null,
+   total:isEligible?main.net+premiums[selected]:null};
+}
+function comboDisplay(v){
+ return typeof v==='number'?fmt(v):String(v??'—');
+}
+function healthComboTable(model){
+ const {info,premiums,main,selected}=model;
+ const tr=(label,values)=>'<tr><td>'+label+'</td>'+values.map((v,i)=>
+   '<td'+(i===selected?' style="background:#fbf4e3;font-weight:700"':'')+'>'+comboDisplay(v)+'</td>').join('')+'</tr>';
+ return '<div class="ledger-wrap health-combo-ledger"><table class="ledger"><thead><tr><th>รายการเปรียบเทียบ</th>'+
+ info.limits.map((l,i)=>'<th>แผน '+(i+1)+'<br>'+fmt(l)+' บาท</th>').join('')+'</tr></thead><tbody>'+
+ tr('ทุนประกันสัญญาหลัก',Array(4).fill(state.sum))+
+ info.rows.map(row=>tr(row[0],row[1])).join('')+
+ tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
+ tr('เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
+ tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main?x+main.net:'ไม่รับประกัน'))+
+ '</tbody></table></div>';
+}
+function view20HealthCombo(app,type){
+ const model=healthComboModel(type);
+ app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20Pay Life พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
+ const panel=app.querySelector('.panel');
+ const controls=document.createElement('div');
+ controls.className='health-combo-controls';
+ controls.innerHTML='<label>เลือกแผน '+(type==='happy'?'Health Happy':'Health Saver')+
+ ' <select class="health-combo-select">'+model.info.limits.map((l,i)=>
+ '<option value="'+i+'"'+(i===model.selected?' selected':'')+'>แผน '+(i+1)+' — '+fmt(l)+' บาท</option>').join('')+'</select></label>';
+ panel.appendChild(controls);
+ controls.querySelector('select').addEventListener('change',e=>{
+   state.healthCombo[type+'Plan']=Number(e.target.value);render();
+ });
+ if(!model.isEligible){
+   const warning=document.createElement('div');warning.className='notewrap';
+   warning.textContent='สูตรจากไฟล์ต้นฉบับ: อายุที่ทำข้อเสนอร่วมกันได้ 11–70 ปี และทุนสัญญาหลักขั้นต่ำ 100,000 บาท';
+   panel.appendChild(warning);
+ }
+ fillSummary(app,[
+ {lbl:'เบี้ยสัญญาหลัก / ปี',val:model.main?fmt(model.main.net):'ไม่รับประกัน'},
+ {lbl:'เบี้ยสุขภาพแผนที่เลือก / ปี',val:model.premium===null?'ไม่รับประกัน':fmt(model.premium)},
+ {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)},
+ {lbl:'เฉลี่ยต่อเดือน (เบี้ยปีแรก)',val:model.total===null?'ไม่รับประกัน':fmt(model.total/12)}
+ ]);
+ const table=document.createElement('div');
+ table.innerHTML='<div class="rp-section-heading" style="padding:18px 22px 0"><h2>เปรียบเทียบ 4 แผน</h2></div>'+healthComboTable(model);
+ panel.appendChild(table);
+ if(model.isEligible) addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
+}
+function build20HealthComboReportHTML(type){
+ const m=healthComboModel(type);
+ if(!m.isEligible)return '<div class="notewrap">อายุหรือทุนประกันไม่ตรงเงื่อนไข</div>';
+ const plan=m.selected,selected=m.info.rows.map(r=>
+   '<tr><td>'+r[0]+'</td><td>'+comboDisplay(r[1][plan])+'</td></tr>').join('');
+ return '<div class="rp-report"><div class="rp-report-pages">'+
+ '<section class="rp-report-page health-combo-report-page"><div class="rp-page-inner">'+
+ '<header class="rp-report-head"><div><div class="rp-report-brand">ROYAL PARTNER</div><div class="rp-report-title">'+m.info.title+'</div><div class="rp-report-sub">ตารางเปรียบเทียบ 4 แผน ตาม Excel ต้นฉบับ</div></div></header>'+
+ '<div class="rp-report-meta"><div class="cell"><div class="l">ลูกค้า</div><div class="v">'+escapeResourceHtml((state.customer.firstName+' '+state.customer.lastName).trim()||'—')+'</div></div>'+
+ '<div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+m.gender+' / '+m.age+' ปี</div></div>'+
+ '<div class="cell"><div class="l">ทุนประกันสัญญาหลัก</div><div class="v">'+fmt(state.sum)+'</div></div></div>'+
+ '<div class="rp-report-kpis">'+
+ '<div class="rp-kpi"><div class="l">เบี้ย 20Pay Life / ปี</div><div class="v">'+fmt(m.main.net)+'</div></div>'+
+ '<div class="rp-kpi"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(m.premium)+'</div></div>'+
+ '<div class="rp-kpi"><div class="l">รวมเบี้ยปีแรก / ปี</div><div class="v">'+fmt(m.total)+'</div></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติม — แผน '+(plan+1)+' ('+fmt(m.info.limits[plan])+' บาท)</div>'+
+ '<table class="rp-benefit-table"><thead><tr><th>รายการผลประโยชน์</th><th>ความคุ้มครอง</th></tr></thead><tbody>'+selected+'</tbody></table></div>'+
+ '<div class="rp-report-foot">เอกสารประกอบการสอนแบบประกันเพื่อความเข้าใจเท่านั้น — เงื่อนไขจริงยึดตามกรมธรรม์</div>'+
+ '</div></section></div></div>';
+}
+async function download20HealthComboPDF(key,btn){
+ if(!window.jspdf?.jsPDF){alert('ไม่พบ jsPDF');return;}
+ if(btn.dataset.busy==='1')return;
+ const page=document.querySelector('.rp-preview-pdf-source .health-combo-report-page');
+ if(!page){alert('ไม่พบรายงานสำหรับสร้าง PDF');return;}
+ const text=btn.textContent;
+ btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
+ try{
+   const {jsPDF}=window.jspdf;
+   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+   const canvas=await renderReportPageToCanvas(page);
+   pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+   await savePdfCrossDevice(pdf,'royal-partner-'+key+'-'+Date.now()+'.pdf');
+ }catch(error){console.error(error);alert(error?.message||'สร้าง PDF ไม่สำเร็จ');}
+ finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=text;}
+}
+
 /* ===================== main render ===================== */
 function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
   map[state.tab](app);
 }
 
