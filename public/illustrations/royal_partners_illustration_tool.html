@@ -13421,6 +13421,35 @@ async function downloadAnnuityPDF(key,btn){
 }
 
 
+/* Fit oversized A4 report content inside the actual paper (including PDF source).
+   Unlike modal zoom, this fixes content clipped by the paper's overflow:hidden. */
+function fitReportA4Contents(root){
+  if(!root) return;
+  root.querySelectorAll('.rp-report-page, .ann-report-page').forEach(page=>{
+    const inner = page.querySelector(':scope > .rp-page-inner, :scope > .ex-report-inner, :scope > .sc-report-inner, :scope > .ann-report-inner');
+    if(!inner) return;
+    inner.style.transform = '';
+    inner.style.transformOrigin = '';
+    inner.style.position = '';
+    inner.style.left = '';
+    const pageBox = page.getBoundingClientRect();
+    const innerBox = inner.getBoundingClientRect();
+    const available = Math.max(0,page.clientHeight - (innerBox.top - pageBox.top) - 4);
+    if(!available) return;
+    let required = Math.max(inner.scrollHeight,inner.offsetHeight);
+    // Account for descendants protruding beyond height-locked wrappers.
+    inner.querySelectorAll('.rp-ci-payment-wide, .rp-sc-payment-wide, .rp-ex-payment-wide, .pl20-payment-wide, .p25-payment-wide, .rp-resource-payment-row, .rp-page-number').forEach(el=>{
+      const b=el.getBoundingClientRect();
+      required = Math.max(required,b.bottom-innerBox.top);
+    });
+    if(required > available + 1){
+      const factor = Math.max(.72,Math.min(1,(available-2)/required));
+      inner.style.transformOrigin = 'top center';
+      inner.style.transform = 'scale(' + factor.toFixed(4) + ')';
+    }
+  });
+}
+
 function closeReportPreview(){
   if(typeof window.__rpPreviewFitCleanup === 'function'){
     window.__rpPreviewFitCleanup();
@@ -13560,14 +13589,19 @@ function showReportPreview(key){
         fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
         fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
       };
-      fitPreview();
+      const fitAllReports = ()=>{
+        fitReportA4Contents(pdfSource);
+        fitReportA4Contents(fitPaper);
+        fitPreview();
+      };
+      fitAllReports();
       const resizeObserver = typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(()=>fitPreview()) : null;
       if(resizeObserver) resizeObserver.observe(previewContent);
       host.querySelectorAll('.rp-preview-visual-report img').forEach(img=>{
-        if(!img.complete) img.addEventListener('load',fitPreview,{once:true});
+        if(!img.complete) img.addEventListener('load',fitAllReports,{once:true});
       });
-      if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitPreview);
+      if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAllReports);
       const priorCleanup = window.__rpPreviewFitCleanup;
       if(typeof priorCleanup === 'function') priorCleanup();
       window.__rpPreviewFitCleanup = ()=>{
