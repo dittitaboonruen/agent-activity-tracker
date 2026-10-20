@@ -13524,24 +13524,33 @@ function fitReportA4Contents(root){
   root.querySelectorAll('.rp-report-page, .ann-report-page').forEach(page=>{
     const inner = page.querySelector(':scope > .rp-page-inner, :scope > .ex-report-inner, :scope > .sc-report-inner, :scope > .ann-report-inner');
     if(!inner) return;
-    inner.style.transform = '';
-    inner.style.transformOrigin = '';
-    inner.style.position = '';
-    inner.style.left = '';
+
+    // Measure the *visible contents*, not only the 1123px fixed-height wrapper.
+    // Promotional banners can extend below wrappers with overflow:hidden.
+    inner.style.transform = 'none';
+    inner.style.transformOrigin = 'top left';
     const pageBox = page.getBoundingClientRect();
-    const innerBox = inner.getBoundingClientRect();
-    const available = Math.max(0,page.clientHeight - (innerBox.top - pageBox.top) - 4);
-    if(!available) return;
-    let required = Math.max(inner.scrollHeight,inner.offsetHeight);
-    // Account for descendants protruding beyond height-locked wrappers.
-    inner.querySelectorAll('.rp-ci-payment-wide, .rp-sc-payment-wide, .rp-ex-payment-wide, .pl20-payment-wide, .p25-payment-wide, .rp-resource-payment-row, .rp-page-number').forEach(el=>{
-      const b=el.getBoundingClientRect();
-      required = Math.max(required,b.bottom-innerBox.top);
-    });
-    if(required > available + 1){
-      const factor = Math.max(.72,Math.min(1,(available-2)/required));
-      inner.style.transformOrigin = 'top center';
-      inner.style.transform = 'scale(' + factor.toFixed(4) + ')';
+    const contentBox = inner.getBoundingClientRect();
+    const availableHeight = page.clientHeight - (contentBox.top - pageBox.top) - 8;
+    const availableWidth = page.clientWidth - 4;
+    if(availableHeight <= 0 || availableWidth <= 0) return;
+
+    let bottom = Math.max(inner.scrollHeight, inner.offsetHeight);
+    let right = Math.max(inner.scrollWidth, inner.offsetWidth);
+
+    // Include every rendered descendant, not merely known promo class names.
+    // This catches banners and disclaimers even when their parent has a fixed height.
+    for(const el of inner.querySelectorAll('*')){
+      if(el.getClientRects().length === 0) continue;
+      const rect = el.getBoundingClientRect();
+      bottom = Math.max(bottom, rect.bottom - contentBox.top);
+      right = Math.max(right, rect.right - contentBox.left);
+    }
+
+    const scale = Math.min(1, availableHeight / Math.max(1,bottom),
+      availableWidth / Math.max(1,right));
+    if(scale < 0.999){
+      inner.style.transform = 'scale(' + Math.max(0.01,scale).toFixed(5) + ')';
     }
   });
 }
@@ -13694,7 +13703,7 @@ function showReportPreview(key){
       const resizeObserver = typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(()=>fitPreview()) : null;
       if(resizeObserver) resizeObserver.observe(previewContent);
-      host.querySelectorAll('.rp-preview-visual-report img').forEach(img=>{
+      host.querySelectorAll('.rp-preview-visual-report img, .rp-preview-pdf-source img').forEach(img=>{
         if(!img.complete) img.addEventListener('load',fitAllReports,{once:true});
       });
       if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAllReports);
