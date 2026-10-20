@@ -6827,6 +6827,75 @@ footer{
 }
 </style>
 
+
+<style>
+/* =========================================================
+   SOFT LUXURY + SMART SUMMARY — PHASE 2.1
+   Requested cleanup:
+   1) ซ่อนข้อมูลตัวแทนจากหน้า Calculator
+   2) เอากรอบสี่เหลี่ยมชั้นนอกของ Smart Summary ออก
+   หมายเหตุ: คง DOM ของข้อมูลตัวแทนไว้เพื่อไม่กระทบ logic/PDF เดิม
+========================================================= */
+
+/* 1) Hide Agent UI safely without breaking existing JS bindings */
+.rp-details-grid{
+  grid-template-columns:1fr !important;
+}
+
+.agentbar.rp-detail-card{
+  display:none !important;
+}
+
+/* Let the customer card use the available width comfortably */
+.customerbar.rp-detail-card{
+  width:100%;
+}
+
+.rp-detail-card .customerbar-inner{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+/* 2) Remove the old square outer frame around Smart Summary */
+.summary.smart-summary-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:10px !important;
+  margin:10px 0 6px !important;
+
+  background:transparent !important;
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  border-radius:0 !important;
+  overflow:visible !important;
+}
+
+/* Keep only the rounded KPI cards */
+.summary.smart-summary-grid .stat{
+  border-radius:17px !important;
+  overflow:hidden !important;
+}
+
+/* Prevent pseudo-elements from the legacy summary wrapper creating a frame */
+.summary.smart-summary-grid::before,
+.summary.smart-summary-grid::after{
+  display:none !important;
+  content:none !important;
+}
+
+@media(max-width:640px){
+  .rp-detail-card .customerbar-inner{
+    grid-template-columns:1fr;
+  }
+
+  .summary.smart-summary-grid{
+    grid-template-columns:1fr !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
