@@ -7682,6 +7682,82 @@ tbody td{
 @media(max-width:1100px){.hc-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.hc-comparison{padding:8px}.hc-cards{grid-template-columns:minmax(0,1fr)}.hc-tab{flex:1;padding:12px 8px}}
 
+
+/* HEALTH COMBO CARD OVERFLOW FIX — fixed-height/pill inheritance isolation */
+.hc-comparison .hc-cards{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  width:100% !important;
+  max-width:100% !important;
+  margin:16px 0 20px !important;
+  padding:2px !important;
+  gap:12px !important;
+  box-sizing:border-box !important;
+  overflow:visible !important;
+}
+.hc-comparison .hc-cards > button.hc-card{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  position:relative !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-start !important;
+  align-items:flex-start !important;
+  flex:none !important;
+  float:none !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:176px !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:16px !important;
+  border-radius:14px !important;
+  box-sizing:border-box !important;
+  overflow:visible !important;
+  text-align:left !important;
+  white-space:normal !important;
+  line-height:1.45 !important;
+  transform:none !important;
+  clip-path:none !important;
+}
+.hc-comparison .hc-cards > button.hc-card.hc-selected{
+  padding:15px !important;
+  border:2px solid #4d8f3f !important;
+}
+.hc-comparison .hc-card small,
+.hc-comparison .hc-card .hc-card-caption,
+.hc-comparison .hc-card strong,
+.hc-comparison .hc-card b{
+  display:block !important;
+  position:static !important;
+  flex:0 0 auto !important;
+  width:auto !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  line-height:1.4 !important;
+  transform:none !important;
+}
+.hc-comparison .hc-card small,
+.hc-comparison .hc-card .hc-card-caption{color:#566474 !important;}
+.hc-comparison .hc-card strong{color:#438a35 !important;}
+.hc-comparison .hc-card b{color:#0f1b2e !important;}
+@media(max-width:1100px){
+  .hc-comparison .hc-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+}
+@media(max-width:560px){
+  .hc-comparison .hc-cards{grid-template-columns:minmax(0,1fr) !important;}
+}
+
 </style>
 
 </head>
