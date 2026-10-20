@@ -13539,11 +13539,11 @@ function showReportPreview(key){
       pdfSource.className = 'rp-preview-pdf-source';
       pdfSource.setAttribute('aria-hidden','true');
       while(fitPaper.firstChild) pdfSource.appendChild(fitPaper.firstChild);
-      host.appendChild(pdfSource);
+      // Keep the original report first so PDF selectors resolve to the unscaled source.
+      host.insertBefore(pdfSource,host.firstChild);
       const visualReport = pdfSource.cloneNode(true);
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
-      visualReport.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
       while(visualReport.firstChild) fitPaper.appendChild(visualReport.firstChild);
       const fitPreview = ()=>{
         if(!fitStage.isConnected) return;
