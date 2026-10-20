@@ -7643,6 +7643,33 @@ tbody td{
 .health-combo-report-page .rp-benefit-table td{padding:6px 9px}
 .health-combo-report-page .rp-benefit-table td:last-child{text-align:right}
 
+
+/* Health combination 4-plan comparative presentation (screen only). */
+.hc-comparison{padding:10px 18px 20px;min-width:0}
+.hc-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+.hc-card{cursor:pointer;text-align:left;font-family:inherit;background:#fff;border:1px solid #e0dacf;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;color:#0f1b2e;box-shadow:0 5px 14px rgba(15,27,46,.05)}
+.hc-card small{font-size:11px;color:#6d7580;min-height:29px}.hc-card-caption{font-size:11px;color:#697380}
+.hc-card strong{font-size:clamp(16px,1.6vw,23px);color:#438a35;line-height:1.25}
+.hc-card b{font-size:clamp(17px,1.7vw,23px);line-height:1.25}
+.hc-card.hc-selected{border:2px solid #4d8f3f;padding:13px;background:#fbfdf9}
+.hc-card:focus-visible,.hc-tab:focus-visible{outline:3px solid #b8985a;outline-offset:2px}
+.hc-tabs{display:flex;gap:0;margin:10px 0 0;border-bottom:1px solid #ddd6c9}
+.hc-tab{font-family:inherit;border:0;background:transparent;padding:12px 16px;cursor:pointer;color:#716d64;font-weight:700}
+.hc-tab.active{background:white;border-bottom:3px solid #568a41;color:#0f1b2e}
+.hc-view{margin-top:12px;background:#fff;border:1px solid #eee8dd;border-radius:12px;min-width:0}
+.hc-view[hidden]{display:none !important}
+.hc-heading{font-size:13px;font-weight:800;color:#0f1b2e;padding:12px 15px}
+.hc-view>.hc-heading{border-bottom:1px solid #efeadd}
+.hc-analysis{margin-top:16px;border-top:1px solid #e8e0d4}
+.hc-table td:first-child,.hc-table th:first-child{text-align:left;min-width:260px}
+.hc-table td{font-variant-numeric:tabular-nums}
+.hc-current{background:#fbf4e3}.hc-best{background:#edf6e9}
+.hc-best-banner{background:#eaf4e8;color:#315d36;padding:11px 15px;font-weight:700;font-size:12px}
+.hc-summary-line{padding:11px 16px;border-bottom:1px solid #eee7db}
+.hc-summary-total{padding:16px;background:#0f1b2e;color:#fff;font-weight:800}
+@media(max-width:1050px){.hc-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.hc-comparison{padding:8px}.hc-cards{grid-template-columns:minmax(0,1fr)}.hc-tab{flex:1;padding:12px 8px}}
+
 </style>
 
 </head>
@@ -14108,6 +14135,57 @@ function healthComboTable(model){
  tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main?x+main.net:'ไม่รับประกัน'))+
  '</tbody></table></div>';
 }
+function healthComboAnalysis(model){
+ const {info,premiums,main,isEligible}=model;
+ const base=premiums[0];
+ const total=premiums.map(p=>p===null||!main?null:main.net+p);
+ const unitCost=premiums.map((p,i)=>p===null?null:p*100000/info.limits[i]);
+ const best=isEligible?unitCost.reduce((best,v,i)=>v!==null&&(best===-1||v<unitCost[best])?i:best,-1):-1;
+ return {base,total,unitCost,best};
+}
+function healthComboAnalysisTable(model){
+ const {info,premiums,main,selected,isEligible}=model;
+ const {base,total,unitCost,best}=healthComboAnalysis(model);
+ const display=(n,digits=0)=>n===null||!Number.isFinite(n)?'—':n.toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+ const row=(label,values,format=(v)=>display(v))=>
+  '<tr><td>'+label+'</td>'+values.map((v,i)=>
+  '<td class="'+(i===selected?'hc-current ':'')+(i===best?'hc-best ':'')+'">'+format(v)+'</td>').join('')+'</tr>';
+ const increase=premiums.map(p=>p===null||base===null?null:p-base);
+ const increasePct=premiums.map(p=>p===null||!base?null:100*(p-base)/base);
+ const month=premiums.map(p=>p===null?null:p/12);
+ const share=premiums.map((p,i)=>total[i]?p/total[i]*100:null);
+ const multiple=info.limits.map(n=>n/info.limits[0]);
+ const selectedText=best<0?'กรุณาเลือกอายุและทุนประกันที่อยู่ในเงื่อนไข':
+  'แผนที่มีค่าเบี้ยต่อวงเงิน 100,000 บาทต่ำที่สุด: แผน '+(best+1)+' ('+display(info.limits[best])+' บาท)';
+ return '<section class="hc-analysis">'+
+ '<div class="hc-heading">เปรียบเทียบความคุ้มค่า 4 แผน</div>'+
+ '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-table"><thead><tr><th>รายการ</th>'+
+ info.limits.map((_,i)=>'<th>แผน '+(i+1)+'</th>').join('')+'</tr></thead><tbody>'+
+ row('เบี้ย '+(info.title.includes('Happy')?'Health Happy':'Health Saver')+' เพิ่มจากแผน 1 (บาท/ปี)',increase)+
+ row('เบี้ยเพิ่มเติมจากแผน 1 (%)',increasePct,v=>v===null?'—':display(v,1)+'%')+
+ row('เบี้ยรวม เพิ่มจากแผน 1 (บาท/ปี)',total.map(t=>t===null||total[0]===null?null:t-total[0]))+
+ row('เบี้ยสุขภาพ เฉลี่ยต่อเดือน',month)+
+ row('เบี้ยสุขภาพ ต่อวงเงิน 100,000 บาท (บาท/ปี)',unitCost)+
+ row('สัดส่วนเบี้ยสุขภาพ ต่อเบี้ยรวม',share,v=>v===null?'—':display(v,1)+'%')+
+ row('วงเงินสูงสุดเพิ่มจากแผน 1 (เท่า)',multiple,v=>display(v,2).replace(/\\.00$/,'')+'x')+
+ '</tbody></table></div>'+
+ '<div class="hc-best-banner">'+selectedText+'</div></section>';
+}
+function healthComboComparisonCards(model,type){
+ const {info,main,premiums,selected}=model;
+ const cheapest=healthComboAnalysis(model).best;
+ return '<div class="hc-cards">'+info.limits.map((limit,i)=>{
+ const p=premiums[i];
+ const total=p!==null&&main?main.net+p:null;
+ return '<button type="button" class="hc-card'+(i===selected?' hc-selected':'')+
+ '" data-plan="'+i+'" aria-pressed="'+(i===selected)+'">'+
+ '<small>แผน '+(i+1)+' · '+fmt(limit)+' บาท'+(i===cheapest?' · เบี้ยต่อวงเงินต่ำสุด':'')+'</small>'+
+ '<span class="hc-card-caption">เบี้ย '+(type==='happy'?'Health Happy':'Health Saver')+' / ปี</span>'+
+ '<strong>'+ (p===null?'—':fmt(p))+'</strong>'+
+ '<span class="hc-card-caption">รวมกับ 20Pay Life / ปี</span>'+
+ '<b>'+(total===null?'—':fmt(total))+'</b></button>';
+ }).join('')+'</div>';
+}
 function view20HealthCombo(app,type){
  const model=healthComboModel(type);
  app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20Pay Life พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
@@ -14132,9 +14210,26 @@ function view20HealthCombo(app,type){
  {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)},
  {lbl:'เฉลี่ยต่อเดือน (เบี้ยปีแรก)',val:model.total===null?'ไม่รับประกัน':fmt(model.total/12)}
  ]);
- const table=document.createElement('div');
- table.innerHTML='<div class="rp-section-heading" style="padding:18px 22px 0"><h2>เปรียบเทียบ 4 แผน</h2></div>'+healthComboTable(model);
- panel.appendChild(table);
+ const compare=document.createElement('div');
+ compare.className='hc-comparison';
+ compare.innerHTML=healthComboComparisonCards(model,type)+
+ '<div class="hc-tabs" role="tablist"><button type="button" class="hc-tab active" data-view="compare" aria-selected="true">เปรียบเทียบ 4 แผน</button>'+
+ '<button type="button" class="hc-tab" data-view="summary" aria-selected="false">หน้าสรุป</button></div>'+
+ '<div class="hc-view" data-panel="compare"><div class="hc-heading">แบบข้อเสนอ '+model.gender+' อายุ '+model.age+' ปี</div>'+
+ healthComboTable(model)+healthComboAnalysisTable(model)+'</div>'+
+ '<div class="hc-view" data-panel="summary" hidden><div class="hc-heading">สรุปแผนที่เลือก</div>'+
+ '<div class="hc-summary-line">แผน '+(model.selected+1)+' · '+fmt(model.info.limits[model.selected])+' บาท</div>'+
+ '<div class="hc-summary-line">เบี้ยสัญญาหลักต่อปี: '+(model.main?fmt(model.main.net):'—')+' บาท</div>'+
+ '<div class="hc-summary-line">เบี้ยสุขภาพต่อปี: '+(model.premium===null?'—':fmt(model.premium))+' บาท</div>'+
+ '<div class="hc-summary-total">รวมเบี้ยปีแรก: '+(model.total===null?'—':fmt(model.total))+' บาท/ปี</div></div>';
+ panel.appendChild(compare);
+ compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{
+  state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();
+ }));
+ compare.querySelectorAll('.hc-tab').forEach(tab=>tab.addEventListener('click',()=>{
+  compare.querySelectorAll('.hc-tab').forEach(t=>{const yes=t===tab;t.classList.toggle('active',yes);t.setAttribute('aria-selected',String(yes));});
+  compare.querySelectorAll('.hc-view').forEach(v=>v.hidden=v.dataset.panel!==tab.dataset.view);
+ }));
  if(model.isEligible) addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
 }
 function build20HealthComboReportHTML(type){
