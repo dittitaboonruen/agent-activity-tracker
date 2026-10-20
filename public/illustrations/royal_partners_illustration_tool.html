@@ -7531,6 +7531,102 @@ tbody td{
   margin-right:auto !important;
 }
 
+
+/* ==========================================================
+   RESPONSIVE EXPANSION — PHASE 2
+   Calculator UI only. Do not apply sizing to A4 reports or PDF.
+========================================================== */
+@media (min-width: 1200px){
+  .rp-sales-shell,
+  .rp-sales-shell .rp-hero,
+  .rp-sales-shell .rp-product-card{
+    max-width:1560px !important;
+  }
+  .rp-sales-shell{
+    width:min(94%,1560px) !important;
+    margin-inline:auto !important;
+  }
+  .rp-plan-card .inputs{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+}
+@media (min-width: 769px) and (max-width:1199px){
+  .rp-sales-shell{
+    width:calc(100% - 28px) !important;
+    max-width:none !important;
+    padding-inline:12px !important;
+  }
+  .rp-plan-card .inputs{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .rp-product-card .tabs{flex-wrap:wrap !important;}
+  .summary.smart-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width:768px){
+  html,body{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:clip;
+  }
+  .rp-sales-shell{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    padding-inline:12px !important;
+  }
+  .rp-sales-shell .rp-hero,
+  .rp-sales-shell .rp-detail-card,
+  .rp-sales-shell .rp-plan-card,
+  .rp-sales-shell .rp-product-card,
+  .rp-sales-shell .panel{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+  .rp-plan-card .inputs{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .rp-product-card .tabs{
+    flex-wrap:wrap !important;
+    min-width:0 !important;
+  }
+  .rp-product-card .tab{
+    white-space:normal !important;
+    overflow-wrap:anywhere;
+  }
+  .summary.smart-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .rp-details-grid{grid-template-columns:1fr !important;}
+  .rp-product-group{grid-template-columns:1fr !important;}
+  .rp-sales-shell .ledger-wrap,
+  .rp-sales-shell .plan-grid .ledger-wrap{
+    max-width:100%;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+  }
+}
+@media (max-width:560px){
+  .rp-sales-shell{padding-inline:10px !important;}
+  .rp-plan-card .inputs{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .rp-detail-card .customerbar-inner,
+  .rp-detail-card .agentbar-inner{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .summary.smart-summary-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .rp-product-card .tab{
+    flex:1 1 auto;
+  }
+  .rp-sales-shell .plan-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
+
 </style>
 
 </head>
