@@ -7413,6 +7413,91 @@ tbody td{
     font-size: 12px !important;
   }
 }
+
+/* =========================================================
+   REPORT PREVIEW FIT — PHASE 1.1
+   Preview-only shell fix: single scroll surface / viewport-bounded modal.
+   Do not change report dimensions, calculation logic, or PDF render logic.
+========================================================= */
+.rp-preview-overlay{
+  align-items:center !important;
+  padding:16px 12px !important;
+  overflow:hidden !important;
+}
+
+.rp-preview-dialog{
+  width:min(940px, 100%) !important;
+  max-height:calc(100dvh - 32px) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+.rp-preview-toolbar{
+  flex:0 0 auto !important;
+}
+
+.rp-preview-content{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:auto !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+  padding:18px 20px 32px !important;
+}
+
+.rp-preview-content .rp-report-pages{
+  padding-top:0 !important;
+  padding-bottom:8px !important;
+}
+
+.rp-preview-content > .rp-report,
+.rp-preview-content > .card,
+.rp-preview-content .rp-report-page,
+.rp-preview-content .ann-report-page{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+@media (max-width:768px){
+  .rp-preview-overlay{
+    align-items:center !important;
+    padding:8px !important;
+  }
+
+  .rp-preview-dialog{
+    width:100% !important;
+    max-height:calc(100dvh - 16px) !important;
+  }
+
+  .rp-preview-toolbar{
+    gap:8px !important;
+    flex-wrap:wrap !important;
+  }
+
+  .rp-preview-content{
+    padding:10px 10px 22px !important;
+  }
+}
+
+@media (max-height:700px){
+  .rp-preview-overlay{
+    align-items:flex-start !important;
+    padding-top:8px !important;
+    padding-bottom:8px !important;
+  }
+
+  .rp-preview-dialog{
+    max-height:calc(100dvh - 16px) !important;
+  }
+
+  .rp-preview-content{
+    padding-bottom:24px !important;
+  }
+}
+
 </style>
 
 </head>
