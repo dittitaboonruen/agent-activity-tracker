@@ -7758,6 +7758,23 @@ tbody td{
   .hc-comparison .hc-cards{grid-template-columns:minmax(0,1fr) !important;}
 }
 
+
+/* Health combo full-report presentation follows 20Pay Life report visual language. */
+.hc-only-comparison{margin-top:12px}
+.health-combo-report-page .ex-report-inner{min-height:1123px}
+.health-combo-report-page .rp-report-head{padding:12px 18px}
+.health-combo-report-page .rp-report-title{font-size:19px}
+.health-combo-report-page .ex-summary-row{margin-top:7px}
+.health-combo-report-page .ex-summary-box{padding:8px}
+.health-combo-report-page .ex-summary-box .v{font-size:15px}
+.health-combo-report-page .rp-section{margin:7px 18px 0 !important}
+.health-combo-report-page .hc-report-explanation{font-size:9px;line-height:1.5;color:#3e4857;padding:7px 10px;background:#faf8f3;border:1px solid #ece5d8;border-radius:5px;margin:5px 0}
+.health-combo-report-page .hc-report-benefits{width:100%;border-collapse:collapse;font-size:8.5px}
+.health-combo-report-page .hc-report-benefits th{background:#0f1b2e;color:white;text-align:left;padding:7px}
+.health-combo-report-page .hc-report-benefits td{padding:4px 7px;line-height:1.3;border-bottom:1px solid #e9e4da}
+.health-combo-report-page .hc-report-benefits th:last-child,.health-combo-report-page .hc-report-benefits td:last-child{text-align:right;width:30%}
+.health-combo-report-page .hc-report-disclaimer{font-size:7.2px;line-height:1.4;color:#786e61;margin:9px 18px 0;padding:7px 9px;border:1px solid #e5dfd1}
+
 </style>
 
 </head>
@@ -14305,43 +14322,54 @@ function view20HealthCombo(app,type){
  const compare=document.createElement('div');
  compare.className='hc-comparison';
  compare.innerHTML=healthComboComparisonCards(model,type)+
- '<div class="hc-tabs" role="tablist"><button type="button" class="hc-tab active" data-view="compare" aria-selected="true">เปรียบเทียบ 4 แผน</button>'+
- '<button type="button" class="hc-tab" data-view="summary" aria-selected="false">หน้าสรุป</button></div>'+
- '<div class="hc-view" data-panel="compare"><div class="hc-heading">แบบข้อเสนอ '+model.gender+' อายุ '+model.age+' ปี</div>'+
- healthComboTable(model)+healthComboAnalysisTable(model)+'</div>'+
- '<div class="hc-view" data-panel="summary" hidden><div class="hc-heading">สรุปแผนที่เลือก</div>'+
- '<div class="hc-summary-line">แผน '+(model.selected+1)+' · '+fmt(model.info.limits[model.selected])+' บาท</div>'+
- '<div class="hc-summary-line">เบี้ยสัญญาหลักต่อปี: '+(model.main?fmt(model.main.net):'—')+' บาท</div>'+
- '<div class="hc-summary-line">เบี้ยสุขภาพต่อปี: '+(model.premium===null?'—':fmt(model.premium))+' บาท</div>'+
- '<div class="hc-summary-total">รวมเบี้ยปีแรก: '+(model.total===null?'—':fmt(model.total))+' บาท/ปี</div></div>';
+ '<div class="hc-view hc-only-comparison"><div class="hc-heading">เปรียบเทียบความคุ้มครอง 4 แผน — '+(type==='happy'?'Health Happy':'Health Saver')+
+ ' · '+model.gender+' อายุ '+model.age+' ปี</div>'+
+ healthComboTable(model)+healthComboAnalysisTable(model)+'</div>';
  panel.appendChild(compare);
  compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{
   state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();
- }));
- compare.querySelectorAll('.hc-tab').forEach(tab=>tab.addEventListener('click',()=>{
-  compare.querySelectorAll('.hc-tab').forEach(t=>{const yes=t===tab;t.classList.toggle('active',yes);t.setAttribute('aria-selected',String(yes));});
-  compare.querySelectorAll('.hc-view').forEach(v=>v.hidden=v.dataset.panel!==tab.dataset.view);
  }));
  if(model.isEligible) addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
 }
 function build20HealthComboReportHTML(type){
  const m=healthComboModel(type);
  if(!m.isEligible)return '<div class="notewrap">อายุหรือทุนประกันไม่ตรงเงื่อนไข</div>';
- const plan=m.selected,selected=m.info.rows.map(r=>
-   '<tr><td>'+r[0]+'</td><td>'+comboDisplay(r[1][plan])+'</td></tr>').join('');
- return '<div class="rp-report"><div class="rp-report-pages">'+
- '<section class="rp-report-page health-combo-report-page"><div class="rp-page-inner">'+
- '<header class="rp-report-head"><div><div class="rp-report-brand">ROYAL PARTNER</div><div class="rp-report-title">'+m.info.title+'</div><div class="rp-report-sub">ตารางเปรียบเทียบ 4 แผน ตาม Excel ต้นฉบับ</div></div></header>'+
- '<div class="rp-report-meta"><div class="cell"><div class="l">ลูกค้า</div><div class="v">'+escapeResourceHtml((state.customer.firstName+' '+state.customer.lastName).trim()||'—')+'</div></div>'+
- '<div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+m.gender+' / '+m.age+' ปี</div></div>'+
- '<div class="cell"><div class="l">ทุนประกันสัญญาหลัก</div><div class="v">'+fmt(state.sum)+'</div></div></div>'+
- '<div class="rp-report-kpis">'+
- '<div class="rp-kpi"><div class="l">เบี้ย 20Pay Life / ปี</div><div class="v">'+fmt(m.main.net)+'</div></div>'+
- '<div class="rp-kpi"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(m.premium)+'</div></div>'+
- '<div class="rp-kpi"><div class="l">รวมเบี้ยปีแรก / ปี</div><div class="v">'+fmt(m.total)+'</div></div></div>'+
- '<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติม — แผน '+(plan+1)+' ('+fmt(m.info.limits[plan])+' บาท)</div>'+
- '<table class="rp-benefit-table"><thead><tr><th>รายการผลประโยชน์</th><th>ความคุ้มครอง</th></tr></thead><tbody>'+selected+'</tbody></table></div>'+
- '<div class="rp-report-foot">เอกสารประกอบการสอนแบบประกันเพื่อความเข้าใจเท่านั้น — เงื่อนไขจริงยึดตามกรมธรรม์</div>'+
+ const isHappy=type==='happy';
+ const productName=isHappy?'AIA Health Happy':'AIA Health Saver';
+ const selectedPlan=m.selected;
+ const rows=m.info.rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+comboDisplay(r[1][selectedPlan])+'</td></tr>').join('');
+ const fullName=escapeResourceHtml((state.customer.firstName+' '+state.customer.lastName).trim()||'—');
+ const coverageDescription=isHappy?
+  'สัญญาเพิ่มเติมสุขภาพแบบเหมาจ่ายตามวงเงินรายปีที่เลือก มีผลประโยชน์ค่าห้อง ค่ารักษาในโรงพยาบาล ค่าผ่าตัด และรายการดูแลรักษาตามตารางผลประโยชน์':
+  'สัญญาเพิ่มเติมสุขภาพที่กำหนดวงเงินค่ารักษาพยาบาลตามแผน มีทั้งรายการเหมาจ่ายตามจริงและรายการที่จำกัดวงเงินต่อครั้งตามตารางผลประโยชน์';
+ return '<div class="rp-report" data-report-version="HEALTH-COMBO-1.1"><div class="rp-report-pages">'+
+ '<section class="ex-report-page health-combo-report-page"><div class="ex-report-inner">'+
+ '<div class="rp-report-head"><div><div class="rp-report-title">20Pay Life + '+productName+'</div>'+
+ '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">ใบสรุปข้อเสนอการประกันชีวิตพร้อมสัญญาเพิ่มเติมสุขภาพ</div></div>'+
+ '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัยสัญญาหลัก</div><div class="v">'+fmt(state.sum)+' บาท</div></div></div>'+
+ '<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf"><div style="font-size:8px;color:#847c69">ชื่อลูกค้า</div><div style="font-size:12px;font-weight:700;color:#0F1B2E">'+fullName+'</div></div>'+
+ '<div class="rp-report-meta">'+
+ '<div class="cell"><div class="l">เพศ</div><div class="v">'+m.gender+'</div></div>'+
+ '<div class="cell"><div class="l">อายุ</div><div class="v">'+m.age+' ปี</div></div>'+
+ '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">20 ปี</div></div></div>'+
+ '<div class="ex-summary-row">'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">'+fmt(m.main.net)+' บาท</div></div>'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(m.premium)+' บาท</div></div>'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยรวมปีแรก / ปี</div><div class="v">'+fmt(m.total)+' บาท</div></div>'+
+ '<div class="ex-summary-box em"><div class="l">วงเงินสุขภาพต่อรอบปี</div><div class="v">'+fmt(m.info.limits[selectedPlan])+' บาท</div></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">1 สัญญาหลัก — AIA 20Pay Life</div>'+
+ '<div class="hc-report-explanation">ชำระเบี้ยประกันชีวิต 20 ปี ให้ความคุ้มครองชีวิตถึงอายุ 99 ปี ตามเงื่อนไขกรมธรรม์ '+
+ 'ทุนประกันชีวิต '+fmt(state.sum)+' บาท และผลประโยชน์ครบกำหนดอายุ 99 ปีตามแบบประกัน '+
+ 'เบี้ยสัญญาหลัก '+fmt(m.main.net)+' บาทต่อปี (คำนวณจากอายุ เพศ และทุนประกันที่กรอก)</div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">2 สัญญาเพิ่มเติม — '+productName+' แผน '+(selectedPlan+1)+'</div>'+
+ '<div class="hc-report-explanation">'+coverageDescription+' โดยแผนที่เลือกมีวงเงิน '+fmt(m.info.limits[selectedPlan])+
+ ' บาทต่อรอบปีกรมธรรม์ เบี้ยสุขภาพปีปัจจุบัน '+fmt(m.premium)+' บาท ทั้งนี้เบี้ยสุขภาพอาจเปลี่ยนตามอายุและเงื่อนไขการต่ออายุสัญญาเพิ่มเติม</div>'+
+ '<table class="rp-benefit-table hc-report-benefits"><thead><tr><th>รายการผลประโยชน์</th><th>แผน '+(selectedPlan+1)+' · '+fmt(m.info.limits[selectedPlan])+' บาท</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+ '<div class="rp-section"><div class="rp-section-title">3 สรุปการชำระเบี้ย</div>'+
+ '<div class="hc-report-explanation">เบี้ยสัญญาหลัก '+fmt(m.main.net)+' บาท/ปี + เบี้ยสัญญาเพิ่มเติม '+fmt(m.premium)+
+ ' บาท/ปี = รวมเบี้ยปีแรก '+fmt(m.total)+' บาท/ปี โดยเบี้ยสุขภาพที่แสดงเป็นอัตราสำหรับอายุปัจจุบัน ไม่ใช่การรับประกันเบี้ยคงที่ตลอดสัญญา</div></div>'+
+ '<div class="hc-report-disclaimer">เอกสารนี้เป็นเพียงใบสรุปประกอบการเสนอขาย ไม่ใช่กรมธรรม์หรือการรับรองผลประโยชน์ การพิจารณารับประกัน ข้อยกเว้น เงื่อนไข และรายละเอียดความคุ้มครองให้ยึดตามเอกสารกรมธรรม์และตารางผลประโยชน์ของ AIA</div>'+
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
  '</div></section></div></div>';
 }
 async function download20HealthComboPDF(key,btn){
