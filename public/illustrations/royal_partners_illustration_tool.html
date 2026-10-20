@@ -7498,6 +7498,39 @@ tbody td{
   }
 }
 
+
+/* REPORT PREVIEW FIT — PHASE 1.2 */
+.rp-preview-content{
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+}
+.rp-preview-fit-stage{
+  position:relative;
+  margin:0 auto;
+  max-width:100%;
+}
+.rp-preview-fit-paper{
+  position:relative;
+  transform-origin:top left;
+  width:max-content;
+}
+.rp-preview-fit-paper .rp-report-pages{
+  padding-bottom:24px !important;
+}
+.rp-preview-pdf-source{
+  position:fixed;
+  left:-100000px;
+  top:0;
+  width:794px;
+  pointer-events:none;
+  z-index:-1;
+}
+.rp-preview-visual-report .rp-report-page,
+.rp-preview-visual-report .ann-report-page{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
 </style>
 
 </head>
@@ -13389,6 +13422,10 @@ async function downloadAnnuityPDF(key,btn){
 
 
 function closeReportPreview(){
+  if(typeof window.__rpPreviewFitCleanup === 'function'){
+    window.__rpPreviewFitCleanup();
+    window.__rpPreviewFitCleanup = null;
+  }
   document.getElementById('report-preview-host').innerHTML = '';
 }
 
@@ -13487,9 +13524,56 @@ function showReportPreview(key){
               <button type="button" class="rp-preview-close">ปิด</button>
             </div>
           </div>
-          <div class="rp-preview-content">${reportHTML}</div>
+          <div class="rp-preview-content"><div class="rp-preview-fit-stage"><div class="rp-preview-fit-paper">${reportHTML}</div></div></div>
         </div>
       </div>`;
+
+    // Preserve the original, unscaled report DOM for PDF rendering.
+    // Only the separately cloned preview receives visual scaling.
+    const previewContent = host.querySelector('.rp-preview-content');
+    const fitStage = host.querySelector('.rp-preview-fit-stage');
+    const fitPaper = host.querySelector('.rp-preview-fit-paper');
+    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylife20','annuityfix','annuitysure'].includes(key);
+    if(isPdfReport && previewContent && fitStage && fitPaper){
+      const pdfSource = document.createElement('div');
+      pdfSource.className = 'rp-preview-pdf-source';
+      pdfSource.setAttribute('aria-hidden','true');
+      while(fitPaper.firstChild) pdfSource.appendChild(fitPaper.firstChild);
+      host.appendChild(pdfSource);
+      const visualReport = pdfSource.cloneNode(true);
+      visualReport.className = 'rp-preview-visual-report';
+      visualReport.removeAttribute('aria-hidden');
+      visualReport.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+      while(visualReport.firstChild) fitPaper.appendChild(visualReport.firstChild);
+      const fitPreview = ()=>{
+        if(!fitStage.isConnected) return;
+        fitPaper.style.transform = 'none';
+        fitPaper.style.width = 'max-content';
+        fitStage.style.height = 'auto';
+        const reportWidth = Math.max(fitPaper.scrollWidth,fitPaper.getBoundingClientRect().width,1);
+        const reportHeight = Math.max(fitPaper.scrollHeight,1);
+        const availableWidth = Math.max(1,previewContent.clientWidth -
+          parseFloat(getComputedStyle(previewContent).paddingLeft) -
+          parseFloat(getComputedStyle(previewContent).paddingRight) - 2);
+        const scale = Math.min(1, availableWidth / reportWidth);
+        fitPaper.style.transform = 'scale(' + scale + ')';
+        fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
+        fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
+      };
+      fitPreview();
+      const resizeObserver = typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(()=>fitPreview()) : null;
+      if(resizeObserver) resizeObserver.observe(previewContent);
+      host.querySelectorAll('.rp-preview-visual-report img').forEach(img=>{
+        if(!img.complete) img.addEventListener('load',fitPreview,{once:true});
+      });
+      if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitPreview);
+      const priorCleanup = window.__rpPreviewFitCleanup;
+      if(typeof priorCleanup === 'function') priorCleanup();
+      window.__rpPreviewFitCleanup = ()=>{
+        if(resizeObserver) resizeObserver.disconnect();
+      };
+    }
 
     const overlay = host.querySelector('.rp-preview-overlay');
     const closeBtn = host.querySelector('.rp-preview-close');
