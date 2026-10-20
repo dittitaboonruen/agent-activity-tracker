@@ -7292,6 +7292,37 @@ body.rp-preview-open{
 }
 </style>
 
+
+<style>
+/* =========================================================
+   FULL SCREEN REPORT PREVIEW — PHASE 1.1
+   True viewport bridge + fit-to-width paper
+========================================================= */
+
+.rp-preview-content{
+  display:block !important;
+}
+
+.rp-preview-content .rp-report-pages,
+.rp-preview-content > .ann-report-page,
+.rp-preview-content > .card{
+  transform-origin:top center;
+}
+
+.rp-preview-fit-target{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+/* desktop keeps paper at real preview size */
+@media(min-width:901px){
+  .rp-preview-content{
+    padding-left:clamp(18px,3vw,48px) !important;
+    padding-right:clamp(18px,3vw,48px) !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -13183,6 +13214,108 @@ async function downloadAnnuityPDF(key,btn){
 function closeReportPreview(){
   document.getElementById('report-preview-host').innerHTML = '';
   document.body.classList.remove('rp-preview-open');
+  window.removeEventListener(
+    'resize',
+    handleReportPreviewResize
+  );
+
+  if(window.parent && window.parent !== window){
+    window.parent.postMessage(
+      {
+        type:'rp-report-preview',
+        open:false
+      },
+      '*'
+    );
+  }
+}
+
+function fitReportPreviewToViewport(){
+  const host=
+    document.getElementById(
+      'report-preview-host'
+    );
+
+  const content=
+    host?.querySelector(
+      '.rp-preview-content'
+    );
+
+  if(!content){
+    return;
+  }
+
+  const candidates=[
+    content.querySelector(
+      '.rp-report-pages'
+    ),
+    content.querySelector(
+      '.ann-report-page'
+    ),
+    content.querySelector(
+      '.card'
+    )
+  ].filter(Boolean);
+
+  const target=
+    candidates[0];
+
+  if(!target){
+    return;
+  }
+
+  target.classList.add(
+    'rp-preview-fit-target'
+  );
+
+  target.style.zoom='1';
+
+  const firstPaper=
+    target.matches(
+      '.rp-report-pages'
+    )
+      ? target.querySelector(
+          '.rp-report-page'
+        )
+      : target;
+
+  if(!firstPaper){
+    return;
+  }
+
+  const naturalWidth=
+    firstPaper.getBoundingClientRect().width;
+
+  const availableWidth=
+    Math.max(
+      260,
+      content.clientWidth -
+      24
+    );
+
+  const scale=
+    Math.min(
+      1,
+      availableWidth /
+      naturalWidth
+    );
+
+  target.style.zoom=
+    String(scale);
+}
+
+let rpPreviewResizeTimer=null;
+
+function handleReportPreviewResize(){
+  clearTimeout(
+    rpPreviewResizeTimer
+  );
+
+  rpPreviewResizeTimer=
+    setTimeout(
+      fitReportPreviewToViewport,
+      80
+    );
 }
 
 function showReportPreview(key){
@@ -13285,6 +13418,25 @@ function showReportPreview(key){
         </div>
       </div>`;
 
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage(
+        {
+          type:'rp-report-preview',
+          open:true
+        },
+        '*'
+      );
+    }
+
+    requestAnimationFrame(()=>{
+      fitReportPreviewToViewport();
+    });
+
+    window.addEventListener(
+      'resize',
+      handleReportPreviewResize
+    );
+
     const overlay = host.querySelector('.rp-preview-overlay');
     const closeBtn = host.querySelector('.rp-preview-close');
 
@@ -13339,6 +13491,21 @@ function showReportPreview(key){
     document.addEventListener('keydown', onPreviewKeydown);
   }catch(error){
     document.body.classList.remove('rp-preview-open');
+    window.removeEventListener(
+      'resize',
+      handleReportPreviewResize
+    );
+
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage(
+        {
+          type:'rp-report-preview',
+          open:false
+        },
+        '*'
+      );
+    }
+
     console.error('Report preview error:', error);
     alert('เกิดข้อผิดพลาดในการเปิดใบสรุป กรุณาลองใหม่อีกครั้ง');
   }
