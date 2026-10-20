@@ -11,10 +11,10 @@ export default function CalculatorPage() {
         minHeight: "100vh",
         background: "#F7F3EA",
         color: "#0F1B2E",
-        padding: "24px 16px",
+        padding: "clamp(12px, 2vw, 28px)",
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ width: "100%", maxWidth: 1600, margin: "0 auto", minWidth: 0 }}>
         <Link
           href="/agent"
           style={{
@@ -52,7 +52,9 @@ export default function CalculatorPage() {
           style={{
             display: "block",
             width: "100%",
-            height: 1100,
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            height: "max(1100px, 90dvh)",
             border: "1px solid #D9D2BF",
             background: "#FFFDF8",
           }}
