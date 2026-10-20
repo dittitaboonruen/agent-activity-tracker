@@ -13521,7 +13521,7 @@ async function downloadAnnuityPDF(key,btn){
    Unlike modal zoom, this fixes content clipped by the paper's overflow:hidden. */
 function fitReportA4Contents(root){
   if(!root) return;
-  root.querySelectorAll('.rp-report-page, .ann-report-page').forEach(page=>{
+  root.querySelectorAll('.rp-report-page, .ex-report-page, .sc-report-page, .ann-report-page').forEach(page=>{
     const inner = page.querySelector(':scope > .rp-page-inner, :scope > .ex-report-inner, :scope > .sc-report-inner, :scope > .ann-report-inner');
     if(!inner) return;
 
