@@ -14341,15 +14341,6 @@ function view20HealthCombo(app,type){
  const model=healthComboModel(type);
  app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20Pay Life พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
  const panel=app.querySelector('.panel');
- const controls=document.createElement('div');
- controls.className='health-combo-controls';
- controls.innerHTML='<label>เลือกแผน '+(type==='happy'?'Health Happy':'Health Saver')+
- ' <select class="health-combo-select">'+model.info.limits.map((l,i)=>
- '<option value="'+i+'"'+(i===model.selected?' selected':'')+'>แผน '+(i+1)+' — '+fmt(l)+' บาท</option>').join('')+'</select></label>';
- panel.appendChild(controls);
- controls.querySelector('select').addEventListener('change',e=>{
-   state.healthCombo[type+'Plan']=Number(e.target.value);render();
- });
  if(!model.isEligible){
    const warning=document.createElement('div');warning.className='notewrap';
    warning.textContent='สูตรจากไฟล์ต้นฉบับ: อายุที่ทำข้อเสนอร่วมกันได้ 11–70 ปี และทุนสัญญาหลักขั้นต่ำ 100,000 บาท';
@@ -14358,15 +14349,14 @@ function view20HealthCombo(app,type){
  fillSummary(app,[
  {lbl:'เบี้ยสัญญาหลัก / ปี',val:model.main?fmt(model.main.net):'ไม่รับประกัน'},
  {lbl:'เบี้ยสุขภาพแผนที่เลือก / ปี',val:model.premium===null?'ไม่รับประกัน':fmt(model.premium)},
- {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)},
- {lbl:'เฉลี่ยต่อเดือน (เบี้ยปีแรก)',val:model.total===null?'ไม่รับประกัน':fmt(model.total/12)}
+ {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)}
  ]);
  const compare=document.createElement('div');
  compare.className='hc-comparison';
  compare.innerHTML=healthComboComparisonCards(model,type)+
  '<div class="hc-view hc-only-comparison"><div class="hc-heading">เปรียบเทียบความคุ้มครอง 4 แผน — '+(type==='happy'?'Health Happy':'Health Saver')+
  ' · '+model.gender+' อายุ '+model.age+' ปี</div>'+
- healthComboTable(model)+healthComboAnalysisTable(model)+'</div>';
+ healthComboTable(model)+'</div>';
  panel.appendChild(compare);
  compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{
   state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();
