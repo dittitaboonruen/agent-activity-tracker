@@ -8977,25 +8977,34 @@ function calcPayLifePlus(age,gender,sum,term,tax){
 }
 
 const PAYLIFE_PLUS_REPORT_VERSION='1.0';
+
+/* Pay Life Plus dynamic benefit timeline — same markup on screen and A4 preview. */
+function buildPayLifePlusBenefitChartHTML(r,compact=false){
+  const term=r.term,entry=Number(state.age),end=r.wpciUntil;
+  const slots=Array.from({length:20},(_,i)=>i+1);
+  const ageEnd=Math.min(99,entry+term);
+  const maxMarker=Array.from({length:term},(_,i)=>'<span>▲</span>').join('');
+  return '<div class="plus-visual '+(compact?'plus-visual-pdf':'')+'">'+
+    '<div class="plus-visual-line"><b>WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค</b><div class="plus-visual-arrow"><strong>ฟรี</strong><span>คุ้มครองตามระยะชำระเบี้ย หรือถึงอายุ 80 ปี แล้วแต่อย่างใดถึงก่อน</span><strong>ถึงอายุ '+end+' ปี</strong></div></div>'+
+    '<div class="plus-visual-line"><b>TI ภาวะเจ็บป่วยระยะสุดท้าย</b><div class="plus-visual-arrow"><strong>ฟรี</strong><span>จ่ายสูงสุด 100% ตามเงื่อนไขกรมธรรม์</span><strong>ถึงอายุ 99 ปี</strong></div></div>'+
+    '<div class="plus-visual-line"><b>ความคุ้มครองชีวิต</b><div class="plus-visual-life"><strong>100% ของทุนประกัน<br>'+fmt20(r.sum)+' บาท</strong><em>หรือ</em><strong>มูลค่าเวนคืนกรมธรรม์</strong><em>หรือ</em><span>เบี้ยประกันหลักที่บริษัทได้รับแล้วทั้งหมด ตามเงื่อนไขกรมธรรม์ (จ่ายอย่างใดอย่างหนึ่งที่สูงกว่า)</span></div></div>'+
+    '<div class="plus-visual-line"><b>ระยะเวลาคุ้มครอง</b><div class="plus-visual-years"><span>อายุเริ่มต้น '+entry+' ปี</span><span>ถึงอายุ 99 ปี</span></div></div>'+
+    '<div class="plus-visual-line"><b>ชำระเบี้ย '+term+' ปี</b><div class="plus-visual-marks">'+slots.map(i=>'<span class="'+(i<=term?'pay':'')+'">'+(i<=term?'▲':'·')+'<small>'+i+'</small></span>').join('')+'</div></div>'+
+    '<div class="plus-visual-line"><b>อายุหลังสิ้นสุดชำระเบี้ย</b><div class="plus-visual-end">อายุ '+ageEnd+' ปี • ครบกำหนดอายุ 99 ปี รับ '+fmt20(r.maturityBenefit)+' บาท</div></div>'+
+    '</div>';
+}
+
 function buildPayLifePlusReportHTML(){
  const r=calcPayLifePlus(state.age,state.gender,state.sum,state.paylifeplus.term,state.tax);
  if(!r.ok)throw Error('กรุณาตรวจสอบอายุและทุนประกัน');
  const fullName=escapeResourceHtml([state.customer.firstName,state.customer.lastName].filter(Boolean).join(' ')||'—');
- const lines=[
-  ['ระยะเวลาคุ้มครอง','ถึงอายุ 99 ปี'],
-  ['กรณีเสียชีวิต','ทุนประกัน / มูลค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า ตามเงื่อนไข'],
-  ['ครบกำหนดสัญญา',fmt20(r.maturityBenefit)+' บาท ณ อายุ 99 ปี'],
-  ['TI (ฟรี)','สูงสุด 100% ของทุนประกัน และยกเว้นเบี้ยสัญญาหลักที่เหลือ ตามเงื่อนไข'],
-  ['WPCI (ฟรี)','โรคร้ายแรง 44 โรค ยกเว้นเบี้ยสัญญาหลักถึงอายุ '+r.wpciUntil+' ปี ตามเงื่อนไข']
- ];
- const detail=lines.map(x=>'<tr><th style="width:30%;padding:6px;background:#f5eedf;color:#10243f">'+x[0]+'</th><td style="padding:6px;color:#10243f">'+x[1]+'</td></tr>').join('');
  const rows=r.rows.map(x=>'<tr><td>'+x.year+'</td><td>'+x.age+'</td><td>'+fmt20(x.premium)+'</td><td>'+fmt20(r.annual*x.year)+'</td><td>'+fmt20(x.coverage)+'</td><td>'+fmt20(x.taxRelief)+'</td></tr>').join('');
  return '<div class="rp-report" data-report-version="'+PAYLIFE_PLUS_REPORT_VERSION+'"><div class="rp-report-pages"><section class="ex-report-page" id="paylifeplus-report-page-1"><div class="ex-report-inner">'+
  '<div class="rp-report-head"><div><div class="rp-report-title">AIA 20Pay Life Plus (Non Par)</div><div class="rp-report-sub">ชำระเบี้ย '+r.term+' ปี • คุ้มครองถึงอายุ 99 ปี</div></div><div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">'+fmt20(r.sum)+' บาท</div></div></div>'+
  '<div style="padding:7px 16px;background:#fffdf8;border-bottom:1px solid #d9d2bf;font-size:11px">ลูกค้า: '+fullName+'</div>'+
  '<div class="rp-report-meta"><div class="cell"><div class="l">เพศ</div><div class="v">'+state.gender+'</div></div><div class="cell"><div class="l">อายุ</div><div class="v">'+state.age+' ปี</div></div><div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">'+r.term+' ปี</div></div></div>'+
  '<div class="ex-summary-row"><div class="ex-summary-box"><div class="l">เบี้ยหลัก/ปี</div><div class="v">'+fmt20(r.annual)+' บาท</div></div><div class="ex-summary-box"><div class="l">ตัวอย่างแบ่งชำระ 4 เดือน</div><div class="v">'+fmt20(r.annual/4)+' บาท/เดือน</div></div><div class="ex-summary-box"><div class="l">เบี้ยรวมตลอดสัญญา</div><div class="v">'+fmt20(r.annual*r.term)+' บาท</div></div><div class="ex-summary-box em"><div class="l">ครบอายุ 99 ปี</div><div class="v">'+fmt20(r.maturityBenefit)+' บาท</div></div></div>'+
- '<div class="rp-section"><div class="rp-section-title">1 สรุปผลประโยชน์</div></div><div style="padding:5px 14px"><table style="width:100%;border-collapse:collapse;font-size:10px">'+detail+'</table></div>'+
+ '<div class="rp-section"><div class="rp-section-title">1 แผนภาพผลประโยชน์และความคุ้มครอง</div></div>'+buildPayLifePlusBenefitChartHTML(r,true)+
  '<div class="rp-section"><div class="rp-section-title">2 ตารางชำระเบี้ยสัญญาหลัก '+r.term+' ปี</div></div><div style="padding:6px 14px"><table class="pl20-table" style="width:100%;font-size:9px"><thead><tr><th style="background:#10243f;color:#fff">ปีที่</th><th style="background:#10243f;color:#fff">อายุ</th><th style="background:#10243f;color:#fff">เบี้ยหลัก/ปี</th><th style="background:#10243f;color:#fff">เบี้ยสะสม</th><th style="background:#10243f;color:#fff">ทุนคุ้มครอง</th><th style="background:#10243f;color:#fff">ลดหย่อนภาษี</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
  '<div class="ex-footer-spacer"></div><div class="rp-page-number">หน้า 1 / 1 • Report v'+PAYLIFE_PLUS_REPORT_VERSION+'</div></div></section></div></div>';
 }
@@ -9022,6 +9031,37 @@ function viewPayLifePlus(app){
   controls.className='pl20-rider-wrap plus-term-panel';
   controls.innerHTML=`
     <style>
+<style>
+  .plus-visual{background:#eeecec;border-radius:12px;padding:18px 16px;margin:14px 0;color:#454545;font-size:12px;display:grid;gap:10px}
+  .plus-visual-line{display:grid;grid-template-columns:24% 1fr;align-items:center;gap:12px}
+  .plus-visual-line>b{font-size:12px;line-height:1.5}
+  .plus-visual-arrow{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#e43c68;border-radius:5px;color:#fff;padding:10px 12px}
+  .plus-visual-arrow span{flex:1;text-align:center;font-size:11px}
+  .plus-visual-life{display:flex;gap:12px;align-items:center;background:#e5004e;border-radius:6px;color:#fff;padding:14px 12px}
+  .plus-visual-life strong{flex:1;font-size:11px;line-height:1.5}
+  .plus-visual-life span{flex:2;font-size:10px;line-height:1.55}
+  .plus-visual-life em{font-size:10px;font-style:normal;background:#777;border-radius:50%;padding:7px 5px}
+  .plus-visual-years{display:flex;justify-content:space-between;background:#626262;color:#fff;padding:9px;border-radius:5px;font-weight:700}
+  .plus-visual-marks{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:2px;text-align:center}
+  .plus-visual-marks>span{font-size:14px;color:#a6a6a6}
+  .plus-visual-marks>span.pay{color:#e5004e}
+  .plus-visual-marks small{display:block;font-size:8px;color:#555}
+  .plus-visual-end{font-weight:700;color:#13273e}
+  .plus-visual-pdf{padding:9px 10px;margin:5px 12px;gap:5px;font-size:9px;border-radius:4px}
+  .plus-visual-pdf .plus-visual-line{gap:6px}
+  .plus-visual-pdf .plus-visual-line>b{font-size:8px}
+  .plus-visual-pdf .plus-visual-arrow{padding:5px 7px;gap:5px}
+  .plus-visual-pdf .plus-visual-arrow span{font-size:7px}
+  .plus-visual-pdf .plus-visual-arrow strong{font-size:8px}
+  .plus-visual-pdf .plus-visual-life{padding:7px;gap:5px}
+  .plus-visual-pdf .plus-visual-life strong{font-size:8px}
+  .plus-visual-pdf .plus-visual-life span{font-size:7px}
+  .plus-visual-pdf .plus-visual-marks>span{font-size:9px}
+  .plus-visual-pdf .plus-visual-marks small{font-size:6px}
+  .plus-visual-pdf .plus-visual-years{padding:5px;font-size:8px}
+  .plus-visual-pdf .plus-visual-end{font-size:8px}
+  @media(max-width:640px){.plus-visual:not(.plus-visual-pdf) .plus-visual-line{grid-template-columns:1fr}.plus-visual:not(.plus-visual-pdf) .plus-visual-life{flex-wrap:wrap}}
+  </style>
       .plus-term-panel{padding:18px 20px;border:1px solid #ded5c2;border-radius:12px;background:#fffdf8}
       .plus-term-label{font-size:15px;font-weight:800;color:#0f1b2e;margin-bottom:12px}
       .plus-term-buttons{display:flex;gap:10px;flex-wrap:wrap}
@@ -9063,21 +9103,9 @@ function viewPayLifePlus(app){
     {lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:'ถึงอายุ '+result.wpciUntil+' ปี'},
     {lbl:'ประมาณการประหยัดภาษี / ปี',val:fmt(result.taxRelief)+' บาท'}
   ]);
-  const benefits=document.createElement('div');
-  benefits.className='ledger-wrap';
-  benefits.innerHTML=`
-    <h3>ตารางสรุปผลประโยชน์ 20Pay Life Plus</h3>
-    <table class="plus-benefits"><tbody>
-      <tr><th>แบบประกัน</th><td>AIA 20Pay Life Plus (Non Par)</td></tr>
-      <tr><th>ระยะเวลาชำระเบี้ย</th><td>${term} ปี</td></tr>
-      <tr><th>ระยะเวลาคุ้มครอง</th><td>ถึงอายุ 99 ปี</td></tr>
-      <tr><th>กรณีเสียชีวิต</th><td>ทุนประกัน / มูลค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า ตามเงื่อนไขกรมธรรม์</td></tr>
-      <tr><th>ครบกำหนดสัญญา</th><td>${fmt(result.maturityBenefit)} บาท ณ อายุ 99 ปี</td></tr>
-      <tr><th>TI (ฟรี)</th><td>สูงสุด 100% ของทุน และยกเว้นเบี้ยหลักส่วนที่เหลือตามเงื่อนไข</td></tr>
-      <tr><th>WPCI (ฟรี)</th><td>ยกเว้นเบี้ยหลักเมื่อป่วยโรคร้ายแรง 44 โรค ตามเงื่อนไข ถึงอายุ ${result.wpciUntil} ปี</td></tr>
-      <tr><th>ตัวอย่างแบ่งชำระ 4 เดือน</th><td>ประมาณ ${fmt(split4)} บาท/เดือน (ยังไม่ยืนยันสิทธิโปรโมชั่น 0%)</td></tr>
-    </tbody></table>`;
-  panel.appendChild(benefits);
+  const visual=document.createElement('div');
+  visual.innerHTML=buildPayLifePlusBenefitChartHTML(result);
+  panel.appendChild(visual.firstElementChild);
   const ledger=document.createElement('div');
   ledger.className='ledger-wrap';
   ledger.innerHTML='<h3>ตารางชำระเบี้ยสัญญาหลัก '+term+' ปี</h3><div class="plus-ledger"></div>';
