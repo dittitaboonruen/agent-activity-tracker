@@ -7759,7 +7759,7 @@ tbody td{
 }
 
 
-/* Health combo full-report presentation follows 20PI report visual language. */
+/* Health combo full-report presentation follows 20PL report visual language. */
 .hc-only-comparison{margin-top:12px}
 .health-combo-report-page .ex-report-inner{min-height:1123px}
 .health-combo-report-page .rp-report-head{padding:12px 18px}
@@ -8665,9 +8665,9 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
 };
 
 const TABS = [
-  {id:'paylife20', label:'20PI', group:'life'},
-  {id:'pay20happy', label:'20PI + Health Happy', group:'life'},
-  {id:'pay20saver', label:'20PI + Health Saver', group:'life'},
+  {id:'paylife20', label:'20PL + เลือกความคุ้มครองเอง', group:'life'},
+  {id:'pay20happy', label:'20PL + Health Happy', group:'life'},
+  {id:'pay20saver', label:'20PL + Health Saver', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -8924,13 +8924,27 @@ function viewPay25(app){
 }
 
 function view20PayLife(app){
+  if(state.age>70){
+    app.innerHTML = panelShell(
+      'savings',
+      '20PL + เลือกความคุ้มครองเอง',
+      'ชำระเบี้ย 20 ปี คุ้มครองตลอดชีพถึงอายุ 99 ปี และเลือกแนบสัญญาเพิ่มเติมได้'
+    );
+    const panel = app.querySelector('.panel');
+    const warning = document.createElement('div');
+    warning.className = 'notewrap';
+    warning.textContent = 'อายุรับประกันภัยสูงสุด 70 ปี กรุณาระบุอายุไม่เกิน 70 ปี';
+    panel.appendChild(warning);
+    return;
+  }
+
   const r = calc20PayLife(state.age, state.gender, state.sum, state.tax);
   const riderTotal = computeRiderTotal();
   const panelMode = state.paylife20.mode;
 
   app.innerHTML = panelShell(
     'savings',
-    'AIA 20PI (Non Par)',
+    '20PL + เลือกความคุ้มครองเอง',
     'ชำระเบี้ย 20 ปี คุ้มครองตลอดชีพถึงอายุ 99 ปี และเลือกแนบสัญญาเพิ่มเติมได้'
   );
 
@@ -8946,8 +8960,8 @@ function view20PayLife(app){
   const modes = document.createElement('div');
   modes.className = 'pl20-mode-tabs';
   modes.innerHTML = `
-    <button class="pl20-mode-btn ${panelMode==='mainOnly'?'active':''}" data-pl20-mode="mainOnly">20PI อย่างเดียว</button>
-    <button class="pl20-mode-btn ${panelMode==='full'?'active':''}" data-pl20-mode="full">20PI + สัญญาเพิ่มเติม</button>
+    <button class="pl20-mode-btn ${panelMode==='mainOnly'?'active':''}" data-pl20-mode="mainOnly">20PL อย่างเดียว</button>
+    <button class="pl20-mode-btn ${panelMode==='full'?'active':''}" data-pl20-mode="full">20PL + สัญญาเพิ่มเติม</button>
   `;
   panel.appendChild(modes);
   modes.querySelectorAll('[data-pl20-mode]').forEach(btn=>{
@@ -9747,7 +9761,7 @@ function productCardData(key){
     if(rs.ai){ const v=riderAI(op.aiType,op.aiClass,sum); if(v!==null){ let t=v; if(op.aiRcc) t+=riderRCC(op.aiType,sum); riderTotal+=t; benefits.push({t:'สัญญาเพิ่มเติม '+op.aiType+(op.aiRcc?'+RCC':''), n:fmt(t)+'/ปี'}); } }
     if(rs.hhkids){ const v=riderHealthHappyKids(state.age,state.gender,op.hhkidsPlan,op.hhkidsTier); riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม AIA Health Happy Kids ('+RIDER_PLANS[op.hhkidsPlan]+')', n:fmt(v)+'/ปี'}); }
     if(rs.infinitecare){ const v=riderInfiniteCare(state.age,state.gender,op.icPlan,op.icDeductible,op.icTerritory); if(v!==null){ riderTotal+=v; benefits.push({t:'สัญญาเพิ่มเติม AIA Infinite Care ('+op.icPlan+')', n:fmt(v)+'/ปี'}); } }
-    return { title:'AIA 20PI (Non Par)', desc:'ชำระเบี้ย 20 ปี คุ้มครองยาวถึงอายุ 99 ปี พร้อมสัญญาเพิ่มเติมที่เลือกแนบ', ci:false,
+    return { title:'20PL + เลือกความคุ้มครองเอง', desc:'ชำระเบี้ย 20 ปี คุ้มครองยาวถึงอายุ 99 ปี พร้อมสัญญาเพิ่มเติมที่เลือกแนบ', ci:false,
       premiumLabel:'เบี้ยรวมปีแรก (หลัก + สัญญาเพิ่มเติม)', premiumValue:r.net+riderTotal, benefits };
   }
   if(key==='ciprocare'){
@@ -9942,7 +9956,7 @@ const PRODUCT_RESOURCE_REGISTRY = Object.freeze({
 
   pay20life: {
     brochure: {
-      title: 'โบรชัวร์ 20PI',
+      title: 'โบรชัวร์ 20PL',
       targetUrl: '',
       qrImagePath: '',
       version: '',
@@ -10055,7 +10069,7 @@ function getProductResourceLabel(productKey, options = {}){
     cisupercare_10:'AIA CI SuperCare 10/99',
     cisupercare_20:'AIA CI SuperCare 20/99',
     pay25:'15 Pay 25',
-    pay20life:'20PI',
+    pay20life:'20PL',
     annuityfix:'AIA Annuity Fix',
     annuitysure:'AIA Annuity Sure',
   };
@@ -11544,7 +11558,7 @@ function build20PayLifeReportHTML(){
       <section class="ex-report-page" id="pay20life-report-page-1">
         <div class="ex-report-inner">
           <div class="rp-report-head">
-            <div><div class="rp-report-title">20PI</div></div>
+            <div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div>
             <div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">${fmt20(data.customer.sumInsured)} บาท</div></div>
           </div>
           <div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf;">
@@ -13255,7 +13269,7 @@ async function download20PayLifePDF(btn){
   ].filter(Boolean);
 
   if(!pages.length){
-    alert('ไม่พบใบสรุป 20PI');
+    alert('ไม่พบใบสรุป 20PL');
     return;
   }
 
@@ -13901,7 +13915,7 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PI — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PI + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PI + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
@@ -14277,7 +14291,7 @@ function computeRiderTotal(){
 /* HEALTH COMBINATION — XLSX-ALIGNED PRODUCTS */
 const HEALTH_COMBO_BENEFITS = {
  happy:{
-  title:'AIA 20PI + AIA Health Happy',
+  title:'20PL + Health Happy',
   limits:[1000000,5000000,15000000,25000000],
   rows:[
    ['ค่าห้อง ค่าอาหาร (ต่อวัน)',[1500,3000,6000,9000]],
@@ -14295,7 +14309,7 @@ const HEALTH_COMBO_BENEFITS = {
   ]
  },
  saver:{
-  title:'AIA 20PI + AIA Health Saver',
+  title:'20PL + Health Saver',
   limits:[200000,300000,400000,500000],
   rows:[
    ['ค่าห้อง ค่าอาหาร (ต่อวัน)',[1500,2000,3000,4000]],
@@ -14392,13 +14406,13 @@ function healthComboComparisonCards(model,type){
  '<small>แผน '+(i+1)+' · '+fmt(limit)+' บาท'+(i===cheapest?' · เบี้ยต่อวงเงินต่ำสุด':'')+'</small>'+
  '<span class="hc-card-caption">เบี้ย '+(type==='happy'?'Health Happy':'Health Saver')+' / ปี</span>'+
  '<strong>'+ (p===null?'—':fmt(p))+'</strong>'+
- '<span class="hc-card-caption">รวมกับ 20PI / ปี</span>'+
+ '<span class="hc-card-caption">รวมกับ 20PL / ปี</span>'+
  '<b>'+(total===null?'—':fmt(total))+'</b></button>';
  }).join('')+'</div>';
 }
 function view20HealthCombo(app,type){
  const model=healthComboModel(type);
- app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20PI พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
+ app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20PL พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
  const panel=app.querySelector('.panel');
  if(!model.isEligible){
    const warning=document.createElement('div');warning.className='notewrap';
@@ -14431,7 +14445,7 @@ function build20HealthComboReportHTML(type){
  const fullName=escapeResourceHtml((state.customer.firstName+' '+state.customer.lastName).trim()||'—');
  return '<div class="rp-report" data-report-version="HEALTH-COMBO-1.1"><div class="rp-report-pages">'+
  '<section class="ex-report-page health-combo-report-page"><div class="ex-report-inner">'+
- '<div class="rp-report-head"><div><div class="rp-report-title">20PI + '+productName+'</div>'+
+ '<div class="rp-report-head"><div><div class="rp-report-title">20PL + '+productName+'</div>'+
  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">ใบสรุปข้อเสนอการประกันชีวิตพร้อมสัญญาเพิ่มเติมสุขภาพ</div></div>'+
  '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัยสัญญาหลัก</div><div class="v">'+fmt(state.sum)+' บาท</div></div></div>'+
  '<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf"><div style="font-size:8px;color:#847c69">ชื่อลูกค้า</div><div style="font-size:12px;font-weight:700;color:#0F1B2E">'+fullName+'</div></div>'+
