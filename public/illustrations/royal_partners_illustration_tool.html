@@ -8682,6 +8682,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
       hbExtraClass:1
     }
   },
+  paylifeplus: { term:20 },
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7 },
   pay25: { subtab:'planA', planBTerm:7 },
@@ -8693,6 +8694,7 @@ const TABS = [
   {id:'paylife20', label:'20PL + เลือกความคุ้มครองเอง', group:'life'},
   {id:'pay20happy', label:'20PL + Health Happy', group:'life'},
   {id:'pay20saver', label:'20PL + Health Saver', group:'life'},
+  {id:'paylifeplus', label:'20Pay Life Plus', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -8946,6 +8948,83 @@ function viewPay25(app){
   }
 
   addExportButton(app, 'pay25');
+}
+
+
+/* 20Pay Life Plus — independently sourced from royal_partners_20paylife_plus.jsx
+   Age index 0..75; columns: male10,female10,male15,female15,male20,female20.
+   DO NOT substitute 20PL rates for these premium rates. */
+const PAYLIFE_PLUS_RATES = [[24.35,19.37,17.53,15.42,14.8,13.31],[24.56,19.6,17.69,15.53,14.86,13.31],[24.96,19.97,17.96,15.74,15.06,13.35],[25.37,20.33,18.26,15.95,15.25,13.43],[25.8,20.71,18.56,16.17,15.46,13.55],[26.25,21.11,18.89,16.41,15.69,13.69],[26.72,21.52,19.22,16.65,15.93,13.85],[27.2,21.93,19.57,16.91,16.18,14.04],[27.72,22.39,19.94,17.17,16.45,14.23],[28.26,22.84,20.33,17.44,16.73,14.44],[28.83,23.31,20.74,17.72,17.03,14.69],[29.43,23.8,21.16,18.02,17.35,14.93],[30.03,24.31,21.6,18.33,17.67,15.18],[30.66,24.84,22.04,18.65,18,15.45],[31.28,25.38,22.5,18.98,18.33,15.73],[31.92,25.95,22.96,19.32,18.66,15.96],[32.57,26.53,23.42,19.67,19,16.21],[33.23,27.13,23.88,20.03,19.34,16.46],[33.89,27.75,24.35,20.41,19.69,16.72],[34.57,28.4,24.84,20.8,20.03,16.99],[35.27,29.07,25.33,21.21,20.39,17.28],[35.97,29.78,25.84,21.64,20.76,17.57],[36.71,30.5,26.36,22.08,21.15,17.9],[37.47,31.25,26.91,22.54,21.54,18.22],[38.26,32.03,27.47,23.01,21.96,18.56],[39.07,32.85,28.05,23.51,22.4,18.92],[39.93,33.69,28.67,24.02,22.85,19.3],[40.82,34.57,29.3,24.56,23.34,19.7],[41.76,35.5,29.98,25.12,23.85,20.11],[42.72,36.45,30.67,25.71,24.38,20.56],[43.74,37.44,31.39,26.32,24.94,21.01],[44.79,38.49,32.16,26.96,25.53,21.49],[45.89,39.57,32.95,27.62,26.16,21.99],[47.04,40.7,33.77,28.31,26.81,22.53],[48.21,41.88,34.63,29.03,27.48,23.08],[49.45,43.1,35.52,29.79,28.19,23.66],[50.72,44.37,36.44,30.58,28.93,24.28],[52.05,45.71,37.41,31.41,29.71,24.92],[53.43,47.09,38.41,32.26,30.52,25.59],[54.86,48.53,39.45,33.15,31.37,26.3],[56.33,50.03,40.54,34.09,32.25,27.03],[57.87,51.28,41.66,35.06,33.18,27.79],[59.47,52.58,42.83,36.07,34.15,28.61],[61.13,53.93,44.06,37.11,35.17,29.45],[62.84,55.33,45.32,38.21,36.24,30.33],[64.64,56.78,46.49,39.35,37.35,31.26],[66.48,58.3,47.63,40.54,38.54,32.24],[68.23,59.86,48.82,41.78,39.76,33.27],[69.86,61.49,50.05,43.08,41.06,34.35],[71.55,63.15,51.34,44.43,42.2,35.48],[73.29,64.74,52.67,45.85,43.4,36.68],[75.09,66.38,54.07,47.27,44.66,37.96],[76.95,68.09,55.52,48.54,46,39.3],[78.88,69.86,57.05,49.88,47.41,40.73],[80.89,71.7,58.66,51.28,48.92,42.1],[82.98,73.61,60.35,52.74,50.53,43.44],[85.17,75.59,62.15,54.29,52.26,44.86],[87.45,77.65,64.05,55.91,54.12,46.39],[89.85,79.8,66.08,57.63,56.12,48.03],[92.36,82.04,68.25,59.46,58.29,49.79],[95,84.39,70.57,61.41,60.64,51.7],[97.79,86.86,73.06,63.5,63.2,53.77],[100.74,89.46,75.74,65.75,65.97,56.02],[103.86,92.22,78.64,68.17,68.99,58.48],[107.17,95.15,81.78,70.8,72.29,61.17],[110.71,98.28,85.19,73.66,75.89,64.11],[114.51,101.64,88.9,76.78,79.81,67.34],[118.58,105.23,92.95,80.17,84.11,70.88],[122.97,109.1,97.36,83.87,87.15,74.76],[127.72,113.26,102.18,87.91,92.04,77.83],[132.85,117.73,107.44,92.3,97.53,82.43],[138.39,122.53,113.17,97.09,101.92,85.67],[144.37,127.68,119.4,102.29,108.33,91.05],[150.82,133.2,126.16,107.94,115.3,96.92],[157.76,139.12,133.48,114.07,122.85,103.31],[165.2,145.44,141.39,120.72,131.01,110.27]];
+function calcPayLifePlus(age,gender,sum,term,tax){
+  const a=Number(age),si=Number(sum),years=Number(term);
+  const minSum=years===20?150000:300000;
+  if(!Number.isInteger(a)||a<0||a>75||![10,15,20].includes(years)||
+     !Number.isFinite(si)||si<minSum||si>9999999||
+     !['ชาย','หญิง'].includes(gender)){
+    return {ok:false,minSum};
+  }
+  const rate=PAYLIFE_PLUS_RATES[a][((years-10)/5)*2+(gender==='ชาย'?0:1)];
+  const disc=si<500000?0:si<700000?1:1.5;
+  const annual=(rate-disc)*(si/1000);
+  const rows=Array.from({length:years},(_,i)=>({
+    year:i+1,age:a+i,premium:annual,coverage:si,
+    taxRelief:Math.min(annual,100000)*(Number(tax)||0)
+  }));
+  return {ok:true,rate,disc,annual,rows,term:years,sum:si,
+    taxRelief:Math.min(annual,100000)*(Number(tax)||0),
+    maturityBenefit:si,tiBenefit:si,
+    wpciUntil:Math.min(a+years,80)};
+}
+function viewPayLifePlus(app){
+  const term=state.paylifeplus.term;
+  const result=calcPayLifePlus(state.age,state.gender,state.sum,term,state.tax);
+  app.innerHTML=panelShell('life','AIA 20Pay Life Plus (Non Par)',
+    'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • TI และ WPCI ตามข้อมูลต้นฉบับ');
+  const panel=app.querySelector('.panel');
+  const controls=document.createElement('div');
+  controls.className='pl20-rider-wrap';
+  controls.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>'+
+    '<div class="pl20-rider-options">'+
+    '<select id="plus-term" aria-label="ระยะเวลาชำระเบี้ย">'+
+    [10,15,20].map(y=>'<option value="'+y+'" '+(y===term?'selected':'')+'>'+y+' ปี</option>').join('')+
+    '</select></div><div class="pl20-rider-premium">อายุรับประกัน 15 วัน–75 ปี (ตารางต้นฉบับใช้ดัชนีอายุ 0 สำหรับทารก) • ทุนขั้นต่ำ 10/15 ปี 300,000 บาท • 20 ปี 150,000 บาท • สูงสุด 9,999,999 บาท</div>';
+  panel.appendChild(controls);
+  controls.querySelector('#plus-term').addEventListener('change',e=>{
+    state.paylifeplus.term=Number(e.target.value);render();
+  });
+  if(!result.ok){
+    const warn=document.createElement('div');
+    warn.className='notewrap';
+    warn.textContent='ไม่สามารถคำนวณได้: กรุณาตรวจอายุ 15 วัน–75 ปี และทุนประกันขั้นต่ำ '+fmt(result.minSum)+' บาท สูงสุด 9,999,999 บาท';
+    panel.appendChild(warn);
+    return;
+  }
+  fillSummary(app,[
+    {lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(result.annual)+' บาท'},
+    {lbl:'เบี้ยรวมตลอด '+term+' ปี',val:fmt(result.annual*term)+' บาท'},
+    {lbl:'กรณีเสียชีวิต / ครบอายุ 99 ปี',val:fmt(result.sum)+' บาท'},
+    {lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(result.tiBenefit)+' บาท'},
+    {lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง (ฟรี)',val:'ถึงอายุ '+result.wpciUntil+' ปี'},
+    {lbl:'ประมาณการประหยัดภาษี / ปี',val:fmt(result.taxRelief)+' บาท'},
+  ]);
+  const info=document.createElement('div');
+  info.className='notewrap';
+  info.textContent='กรณีเสียชีวิต: จ่ายทุนประกัน / มูลค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า ตามเงื่อนไขกรมธรรม์ • TI จ่ายได้สูงสุด 100% ของทุนประกันและยกเว้นเบี้ยหลักที่เหลือตามเงื่อนไข • WPCI ครอบคลุมโรคร้ายแรง 44 โรค';
+  panel.appendChild(info);
+  const ledger=document.createElement('div');
+  ledger.className='ledger-wrap';
+  ledger.innerHTML='<h3>ตารางชำระเบี้ยสัญญาหลัก '+term+' ปี</h3><div class="plus-ledger"></div>';
+  panel.appendChild(ledger);
+  renderLedger(ledger.querySelector('.plus-ledger'),result.rows,[
+    {key:'year',label:'ปีที่'}, {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยหลัก / ปี'},
+    {key:'coverage',label:'ทุนคุ้มครอง'},
+    {key:'taxRelief',label:'ลดหย่อนภาษีโดยประมาณ'}
+  ]);
+  const note=document.createElement('div');
+  note.className='notewrap';
+  note.textContent='เวอร์ชันแรก: แสดงเฉพาะเบี้ยสัญญาหลักตามตาราง 20Pay Life Plus ต้นฉบับ ยังไม่รวมเบี้ยสัญญาเพิ่มเติม และยังไม่รองรับการสร้าง PDF แบบเฉพาะผลิตภัณฑ์นี้';
+  panel.appendChild(note);
 }
 
 function view20PayLife(app){
@@ -14544,7 +14623,7 @@ function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
   map[state.tab](app);
 }
 
