@@ -8485,6 +8485,29 @@ function riderHB(age, occClassIdx, dailyBenefit){
   return rate*(dailyBenefit/100);
 }
 
+// AIA HB Extra — Benefits Plus 2025, annual premium per 100 THB/day benefit.
+// The supplied schedule covers ages 15–79; the 20PL main policy covers up to 70.
+const HB_EXTRA_RATES = Object.freeze([
+  {min:15,max:20,male:360,female:325},
+  {min:21,max:35,male:210,female:280},
+  {min:36,max:40,male:230,female:290},
+  {min:41,max:45,male:250,female:320},
+  {min:46,max:50,male:290,female:370},
+  {min:51,max:55,male:350,female:400},
+  {min:56,max:60,male:420,female:460},
+  {min:61,max:65,male:510,female:490},
+  {min:66,max:70,male:710,female:600},
+  {min:71,max:75,male:910,female:710},
+  {min:76,max:79,male:1140,female:840}
+]);
+function riderHBExtra(age,gender,dailyBenefit){
+  const amount=Number(dailyBenefit);
+  const band=HB_EXTRA_RATES.find(item=>age>=item.min&&age<=item.max);
+  if(!band || !Number.isFinite(amount) || amount<=0 || amount%100!==0 ||
+     !['ชาย','หญิง'].includes(gender)) return null;
+  return (gender==='ชาย'?band.male:band.female)*(amount/100);
+}
+
 function riderHealthSaver(age, gender, plan){
   if(age<11 || age>98) return 0;
 
@@ -8625,7 +8648,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
     riders: {
       healthhappy:false, multipayci:false, tpd:false, ciplus:false, citopup:false,
       healthcancer:false, cfc:false, ladycare:false, ai:false, add:false, adb:false,
-      hhkids:false, infinitecare:false, healthsaver:false, hb:false
+      hhkids:false, infinitecare:false, healthsaver:false, hb:false, hbextra:false
     },
     opts: {
       healthhappyPlan:0,
@@ -8654,7 +8677,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
       icTerritory:'ทั่วโลก',
       hsPlan:300000,
       hbClass:1,
-      hbDaily:0
+      hbDaily:0,
+      hbExtraDaily:0
     }
   },
   cisupercare: { payPeriod:20 },
@@ -11447,6 +11471,25 @@ function build20PayLifeRiderDetailRows(){
   accident('ADD',rs.add,op.addClass,op.addSi,op.addRcc);
   accident('ADB',rs.adb,op.adbClass,op.adbSi,op.adbRcc);
 
+  if(rs.hbextra){
+    const v=riderHBExtra(age,gender,op.hbExtraDaily);
+    if(v!==null) push(
+      'AIA HB Extra',
+      `ค่าชดเชย ${fmt20(op.hbExtraDaily)} บาท/วัน`,
+      `อัตราเบี้ยต่อ 100 บาท/วันตามอายุและเพศ`,
+      v,
+      [
+        'IPD: จ่ายค่าชดเชยรายวันตามจำนวนวันที่เข้ารักษา (สูงสุด 365 วันต่อการเข้ารักษาครั้งหนึ่ง)',
+        'IPD: กรณี ICU จ่าย 3 เท่าของค่าชดเชยรายวัน',
+        'Day Case: จ่าย 1 เท่าของค่าชดเชยรายวัน',
+        'ผ่าตัด: จ่ายเพิ่ม 5 เท่าของค่าชดเชยรายวัน',
+        'โรคร้ายแรงเฉียบพลัน 13 โรค: จ่ายเพิ่ม 25 เท่าของค่าชดเชยรายวัน',
+        'ค่าพักฟื้นกลับบ้าน: จ่ายเพิ่ม 1 เท่าของค่าชดเชยรายวันต่อครั้ง',
+        'เสียชีวิต: จ่าย 10 เท่าของค่าชดเชยรายวัน',
+        'ผลประโยชน์ข้อ 1 รวมสูงสุด 1,260 วัน; ข้อ 2–4 จำกัดตามเงื่อนไขตารางผลประโยชน์'
+      ]
+    );
+  }
   if(rs.hb){
     const v=riderHB(age,(Number(op.hbClass)||1)-1,Number(op.hbDaily)||0);
     push(
@@ -14170,6 +14213,14 @@ function riderControlsHTML(){
           <select data-rider-opt="hbClass">${[1,2,3,4].map(v=>`<option value="${v}" ${selected(op.hbClass,v)}>ชั้นอาชีพ ${v}</option>`).join('')}</select>
         </div>
       </div>
+      <div class="pl20-rider-card">
+        ${toggle('hbextra','AIA HB Extra ค่าชดเชยรายวัน')}
+        <div class="pl20-rider-options">
+          <label class="pl20-num-field"><span>ชดเชย/วัน (บาท)</span><input type="text" inputmode="numeric" data-money-input="1" data-rider-opt="hbExtraDaily" value="${pl20FormatMoneyInput(op.hbExtraDaily)}"></label>
+        </div>
+        <div class="pl20-rider-premium">อายุ 15–79 ปี • อัตราเบี้ยตามเพศและช่วงอายุ • ทุก 100 บาท/วัน (สัญญาหลัก 20PL รับถึงอายุ 70 ปี)</div>
+        ${rs.hbextra && riderHBExtra(state.age,state.gender,op.hbExtraDaily)===null ? '<div class="pl20-rider-premium" style="color:#b91c1c">กรุณากรอกค่าชดเชยมากกว่า 0 เป็นจำนวนเท่าของ 100 บาท และอายุ 15–70 ปีสำหรับ 20PL</div>' : ''}
+      </div>
     </div>
   `;
 }
@@ -14278,6 +14329,10 @@ function get20PayLifeSelectedRiders(){
   }
 
   if(rs.hb) add('HB ค่าชดเชยรายวัน',riderHB(age,(Number(op.hbClass)||1)-1,op.hbDaily),`${fmt20(op.hbDaily)} บาท/วัน`);
+  if(rs.hbextra){
+    const premium=riderHBExtra(age,gender,op.hbExtraDaily);
+    if(premium!==null) add('AIA HB Extra',premium,`${fmt20(op.hbExtraDaily)} บาท/วัน`);
+  }
 
   return rows;
 }
