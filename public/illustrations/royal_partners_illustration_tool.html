@@ -9171,8 +9171,8 @@ function viewPlusHealth(app,kind){
  }
  const p=m.cfg.plan-1,fee=m.fees[p],total=m.main.annual+fee;
  fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'แบ่ง 4 เดือน (ตัวอย่าง)',val:fmt(total/4)+' บาท'}]);
- const cards=document.createElement('div');cards.className='hc-plan-card-grid';
- cards.innerHTML=m.fees.map((premium,i)=>'<button type="button" class="hc-plan-card '+(p===i?'active':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><span class="hc-card-caption">แผน '+(i+1)+' • '+fmt(info.limits[i])+' บาท</span><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><b class="hc-card-premium">'+fmt(premium)+'</b><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><strong>'+fmt(m.main.annual+premium)+'</strong></button>').join('');
+ const cards=document.createElement('div');cards.className='hc-comparison plus-health-card-comparison';
+ cards.innerHTML='<div class="hc-cards">'+m.fees.map((premium,i)=>'<button type="button" class="hc-card'+(p===i?' hc-selected':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><small>แผน '+(i+1)+' · '+fmt(info.limits[i])+' บาท</small><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><strong>'+fmt(premium)+'</strong><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><b>'+fmt(m.main.annual+premium)+'</b></button>').join('')+'</div>';
  panel.appendChild(cards);
  cards.querySelectorAll('[data-plus-health-plan]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.plan=Number(btn.dataset.plusHealthPlan);render();}));
  const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p};
