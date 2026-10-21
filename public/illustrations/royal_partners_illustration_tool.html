@@ -8678,7 +8678,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
       hsPlan:300000,
       hbClass:1,
       hbDaily:0,
-      hbExtraDaily:0
+      hbExtraDaily:0,
+      hbExtraClass:1
     }
   },
   cisupercare: { payPeriod:20 },
@@ -11476,7 +11477,7 @@ function build20PayLifeRiderDetailRows(){
     if(v!==null) push(
       'AIA HB Extra',
       `ค่าชดเชย ${fmt20(op.hbExtraDaily)} บาท/วัน`,
-      `อัตราเบี้ยต่อ 100 บาท/วันตามอายุและเพศ`,
+      `ชั้นอาชีพ ${op.hbExtraClass} • อัตราเบี้ยตามอายุและเพศ`,
       v,
       [
         'IPD: จ่ายค่าชดเชยรายวันตามจำนวนวันที่เข้ารักษา (สูงสุด 365 วันต่อการเข้ารักษาครั้งหนึ่ง)',
@@ -14217,6 +14218,7 @@ function riderControlsHTML(){
         ${toggle('hbextra','AIA HB Extra ค่าชดเชยรายวัน')}
         <div class="pl20-rider-options">
           <label class="pl20-num-field"><span>ชดเชย/วัน (บาท)</span><input type="text" inputmode="numeric" data-money-input="1" data-rider-opt="hbExtraDaily" value="${pl20FormatMoneyInput(op.hbExtraDaily)}"></label>
+          <select aria-label="ชั้นอาชีพ HB Extra" data-rider-opt="hbExtraClass">${[1,2,3,4].map(v=>`<option value="${v}" ${selected(op.hbExtraClass,v)}>ชั้นอาชีพ ${v}</option>`).join('')}</select>
         </div>
         <div class="pl20-rider-premium">อายุ 15–79 ปี • อัตราเบี้ยตามเพศและช่วงอายุ • ทุก 100 บาท/วัน (สัญญาหลัก 20PL รับถึงอายุ 70 ปี)</div>
         ${rs.hbextra && riderHBExtra(state.age,state.gender,op.hbExtraDaily)===null ? '<div class="pl20-rider-premium" style="color:#b91c1c">กรุณากรอกค่าชดเชยมากกว่า 0 เป็นจำนวนเท่าของ 100 บาท และอายุ 15–70 ปีสำหรับ 20PL</div>' : ''}
@@ -14254,7 +14256,7 @@ function wireRiderControls(box){
     el.addEventListener('change',()=>{
       const key=el.dataset.riderOpt;
       let v=el.type==='checkbox' ? el.checked : el.value;
-      if(['healthhappyPlan','hcSmoker','hcUnits','cfcUnits','aiClass','addClass','adbClass','hhkidsPlan','hsPlan','hbClass'].includes(key)) v=parseFloat(v);
+      if(['healthhappyPlan','hcSmoker','hcUnits','cfcUnits','aiClass','addClass','adbClass','hhkidsPlan','hsPlan','hbClass','hbExtraClass'].includes(key)) v=parseFloat(v);
       state.paylife20.opts[key]=v;
       render();
     });
@@ -14331,7 +14333,7 @@ function get20PayLifeSelectedRiders(){
   if(rs.hb) add('HB ค่าชดเชยรายวัน',riderHB(age,(Number(op.hbClass)||1)-1,op.hbDaily),`${fmt20(op.hbDaily)} บาท/วัน`);
   if(rs.hbextra){
     const premium=riderHBExtra(age,gender,op.hbExtraDaily);
-    if(premium!==null) add('AIA HB Extra',premium,`${fmt20(op.hbExtraDaily)} บาท/วัน`);
+    if(premium!==null) add('AIA HB Extra',premium,`${fmt20(op.hbExtraDaily)} บาท/วัน • ชั้นอาชีพ ${op.hbExtraClass}`);
   }
 
   return rows;
