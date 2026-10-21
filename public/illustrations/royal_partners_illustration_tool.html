@@ -13921,7 +13921,7 @@ function showReportPreview(key){
     const previewContent = host.querySelector('.rp-preview-content');
     const fitStage = host.querySelector('.rp-preview-fit-stage');
     const fitPaper = host.querySelector('.rp-preview-fit-paper');
-    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylife20','annuityfix','annuitysure'].includes(key);
+    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
     if(isPdfReport && previewContent && fitStage && fitPaper){
       const pdfSource = document.createElement('div');
       pdfSource.className = 'rp-preview-pdf-source';
