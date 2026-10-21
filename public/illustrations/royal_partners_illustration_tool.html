@@ -9183,7 +9183,7 @@ function viewPlusHealth(app,kind){
  tableWrap.innerHTML=healthComboTable(model);
  section.appendChild(tableWrap);
  const action=document.createElement('div');action.className='plus-health-report-actions';
- action.innerHTML='<button type="button">ดูสรุปรายงาน</button>';
+ action.innerHTML='<button type="button">ดูตัวอย่างภาพสรุป</button>';
  section.appendChild(action);
  action.querySelector('button').addEventListener('click',()=>showPlusHealthSummary(kind));
 }
@@ -9196,15 +9196,29 @@ function buildPlusHealthReportHTML(kind){
  const info=HEALTH_COMBO_BENEFITS[kind],index=m.cfg.plan-1;
  const fullName=escapeResourceHtml([state.customer.firstName,state.customer.lastName].filter(Boolean).join(' ')||'—');
  const fee=m.fees[index],total=m.main.annual+fee;
- const rows=info.rows.map(row=>'<tr><th style="text-align:left">'+escapeResourceHtml(row[0])+'</th><td>'+comboDisplay(row[1][index])+'</td></tr>').join('');
- return '<div class="rp-report"><div class="rp-report-pages"><section class="ex-report-page" id="plus-health-report-page-1"><div class="ex-report-inner">'+
- '<div class="rp-report-head"><div class="rp-report-title">20Pay Life Plus + '+title+'</div><div class="rp-report-sum"><div class="l">ทุนสัญญาหลัก</div><div class="v">'+fmt20(state.sum)+' บาท</div></div></div>'+
- '<div class="rp-report-meta"><div class="cell"><div class="l">ลูกค้า</div><div class="v">'+fullName+'</div></div><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+state.gender+' / '+state.age+' ปี</div></div><div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
- '<div class="ex-summary-row"><div class="ex-summary-box"><div class="l">เบี้ยหลัก / ปี</div><div class="v">'+fmt20(m.main.annual)+' บาท</div></div><div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt20(fee)+' บาท</div></div><div class="ex-summary-box"><div class="l">รวมเบี้ยปีแรก</div><div class="v">'+fmt20(total)+' บาท</div></div><div class="ex-summary-box em"><div class="l">แบ่ง 4 เดือน (ตัวอย่าง)</div><div class="v">'+fmt20(total/4)+' บาท</div></div></div>'+
- '<div class="rp-section"><div class="rp-section-title">แผน '+m.cfg.plan+' — '+title+' • วงเงิน '+fmt20(info.limits[index])+' บาท</div></div>'+
- '<div style="padding:10px 18px"><table style="width:100%;font-size:10px;border-collapse:collapse" class="plus-benefits"><tbody>'+rows+'</tbody></table></div>'+
- '<div class="rp-red-remark">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ • ยอดแบ่งชำระ 4 เดือนเป็นตัวอย่าง ไม่ใช่การรับรองโปรโมชั่น 0% • เงื่อนไขความคุ้มครองให้ยึดตามกรมธรรม์</div>'+
- '<div class="ex-footer-spacer"></div><div class="rp-page-number">หน้า 1 / 1</div></div></section></div></div>';
+ // Reuse the established four-plan report table; premiums remain those from plusHealthModel.
+ const model={info,premiums:m.fees,main:{net:m.main.annual},selected:index};
+ return '<div class="rp-report" data-report-version="PLUS-HEALTH-COMBO-1.2"><div class="rp-report-pages">'+
+ '<section class="ex-report-page health-combo-report-page plus-health-report-page" id="plus-health-report-page-1"><div class="ex-report-inner">'+
+ '<div class="rp-report-head"><div><div class="rp-report-title">20Pay Life Plus + AIA '+title+'</div>'+
+ '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">ใบสรุปข้อเสนอการประกันชีวิตพร้อมสัญญาเพิ่มเติมสุขภาพ</div></div>'+
+ '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัยสัญญาหลัก</div><div class="v">'+fmt(state.sum)+' บาท</div></div></div>'+
+ '<div style="padding:6px 18px;background:#fffdf8;border-bottom:1px solid #d9d2bf"><div style="font-size:8px;color:#847c69">ชื่อลูกค้า</div><div style="font-size:12px;font-weight:700;color:#0F1B2E">'+fullName+'</div></div>'+
+ '<div class="rp-report-meta">'+
+ '<div class="cell"><div class="l">เพศ</div><div class="v">'+state.gender+'</div></div>'+
+ '<div class="cell"><div class="l">อายุ</div><div class="v">'+state.age+' ปี</div></div>'+
+ '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
+ '<div class="ex-summary-row">'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">'+fmt(m.main.annual)+' บาท</div></div>'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(fee)+' บาท</div></div>'+
+ '<div class="ex-summary-box"><div class="l">เบี้ยรวมปีแรก / ปี</div><div class="v">'+fmt(total)+' บาท</div></div>'+
+ '<div class="ex-summary-box em"><div class="l">วงเงินสุขภาพต่อรอบปี</div><div class="v">'+fmt(info.limits[index])+' บาท</div></div></div>'+
+ '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' · '+state.gender+' อายุ '+state.age+' ปี</div>'+
+ healthComboTable(model)+'</div>'+
+ '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
+ '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
+ '</div></section></div></div>';
 }
 async function downloadPlusHealthPDF(btn){
  if(btn.dataset.busy==='1')return;
