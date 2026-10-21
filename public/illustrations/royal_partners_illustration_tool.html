@@ -8683,6 +8683,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
     }
   },
   paylifeplus: { term:20 },
+  plusHappy:{term:20,plan:1,deduct:10000},
+  plusSaver:{term:20,plan:1},
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7 },
   pay25: { subtab:'planA', planBTerm:7 },
@@ -8695,6 +8697,8 @@ const TABS = [
   {id:'pay20happy', label:'20PL + Health Happy', group:'life'},
   {id:'pay20saver', label:'20PL + Health Saver', group:'life'},
   {id:'paylifeplus', label:'20Pay Life Plus', group:'life'},
+  {id:'plusHappy', label:'20Pay Life Plus + Health Happy', group:'life'},
+  {id:'plusSaver', label:'20Pay Life Plus + Health Saver', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -9122,6 +9126,45 @@ function viewPayLifePlus(app){
     {key:'coverage',label:'ทุนคุ้มครองชีวิต'},{key:'taxRelief',label:'ลดหย่อนภาษี'}
   ]);
   addExportButton(app,'paylifeplus');
+}
+
+
+const PLUS_HEALTH_DATA={"happy":[[11,16400,20200,25500,33400,14400,18200,21600,27900],[16,13500,16500,20100,26200,15200,19100,23100,30300],[21,13700,16900,21600,28000,17200,21500,27000,35300],[26,14700,18300,26100,33800,17500,21800,30600,38000],[31,15100,18900,29400,37800,18400,22700,34200,42300],[36,17000,20800,31800,40900,20400,25100,37200,46000],[41,19200,23800,36000,47300,22300,27800,42900,53600],[46,21600,26700,40200,52400,24500,30400,46500,60700],[51,28300,35000,50100,65300,28500,35200,50700,65500],[56,34100,42300,63900,83000,34400,42500,65100,84600],[60,40900,50600,72300,94100,41500,50800,73500,95700],[66,59400,72100,105000,136700,60800,74000,107100,139300],[71,85400,104000,152100,197800,88200,107500,155700,202000]],"saver":[[11,10100,12300,16400,20200,8500,10500,14400,18200],[16,7300,8700,10600,13700,7400,9700,12000,15000],[21,6900,8400,10400,13400,8600,10600,14400,18100],[26,7400,8900,13500,16600,9100,11300,17100,21000],[31,7500,9300,14700,18900,9200,11700,18000,22700],[36,8500,10200,15200,20100,10400,11900,18500,25100],[41,10000,11400,17100,21600,12100,13800,21700,26500],[46,11800,13000,18000,24700,14300,16000,23200,29200],[51,15400,17200,24300,30900,15500,17200,25600,34100],[56,20600,24200,30700,40500,20800,24400,31000,40900],[61,27300,31000,47000,56600,27600,31300,47500,57200],[66,37500,47100,65900,81000,37900,47600,66600,81800],[71,53700,67400,94400,115800,54200,68100,95300,117000]],"child":{"10":[[53500,47600,73900,64400,88500,104700,143000,123000],[28600,24600,39400,34500,47700,58500,82500,67900]],"30":[[33500,27600,53900,44400,68400,84600,123000,103000],[14500,11000,22400,17500,29700,40500,64500,49900]]}};
+function plusHealthModel(kind){
+ const cfg=state[kind==='happy'?'plusHappy':'plusSaver'];
+ const age=Number(state.age), female=state.gender==='หญิง';
+ const main=calcPayLifePlus(age,state.gender,state.sum,cfg.term,state.tax);
+ const eligible=main.ok&&age>= (kind==='happy'?0:11)&&age<=75;
+ let fees=[null,null,null,null];
+ if(eligible){
+   if(kind==='happy'&&age<11){
+      const kid=PLUS_HEALTH_DATA.child[cfg.deduct===30000?30:10][age>=6?1:0];
+      fees=fees.map((_,i)=>kid[i*2+(female?1:0)]);
+   }else{
+      const row=PLUS_HEALTH_DATA[kind].filter(r=>r[0]<=age).slice(-1)[0];
+      fees=fees.map((_,i)=>row[1+i+(female?4:0)]);
+   }
+ }
+ return {cfg,age,main,eligible,fees,kind};
+}
+function viewPlusHealth(app,kind){
+ const m=plusHealthModel(kind),title=kind==='happy'?'Health Happy':'Health Saver';
+ app.innerHTML=panelShell('life','20Pay Life Plus + '+title,'สัญญาหลักชำระ 10 / 15 / 20 ปี และสัญญาเพิ่มเติมสุขภาพ 4 แผน');
+ const panel=app.querySelector('.panel'),options=document.createElement('div');
+ options.className='pl20-rider-wrap';
+ options.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย Pay Life Plus</div><div class="plus-term-buttons">'+[10,15,20].map(n=>'<button type="button" data-plus-term-health="'+n+'" class="'+(m.cfg.term===n?'active':'')+'">'+n+' ปี</button>').join('')+'</div>'+
+ (kind==='happy'&&m.age<11?'<label>ความรับผิดส่วนแรกสำหรับเด็ก <select id="plus-health-deduct"><option value="10000" '+(m.cfg.deduct===10000?'selected':'')+'>10,000 บาท</option><option value="30000" '+(m.cfg.deduct===30000?'selected':'')+'>30,000 บาท</option></select></label>':'');
+ panel.appendChild(options);
+ options.querySelectorAll('[data-plus-term-health]').forEach(x=>x.onclick=()=>{m.cfg.term=Number(x.dataset.plusTermHealth);render();});
+ const ded=options.querySelector('#plus-health-deduct');if(ded)ded.onchange=()=>{m.cfg.deduct=Number(ded.value);render();};
+ if(!m.eligible){const w=document.createElement('div');w.className='notewrap';w.textContent='อายุหรือทุนประกันไม่เข้าเงื่อนไข: '+(kind==='happy'?'Happy รับตั้งแต่ 15 วัน':'Saver รับตั้งแต่อายุ 11 ปี')+' ถึง 75 ปี และ Pay Life Plus ต้องเข้าเงื่อนไขทุนขั้นต่ำ';panel.appendChild(w);return;}
+ const p=m.cfg.plan-1, fee=m.fees[p],total=m.main.annual+fee;
+ fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'เบี้ยรวมปีแรก',val:fmt(total)+' บาท'},{lbl:'แบ่ง 4 เดือน (ตัวอย่าง)',val:fmt(total/4)+' บาท'}]);
+ const sums=kind==='happy'?[1000000,5000000,15000000,25000000]:[200000,300000,400000,500000];
+ const box=document.createElement('div');box.className='ledger-wrap';
+ box.innerHTML='<h3>เลือกแผน '+title+'</h3><div class="hc-plan-card-grid">'+m.fees.map((v,i)=>'<button type="button" class="hc-plan-card '+(m.cfg.plan===i+1?'active':'')+'" data-plus-health-plan="'+(i+1)+'"><strong>แผน '+(i+1)+'</strong><span>วงเงิน '+fmt(sums[i])+' บาท</span><b>เบี้ย '+fmt(v)+' บาท/ปี</b><span>รวม '+fmt(m.main.annual+v)+' บาท/ปี</span></button>').join('')+'</div>';
+ panel.appendChild(box);box.querySelectorAll('[data-plus-health-plan]').forEach(x=>x.onclick=()=>{m.cfg.plan=Number(x.dataset.plusHealthPlan);render();});
+ const info=document.createElement('div');info.className='notewrap';info.textContent='อ้างอิงอัตราเบี้ยปีแรกจากไฟล์ Excel — เบี้ยสุขภาพอาจเปลี่ยนแปลงตามอายุเมื่อถึงรอบต่ออายุ และการแบ่งชำระ 4 เดือนเป็นเพียงตัวอย่าง';panel.appendChild(info);
 }
 
 function view20PayLife(app){
@@ -14724,7 +14767,7 @@ function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
   map[state.tab](app);
 }
 
