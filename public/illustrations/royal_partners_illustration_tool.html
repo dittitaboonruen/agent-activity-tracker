@@ -9188,12 +9188,32 @@ function viewPlusHealth(app,kind){
  action.querySelector('button').addEventListener('click',()=>showPlusHealthSummary(kind));
 }
 function showPlusHealthSummary(kind){
- const m=plusHealthModel(kind);
- if(!m.eligible)return;
- const name=kind==='happy'?'Health Happy':'Health Saver';
- const total=m.main.annual+m.fees[m.cfg.plan-1];
- const textSummary='20Pay Life Plus + '+name+'\nเพศ '+state.gender+' • อายุ '+state.age+' ปี\nชำระเบี้ย '+m.cfg.term+' ปี • แผนสุขภาพ '+m.cfg.plan+'\nเบี้ยสัญญาหลัก/ปี '+fmt(m.main.annual)+' บาท\nเบี้ยสุขภาพ/ปี '+fmt(m.fees[m.cfg.plan-1])+' บาท\nรวมเบี้ยปีแรก '+fmt(total)+' บาท';
- alert(textSummary);
+ showReportPreview(kind==='happy'?'plusHappy':'plusSaver');
+}
+function buildPlusHealthReportHTML(kind){
+ const m=plusHealthModel(kind),title=kind==='happy'?'Health Happy':'Health Saver';
+ if(!m.eligible)throw Error('อายุหรือทุนประกันไม่เข้าเงื่อนไข');
+ const info=HEALTH_COMBO_BENEFITS[kind],index=m.cfg.plan-1;
+ const fullName=escapeResourceHtml([state.customer.firstName,state.customer.lastName].filter(Boolean).join(' ')||'—');
+ const fee=m.fees[index],total=m.main.annual+fee;
+ const rows=info.rows.map(row=>'<tr><th style="text-align:left">'+escapeResourceHtml(row[0])+'</th><td>'+comboDisplay(row[1][index])+'</td></tr>').join('');
+ return '<div class="rp-report"><div class="rp-report-pages"><section class="ex-report-page" id="plus-health-report-page-1"><div class="ex-report-inner">'+
+ '<div class="rp-report-head"><div class="rp-report-title">20Pay Life Plus + '+title+'</div><div class="rp-report-sum"><div class="l">ทุนสัญญาหลัก</div><div class="v">'+fmt20(state.sum)+' บาท</div></div></div>'+
+ '<div class="rp-report-meta"><div class="cell"><div class="l">ลูกค้า</div><div class="v">'+fullName+'</div></div><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+state.gender+' / '+state.age+' ปี</div></div><div class="cell"><div class="l">ระยะชำระเบี้ย</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
+ '<div class="ex-summary-row"><div class="ex-summary-box"><div class="l">เบี้ยหลัก / ปี</div><div class="v">'+fmt20(m.main.annual)+' บาท</div></div><div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt20(fee)+' บาท</div></div><div class="ex-summary-box"><div class="l">รวมเบี้ยปีแรก</div><div class="v">'+fmt20(total)+' บาท</div></div><div class="ex-summary-box em"><div class="l">แบ่ง 4 เดือน (ตัวอย่าง)</div><div class="v">'+fmt20(total/4)+' บาท</div></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">แผน '+m.cfg.plan+' — '+title+' • วงเงิน '+fmt20(info.limits[index])+' บาท</div></div>'+
+ '<div style="padding:10px 18px"><table style="width:100%;font-size:10px;border-collapse:collapse" class="plus-benefits"><tbody>'+rows+'</tbody></table></div>'+
+ '<div class="rp-red-remark">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ • ยอดแบ่งชำระ 4 เดือนเป็นตัวอย่าง ไม่ใช่การรับรองโปรโมชั่น 0% • เงื่อนไขความคุ้มครองให้ยึดตามกรมธรรม์</div>'+
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">หน้า 1 / 1</div></div></section></div></div>';
+}
+async function downloadPlusHealthPDF(btn){
+ if(btn.dataset.busy==='1')return;
+ const page=document.getElementById('plus-health-report-page-1');
+ if(!page||!window.jspdf?.jsPDF){alert('ไม่พบเอกสาร PDF');return;}
+ const old=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
+ try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const canvas=await renderReportPageToCanvas(page);pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');await savePdfCrossDevice(pdf,'royal-partner-plus-health-'+Date.now()+'.pdf');}
+ catch(err){console.error(err);alert(err?.message||'สร้าง PDF ไม่สำเร็จ');}
+ finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=old;}
 }
 
 function view20PayLife(app){
@@ -14167,6 +14187,8 @@ function showReportPreview(key){
       }
 
       reportHTML = buildPay25ReportHTML();
+    }else if(key==='plusHappy'||key==='plusSaver'){
+      reportHTML=buildPlusHealthReportHTML(key==='plusHappy'?'happy':'saver');
     }else if(key==='paylifeplus'){
       reportHTML=buildPayLifePlusReportHTML();
     }else if(key==='paylife20'){
@@ -14209,10 +14231,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ใบสรุป A4 1 หน้า':key==='annuitysure'?'Annuity Sure — ใบสรุป A4 1 หน้า':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -14229,7 +14251,7 @@ function showReportPreview(key){
     const previewContent = host.querySelector('.rp-preview-content');
     const fitStage = host.querySelector('.rp-preview-fit-stage');
     const fitPaper = host.querySelector('.rp-preview-fit-paper');
-    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylifeplus','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
+    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylifeplus','plusHappy','plusSaver','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
     if(isPdfReport && previewContent && fitStage && fitPaper){
       const pdfSource = document.createElement('div');
       pdfSource.className = 'rp-preview-pdf-source';
@@ -14283,7 +14305,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -14298,6 +14320,8 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
       }else if(key==='pay25'){
         pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
+      }else if(key==='plusHappy'||key==='plusSaver'){
+        pdfBtn.addEventListener('click', ()=>downloadPlusHealthPDF(pdfBtn));
       }else if(key==='paylifeplus'){
         pdfBtn.addEventListener('click', ()=>downloadPayLifePlusPDF(pdfBtn));
       }else if(key==='paylife20'){
