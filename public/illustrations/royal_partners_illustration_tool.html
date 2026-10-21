@@ -9148,23 +9148,52 @@ function plusHealthModel(kind){
  return {cfg,age,main,eligible,fees,kind};
 }
 function viewPlusHealth(app,kind){
- const m=plusHealthModel(kind),title=kind==='happy'?'Health Happy':'Health Saver';
- app.innerHTML=panelShell('life','20Pay Life Plus + '+title,'สัญญาหลักชำระ 10 / 15 / 20 ปี และสัญญาเพิ่มเติมสุขภาพ 4 แผน');
- const panel=app.querySelector('.panel'),options=document.createElement('div');
- options.className='pl20-rider-wrap';
- options.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย Pay Life Plus</div><div class="plus-term-buttons">'+[10,15,20].map(n=>'<button type="button" data-plus-term-health="'+n+'" class="'+(m.cfg.term===n?'active':'')+'">'+n+' ปี</button>').join('')+'</div>'+
- (kind==='happy'&&m.age<11?'<label>ความรับผิดส่วนแรกสำหรับเด็ก <select id="plus-health-deduct"><option value="10000" '+(m.cfg.deduct===10000?'selected':'')+'>10,000 บาท</option><option value="30000" '+(m.cfg.deduct===30000?'selected':'')+'>30,000 บาท</option></select></label>':'');
- panel.appendChild(options);
- options.querySelectorAll('[data-plus-term-health]').forEach(x=>x.onclick=()=>{m.cfg.term=Number(x.dataset.plusTermHealth);render();});
- const ded=options.querySelector('#plus-health-deduct');if(ded)ded.onchange=()=>{m.cfg.deduct=Number(ded.value);render();};
- if(!m.eligible){const w=document.createElement('div');w.className='notewrap';w.textContent='อายุหรือทุนประกันไม่เข้าเงื่อนไข: '+(kind==='happy'?'Happy รับตั้งแต่ 15 วัน':'Saver รับตั้งแต่อายุ 11 ปี')+' ถึง 75 ปี และ Pay Life Plus ต้องเข้าเงื่อนไขทุนขั้นต่ำ';panel.appendChild(w);return;}
- const p=m.cfg.plan-1, fee=m.fees[p],total=m.main.annual+fee;
- fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'เบี้ยรวมปีแรก',val:fmt(total)+' บาท'},{lbl:'แบ่ง 4 เดือน (ตัวอย่าง)',val:fmt(total/4)+' บาท'}]);
- const sums=kind==='happy'?[1000000,5000000,15000000,25000000]:[200000,300000,400000,500000];
- const box=document.createElement('div');box.className='ledger-wrap';
- box.innerHTML='<h3>เลือกแผน '+title+'</h3><div class="hc-plan-card-grid">'+m.fees.map((v,i)=>'<button type="button" class="hc-plan-card '+(m.cfg.plan===i+1?'active':'')+'" data-plus-health-plan="'+(i+1)+'"><strong>แผน '+(i+1)+'</strong><span>วงเงิน '+fmt(sums[i])+' บาท</span><b>เบี้ย '+fmt(v)+' บาท/ปี</b><span>รวม '+fmt(m.main.annual+v)+' บาท/ปี</span></button>').join('')+'</div>';
- panel.appendChild(box);box.querySelectorAll('[data-plus-health-plan]').forEach(x=>x.onclick=()=>{m.cfg.plan=Number(x.dataset.plusHealthPlan);render();});
- const info=document.createElement('div');info.className='notewrap';info.textContent='อ้างอิงอัตราเบี้ยปีแรกจากไฟล์ Excel — เบี้ยสุขภาพอาจเปลี่ยนแปลงตามอายุเมื่อถึงรอบต่ออายุ และการแบ่งชำระ 4 เดือนเป็นเพียงตัวอย่าง';panel.appendChild(info);
+ const m=plusHealthModel(kind);
+ const title=kind==='happy'?'Health Happy':'Health Saver';
+ const info=HEALTH_COMBO_BENEFITS[kind];
+ app.innerHTML=panelShell('life','20Pay Life Plus + '+title,'สัญญาหลักชำระเบี้ย 10 / 15 / 20 ปี • เลือกเปรียบเทียบความคุ้มครองสุขภาพทั้ง 4 แผน');
+ const panel=app.querySelector('.panel');
+ const control=document.createElement('div');control.className='pl20-rider-wrap plus-health-controls';
+ control.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย Pay Life Plus</div>'+
+   '<div class="plus-health-term-options">'+[10,15,20].map(y=>'<button type="button" data-plus-term-health="'+y+'" class="'+(m.cfg.term===y?'active':'')+'">'+y+' ปี</button>').join('')+'</div>'+
+   (kind==='happy'&&m.age<11?'<div style="padding-top:12px"><label>Health Happy Kids — ความรับผิดส่วนแรก <select id="plus-health-deduct"><option value="10000" '+(m.cfg.deduct===10000?'selected':'')+'>10,000 บาท</option><option value="30000" '+(m.cfg.deduct===30000?'selected':'')+'>30,000 บาท</option></select></label></div>':'');
+ panel.appendChild(control);
+ const style=document.createElement('style');
+ style.textContent='.plus-health-term-options{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.plus-health-term-options button{flex:1;min-width:90px;max-width:170px;padding:11px 20px;background:#fff;color:#10243f;border:1px solid #d8c9ae;border-radius:10px;font-weight:800;cursor:pointer}.plus-health-term-options button.active{background:#10243f;color:white;border-color:#10243f}.plus-health-comparison .hc-plan-table{min-width:760px}.plus-health-comparison .hc-plan-table thead th{color:#fff}.plus-health-comparison{overflow-x:auto}.plus-health-report-actions{display:flex;justify-content:flex-end;margin:14px 0 4px}.plus-health-report-actions button{border:0;background:#c59425;color:#fff;border-radius:999px;padding:11px 22px;font-weight:800;cursor:pointer}';
+ panel.appendChild(style);
+ control.querySelectorAll('[data-plus-term-health]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.term=Number(btn.dataset.plusTermHealth);render();}));
+ const ded=control.querySelector('#plus-health-deduct');
+ if(ded)ded.addEventListener('change',()=>{m.cfg.deduct=Number(ded.value);render();});
+ if(!m.eligible){
+  const warn=document.createElement('div');warn.className='notewrap';
+  warn.textContent='อายุหรือทุนไม่เข้าเงื่อนไข: '+(kind==='happy'?'Health Happy รับตั้งแต่ 15 วัน':'Health Saver รับตั้งแต่อายุ 11 ปี')+' ถึงอายุ 75 ปี และทุนสัญญาหลักต้องผ่านเกณฑ์';
+  panel.appendChild(warn);return;
+ }
+ const p=m.cfg.plan-1,fee=m.fees[p],total=m.main.annual+fee;
+ fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'แบ่ง 4 เดือน (ตัวอย่าง)',val:fmt(total/4)+' บาท'}]);
+ const cards=document.createElement('div');cards.className='hc-plan-card-grid';
+ cards.innerHTML=m.fees.map((premium,i)=>'<button type="button" class="hc-plan-card '+(p===i?'active':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><span class="hc-card-caption">แผน '+(i+1)+' • '+fmt(info.limits[i])+' บาท</span><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><b class="hc-card-premium">'+fmt(premium)+'</b><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><strong>'+fmt(m.main.annual+premium)+'</strong></button>').join('');
+ panel.appendChild(cards);
+ cards.querySelectorAll('[data-plus-health-plan]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.plan=Number(btn.dataset.plusHealthPlan);render();}));
+ const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p};
+ const section=document.createElement('div');section.className='ledger-wrap';
+ section.innerHTML='<h3>เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' • '+state.gender+' อายุ '+state.age+' ปี</h3>';
+ panel.appendChild(section);
+ const tableWrap=document.createElement('div');tableWrap.className='plus-health-comparison';
+ tableWrap.innerHTML=healthComboTable(model);
+ section.appendChild(tableWrap);
+ const action=document.createElement('div');action.className='plus-health-report-actions';
+ action.innerHTML='<button type="button">ดูสรุปรายงาน</button>';
+ section.appendChild(action);
+ action.querySelector('button').addEventListener('click',()=>showPlusHealthSummary(kind));
+}
+function showPlusHealthSummary(kind){
+ const m=plusHealthModel(kind);
+ if(!m.eligible)return;
+ const name=kind==='happy'?'Health Happy':'Health Saver';
+ const total=m.main.annual+m.fees[m.cfg.plan-1];
+ const textSummary='20Pay Life Plus + '+name+'\nเพศ '+state.gender+' • อายุ '+state.age+' ปี\nชำระเบี้ย '+m.cfg.term+' ปี • แผนสุขภาพ '+m.cfg.plan+'\nเบี้ยสัญญาหลัก/ปี '+fmt(m.main.annual)+' บาท\nเบี้ยสุขภาพ/ปี '+fmt(m.fees[m.cfg.plan-1])+' บาท\nรวมเบี้ยปีแรก '+fmt(total)+' บาท';
+ alert(textSummary);
 }
 
 function view20PayLife(app){
