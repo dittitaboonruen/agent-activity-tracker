@@ -8982,16 +8982,32 @@ function viewPayLifePlus(app){
     'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • TI และ WPCI ตามข้อมูลต้นฉบับ');
   const panel=app.querySelector('.panel');
   const controls=document.createElement('div');
-  controls.className='pl20-rider-wrap';
-  controls.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>'+
-    '<div class="pl20-rider-options">'+
-    '<select id="plus-term" aria-label="ระยะเวลาชำระเบี้ย">'+
-    [10,15,20].map(y=>'<option value="'+y+'" '+(y===term?'selected':'')+'>'+y+' ปี</option>').join('')+
-    '</select></div><div class="pl20-rider-premium">อายุรับประกัน 15 วัน–75 ปี (ตารางต้นฉบับใช้ดัชนีอายุ 0 สำหรับทารก) • ทุนขั้นต่ำ 10/15 ปี 300,000 บาท • 20 ปี 150,000 บาท • สูงสุด 9,999,999 บาท</div>';
+  controls.className='pl20-rider-wrap plus-term-panel';
+  controls.innerHTML=`
+    <style>
+      .plus-term-panel{padding:18px 20px;border:1px solid #ded5c2;border-radius:12px;background:#fffdf8}
+      .plus-term-label{font-size:15px;font-weight:800;color:#0f1b2e;margin-bottom:12px}
+      .plus-term-buttons{display:flex;gap:10px;flex-wrap:wrap}
+      .plus-term-buttons button{flex:1;min-width:85px;max-width:170px;border:1px solid #d7c9aa;background:#fff;color:#0f1b2e;padding:12px 18px;border-radius:10px;font-weight:800;cursor:pointer}
+      .plus-term-buttons button.active{background:#0f1b2e;border-color:#0f1b2e;color:#fff;box-shadow:0 4px 12px rgba(15,27,46,.18)}
+      .plus-term-help{margin-top:12px;font-size:12px;line-height:1.75;color:#75694d}
+      .plus-benefits{width:100%;border-collapse:collapse;font-size:13px}
+      .plus-benefits th,.plus-benefits td{padding:11px 13px;text-align:left;vertical-align:top;border-bottom:1px solid #e5ddcc}
+      .plus-benefits th{background:#f5eedf;color:#0f1b2e;width:36%}
+      .plus-benefits td{background:#fff}
+      .plus-notes{padding:16px 18px;border-left:3px solid #b8985a;background:#fff9ef;border-radius:8px;font-size:12px;line-height:1.85}
+      @media(max-width:540px){.plus-term-buttons button{min-width:0}.plus-benefits th{width:40%}}
+    </style>
+    <div class="plus-term-label">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>
+    <div class="plus-term-buttons" role="group" aria-label="ระยะเวลาชำระเบี้ย">
+      ${[10,15,20].map(y=>`<button type="button" data-plus-term="${y}" class="${y===term?'active':''}" aria-pressed="${y===term}">${y} ปี</button>`).join('')}
+    </div>
+    <div class="plus-term-help">อายุรับประกัน 15 วัน–75 ปี • ทุนขั้นต่ำ 10/15 ปี 300,000 บาท • 20 ปี 150,000 บาท • สูงสุด 9,999,999 บาท</div>
+  `;
   panel.appendChild(controls);
-  controls.querySelector('#plus-term').addEventListener('change',e=>{
-    state.paylifeplus.term=Number(e.target.value);render();
-  });
+  controls.querySelectorAll('[data-plus-term]').forEach(btn=>btn.addEventListener('click',()=>{
+    state.paylifeplus.term=Number(btn.dataset.plusTerm);render();
+  }));
   if(!result.ok){
     const warn=document.createElement('div');
     warn.className='notewrap';
@@ -8999,31 +9015,47 @@ function viewPayLifePlus(app){
     panel.appendChild(warn);
     return;
   }
+  const split4=result.annual/4;
   fillSummary(app,[
     {lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(result.annual)+' บาท'},
+    {lbl:'แบ่งชำระ 4 เดือน (ประมาณ/เดือน)',val:fmt(split4)+' บาท'},
     {lbl:'เบี้ยรวมตลอด '+term+' ปี',val:fmt(result.annual*term)+' บาท'},
     {lbl:'กรณีเสียชีวิต / ครบอายุ 99 ปี',val:fmt(result.sum)+' บาท'},
     {lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(result.tiBenefit)+' บาท'},
-    {lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง (ฟรี)',val:'ถึงอายุ '+result.wpciUntil+' ปี'},
-    {lbl:'ประมาณการประหยัดภาษี / ปี',val:fmt(result.taxRelief)+' บาท'},
+    {lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:'ถึงอายุ '+result.wpciUntil+' ปี'},
+    {lbl:'ประมาณการประหยัดภาษี / ปี',val:fmt(result.taxRelief)+' บาท'}
   ]);
-  const info=document.createElement('div');
-  info.className='notewrap';
-  info.textContent='กรณีเสียชีวิต: จ่ายทุนประกัน / มูลค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า ตามเงื่อนไขกรมธรรม์ • TI จ่ายได้สูงสุด 100% ของทุนประกันและยกเว้นเบี้ยหลักที่เหลือตามเงื่อนไข • WPCI ครอบคลุมโรคร้ายแรง 44 โรค';
-  panel.appendChild(info);
+  const benefits=document.createElement('div');
+  benefits.className='ledger-wrap';
+  benefits.innerHTML=`
+    <h3>ตารางสรุปผลประโยชน์ 20Pay Life Plus</h3>
+    <table class="plus-benefits"><tbody>
+      <tr><th>แบบประกัน</th><td>AIA 20Pay Life Plus (Non Par)</td></tr>
+      <tr><th>ระยะเวลาชำระเบี้ย</th><td>${term} ปี</td></tr>
+      <tr><th>ระยะเวลาคุ้มครอง</th><td>ถึงอายุ 99 ปี</td></tr>
+      <tr><th>กรณีเสียชีวิต</th><td>ทุนประกัน / มูลค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า ตามเงื่อนไขกรมธรรม์</td></tr>
+      <tr><th>ครบกำหนดสัญญา</th><td>${fmt(result.maturityBenefit)} บาท ณ อายุ 99 ปี</td></tr>
+      <tr><th>TI (ฟรี)</th><td>สูงสุด 100% ของทุน และยกเว้นเบี้ยหลักส่วนที่เหลือตามเงื่อนไข</td></tr>
+      <tr><th>WPCI (ฟรี)</th><td>ยกเว้นเบี้ยหลักเมื่อป่วยโรคร้ายแรง 44 โรค ตามเงื่อนไข ถึงอายุ ${result.wpciUntil} ปี</td></tr>
+      <tr><th>ตัวอย่างแบ่งชำระ 4 เดือน</th><td>ประมาณ ${fmt(split4)} บาท/เดือน (ยังไม่ยืนยันสิทธิโปรโมชั่น 0%)</td></tr>
+    </tbody></table>`;
+  panel.appendChild(benefits);
   const ledger=document.createElement('div');
   ledger.className='ledger-wrap';
   ledger.innerHTML='<h3>ตารางชำระเบี้ยสัญญาหลัก '+term+' ปี</h3><div class="plus-ledger"></div>';
   panel.appendChild(ledger);
-  renderLedger(ledger.querySelector('.plus-ledger'),result.rows,[
-    {key:'year',label:'ปีที่'}, {key:'age',label:'อายุ'},
-    {key:'premium',label:'เบี้ยหลัก / ปี'},
-    {key:'coverage',label:'ทุนคุ้มครอง'},
-    {key:'taxRelief',label:'ลดหย่อนภาษีโดยประมาณ'}
+  renderLedger(ledger.querySelector('.plus-ledger'),result.rows.map(row=>({...row,cumulativePremium:result.annual*row.year})),[
+    {key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยหลัก / ปี'},{key:'cumulativePremium',label:'เบี้ยสะสม'},
+    {key:'coverage',label:'ทุนคุ้มครองชีวิต'},{key:'taxRelief',label:'ลดหย่อนภาษี'}
   ]);
   const note=document.createElement('div');
-  note.className='notewrap';
-  note.textContent='เวอร์ชันแรก: แสดงเฉพาะเบี้ยสัญญาหลักตามตาราง 20Pay Life Plus ต้นฉบับ ยังไม่รวมเบี้ยสัญญาเพิ่มเติม และยังไม่รองรับการสร้าง PDF แบบเฉพาะผลิตภัณฑ์นี้';
+  note.className='plus-notes';
+  note.innerHTML='<strong>หมายเหตุ</strong><div>• เบี้ยหลักคงที่ตลอดระยะเวลาชำระเบี้ยที่เลือก ตามตารางอัตราที่ใช้อ้างอิง</div>'+
+    '<div>• การแบ่งชำระ 4 เดือนคำนวณจากเบี้ยรายปีหาร 4 ไม่ใช่การรับรองโปรโมชั่นผ่อน 0% ต้องตรวจสอบเงื่อนไขกับ AIA และธนาคารก่อนเสนอขาย</div>'+
+    '<div>• TI และ WPCI รวมถึงข้อยกเว้นเป็นไปตามกรมธรรม์</div>'+
+    '<div>• เอกสารนี้ใช้ประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
+    '<div>• ขณะนี้ยังไม่รวมสัญญาเพิ่มเติม และยังไม่มี PDF เฉพาะ 20Pay Life Plus</div>';
   panel.appendChild(note);
 }
 
