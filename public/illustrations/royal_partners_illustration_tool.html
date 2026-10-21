@@ -14142,7 +14142,11 @@ function fitReportA4Contents(root){
     const scale = Math.min(1, availableHeight / Math.max(1,bottom),
       availableWidth / Math.max(1,right));
     if(scale < 0.999){
-      inner.style.transform = 'scale(' + Math.max(0.01,scale).toFixed(5) + ')';
+      // Center the scaled A4 content: top-left scaling left unused space only on the right.
+      const safeScale = Math.max(0.01,scale);
+      const remainingWidth = Math.max(0, availableWidth - inner.offsetWidth * safeScale);
+      inner.style.transform = 'translateX(' + (remainingWidth / 2).toFixed(2) +
+        'px) scale(' + safeScale.toFixed(5) + ')';
     }
   });
 }
