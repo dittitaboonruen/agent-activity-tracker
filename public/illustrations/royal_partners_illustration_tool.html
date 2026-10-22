@@ -8022,6 +8022,40 @@ tbody td{
 .ann-report-promo{margin:6px 14px 0;min-width:0}
 .ann-report-promo .rp-resource-payment-row{display:block}
 .ann-report-promo img{max-width:100%;height:auto;object-fit:contain}
+
+/* Royal Premium visual polish — presentation only, no calculation changes */
+.rp-plan-card .field:focus-within,
+.ann-controls .ann-control:focus-within{
+  border-color:#c4a363;
+  box-shadow:0 0 0 3px rgba(196,163,99,.16),0 6px 18px rgba(20,42,71,.06);
+}
+.rp-plan-card .field,
+.ann-controls .ann-control{transition:border-color .16s ease,box-shadow .16s ease}
+.ann-controls{background:linear-gradient(140deg,#fffdf8,#f7f1e5);border-color:#dcc69a;border-radius:15px}
+.ann-controls .ann-control{min-width:0;padding:5px;border:1px solid transparent;border-radius:10px}
+.ann-controls input,.ann-controls select{border-radius:9px!important}
+.smart-summary-grid .stat{
+  transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  .smart-summary-grid .stat:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(20,42,71,.12)}
+}
+.smart-summary-grid .stat .val{font-variant-numeric:tabular-nums}
+.ann-fix-summary .stat.ann-primary{border-color:#c4a363}
+.ann-fix-summary .stat.ann-secondary{border-color:#b9cde8}
+.ann-fix-summary .stat.ann-secondary .lbl{color:#315c8f}
+.ann-report-annual-page .ann-report-head{background:#142a47;border-bottom:3px solid #c4a363}
+.ann-report-annual-page .ann-report-main .v{color:#e7c782}
+.ann-report-annual-page .ann-report-summary .ann-summary-box:nth-child(-n+2){background:#fff1d7;border-color:#d9ba80}
+.ann-report-annual-page .ann-report-summary .ann-summary-box:nth-child(n+3){background:#eaf1fb;border-color:#bed0e6}
+.ann-report-annual-page .ann-full-year-table th{background:#142a47;color:#fff;border-bottom:2px solid #c4a363}
+.ann-report-annual-page .ann-full-year-table tr.ann-pension-start td{background:#deefe5!important;color:#194d39;font-weight:700;border-top:1px solid #9dcdb4;border-bottom:1px solid #9dcdb4}
+.ann-report-annual-page .ann-full-year-table tr.ann-pension-start td:first-child{border-left:3px solid #4c9a74}
+.ann-report-annual-page .ann-report-red-note{background:#fff1f2;border-color:#e5a2b0;color:#95223e}
+@media(prefers-reduced-motion:reduce){
+  .rp-plan-card .field,.ann-controls .ann-control,.smart-summary-grid .stat{transition:none!important}
+}
+
 </style>
 
 </head>
@@ -14128,7 +14162,7 @@ function buildAnnuitySinglePageHTML(data){
   const mainValue = `${fmt(r.annualPension)} บาท/ปี`;
   const annualCols=[['age','อายุ'],['deathBenefit','ผลประโยชน์กรณีเสียชีวิต'],['premium','เบี้ยประกัน'],['pension','เงินบำนาญ'],['taxRelief','ลดหย่อนภาษี']];
   const annualTable=chunk=>'<table class="ann-full-year-table"><thead><tr>'+annualCols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>'+
-    chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):(isFix && c[0]==='deathBenefit' && row.age>=61?'—':fmt(Number(row[c[0]])||0)))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    chunk.map(row=>'<tr class="'+(row.age===60?'ann-pension-start':'')+'">'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):(isFix && c[0]==='deathBenefit' && row.age>=61?'—':fmt(Number(row[c[0]])||0)))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 
   const annualPages = chunks.map((chunk,index)=>{
     const first=index===0;
