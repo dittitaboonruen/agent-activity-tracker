@@ -8056,6 +8056,61 @@ tbody td{
   .rp-plan-card .field,.ann-controls .ann-control,.smart-summary-grid .stat{transition:none!important}
 }
 
+
+/* Royal Premium — shared visual theme across ALL insurance products.
+   Presentation-only. Preserve rates, calculations, table content and dimensions. */
+.rp-sales-shell{--royal-navy:#142a47;--royal-gold:#c4a363;--royal-blue:#eaf1fb;--royal-mint:#deefe5}
+.rp-sales-shell .rp-plan-card,.rp-sales-shell .rp-product-card,.rp-sales-shell .rp-detail-card{
+  border-color:#e1d5bb;
+}
+.rp-sales-shell .rp-section-kicker,.rp-sales-shell .rp-eyebrow{color:#a27524}
+.rp-sales-shell .rp-plan-card .field:focus-within,
+.rp-sales-shell .ann-control:focus-within{
+  border-color:#c4a363;
+  box-shadow:0 0 0 3px rgba(196,163,99,.15),0 5px 16px rgba(20,42,71,.05);
+}
+.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(-n+2){
+  background:linear-gradient(145deg,#fffdf8,#fff0d8);
+  border-color:#dec493;
+}
+.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(n+3){
+  background:linear-gradient(145deg,#fff,#eaf1fb);
+  border-color:#c1d2e6;
+}
+.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(-n+2) .stat-icon{
+  color:#94630c;background:#f7e7c4;
+}
+.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(n+3) .stat-icon{
+  color:#315c8f;background:#dce8f7;
+}
+.rp-sales-shell .smart-summary-grid .stat .val{color:#142a47;font-variant-numeric:tabular-nums}
+.rp-sales-shell .panel .ledger-wrap table.ledger thead th{
+  background:#142a47;color:#fff;border-bottom:2px solid #c4a363;
+}
+.rp-sales-shell .panel .ledger-wrap table.ledger tbody tr:hover td{background:#eaf1fb}
+.rp-report-page .rp-report-head,
+.ex-report-page .rp-report-head,
+.sc-report-page .rp-report-head,
+.ann-report-page .ann-report-head{
+  background:#142a47;color:#fff;border-bottom:3px solid #c4a363;
+}
+.rp-report-page table.ledger thead th,
+.ex-report-page table.ledger thead th,
+.sc-report-page table.ledger thead th,
+.ann-report-page table.ledger thead th{
+  background:#142a47;color:#fff;border-bottom:2px solid #c4a363;
+}
+.rp-report-page table.ledger tbody tr:nth-child(even) td,
+.ex-report-page table.ledger tbody tr:nth-child(even) td,
+.sc-report-page table.ledger tbody tr:nth-child(even) td{
+  background:#f6f3ed;
+}
+.rp-report-page .rp-red-remark,.ex-report-page .rp-red-remark,.sc-report-page .rp-red-remark{
+  background:#fff1f2;color:#95223e;border-color:#e5a2b0;
+}
+@media(prefers-reduced-motion:reduce){
+  .rp-sales-shell .smart-summary-grid .stat{transition:none!important}
+}
 </style>
 
 </head>
@@ -9259,60 +9314,6 @@ function viewPayLifePlus(app){
       .plus-notes{padding:16px 18px;border-left:3px solid #b8985a;background:#fff9ef;border-radius:8px;font-size:12px;line-height:1.85}
       @media(max-width:540px){.plus-term-buttons button{min-width:0}.plus-benefits th{width:40%}}
     
-/* Royal Premium — shared visual theme across ALL insurance products.
-   Presentation-only. Preserve rates, calculations, table content and dimensions. */
-.rp-sales-shell{--royal-navy:#142a47;--royal-gold:#c4a363;--royal-blue:#eaf1fb;--royal-mint:#deefe5}
-.rp-sales-shell .rp-plan-card,.rp-sales-shell .rp-product-card,.rp-sales-shell .rp-detail-card{
-  border-color:#e1d5bb;
-}
-.rp-sales-shell .rp-section-kicker,.rp-sales-shell .rp-eyebrow{color:#a27524}
-.rp-sales-shell .rp-plan-card .field:focus-within,
-.rp-sales-shell .ann-control:focus-within{
-  border-color:#c4a363;
-  box-shadow:0 0 0 3px rgba(196,163,99,.15),0 5px 16px rgba(20,42,71,.05);
-}
-.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(-n+2){
-  background:linear-gradient(145deg,#fffdf8,#fff0d8);
-  border-color:#dec493;
-}
-.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(n+3){
-  background:linear-gradient(145deg,#fff,#eaf1fb);
-  border-color:#c1d2e6;
-}
-.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(-n+2) .stat-icon{
-  color:#94630c;background:#f7e7c4;
-}
-.rp-sales-shell .smart-summary-grid .stat:not(.ann-primary):not(.ann-secondary):nth-child(n+3) .stat-icon{
-  color:#315c8f;background:#dce8f7;
-}
-.rp-sales-shell .smart-summary-grid .stat .val{color:#142a47;font-variant-numeric:tabular-nums}
-.rp-sales-shell .panel .ledger-wrap table.ledger thead th{
-  background:#142a47;color:#fff;border-bottom:2px solid #c4a363;
-}
-.rp-sales-shell .panel .ledger-wrap table.ledger tbody tr:hover td{background:#eaf1fb}
-.rp-report-page .rp-report-head,
-.ex-report-page .rp-report-head,
-.sc-report-page .rp-report-head,
-.ann-report-page .ann-report-head{
-  background:#142a47;color:#fff;border-bottom:3px solid #c4a363;
-}
-.rp-report-page table.ledger thead th,
-.ex-report-page table.ledger thead th,
-.sc-report-page table.ledger thead th,
-.ann-report-page table.ledger thead th{
-  background:#142a47;color:#fff;border-bottom:2px solid #c4a363;
-}
-.rp-report-page table.ledger tbody tr:nth-child(even) td,
-.ex-report-page table.ledger tbody tr:nth-child(even) td,
-.sc-report-page table.ledger tbody tr:nth-child(even) td{
-  background:#f6f3ed;
-}
-.rp-report-page .rp-red-remark,.ex-report-page .rp-red-remark,.sc-report-page .rp-red-remark{
-  background:#fff1f2;color:#95223e;border-color:#e5a2b0;
-}
-@media(prefers-reduced-motion:reduce){
-  .rp-sales-shell .smart-summary-grid .stat{transition:none!important}
-}
 
 </style>
     <div class="plus-term-label">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>
