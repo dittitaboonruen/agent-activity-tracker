@@ -14769,8 +14769,13 @@ function fitReportA4Contents(root){
     const availableWidth = page.clientWidth - 4;
     if(availableHeight <= 0 || availableWidth <= 0) return;
 
-    let bottom = Math.max(inner.scrollHeight, inner.offsetHeight);
-    let right = Math.max(inner.scrollWidth, inner.offsetWidth);
+    // A4 wrappers have a mandatory 1123px min-height. That empty wrapper height
+    // must not be treated as overflowing content or every page shrinks by default.
+    // On 20PL in particular, scale only against actually rendered descendants.
+    const measureNaturalContent = page.id === 'pay20life-report-page-1' ||
+      page.id === 'pay20life-report-page-2';
+    let bottom = measureNaturalContent ? 0 : Math.max(inner.scrollHeight, inner.offsetHeight);
+    let right = measureNaturalContent ? 0 : Math.max(inner.scrollWidth, inner.offsetWidth);
 
     // Include every rendered descendant, not merely known promo class names.
     // This catches banners and disclaimers even when their parent has a fixed height.
@@ -14781,8 +14786,12 @@ function fitReportA4Contents(root){
       right = Math.max(right, rect.right - contentBox.left);
     }
 
-    const scale = Math.min(1, availableHeight / Math.max(1,bottom),
-      availableWidth / Math.max(1,right));
+    // Preserve natural 794px A4 rendering unless real content exceeds the page.
+    // Avoid shrinking 20PL by the wrapper's min-height plus a phantom 8px inset.
+    const heightBudget = measureNaturalContent ? page.clientHeight - 2 : availableHeight;
+    const widthBudget = measureNaturalContent ? page.clientWidth - 2 : availableWidth;
+    const scale = Math.min(1, heightBudget / Math.max(1,bottom),
+      widthBudget / Math.max(1,right));
     if(scale < 0.999){
       // Center the scaled A4 content: top-left scaling left unused space only on the right.
       const safeScale = Math.max(0.01,scale);
