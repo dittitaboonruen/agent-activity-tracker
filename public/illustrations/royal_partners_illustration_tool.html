@@ -8008,6 +8008,9 @@ tbody td{
 .ann-full-year-table th{background:#132a43;color:white;padding:7px 6px;border:1px solid #ddd5c5;text-align:right;overflow-wrap:anywhere}
 .ann-full-year-table td{text-align:right;padding:6px 6px;border-bottom:1px solid #e4dccd}
 .ann-full-year-table tr:nth-child(even) td{background:#faf7f0}
+/* Report-only spacing: preserve readability while fitting more annual rows. */
+.ann-report-annual-page .ann-full-year-table td{padding-top:7px;padding-bottom:7px}
+.ann-report-annual-page .ann-report-year-table{margin-top:7px;margin-bottom:4px}
 .ann-full-year-table th:first-child,.ann-full-year-table td:first-child{text-align:center;width:10%}
 .ann-full-year-table th:nth-child(2){width:32%}
 .ann-report-annual-page .ann-report-bottom{grid-template-columns:minmax(0,36%) minmax(0,64%);gap:0;margin:10px 14px 0}
@@ -14054,11 +14057,13 @@ function buildAnnuitySinglePageHTML(data){
   // Maximum three A4 pages. Keep annual rows in order and reserve room for
   // brochure, disclaimer and payment promotion on the final table page.
   const rows = data.result.rows;
+  // Fill ordinary A4 pages more fully; final page reserves space for
+  // brochure, disclaimer, and payment banner. Never drop or repeat rows.
   const chunks = rows.length <= 16
     ? [rows]
-    : rows.length <= 36
-      ? [rows.slice(0,20), rows.slice(20)]
-      : [rows.slice(0,20), rows.slice(20,rows.length-16), rows.slice(-16)];
+    : rows.length <= 53
+      ? [rows.slice(0,32), rows.slice(32)]
+      : [rows.slice(0,32), rows.slice(32,60), rows.slice(60)];
   const resources = getProductResources(data.key);
   const totalPages = chunks.length;
 
