@@ -23,12 +23,22 @@ export async function GET(request:NextRequest){
  // Read only the most recent timestamp per known table. No agent rows or scores leave this API.
  let skool: {module:string;status:string;latestObservedAtUTC?:string;reason?:string} = {module:"skool_learning",status:"unknown",reason:"query_unavailable"};
  let quiz: {module:string;status:string;latestObservedAtUTC?:string;reason?:string} = {module:"google_forms_quiz",status:"unknown",reason:"query_unavailable"};
+ let pepObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"agent_pep",status:"unknown",reason:"query_unavailable"};
+ let targetObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"annual_targets",status:"unknown",reason:"query_unavailable"};
  try {
    const db=getSupabaseClient();
-   const [members,results]=await Promise.all([
+   const [members,results,pep,targets]=await Promise.all([
      db.from("skool_members").select("synced_at").not("synced_at","is",null).order("synced_at",{ascending:false}).limit(1),
      db.from("learning_quiz_results").select("submitted_at").not("submitted_at","is",null).order("submitted_at",{ascending:false}).limit(1),
+     db.from("pep_notes").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
+     db.from("agent_targets").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
    ]);
+   const timestampOnly=(module:string,result:{data?:{updated_at?:string|null}[]|null;error?:unknown})=>
+     result.error?{module,status:"unknown",reason:"query_failed"}:
+     result.data?.[0]?.updated_at?{module,status:"timestamp_observed",latestObservedAtUTC:result.data[0].updated_at}:
+     {module,status:"not_connected",reason:"no_timestamp"};
+   pepObservation=timestampOnly("agent_pep",pep);
+   targetObservation=timestampOnly("annual_targets",targets);
    skool=members.error?{module:"skool_learning",status:"unknown",reason:"query_failed"}:
      members.data?.[0]?.synced_at?{module:"skool_learning",status:"timestamp_observed",latestObservedAtUTC:members.data[0].synced_at}:
      {module:"skool_learning",status:"not_connected",reason:"no_sync_timestamp"};
@@ -43,9 +53,7 @@ export async function GET(request:NextRequest){
   status:"observations_only",
   scope:"latest_stored_record_timestamps_not_workflow_health",
   checkedAtUTC:new Date().toISOString(),
-  modules:[skool,quiz,
-   {module:"agent_pep",status:"not_connected",reason:"no_verified_read_only_freshness_signal"},
-   {module:"annual_targets",status:"not_connected",reason:"no_verified_read_only_freshness_signal"}],
+  modules:[skool,quiz,pepObservation,targetObservation],
  },200);
 }
 export async function POST(){return json({error:"Method not allowed"},405);}
