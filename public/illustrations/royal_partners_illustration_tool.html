@@ -8143,6 +8143,56 @@ tbody td{
 .rp-report-page .rp-red-remark,.ex-report-page .rp-red-remark,.sc-report-page .rp-red-remark,
 .ann-report-page .ann-report-red-note{background:#fff1f2!important;color:#95223e!important}
 
+
+/* Royal Playful Premium Phase 1 — input page only, existing IDs and handlers intact */
+body:has(.rp-sales-shell){background:#f8f6f2}
+.rp-sales-shell .rp-hero{
+  background:#142a47;color:#fff;border:1px solid #254266;border-radius:20px;
+  padding:23px 26px 19px;align-items:center;box-shadow:0 10px 28px rgba(20,42,71,.12);
+}
+.rp-sales-shell .rp-hero h1{color:#fff;font-size:clamp(21px,3vw,30px)}
+.rp-sales-shell .rp-hero p{color:#dbe5f0}
+.rp-sales-shell .rp-hero .rp-eyebrow{color:#e4c481}
+.rp-sales-shell .rp-hero-badge{color:#e5f2ff;background:#294663;border-color:#486482}
+.rp-phase-steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:15px}
+.rp-phase-steps span{color:#e6effa;font-size:10px;font-weight:700;padding:6px 11px;border-radius:999px;background:#2a4667;border:1px solid #385675}
+.rp-phase-steps span:first-child{background:#d4ab60;color:#142a47;border-color:#d4ab60}
+.rp-sales-shell .rp-plan-card,.rp-sales-shell .rp-detail-card,.rp-sales-shell .rp-product-card{
+  background:#fff;border-color:#e8dfd3;border-radius:18px;box-shadow:0 4px 16px rgba(20,42,71,.045);
+}
+.rp-sales-shell .rp-detail-head .rp-detail-icon{
+  background:#e8f1fc;color:#346797;border-radius:12px;
+}
+.rp-sales-shell .agentbar .rp-detail-icon{background:#fff0d5;color:#a77a24}
+.rp-sales-shell .rp-plan-card .field{background:#fff;border-color:#e3ded5;border-radius:12px}
+.rp-sales-shell .rp-plan-card .field:focus-within{background:#fffbf3;border-color:#c4a363}
+.rp-sales-shell .rp-product-group{border-radius:13px;padding:12px 13px;border:1px solid #e9e3da;margin-top:10px}
+.rp-sales-shell .rp-product-group:nth-of-type(1){background:#e8f1fc}
+.rp-sales-shell .rp-product-group:nth-of-type(2){background:#fff0d5}
+.rp-sales-shell .rp-product-group:nth-of-type(3){background:#e3f2e9}
+.rp-sales-shell .rp-product-group:nth-of-type(4){background:#f8e8ed}
+.rp-sales-shell .rp-product-group .tabgroup-label{color:#142a47;font-weight:800}
+.rp-sales-shell .rp-group-icon{
+ display:inline-flex;justify-content:center;align-items:center;width:27px;height:27px;
+ border-radius:8px;background:rgba(255,255,255,.82);color:#315c8f;font-size:16px;margin-right:7px;
+}
+.rp-sales-shell .rp-product-group .tab{background:rgba(255,255,255,.92);border:1px solid #dedee0;border-radius:10px;color:#142a47}
+.rp-sales-shell .rp-product-group .tab:hover{border-color:#c4a363;background:#fffdf7}
+.rp-sales-shell .rp-product-group .tab.active{background:#142a47;color:#fff;border-color:#142a47;box-shadow:0 3px 12px rgba(20,42,71,.16)}
+#app .smart-summary-head{border-radius:14px;background:#fff;padding:12px 15px;border:1px solid #e8dfd3}
+#app .summary.smart-summary-grid .stat:nth-child(4n+1){background:#fff0d5;border-color:#e7d2a5}
+#app .summary.smart-summary-grid .stat:nth-child(4n+2){background:#e3f2e9;border-color:#cbe5d6}
+#app .summary.smart-summary-grid .stat:nth-child(4n+3){background:#e8f1fc;border-color:#cadcef}
+#app .summary.smart-summary-grid .stat:nth-child(4n+4){background:#f8e8ed;border-color:#efd2df}
+#app .summary.smart-summary-grid .stat .val{color:#142a47}
+@media(max-width:700px){
+ .rp-sales-shell .rp-hero{padding:18px}
+ .rp-sales-shell .rp-hero-badge{display:none}
+ .rp-phase-steps{gap:5px}
+ .rp-phase-steps span{font-size:9px;padding:5px 7px}
+ .rp-sales-shell .rp-product-group{padding:10px}
+}
+
 </style>
 
 </head>
@@ -8152,9 +8202,10 @@ tbody td{
 
   <div class="rp-hero">
     <div class="rp-hero-copy">
-      <div class="rp-eyebrow">ROYAL PARTNER · SALES TOOL</div>
-      <h1>Insurance Calculator</h1>
-      <p>วางแผนความคุ้มครองและจัดทำใบสรุปประกอบการเสนอขายอย่างเป็นระบบ</p>
+      <div class="rp-eyebrow">ROYAL PARTNER · SMART PLANNER ✦</div>
+      <h1>วางแผนประกันง่าย ๆ ในที่เดียว</h1>
+      <p>เลือกแผน · กรอกข้อมูล · ดูผลประโยชน์</p>
+      <div class="rp-phase-steps" aria-label="ขั้นตอนการวางแผน"><span>① ข้อมูลลูกค้า</span><span>② เลือกแบบ</span><span>③ สรุปผล</span></div>
     </div>
 
     <div class="rp-hero-badge">
@@ -8166,7 +8217,7 @@ tbody td{
   <div class="topbar rp-plan-card">
     <div class="rp-section-heading">
       <div>
-        <div class="rp-section-kicker">START YOUR PLAN</div>
+        <div class="rp-section-kicker">✦ START YOUR PLAN</div>
         <h2>ข้อมูลสำหรับคำนวณ</h2>
       </div>
       <div class="rp-section-note">กรอกข้อมูลหลักเพื่อดูผลลัพธ์แบบเรียลไทม์</div>
@@ -8246,29 +8297,29 @@ tbody td{
   <div class="tabgroup-wrap rp-product-card">
     <div class="rp-section-heading">
       <div>
-        <div class="rp-section-kicker">CHOOSE YOUR PLAN</div>
+        <div class="rp-section-kicker">✦ CHOOSE YOUR PLAN</div>
         <h2>เลือกเป้าหมายความคุ้มครอง</h2>
       </div>
       <div class="rp-section-note">เลือกกลุ่มและแบบประกันที่ต้องการนำเสนอ</div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">♡</span><span>1. กลุ่มตลอดชีพ</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon">♧</span><span>1. กลุ่มตลอดชีพ</span></div>
       <div class="tabs" id="tabs-life"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">◇</span><span>2. กลุ่มออมทรัพย์</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon">♢</span><span>2. กลุ่มออมทรัพย์</span></div>
       <div class="tabs" id="tabs-savings"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">✚</span><span>3. กลุ่มโรคร้ายแรง</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon">♡</span><span>3. กลุ่มโรคร้ายแรง</span></div>
       <div class="tabs" id="tabs-ci"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">◷</span><span>4. กลุ่มบำนาญ</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon">☀</span><span>4. กลุ่มบำนาญ</span></div>
       <div class="tabs" id="tabs-retirement"></div>
     </div>
   </div>
