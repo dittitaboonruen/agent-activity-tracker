@@ -9708,6 +9708,13 @@ const ANNUITY_SURE_AIA_REFERENCE_F26_TO60_200K = Object.freeze({
   55:471800,56:493600,57:516000,58:539000,59:562400
 });
 
+// AIA illustration verified: female entry age 32, pay to age 60, THB 1,000,000.
+// Reference death benefits ONLY; do not extrapolate to other contracts.
+const ANNUITY_SURE_AIA_REFERENCE_F32_TO60_1M = Object.freeze({
+  49:1602000,50:1713000,51:1826000,52:1941000,53:2059000,54:2179000,
+  55:2301000,56:2427000,57:2555000,58:2686000,59:2820000
+});
+
 function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
   age=Number(age);
   sumInsured=Number(sumInsured)||0;
@@ -9740,11 +9747,14 @@ function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
         // Exact cash value schedule is only verified for the reference case below.
         const isVerified9Pay=isNine && age===35 && gender==='ชาย' && sumInsured===1000000;
         const isVerifiedTo60=!isNine && age===26 && gender==='หญิง' && sumInsured===200000;
+        const isVerifiedF32=!isNine && age===32 && gender==='หญิง' && sumInsured===1000000;
         const aiaReference=isVerified9Pay
           ? ANNUITY_SURE_AIA_REFERENCE_M35_9PAY_1M[rowAge]
           : isVerifiedTo60
             ? ANNUITY_SURE_AIA_REFERENCE_F26_TO60_200K[rowAge]
-            : undefined;
+            : isVerifiedF32
+              ? ANNUITY_SURE_AIA_REFERENCE_F32_TO60_1M[rowAge]
+              : undefined;
         deathBenefit=Number.isFinite(aiaReference)
           ? Math.max(cumulativePremium*1.10,aiaReference)
           : Math.max(cumulativePremium*1.10,0);
