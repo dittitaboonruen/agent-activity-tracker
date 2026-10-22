@@ -8297,6 +8297,40 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 .ann-report-page .ann-report-year-table{margin-left:14px!important;margin-right:14px!important}
 .ann-report-page .ann-report-bottom{margin-left:14px!important;margin-right:14px!important}
 
+
+/* A4 horizontal fill correction — full inner width, consistent optical margins.
+   Preserve legacy vertical scale, page count and PDF content. */
+.rp-report-page,.ex-report-page,.sc-report-page,.ann-report-page{
+  box-sizing:border-box!important;
+}
+.ex-report-page > .ex-report-inner,
+.sc-report-page > .sc-report-inner,
+.ann-report-page > .ann-report-inner{
+  width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+}
+.rp-report-page .rp-page-inner{
+  margin-left:0!important;margin-right:0!important;
+}
+.ex-report-page .rp-report-head,
+.sc-report-page .rp-report-head,
+.ann-report-page .ann-report-head{width:100%;box-sizing:border-box}
+.ex-report-page .ex-report-inner > *,
+.sc-report-page .sc-report-inner > *,
+.ann-report-page .ann-report-inner > *{box-sizing:border-box;min-width:0}
+.ann-report-page .ann-report-bottom,
+.ann-report-page .ann-report-year-table,
+.ann-report-page .ann-report-summary{
+  box-sizing:border-box;
+}
+.ann-report-page .rp-resource-section,
+.ann-report-page .rp-resource-grid,
+.ann-report-page .ann-report-promo{max-width:100%;box-sizing:border-box}
+.ann-report-page .ann-full-year-table{width:100%!important;max-width:100%!important}
+.ex-report-page .ex-chart,
+.sc-report-page .sc-chart{margin-left:14px!important;margin-right:14px!important}
+.ex-report-page .sc-benefit-grid,
+.sc-report-page .sc-benefit-grid{margin-left:14px!important;margin-right:14px!important}
+
 </style>
 
 </head>
