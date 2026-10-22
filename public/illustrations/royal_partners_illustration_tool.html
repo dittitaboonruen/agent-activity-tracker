@@ -7914,6 +7914,31 @@ tbody td{
 .ann-sure-explain{align-self:center;font-size:10px;line-height:1.5;color:#24344a;font-weight:600}
 .ann-sure-explain b{color:#ba0644}
 @media(max-width:700px){.ann-sure-topline{min-height:0}.ann-sure-death-phases{min-height:150px}.ann-sure-death-phases>div{min-height:150px;padding:38px 7px 8px;font-size:9px}.ann-sure-before-pension small{font-size:8px}.ann-sure-explain{font-size:9px}}
+
+/* AIA Annuity Fix: clean reference-inspired timeline and five-column ledger */
+.ann-fix-graphic .ann-fix-visual{background:transparent;padding:8px 2px 6px;color:#26364b;font-size:11px}
+.ann-fix-topline{display:grid;grid-template-columns:16% minmax(0,57%) minmax(0,27%);align-items:stretch;gap:0}
+.ann-fix-topline>strong{align-self:center}
+.ann-fix-death-blocks{display:grid;grid-template-columns:62% 38%;min-width:0;gap:1px}
+.ann-fix-death-blocks>div{background:#68717b;color:#fff;padding:12px 10px;min-width:0;min-height:95px;box-sizing:border-box;overflow-wrap:anywhere;line-height:1.4}
+.ann-fix-death-blocks .ann-fix-after-pension{background:#586579}
+.ann-fix-death-blocks strong{display:block;font-size:10px;color:#fff}
+.ann-fix-death-blocks small{display:block;margin-top:5px;font-size:9px;line-height:1.5;color:#fff}
+.ann-fix-side-note{align-self:center;padding:8px;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.ann-fix-row{display:grid;grid-template-columns:16% minmax(0,84%);align-items:center;gap:0;margin-top:6px;font-size:10px}
+.ann-fix-agebar{background:#d8074c;color:white;display:flex;justify-content:space-between;gap:4px;padding:7px 9px;font-size:10px;flex-wrap:wrap}
+.ann-fix-payyears-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;min-width:0}
+.ann-fix-payyears{display:grid;grid-template-columns:repeat(var(--pay-cols),minmax(0,1fr));gap:1px;align-items:end;min-width:0;max-width:100%}
+.ann-fix-payyears span{color:#d8074c;text-align:center;font-size:10px;line-height:1;min-width:0}
+.ann-fix-payyears small{display:block;font-size:7px;color:#867f76;margin-top:2px}
+.ann-fix-payyears-wrap em{font-style:normal;font-size:9px;color:#b00540;font-weight:700;white-space:nowrap}
+.ann-fix-pension-row>div{display:flex;align-items:center;gap:7px;min-width:0;color:#b00540}
+.ann-fix-pension-row strong{flex:1;min-width:0;text-align:center;border-bottom:2px solid #d8074c;padding:5px;line-height:1.4;overflow-wrap:anywhere}
+.ann-fix-pension-row b{width:20px;height:20px;border:1px solid #d8074c;flex-shrink:0}
+.ann-fix-ledger table.ledger{width:100%;table-layout:auto;border-collapse:collapse}
+.ann-fix-ledger table.ledger thead th{background:#132a43!important;color:#fff!important;border-bottom:2px solid #b8985a!important;padding:11px 8px;font-size:12px;text-align:right}
+.ann-fix-ledger table.ledger thead th:first-child{text-align:center}
+@media(max-width:700px){.ann-fix-topline{grid-template-columns:minmax(0,1fr);gap:5px}.ann-fix-death-blocks>div{min-height:0;padding:9px 7px}.ann-fix-death-blocks small{font-size:8px}.ann-fix-side-note{padding:5px 0}.ann-fix-row{grid-template-columns:minmax(0,1fr);gap:4px}.ann-fix-agebar{font-size:9px}.ann-fix-payyears-wrap{grid-template-columns:minmax(0,1fr);gap:4px}.ann-fix-payyears-wrap em{white-space:normal}.ann-fix-payyears span{font-size:9px}.ann-fix-payyears small{font-size:6px}}
 </style>
 
 </head>
@@ -9810,20 +9835,36 @@ function annParseMoney(value){
 
 function buildAnnuityMapHTML(type,data){
   if(type==='fix'){
+    const startAge=Number(state.age);
+    const years=Math.max(0,Math.min(40,60-startAge));
+    const markers=Array.from({length:years},(_,i)=>i+1);
     return `
-      <div class="ann-benefit-map">
+      <div class="ann-benefit-map ann-fix-graphic">
         <div class="ann-benefit-title">ภาพสรุปช่วงชำระเบี้ยและรับเงินบำนาญ</div>
-        <div class="ann-benefit-row">
-          <div class="ann-benefit-label">ช่วงชำระเบี้ย</div>
-          <div class="ann-benefit-track cover">อายุ ${state.age}–59 ปี • ชำระเบี้ยถึงอายุ 60 ปี</div>
-        </div>
-        <div class="ann-benefit-row">
-          <div class="ann-benefit-label">ช่วงรับเงินบำนาญ</div>
-          <div class="ann-benefit-track pension">อายุ 60–85 ปี • ${fmt(data.annualPension)} บาท/ปี • รวม 26 งวด</div>
-        </div>
-        <div class="ann-benefit-row" style="margin-bottom:0">
-          <div class="ann-benefit-label">ก่อนรับเงินบำนาญ</div>
-          <div class="ann-benefit-track">ตารางคำนวณแสดง 105% ของเบี้ยสะสม; กรมธรรม์จริงเทียบมูลค่าเวนคืนและใช้จำนวนที่สูงกว่า</div>
+        <div class="ann-fix-visual">
+          <div class="ann-fix-topline">
+            <strong>ความคุ้มครองชีวิต</strong>
+            <div class="ann-fix-death-blocks">
+              <div class="ann-fix-before-pension"><strong>ก่อนรับเงินบำนาญ</strong><small>กรณีเสียชีวิต รับ 105% ของเบี้ยสะสม หรือเงินค่าเวนคืนกรมธรรม์ แล้วแต่จำนวนใดสูงกว่า ตามเงื่อนไขกรมธรรม์</small></div>
+              <div class="ann-fix-after-pension"><strong>ระหว่างรับเงินบำนาญ</strong><small>ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขกรมธรรม์ รวมถึงมูลค่าปัจจุบันของบำนาญที่ยังไม่ได้รับตามเกณฑ์ที่กำหนด</small></div>
+            </div>
+            <div class="ann-fix-side-note">รับบำนาญตั้งแต่อายุ 60 ถึง 85 ปี และมีความคุ้มครองตามเงื่อนไขกรมธรรม์</div>
+          </div>
+          <div class="ann-fix-row">
+            <span>อายุผู้เอาประกัน (ปี)</span>
+            <div class="ann-fix-agebar"><b>${startAge} ปี</b><b>อายุ 59 ปี</b><b>อายุ 60 ปี</b><b>อายุ 75 ปี</b><b>อายุ 85 ปี</b></div>
+          </div>
+          <div class="ann-fix-row">
+            <span>ระยะเวลาชำระเบี้ย</span>
+            <div class="ann-fix-payyears-wrap">
+              <div class="ann-fix-payyears" style="--pay-cols:${Math.max(1,markers.length)}">${markers.map(y=>'<span aria-label="ปีที่ '+y+'">▲<small>'+y+'</small></span>').join('')}</div>
+              <em>ชำระเบี้ยถึงอายุ 60 ปี</em>
+            </div>
+          </div>
+          <div class="ann-fix-row ann-fix-pension-row">
+            <span>เงินบำนาญรายปี</span>
+            <div><b></b><strong>รับเงินบำนาญปีละ ${fmt(data.annualPension)} บาท ตั้งแต่อายุ 60–85 ปี รวม 26 งวด</strong><b></b></div>
+          </div>
         </div>
       </div>`;
   }
@@ -9962,14 +10003,11 @@ function viewAnnuityFix(app){
     ledger.querySelector('.ann-fix-ledger'),
     r.rows,
     [
-      {key:'year',label:'ปีที่'},
       {key:'age',label:'อายุ'},
-      {key:'premium',label:'เบี้ยที่ชำระ'},
-      {key:'pension',label:'เงินบำนาญ'},
-      {key:'cumulativePremium',label:'สะสมเบี้ย'},
-      {key:'cumulativePension',label:'สะสมบำนาญ'},
       {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
-      {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+      {key:'premium',label:'เบี้ยประกัน'},
+      {key:'pension',label:'เงินบำนาญ'},
+      {key:'taxRelief',label:'ลดหย่อนภาษี'}
     ]
   );
 
