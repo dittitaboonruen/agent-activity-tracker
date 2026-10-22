@@ -9704,7 +9704,7 @@ function annuityFixTaxRate(income){
   return 0.35;
 }
 
-function calcAnnuityFix(age,gender,annualPension,income,frequency){
+function calcAnnuityFix(age,gender,annualPension,income,frequency,selectedTaxRate){
   age=Number(age);
   annualPension=Number(annualPension)||0;
   income=Number(income)||0;
@@ -9717,7 +9717,7 @@ function calcAnnuityFix(age,gender,annualPension,income,frequency){
   const annualPremium=rate===null ? 0 : rate*(initialAnnuity/1000);
   const installmentPremium=rate===null ? 0 : Math.round((rate*frequencyFactor)*100)/100*(initialAnnuity/1000);
   const payYears=60-age;
-  const taxRate=annuityFixTaxRate(income);
+  const taxRate=Number.isFinite(Number(selectedTaxRate)) ? Math.max(0,Math.min(0.35,Number(selectedTaxRate))) : annuityFixTaxRate(income);
   const deductionCap=Math.min(200000,0.15*income);
 
   const rows=[];
@@ -9977,7 +9977,8 @@ function viewAnnuityFix(app){
     state.gender,
     cfg.annualPension,
     cfg.income,
-    cfg.frequency
+    cfg.frequency,
+    state.tax
   );
 
   app.innerHTML=panelShell(
@@ -10047,7 +10048,7 @@ function viewAnnuityFix(app){
 
   renderLedger(
     ledger.querySelector('.ann-fix-ledger'),
-    r.rows.map(row=>row.age>=75?{...row,deathBenefit:null}:row),
+    r.rows.map(row=>row.age>=61?{...row,deathBenefit:null}:row),
     [
       {key:'age',label:'อายุ'},
       {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
@@ -13823,7 +13824,8 @@ function buildAnnuityFixReportData(){
     state.gender,
     cfg.annualPension,
     cfg.income,
-    cfg.frequency
+    cfg.frequency,
+    state.tax
   );
 
   return {
@@ -14093,7 +14095,7 @@ function buildAnnuitySinglePageHTML(data){
   const mainValue = `${fmt(r.annualPension)} บาท/ปี`;
   const annualCols=[['age','อายุ'],['deathBenefit','ผลประโยชน์กรณีเสียชีวิต'],['premium','เบี้ยประกัน'],['pension','เงินบำนาญ'],['taxRelief','ลดหย่อนภาษี']];
   const annualTable=chunk=>'<table class="ann-full-year-table"><thead><tr>'+annualCols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>'+
-    chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):(isFix && c[0]==='deathBenefit' && row.age>=75?'—':fmt(Number(row[c[0]])||0)))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):(isFix && c[0]==='deathBenefit' && row.age>=61?'—':fmt(Number(row[c[0]])||0)))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 
   const annualPages = chunks.map((chunk,index)=>{
     const first=index===0;
