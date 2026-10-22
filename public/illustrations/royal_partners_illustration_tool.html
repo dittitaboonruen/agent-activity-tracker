@@ -10018,10 +10018,10 @@ function viewAnnuityFix(app){
   });
 
   fillSummary(app,[
-    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:fmt(r.annualPremium),group:'ann-primary',icon:'＋'},
+    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:Number(r.annualPremium).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),group:'ann-primary',icon:'＋'},
     {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension),group:'ann-primary',icon:'✦'},
     {lbl:'เงินภาษีที่ได้คืน (ตามฐานภาษี %)',val:fmt(r.rows[0]?.taxRelief ?? 0),group:'ann-secondary',icon:'Σ'},
-    {lbl:'มูลค่าบำนาญตั้งต้น',val:fmt(r.initialAnnuity),group:'ann-secondary',icon:'฿'}
+    {lbl:'มูลค่าบำนาญตั้งต้น',val:Number(r.initialAnnuity).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),group:'ann-secondary',icon:'฿'}
   ],'ann-fix-summary');
 
   if(!r.validAge || !r.validInitial){
