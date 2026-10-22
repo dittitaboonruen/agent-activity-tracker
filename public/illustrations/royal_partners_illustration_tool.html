@@ -14775,6 +14775,7 @@ function fitReportA4Contents(root){
     // Measure the *visible contents*, not only the 1123px fixed-height wrapper.
     // Promotional banners can extend below wrappers with overflow:hidden.
     inner.style.transform = 'none';
+    inner.style.removeProperty('width');
     inner.style.transformOrigin = 'top left';
     const pageBox = page.getBoundingClientRect();
     const contentBox = inner.getBoundingClientRect();
@@ -14811,9 +14812,20 @@ function fitReportA4Contents(root){
     if(scale < 0.999){
       // Center the scaled A4 content: top-left scaling left unused space only on the right.
       const safeScale = Math.max(0.01,scale);
-      const remainingWidth = Math.max(0, availableWidth - inner.offsetWidth * safeScale);
-      inner.style.transform = 'translateX(' + (remainingWidth / 2).toFixed(2) +
-        'px) scale(' + safeScale.toFixed(5) + ')';
+      const fullWidthA4 = page.id === 'pay25-report-page-1' ||
+        page.id === 'ci-procare-report-page-1' ||
+        page.classList.contains('ann-report-page');
+      if(fullWidthA4){
+        // Keep the height safety fit but reclaim the unused horizontal A4 area.
+        // Resize the inner layout before scaling so its visible width is the paper width.
+        const fullWidth = (page.clientWidth - 2) / safeScale;
+        inner.style.setProperty('width', fullWidth.toFixed(2) + 'px', 'important');
+        inner.style.transform = 'scale(' + safeScale.toFixed(5) + ')';
+      }else{
+        const remainingWidth = Math.max(0, availableWidth - inner.offsetWidth * safeScale);
+        inner.style.transform = 'translateX(' + (remainingWidth / 2).toFixed(2) +
+          'px) scale(' + safeScale.toFixed(5) + ')';
+      }
     }
   });
 }
