@@ -9723,7 +9723,7 @@ function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
       }else if(rowAge<=74){
         deathBenefit=Math.max(
           cumulativePremium-cumulativePension,
-          (ANNUITY_SURE_PV[rowAge]||0)*(sumInsured/1000)+pension
+          (ANNUITY_SURE_PV[rowAge]||0)*(sumInsured/1000)
         );
       }else{
         deathBenefit=Math.max(cumulativePremium-cumulativePension,0);
