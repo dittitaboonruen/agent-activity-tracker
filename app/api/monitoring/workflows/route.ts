@@ -28,7 +28,7 @@ export async function GET(request:NextRequest){
  try {
    const db=getSupabaseClient();
    const [members,results,pep,targets]=await Promise.all([
-     db.from("skool_members").select("synced_at").not("synced_at","is",null).order("synced_at",{ascending:false}).limit(1),
+     db.from("learning_course_progress").select("synced_at").not("synced_at","is",null).order("synced_at",{ascending:false}).limit(1),
      db.from("learning_quiz_results").select("submitted_at").not("submitted_at","is",null).order("submitted_at",{ascending:false}).limit(1),
      db.from("pep_notes").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
      db.from("agent_targets").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
