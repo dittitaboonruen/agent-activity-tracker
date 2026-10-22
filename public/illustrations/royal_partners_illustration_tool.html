@@ -9907,7 +9907,7 @@ function buildAnnuityMapHTML(type,data){
                 <span>กรณีเสียชีวิตก่อนรับเงินบำนาญ รับ 105% ของเบี้ยสะสม หรือเงินค่าเวนคืนกรมธรรม์ แล้วแต่จำนวนใดสูงกว่า ตามเงื่อนไขกรมธรรม์</span>
               </div>
               <div class="ann-fix-after-label">
-                กรณีเสียชีวิตระหว่างรับเงินบำนาญ ผลประโยชน์เป็นไปตามเงื่อนไขกรมธรรม์ รวมถึงมูลค่าปัจจุบันของบำนาญที่ยังไม่ได้รับตามเกณฑ์ที่กำหนด
+                กรณีเสียชีวิตในช่วงรับเงินบำนาญ ก่อนรับครบ 15 ปี ผู้รับผลประโยชน์จะได้รับมูลค่าปัจจุบันของเงินบำนาญส่วนที่เหลือจนครบ 15 ปี ตามตารางและเงื่อนไขกรมธรรม์ (ตัวอย่าง: รับบำนาญแล้ว 3 ปี จะเหลือเงินบำนาญอีก 12 ปีให้นำไปคำนวณเป็นมูลค่าปัจจุบันเพื่อจ่ายให้ผู้รับผลประโยชน์)
               </div>
             </div>
           </div>
@@ -10047,7 +10047,7 @@ function viewAnnuityFix(app){
 
   renderLedger(
     ledger.querySelector('.ann-fix-ledger'),
-    r.rows,
+    r.rows.map(row=>row.age>=75?{...row,deathBenefit:null}:row),
     [
       {key:'age',label:'อายุ'},
       {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
@@ -14093,7 +14093,7 @@ function buildAnnuitySinglePageHTML(data){
   const mainValue = `${fmt(r.annualPension)} บาท/ปี`;
   const annualCols=[['age','อายุ'],['deathBenefit','ผลประโยชน์กรณีเสียชีวิต'],['premium','เบี้ยประกัน'],['pension','เงินบำนาญ'],['taxRelief','ลดหย่อนภาษี']];
   const annualTable=chunk=>'<table class="ann-full-year-table"><thead><tr>'+annualCols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>'+
-    chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):fmt(Number(row[c[0]])||0))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):(isFix && c[0]==='deathBenefit' && row.age>=75?'—':fmt(Number(row[c[0]])||0)))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 
   const annualPages = chunks.map((chunk,index)=>{
     const first=index===0;
