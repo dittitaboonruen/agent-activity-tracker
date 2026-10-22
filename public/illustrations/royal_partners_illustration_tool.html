@@ -8267,6 +8267,36 @@ body:has(.rp-sales-shell){background:#f8f6f2}
  background:#fff0f2!important;border-color:#e9c3cc!important;color:#984d63!important;
 }
 
+
+/* QA: consistent horizontal report gutters and balanced left/right panels.
+   Layout-only; preserve all typography sizes, page breaks and report content. */
+.rp-report-page .rp-report-head,
+.ex-report-page .rp-report-head,
+.sc-report-page .rp-report-head{padding-left:22px!important;padding-right:22px!important}
+.rp-report-page .rp-report-head > *,
+.ex-report-page .rp-report-head > *,
+.sc-report-page .rp-report-head > *,
+.ann-report-page .ann-report-head > *{min-width:0;box-sizing:border-box}
+.rp-report-page .rp-report-head > :first-child,
+.ex-report-page .rp-report-head > :first-child,
+.sc-report-page .rp-report-head > :first-child,
+.ann-report-page .ann-report-head > :first-child{flex:1 1 auto}
+.rp-report-page .rp-report-kpis,
+.ex-report-page .rp-report-kpis,
+.sc-report-page .rp-report-kpis{padding-left:18px!important;padding-right:18px!important}
+.rp-report-page .rp-report-kpis > *,
+.ex-report-page .rp-report-kpis > *,
+.sc-report-page .rp-report-kpis > *,
+.ex-report-page .ex-summary-box,
+.sc-report-page .sc-benefit-card,
+.ann-report-page .ann-summary-box{min-width:0;box-sizing:border-box;overflow-wrap:anywhere}
+.ann-report-page .ann-report-summary{margin-left:14px!important;margin-right:14px!important}
+.ann-report-page .ann-report-customer{padding-left:14px!important;padding-right:14px!important}
+.ann-report-page .ann-report-meta{margin-left:14px!important;margin-right:14px!important}
+.ann-report-page .ann-table-title{margin-left:14px!important;margin-right:14px!important}
+.ann-report-page .ann-report-year-table{margin-left:14px!important;margin-right:14px!important}
+.ann-report-page .ann-report-bottom{margin-left:14px!important;margin-right:14px!important}
+
 </style>
 
 </head>
