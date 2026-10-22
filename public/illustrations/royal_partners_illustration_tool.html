@@ -7880,6 +7880,27 @@ tbody td{
 .health-combo-report-page .hc-critical-illness-note,.pl20-medical-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
 .health-combo-report-page .hc-critical-illness-note ol,.pl20-medical-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
 .health-combo-report-page .hc-critical-illness-note li,.pl20-medical-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
+
+/* Annuity Sure only — annual ledger and reference-inspired pension diagram */
+.ann-sure-ledger table.ledger{width:100%;table-layout:auto;border-collapse:collapse}
+.ann-sure-ledger table.ledger thead th{background:#132a43!important;color:#fff!important;border-bottom:2px solid #b8985a!important;text-align:right;font-size:12px;padding:11px 8px}
+.ann-sure-ledger table.ledger thead th:first-child,.ann-sure-ledger table.ledger thead th:nth-child(2){text-align:center}
+.ann-sure-ledger table.ledger thead th::selection{background:#b8985a;color:#132a43}
+.ann-sure-graphic .ann-sure-visual{background:#ebeaeb;padding:12px 10px 10px;color:#353338;font-size:11px;overflow:hidden}
+.ann-sure-topline{display:grid;grid-template-columns:18% 54% 28%;align-items:end;gap:0;min-height:110px}
+.ann-sure-death-phases{display:grid;grid-template-columns:60% 40%;height:108px;align-items:end}
+.ann-sure-death-phases>div{background:#949494;color:white;padding:35px 10px 10px;min-height:88px;clip-path:polygon(0 65%,60% 0,100% 0,100% 100%,0 100%);font-size:11px;line-height:1.4}
+.ann-sure-death-phases>div+div{background:#8d8d8d;clip-path:polygon(0 0,100% 65%,100% 100%,0 100%)}
+.ann-sure-explain{font-size:9px;line-height:1.4;padding:6px}
+.ann-sure-timeline{display:grid;grid-template-columns:18% 82%;align-items:center;margin-top:5px;gap:0}
+.ann-sure-yearbar{background:#d8074c;color:#fff;display:flex;justify-content:space-between;padding:8px 10px;font-weight:700}
+.ann-sure-payyears{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#da0a4c}
+.ann-sure-payyears span{font-size:15px;text-align:center}.ann-sure-payyears small{display:block;font-size:8px}.ann-sure-payyears em{font-style:normal;margin-left:auto;font-size:10px}
+.ann-sure-pension-line>div{display:flex;align-items:center;gap:8px;color:#c90648}
+.ann-sure-pension-line b{border:1px solid #d8074c;padding:4px}
+.ann-sure-pension-line strong{flex:1;text-align:center;border-bottom:2px solid #d8074c;font-size:10px;padding:5px}
+.ann-sure-small-note{font-size:10px;line-height:1.5}
+@media(max-width:700px){.ann-sure-topline{grid-template-columns:16% 84%;min-height:90px}.ann-sure-explain{grid-column:1 / -1}.ann-sure-death-phases{height:75px}.ann-sure-death-phases>div{min-height:65px;font-size:9px;padding:16px 6px 5px}.ann-sure-yearbar{font-size:9px;padding:5px 3px}.ann-sure-pension-line strong{font-size:9px}}
 </style>
 
 </head>
@@ -9756,20 +9777,40 @@ function buildAnnuityMapHTML(type,data){
       </div>`;
   }
 
+  // Annuity Sure: vector timeline reconstructed from the supplied reference.
+  // Keep this independent of the Annuity Fix illustration.
+  const endPayAge=data.isNine ? state.age+8 : 59;
+  const yearLabels=Array.from({length:Math.min(data.payYears,32)},(_,i)=>i+1);
   return `
-    <div class="ann-benefit-map">
+    <div class="ann-benefit-map ann-sure-graphic">
       <div class="ann-benefit-title">ภาพสรุปช่วงชำระเบี้ยและรับเงินบำนาญ</div>
-      <div class="ann-benefit-row">
-        <div class="ann-benefit-label">ช่วงชำระเบี้ย</div>
-        <div class="ann-benefit-track cover">${data.isNine?'ชำระเบี้ย 9 ปี':'ชำระเบี้ยถึงอายุ 60 ปี'} • ${data.payYears} ปี</div>
-      </div>
-      <div class="ann-benefit-row">
-        <div class="ann-benefit-label">ช่วงรับเงินบำนาญ</div>
-        <div class="ann-benefit-track pension">อายุ 60–90 ปี • 15% ของทุนประกัน = ${fmt(data.annualPension)} บาท/ปี • รวม 31 งวด</div>
-      </div>
-      <div class="ann-benefit-row" style="margin-bottom:0">
-        <div class="ann-benefit-label">ก่อนรับเงินบำนาญ</div>
-        <div class="ann-benefit-track">ตารางคำนวณแสดง 110% ของเบี้ยสะสม; กรมธรรม์จริงเทียบมูลค่าเวนคืนและใช้จำนวนที่สูงกว่า</div>
+      <div class="ann-sure-visual">
+        <div class="ann-sure-topline">
+          <strong>ความคุ้มครองชีวิต</strong>
+          <div class="ann-sure-death-phases">
+            <div>กรณีเสียชีวิตก่อนเริ่มรับเงินบำนาญ<br><small>รับผลประโยชน์ตามเงื่อนไขกรมธรรม์</small></div>
+            <div>กรณีเสียชีวิต<br>ในช่วงรับเงินบำนาญ</div>
+          </div>
+          <div class="ann-sure-explain">ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขกรมธรรม์และมูลค่าที่บริษัทกำหนด</div>
+        </div>
+        <div class="ann-sure-timeline">
+          <span>อายุผู้เอาประกัน (ปี)</span>
+          <div class="ann-sure-yearbar">
+            <b>${state.age} ปี</b><b>อายุ ${endPayAge} ปี</b><b>อายุ 60 ปี</b><b>อายุ 75 ปี</b><b>อายุครบ 90 ปี</b>
+          </div>
+        </div>
+        <div class="ann-sure-timeline">
+          <span>ระยะเวลาชำระเบี้ย</span>
+          <div class="ann-sure-payyears">${yearLabels.map(y=>'<span>▲<small>'+y+'</small></span>').join('')}<em>ชำระเบี้ย ${data.payYears} ปี</em></div>
+        </div>
+        <div class="ann-sure-timeline ann-sure-pension-line">
+          <span>เงินบำนาญรายปี</span>
+          <div><b>15%</b><strong>บริษัทจ่ายเงินบำนาญปีละครั้ง ตั้งแต่อายุ 60 ถึง 90 ปี · ${fmt(data.annualPension)} บาทต่อปี รวม 31 งวด</strong><b>15%</b></div>
+        </div>
+        <div class="ann-sure-timeline">
+          <span>ผลประโยชน์ก่อนรับบำนาญ</span>
+          <div class="ann-sure-small-note">กรณีเสียชีวิตก่อนรับเงินบำนาญ ให้ยึดผลประโยชน์ตามตารางและเงื่อนไขกรมธรรม์</div>
+        </div>
       </div>
     </div>`;
 }
@@ -9962,8 +10003,7 @@ function viewAnnuitySure(app){
       {key:'pension',label:'เงินบำนาญ'},
       {key:'cumulativePremium',label:'สะสมเบี้ย'},
       {key:'cumulativePension',label:'สะสมบำนาญ'},
-      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
-      {key:'taxRelief',label:'สิทธิลดหย่อนภาษี'}
+      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'}
     ]
   );
 
