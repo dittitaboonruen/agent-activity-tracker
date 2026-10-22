@@ -8394,6 +8394,38 @@ body:has(.rp-sales-shell){background:#f8f6f2}
   min-width:0;
   max-width:100%;
 }
+
+/* 20PL visual QA: use the natural promo artwork ratio rather than a fixed
+   letterbox, and keep content gutters consistent without changing data. */
+#pay20life-report-page-1 .pl20-payment-wide{
+  aspect-ratio:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  box-sizing:border-box!important;
+}
+#pay20life-report-page-1 .pl20-payment-wide img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-width:100%!important;
+  object-fit:contain!important;
+}
+/* Two selected riders should not make a large artificial empty table panel. */
+#pay20life-report-page-1 .pl20-report-grid{
+  align-items:start!important;
+  margin-left:14px!important;
+  margin-right:14px!important;
+}
+#pay20life-report-page-1 .pl20-report-grid > .pl20-report-card{
+  min-width:0!important;
+}
+#pay20life-report-page-2 .pl20-medical-intro,
+#pay20life-report-page-2 .pl20-health-detail-list,
+#pay20life-report-page-2 .pl20-medical-note{
+  margin-left:14px!important;
+  margin-right:14px!important;
+  box-sizing:border-box!important;
+}
 </style>
 
 </head>
