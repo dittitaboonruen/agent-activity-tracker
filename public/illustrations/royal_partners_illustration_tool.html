@@ -7876,6 +7876,10 @@ tbody td{
   line-height:1.45 !important;
 }
 
+/* A4 critical illness benefits note — health combo reports only */
+.health-combo-report-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+.health-combo-report-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
+.health-combo-report-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
 </style>
 
 </head>
@@ -9078,11 +9082,7 @@ function viewPayLifePlus(app){
       .plus-benefits td{background:#fff}
       .plus-notes{padding:16px 18px;border-left:3px solid #b8985a;background:#fff9ef;border-radius:8px;font-size:12px;line-height:1.85}
       @media(max-width:540px){.plus-term-buttons button{min-width:0}.plus-benefits th{width:40%}}
-    /* A4 critical illness benefits note — health combo reports only */
-.health-combo-report-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
-.health-combo-report-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
-.health-combo-report-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
-</style>
+    </style>
     <div class="plus-term-label">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>
     <div class="plus-term-buttons" role="group" aria-label="ระยะเวลาชำระเบี้ย">
       ${[10,15,20].map(y=>`<button type="button" data-plus-term="${y}" class="${y===term?'active':''}" aria-pressed="${y===term}">${y} ปี</button>`).join('')}
