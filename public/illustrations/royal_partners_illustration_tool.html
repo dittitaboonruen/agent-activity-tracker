@@ -7903,6 +7903,17 @@ tbody td{
 .ann-sure-pension-line strong{flex:1;min-width:0;text-align:center;border-bottom:2px solid #d8074c;font-size:9px;padding:4px 3px;line-height:1.35;overflow-wrap:anywhere}
 .ann-sure-small-note{font-size:9px;line-height:1.4;overflow-wrap:anywhere}
 @media(max-width:700px){.ann-sure-topline{grid-template-columns:minmax(0,1fr);min-height:auto;gap:6px}.ann-sure-explain{padding:0}.ann-sure-death-phases{height:72px}.ann-sure-death-phases>div{min-height:60px;font-size:8px;padding:12px 6px 5px}.ann-sure-timeline{grid-template-columns:minmax(0,1fr);gap:4px}.ann-sure-yearbar{font-size:8px;padding:5px 4px}.ann-sure-pension-line strong{font-size:8px}}
+
+/* Annuity Sure typography override: keep the pre-pension payout copy readable. */
+.ann-sure-topline{align-items:stretch;min-height:142px}
+.ann-sure-death-phases{height:auto;min-height:142px;align-items:stretch}
+.ann-sure-death-phases>div{min-height:142px;padding:46px 10px 10px;line-height:1.35;font-size:10px;color:#fff;font-weight:700;text-shadow:0 1px 1px rgba(0,0,0,.28)}
+.ann-sure-death-phases .ann-sure-before-pension{background:#636b76;clip-path:polygon(0 46%,60% 0,100% 0,100% 100%,0 100%)}
+.ann-sure-death-phases .ann-sure-after-pension{background:#566170;clip-path:polygon(0 0,100% 46%,100% 100%,0 100%)}
+.ann-sure-before-pension small{display:block;margin-top:5px;color:#fff;font-size:9px;font-weight:600;line-height:1.4}
+.ann-sure-explain{align-self:center;font-size:10px;line-height:1.5;color:#24344a;font-weight:600}
+.ann-sure-explain b{color:#ba0644}
+@media(max-width:700px){.ann-sure-topline{min-height:0}.ann-sure-death-phases{min-height:150px}.ann-sure-death-phases>div{min-height:150px;padding:38px 7px 8px;font-size:9px}.ann-sure-before-pension small{font-size:8px}.ann-sure-explain{font-size:9px}}
 </style>
 
 </head>
@@ -9781,7 +9792,7 @@ function buildAnnuityMapHTML(type,data){
 
   // Annuity Sure: vector timeline reconstructed from the supplied reference.
   // Keep this independent of the Annuity Fix illustration.
-  const endPayAge=data.isNine ? state.age+8 : 59;
+  const endPayAge=data.isNine ? Math.min(59,state.age+8) : 59;
   const yearLabels=Array.from({length:Math.min(data.payYears,32)},(_,i)=>i+1);
   return `
     <div class="ann-benefit-map ann-sure-graphic">
@@ -9790,10 +9801,10 @@ function buildAnnuityMapHTML(type,data){
         <div class="ann-sure-topline">
           <strong>ความคุ้มครองชีวิต</strong>
           <div class="ann-sure-death-phases">
-            <div>กรณีเสียชีวิตก่อนเริ่มรับเงินบำนาญ<br><small>รับผลประโยชน์ตามเงื่อนไขกรมธรรม์</small></div>
-            <div>กรณีเสียชีวิต<br>ในช่วงรับเงินบำนาญ</div>
+            <div class="ann-sure-before-pension">กรณีเสียชีวิตในช่วงก่อนรับเงินบำนาญ<br><small>รับ 110% ของเบี้ยประกันภัยหลักที่บริษัทได้รับชำระมาแล้วทั้งหมด หรือเงินค่าเวนคืนกรมธรรม์ แล้วแต่จำนวนใดจะสูงกว่า</small></div>
+            <div class="ann-sure-after-pension">กรณีเสียชีวิต<br>ในช่วงรับเงินบำนาญ</div>
           </div>
-          <div class="ann-sure-explain">ผลประโยชน์กรณีเสียชีวิตเป็นไปตามเงื่อนไขกรมธรรม์และมูลค่าที่บริษัทกำหนด</div>
+          <div class="ann-sure-explain">ผลประโยชน์กรณีเสียชีวิตรับเงินตามช่วงอายุของผู้เอาประกัน ณ ปีนั้นๆ <b>(ตั้งแต่อายุ 60–90 ปี)</b></div>
         </div>
         <div class="ann-sure-timeline">
           <span>อายุผู้เอาประกัน (ปี)</span>
@@ -9808,10 +9819,6 @@ function buildAnnuityMapHTML(type,data){
         <div class="ann-sure-timeline ann-sure-pension-line">
           <span>เงินบำนาญรายปี</span>
           <div><b>15%</b><strong>บริษัทจ่ายเงินบำนาญปีละครั้ง ตั้งแต่อายุ 60 ถึง 90 ปี · ${fmt(data.annualPension)} บาทต่อปี รวม 31 งวด</strong><b>15%</b></div>
-        </div>
-        <div class="ann-sure-timeline">
-          <span>ผลประโยชน์ก่อนรับบำนาญ</span>
-          <div class="ann-sure-small-note">กรณีเสียชีวิตก่อนรับเงินบำนาญ ให้ยึดผลประโยชน์ตามตารางและเงื่อนไขกรมธรรม์</div>
         </div>
       </div>
     </div>`;
