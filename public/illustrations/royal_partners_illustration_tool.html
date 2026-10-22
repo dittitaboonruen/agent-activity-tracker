@@ -7915,6 +7915,30 @@ tbody td{
 .ann-sure-explain b{color:#ba0644}
 @media(max-width:700px){.ann-sure-topline{min-height:0}.ann-sure-death-phases{min-height:150px}.ann-sure-death-phases>div{min-height:150px;padding:38px 7px 8px;font-size:9px}.ann-sure-before-pension small{font-size:8px}.ann-sure-explain{font-size:9px}}
 
+/* Annuity Sure: keep all pre-pension death-benefit copy inside the grey panel.
+   The previous polygon clipped text outside its sloped edge. */
+.ann-sure-graphic .ann-sure-death-phases .ann-sure-before-pension{
+  clip-path:none;
+  background:#636b76;
+  box-sizing:border-box;
+  padding:18px 14px;
+  min-height:142px;
+  overflow-wrap:anywhere;
+}
+.ann-sure-graphic .ann-sure-death-phases .ann-sure-before-pension small{
+  display:block;
+  margin-top:7px;
+  font-size:9px;
+  line-height:1.45;
+  color:#fff;
+}
+@media(max-width:700px){
+  .ann-sure-graphic .ann-sure-death-phases .ann-sure-before-pension{
+    padding:12px 9px;
+    min-height:150px;
+  }
+}
+
 /* AIA Annuity Fix: clean reference-inspired timeline and five-column ledger */
 .ann-fix-graphic .ann-fix-visual{background:transparent;padding:8px 2px 6px;color:#26364b;font-size:11px}
 .ann-fix-topline{display:grid;grid-template-columns:16% minmax(0,57%) minmax(0,27%);align-items:stretch;gap:0}
