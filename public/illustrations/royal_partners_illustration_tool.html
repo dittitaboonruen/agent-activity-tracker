@@ -7940,6 +7940,22 @@ tbody td{
 .ann-fix-ledger table.ledger thead th:first-child{text-align:center}
 @media(max-width:700px){.ann-fix-topline{grid-template-columns:minmax(0,1fr);gap:5px}.ann-fix-death-blocks>div{min-height:0;padding:9px 7px}.ann-fix-death-blocks small{font-size:8px}.ann-fix-side-note{padding:5px 0}.ann-fix-row{grid-template-columns:minmax(0,1fr);gap:4px}.ann-fix-agebar{font-size:9px}.ann-fix-payyears-wrap{grid-template-columns:minmax(0,1fr);gap:4px}.ann-fix-payyears-wrap em{white-space:normal}.ann-fix-payyears span{font-size:9px}.ann-fix-payyears small{font-size:6px}}
 
+
+/* Annuity Fix: two paired summary groups, no impact on other plans */
+.ann-fix-summary .stat.ann-primary{
+  background:linear-gradient(150deg,#fffdf7 0%,#fff0d0 100%);
+  border:1px solid #dbb56f;
+  box-shadow:0 5px 18px rgba(165,115,30,.10);
+}
+.ann-fix-summary .stat.ann-secondary{
+  background:linear-gradient(150deg,#ffffff 0%,#eaf1fb 100%);
+  border:1px solid #b8cbe6;
+  box-shadow:0 5px 18px rgba(34,72,121,.08);
+}
+.ann-fix-summary .ann-primary .stat-icon{background:#fae7bf;color:#96620b}
+.ann-fix-summary .ann-secondary .stat-icon{background:#dce7f5;color:#445f83}
+.ann-fix-summary .stat .val{color:#102642}
+
 .ann-report-annual-page .ann-report-inner{width:100%;box-sizing:border-box}
 .ann-report-year-table{margin:8px 14px 4px;min-width:0}
 .ann-full-year-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;line-height:1.25;font-variant-numeric:tabular-nums}
@@ -9948,11 +9964,6 @@ function viewAnnuityFix(app){
     </div>
 
     <div class="ann-control">
-      <label>รายได้ต่อปี (ใช้คำนวณฐานภาษีตามไฟล์)</label>
-      <input id="ann-fix-income" type="text" inputmode="numeric" value="${annMoneyInput(cfg.income)}">
-    </div>
-
-    <div class="ann-control">
       <label>งวดชำระเบี้ย</label>
       <select id="ann-fix-frequency">
         ${Object.keys(ANNUITY_FIX_FREQUENCY)
@@ -9968,33 +9979,17 @@ function viewAnnuityFix(app){
     render();
   });
 
-  controls.querySelector('#ann-fix-income').addEventListener('change',e=>{
-    state.annuityfix.income=annParseMoney(e.target.value);
-    render();
-  });
-
   controls.querySelector('#ann-fix-frequency').addEventListener('change',e=>{
     state.annuityfix.frequency=e.target.value;
     render();
   });
 
   fillSummary(app,[
-    {lbl:'มูลค่าบำนาญตั้งต้น',val:fmt(r.initialAnnuity)},
-    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:fmt(r.annualPremium)},
-    {lbl:`เบี้ยต่อหนึ่งงวด (${r.frequency})`,val:fmt(r.installmentPremium)},
-    {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension)}
-  ]);
-
-  const noteBox=document.createElement('div');
-  noteBox.className='ann-inline-note';
-  noteBox.innerHTML=`
-    ฐานภาษีตามสูตรในไฟล์:
-    <b>${Math.round(r.taxRate*100)}%</b>
-    • วงเงินเบี้ยที่ใช้คำนวณลดหย่อนสูงสุด
-    <b>${fmt(r.deductionCap)} บาท/ปี</b>
-    • ช่อง “ทุนประกัน” ด้านบนไม่ใช้ในสูตร Annuity Fix
-  `;
-  panel.appendChild(noteBox);
+    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:fmt(r.annualPremium),group:'ann-primary',icon:'＋'},
+    {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension),group:'ann-primary',icon:'✦'},
+    {lbl:'เงินภาษีที่ได้คืน (ตามฐานภาษี %)',val:fmt(r.rows[0]?.taxRelief ?? 0),group:'ann-secondary',icon:'Σ'},
+    {lbl:'มูลค่าบำนาญตั้งต้น',val:fmt(r.initialAnnuity),group:'ann-secondary',icon:'฿'}
+  ],'ann-fix-summary');
 
   if(!r.validAge || !r.validInitial){
     const warning=document.createElement('div');
@@ -10124,7 +10119,7 @@ function panelShell(group, title, desc, ci){
     </div>
   </div>`;
 }
-function fillSummary(app, stats){
+function fillSummary(app, stats, variant=''){
   const head = document.createElement('div');
   head.className='smart-summary-head';
   head.innerHTML=`
@@ -10137,10 +10132,10 @@ function fillSummary(app, stats){
   app.querySelector('.panel').appendChild(head);
 
   const wrap = document.createElement('div');
-  wrap.className='summary smart-summary-grid';
+  wrap.className='summary smart-summary-grid' + (variant ? ' ' + variant : '');
   wrap.innerHTML = stats.map((s,index)=>`
-    <div class="stat ${index===stats.length-1?'smart-highlight':''}">
-      <div class="stat-icon">${index===0?'฿':index===1?'＋':index===2?'Σ':'✦'}</div>
+    <div class="stat ${s.group || (index===stats.length-1?'smart-highlight':'')}">
+      <div class="stat-icon">${s.icon || (index===0?'฿':index===1?'＋':index===2?'Σ':'✦')}</div>
       <div class="lbl">${s.lbl}</div>
       <div class="val ${s.oxblood?'oxblood':''}">${s.val}</div>
     </div>
