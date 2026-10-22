@@ -14002,6 +14002,7 @@ function buildAnnuitySinglePageHTML(data){
   for(let i=0;i<data.result.rows.length;i+=24) chunks.push(data.result.rows.slice(i,i+24));
   if(!chunks.length) chunks.push([]);
   const resources = getProductResources(data.key);
+  const totalPages = chunks.length + 1;
 
   const summaryBoxes = isFix
     ? `
@@ -14066,8 +14067,8 @@ function buildAnnuitySinglePageHTML(data){
   const annualTable=chunk=>'<table class="ann-full-year-table"><thead><tr>'+annualCols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>'+
     chunk.map(row=>'<tr>'+annualCols.map(c=>'<td>'+(c[0]==='age'?String(row.age):fmt(Number(row[c[0]])||0))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 
-  return chunks.map((chunk,index)=>{
-    const first=index===0, last=index===chunks.length-1;
+  const annualPages = chunks.map((chunk,index)=>{
+    const first=index===0;
     return `
     <div class="ann-report-page ann-report-annual-page">
       <div class="ann-report-inner">
@@ -14127,44 +14128,61 @@ function buildAnnuitySinglePageHTML(data){
 
         <div class="ann-table-title">ตารางแสดงผลประโยชน์รายปี${first?'':' (ต่อ)'}</div>
         <div class="ann-report-year-table">${annualTable(chunk)}</div>
-        ${last ? `
-        <div class="ann-report-bottom">
 
-          <div class="rp-resource-section compact-report">
-            <div class="rp-resource-title">โบรชัวร์</div>
-
-            <div class="rp-resource-grid">
-              ${buildBrochureSlot(
-                data.key,
-                resources.brochure,
-                {},
-                true
-              )}
-            </div>
-          </div>
-
-          <div>
-            ${buildAnnuityConditions(type,data)}
-
-
-          </div>
-
-        </div>
-
-        <div class="ann-report-note ann-report-red-note">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>
-        <div class="ann-report-promo"><div class="rp-resource-payment-row">${buildPaymentCard(resources.payment,true)}</div></div>
-
-        ` : ''}
         <div class="ann-report-spacer"></div>
 
         <div class="rp-page-number">
-          หน้า ${index+1} / ${chunks.length}
+          หน้า ${index+1} / ${totalPages}
         </div>
 
       </div>
     </div>
   `;
   }).join('');
+
+  const resourcePage = `
+    <div class="ann-report-page ann-report-annual-page ann-report-resource-page">
+      <div class="ann-report-inner">
+
+        <div class="ann-report-head">
+          <div>
+            <div class="ann-report-title">${escapeResourceHtml(data.title)}</div>
+            <div class="ann-report-sub">เอกสารประกอบและเงื่อนไขหลัก</div>
+          </div>
+
+          <div class="ann-report-main">
+            <div class="l">เงินบำนาญต่อปี</div>
+            <div class="v">${mainValue}</div>
+          </div>
+        </div>
+
+        <div class="ann-report-bottom">
+          <div class="rp-resource-section compact-report">
+            <div class="rp-resource-title">โบรชัวร์</div>
+            <div class="rp-resource-grid">
+              ${buildBrochureSlot(data.key,resources.brochure,{},true)}
+            </div>
+          </div>
+
+          <div>
+            ${buildAnnuityConditions(type,data)}
+          </div>
+        </div>
+
+        <div class="ann-report-note ann-report-red-note">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>
+        <div class="ann-report-promo"><div class="rp-resource-payment-row">${buildPaymentCard(resources.payment,true)}</div></div>
+
+        <div class="ann-report-spacer"></div>
+
+        <div class="rp-page-number">
+          หน้า ${totalPages} / ${totalPages}
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  return annualPages + resourcePage;
 }
 
 function buildAnnuityFixReportHTML(){
@@ -14180,7 +14198,8 @@ function buildAnnuitySureReportHTML(){
 }
 
 async function downloadAnnuityPDF(key,btn){
-  const pages=Array.from(document.querySelectorAll('.ann-report-page'));
+  const pdfSource=document.querySelector('.rp-preview-pdf-source');
+  const pages=Array.from((pdfSource || document).querySelectorAll('.ann-report-page'));
 
   if(!pages.length){
     alert('ไม่พบใบสรุป Annuity');
