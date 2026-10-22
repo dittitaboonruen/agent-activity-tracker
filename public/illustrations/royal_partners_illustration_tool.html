@@ -8426,6 +8426,40 @@ body:has(.rp-sales-shell){background:#f8f6f2}
   margin-right:14px!important;
   box-sizing:border-box!important;
 }
+
+/* 20PL A4 density correction: release vertical room for the full-width
+   payment art instead of shrinking the entire page and its readable text.
+   Do not apply this to other products or alter any calculation/report data. */
+#pay20life-report-page-1 .ex-report-inner{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+#pay20life-report-page-1 .pl20-table th,
+#pay20life-report-page-1 .pl20-table td{
+  padding-top:2px!important;
+  padding-bottom:2px!important;
+  line-height:1.12!important;
+}
+#pay20life-report-page-1 .pl20-benefit-map{
+  padding-top:5px!important;
+  padding-bottom:4px!important;
+}
+#pay20life-report-page-1 .pl20-section2 .rp-info-box{
+  min-height:0!important;
+  padding-top:5px!important;
+  padding-bottom:5px!important;
+}
+#pay20life-report-page-1 .pl20-section2{
+  margin-top:3px!important;
+}
+#pay20life-report-page-1 .pl20-payment-wide{
+  overflow:hidden!important;
+  max-width:100%!important;
+}
+#pay20life-report-page-1 .pl20-payment-wide img{
+  max-height:106px!important;
+  object-fit:contain!important;
+}
 </style>
 
 </head>
