@@ -7886,21 +7886,23 @@ tbody td{
 .ann-sure-ledger table.ledger thead th{background:#132a43!important;color:#fff!important;border-bottom:2px solid #b8985a!important;text-align:right;font-size:12px;padding:11px 8px}
 .ann-sure-ledger table.ledger thead th:first-child,.ann-sure-ledger table.ledger thead th:nth-child(2){text-align:center}
 .ann-sure-ledger table.ledger thead th::selection{background:#b8985a;color:#132a43}
-.ann-sure-graphic .ann-sure-visual{background:#ebeaeb;padding:12px 10px 10px;color:#353338;font-size:11px;overflow:hidden}
-.ann-sure-topline{display:grid;grid-template-columns:18% 54% 28%;align-items:end;gap:0;min-height:110px}
-.ann-sure-death-phases{display:grid;grid-template-columns:60% 40%;height:108px;align-items:end}
-.ann-sure-death-phases>div{background:#949494;color:white;padding:35px 10px 10px;min-height:88px;clip-path:polygon(0 65%,60% 0,100% 0,100% 100%,0 100%);font-size:11px;line-height:1.4}
-.ann-sure-death-phases>div+div{background:#8d8d8d;clip-path:polygon(0 0,100% 65%,100% 100%,0 100%)}
-.ann-sure-explain{font-size:9px;line-height:1.4;padding:6px}
-.ann-sure-timeline{display:grid;grid-template-columns:18% 82%;align-items:center;margin-top:5px;gap:0}
-.ann-sure-yearbar{background:#d8074c;color:#fff;display:flex;justify-content:space-between;padding:8px 10px;font-weight:700}
-.ann-sure-payyears{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#da0a4c}
-.ann-sure-payyears span{font-size:15px;text-align:center}.ann-sure-payyears small{display:block;font-size:8px}.ann-sure-payyears em{font-style:normal;margin-left:auto;font-size:10px}
-.ann-sure-pension-line>div{display:flex;align-items:center;gap:8px;color:#c90648}
-.ann-sure-pension-line b{border:1px solid #d8074c;padding:4px}
-.ann-sure-pension-line strong{flex:1;text-align:center;border-bottom:2px solid #d8074c;font-size:10px;padding:5px}
-.ann-sure-small-note{font-size:10px;line-height:1.5}
-@media(max-width:700px){.ann-sure-topline{grid-template-columns:16% 84%;min-height:90px}.ann-sure-explain{grid-column:1 / -1}.ann-sure-death-phases{height:75px}.ann-sure-death-phases>div{min-height:65px;font-size:9px;padding:16px 6px 5px}.ann-sure-yearbar{font-size:9px;padding:5px 3px}.ann-sure-pension-line strong{font-size:9px}}
+.ann-sure-graphic .ann-sure-visual{background:transparent;padding:8px 2px 6px;color:#353338;font-size:11px;overflow:visible}
+.ann-sure-topline{display:grid;grid-template-columns:16% minmax(0,56%) minmax(0,28%);align-items:end;gap:0;min-height:92px}
+.ann-sure-death-phases{display:grid;grid-template-columns:60% 40%;height:86px;align-items:end;min-width:0}
+.ann-sure-death-phases>div{background:#9a9a9a;color:#fff;padding:16px 8px 8px;min-height:72px;box-sizing:border-box;clip-path:polygon(0 65%,60% 0,100% 0,100% 100%,0 100%);font-size:10px;line-height:1.3;overflow-wrap:anywhere}
+.ann-sure-death-phases>div+div{background:#8c8c8c;clip-path:polygon(0 0,100% 65%,100% 100%,0 100%)}
+.ann-sure-explain{font-size:8px;line-height:1.35;padding:4px 4px 4px 8px;overflow-wrap:anywhere}
+.ann-sure-timeline{display:grid;grid-template-columns:16% minmax(0,84%);align-items:center;margin-top:4px;gap:0}
+.ann-sure-yearbar{background:#d8074c;color:#fff;display:flex;justify-content:space-between;gap:4px;padding:6px 8px;font-weight:700;font-size:10px;flex-wrap:wrap}
+.ann-sure-payyears{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;color:#da0a4c;min-width:0}
+.ann-sure-payyears span{font-size:13px;text-align:center;line-height:1}
+.ann-sure-payyears small{display:block;font-size:7px;color:#8d8d8d;margin-top:2px}
+.ann-sure-payyears em{font-style:normal;margin-left:auto;font-size:9px;color:#d8074c;font-weight:700}
+.ann-sure-pension-line>div{display:flex;align-items:center;gap:6px;color:#c90648;min-width:0}
+.ann-sure-pension-line b{border:1px solid #d8074c;padding:3px 4px;font-size:10px;background:#fff;flex-shrink:0}
+.ann-sure-pension-line strong{flex:1;min-width:0;text-align:center;border-bottom:2px solid #d8074c;font-size:9px;padding:4px 3px;line-height:1.35;overflow-wrap:anywhere}
+.ann-sure-small-note{font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+@media(max-width:700px){.ann-sure-topline{grid-template-columns:minmax(0,1fr);min-height:auto;gap:6px}.ann-sure-explain{padding:0}.ann-sure-death-phases{height:72px}.ann-sure-death-phases>div{min-height:60px;font-size:8px;padding:12px 6px 5px}.ann-sure-timeline{grid-template-columns:minmax(0,1fr);gap:4px}.ann-sure-yearbar{font-size:8px;padding:5px 4px}.ann-sure-pension-line strong{font-size:8px}}
 </style>
 
 </head>
@@ -9997,13 +9999,11 @@ function viewAnnuitySure(app){
     ledger.querySelector('.ann-sure-ledger'),
     r.rows,
     [
-      {key:'year',label:'ปีที่'},
       {key:'age',label:'อายุ'},
-      {key:'premium',label:'เบี้ยที่ชำระ'},
+      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'},
+      {key:'premium',label:'เบี้ยประกัน'},
       {key:'pension',label:'เงินบำนาญ'},
-      {key:'cumulativePremium',label:'สะสมเบี้ย'},
-      {key:'cumulativePension',label:'สะสมบำนาญ'},
-      {key:'deathBenefit',label:'ผลประโยชน์กรณีเสียชีวิต'}
+      {key:'taxRelief',label:'ลดหย่อนภาษี'}
     ]
   );
 
