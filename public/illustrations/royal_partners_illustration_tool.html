@@ -8219,20 +8219,6 @@ body:has(.rp-sales-shell){background:#f8f6f2}
   background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.7);
   border-radius:50%;font-size:12px;font-weight:900;color:#fff;
 }
-#app .rp-inline-help{display:inline-block;vertical-align:middle;position:relative;margin-left:4px}
-#app .rp-inline-help summary{
-  list-style:none;display:inline-grid;place-items:center;width:18px;height:18px;
-  border-radius:50%;border:1px solid #acbcd0;color:#315c8f;
-  background:#eef4fb;font-size:11px;font-weight:800;cursor:pointer;
-}
-#app .rp-inline-help summary::-webkit-details-marker{display:none}
-#app .rp-inline-help[open] span{
-  display:block;position:absolute;z-index:50;top:24px;left:0;width:min(240px,65vw);
-  padding:9px 11px;border:1px solid #d0dceb;border-radius:10px;
-  background:#fff;color:#24384d;font-size:11px;font-weight:500;line-height:1.5;
-  box-shadow:0 8px 22px rgba(20,42,71,.15);
-}
-#app .rp-inline-help:not([open]) span{display:none}
 @media(prefers-reduced-motion:reduce){
  .rp-sales-shell .rp-product-group .tab{transition:none!important}
 }
@@ -10413,19 +10399,6 @@ function panelShell(group, title, desc, ci){
     </div>
   </div>`;
 }
-const RP_SUMMARY_HELP = Object.freeze({
-  'เบี้ยประกันภัยรวมต่อปี':'เบี้ยรวมที่ใช้ในการคำนวณต่อปี โปรดดูเงื่อนไขและงวดชำระของแบบประกันประกอบ',
-  'เบี้ยประกันภัยต่อปี':'ค่าเบี้ยประกันภัยรายปีจากแผนที่เลือก',
-  'เงินบำนาญต่อปี':'เงินบำนาญรายปีตามแผนที่เลือกและช่วงอายุที่กำหนด',
-  'เงินภาษีที่ได้คืน (ตามฐานภาษี %)':'ตัวเลขประมาณการตามฐานภาษีที่เลือกและเพดานลดหย่อนในระบบ ไม่ใช่การรับรองเงินคืนภาษีจริง',
-  'มูลค่าบำนาญตั้งต้น':'มูลค่าที่ใช้เป็นฐานสำหรับคำนวณแผนบำนาญตามแบบประกัน'
-});
-function rpSummaryHelp(label){
-  const detail=RP_SUMMARY_HELP[label];
-  return detail
-    ? '<details class="rp-inline-help"><summary aria-label="คำอธิบาย: '+label+'">?</summary><span>'+detail+'</span></details>'
-    : '';
-}
 function fillSummary(app, stats, variant=''){
   const head = document.createElement('div');
   head.className='smart-summary-head';
@@ -10443,7 +10416,7 @@ function fillSummary(app, stats, variant=''){
   wrap.innerHTML = stats.map((s,index)=>`
     <div class="stat ${s.group || (index===stats.length-1?'smart-highlight':'')}">
       <div class="stat-icon">${s.icon || (index===0?'฿':index===1?'＋':index===2?'Σ':'✦')}</div>
-      <div class="lbl">${s.lbl} ${rpSummaryHelp(s.lbl)}</div>
+      <div class="lbl">${s.lbl}</div>
       <div class="val ${s.oxblood?'oxblood':''}">${s.val}</div>
     </div>
   `).join('');
