@@ -9078,7 +9078,11 @@ function viewPayLifePlus(app){
       .plus-benefits td{background:#fff}
       .plus-notes{padding:16px 18px;border-left:3px solid #b8985a;background:#fff9ef;border-radius:8px;font-size:12px;line-height:1.85}
       @media(max-width:540px){.plus-term-buttons button{min-width:0}.plus-benefits th{width:40%}}
-    </style>
+    /* A4 critical illness benefits note — health combo reports only */
+.health-combo-report-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+.health-combo-report-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
+.health-combo-report-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
+</style>
     <div class="plus-term-label">ระยะเวลาชำระเบี้ย (Pay Life Plus)</div>
     <div class="plus-term-buttons" role="group" aria-label="ระยะเวลาชำระเบี้ย">
       ${[10,15,20].map(y=>`<button type="button" data-plus-term="${y}" class="${y===term?'active':''}" aria-pressed="${y===term}">${y} ปี</button>`).join('')}
@@ -9188,6 +9192,18 @@ function viewPlusHealth(app,kind){
 function showPlusHealthSummary(kind){
  showReportPreview(kind==='happy'?'plusHappy':'plusSaver');
 }
+function healthComboCriticalIllnessNoticeHTML(){
+ const diseases=[
+ 'กล้ามเนื้อหัวใจตายเฉียบพลันจากการขาดเลือด (Acute Heart Attack)',
+ 'โรคหลอดเลือดสมองแตกหรืออุดตัน (Major Stroke)',
+ 'การผ่าตัดเส้นเลือดเลี้ยงกล้ามเนื้อหัวใจ (Coronary Artery By-Pass Surgery)',
+ 'โรคมะเร็งระยะลุกลาม (Invasive Cancer)',
+ 'การผ่าตัดเปลี่ยนอวัยวะหรือปลูกถ่ายไขกระดูก (Major Organs Transplantation or Bone Marrow Transplantation)',
+ 'การผ่าตัดเส้นเลือดแดงใหญ่ เอออร์ต้า (Surgery to Aorta)'
+ ];
+ return '<div class="hc-critical-illness-note"><div>ทั้งนี้ บริษัทจะเพิ่มผลประโยชน์ความคุ้มครองกรณีโรคร้ายแรงสูงสุด 1 ครั้งต่อ 1 โรคร้ายแรง ตามคำนิยามของโรคร้ายแรงที่ได้รับความคุ้มครอง โดยโรคร้ายแรงที่ได้รับความคุ้มครอง มีดังนี้</div><ol>'+
+ diseases.map(d=>'<li>'+escapeResourceHtml(d)+'</li>').join('')+'</ol></div>';
+}
 function buildPlusHealthReportHTML(kind){
  const m=plusHealthModel(kind),title=kind==='happy'?'Health Happy':'Health Saver';
  if(!m.eligible)throw Error('อายุหรือทุนประกันไม่เข้าเงื่อนไข');
@@ -9206,13 +9222,9 @@ function buildPlusHealthReportHTML(kind){
  '<div class="cell"><div class="l">เพศ</div><div class="v">'+state.gender+'</div></div>'+
  '<div class="cell"><div class="l">อายุ</div><div class="v">'+state.age+' ปี</div></div>'+
  '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
- '<div class="ex-summary-row">'+
- '<div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">'+fmt(m.main.annual)+' บาท</div></div>'+
- '<div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(fee)+' บาท</div></div>'+
- '<div class="ex-summary-box"><div class="l">เบี้ยรวมปีแรก / ปี</div><div class="v">'+fmt(total)+' บาท</div></div>'+
- '<div class="ex-summary-box em"><div class="l">วงเงินสุขภาพต่อรอบปี</div><div class="v">'+fmt(info.limits[index])+' บาท</div></div></div>'+
  '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' · '+state.gender+' อายุ '+state.age+' ปี</div>'+
  healthComboTable(model)+'</div>'+
+ healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
  '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
@@ -14802,13 +14814,9 @@ function build20HealthComboReportHTML(type){
  '<div class="cell"><div class="l">เพศ</div><div class="v">'+m.gender+'</div></div>'+
  '<div class="cell"><div class="l">อายุ</div><div class="v">'+m.age+' ปี</div></div>'+
  '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">20 ปี</div></div></div>'+
- '<div class="ex-summary-row">'+
- '<div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">'+fmt(m.main.net)+' บาท</div></div>'+
- '<div class="ex-summary-box"><div class="l">เบี้ยสุขภาพ / ปี</div><div class="v">'+fmt(m.premium)+' บาท</div></div>'+
- '<div class="ex-summary-box"><div class="l">เบี้ยรวมปีแรก / ปี</div><div class="v">'+fmt(m.total)+' บาท</div></div>'+
- '<div class="ex-summary-box em"><div class="l">วงเงินสุขภาพต่อรอบปี</div><div class="v">'+fmt(m.info.limits[selectedPlan])+' บาท</div></div></div>'+
  '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+(isHappy?'Health Happy':'Health Saver')+' · '+m.gender+' อายุ '+m.age+' ปี</div>'+
  healthComboTable(m)+'</div>'+
+ healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="AIA ผ่อน 0% นาน 4 เดือน" loading="eager" decoding="sync"></div>'+
  '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
