@@ -7877,9 +7877,9 @@ tbody td{
 }
 
 /* A4 critical illness benefits note — health combo reports only */
-.health-combo-report-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
-.health-combo-report-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
-.health-combo-report-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
+.health-combo-report-page .hc-critical-illness-note,.pl20-medical-page .hc-critical-illness-note{margin:6px 18px 5px;padding:7px 10px;border:1px solid #e7e1d0;background:#faf8f2;color:#24344a;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+.health-combo-report-page .hc-critical-illness-note ol,.pl20-medical-page .hc-critical-illness-note ol{margin:4px 0 0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:2px}
+.health-combo-report-page .hc-critical-illness-note li,.pl20-medical-page .hc-critical-illness-note li{margin:0;padding-left:1px;break-inside:avoid}
 </style>
 
 </head>
@@ -11527,6 +11527,9 @@ function build20PayLifeMedicalPageHTML(){
             </section>
           `).join('')}
         </div>
+
+        ${state.paylife20.mode==='full' && (state.paylife20.riders.healthhappy || state.paylife20.riders.healthsaver)
+          ? healthComboCriticalIllnessNoticeHTML() : ''}
 
         <div class="pl20-medical-note">
           สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น รายละเอียดการจ่ายจริง ข้อยกเว้น วงเงินรวม
