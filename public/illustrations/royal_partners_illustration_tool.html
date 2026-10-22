@@ -8460,6 +8460,19 @@ body:has(.rp-sales-shell){background:#f8f6f2}
   max-height:106px!important;
   object-fit:contain!important;
 }
+
+/* FINAL FOUR — readable A4 typography: never enlarge via transform, which
+   affects the PDF. Increase only tiny source fonts and preserve table rows. */
+#pay25-report-page-1 .p25-mini-table{font-size:6.4px!important;line-height:1.16!important}
+#pay25-report-page-1 .p25-planb-table{font-size:7.2px!important;line-height:1.22!important}
+#pay25-report-page-1 .p25-planb-table tbody tr{height:68px!important}
+#ci-procare-report-page-1 .rp-report-meta .l,
+#ci-procare-report-page-1 .rp-report-kpis .l{font-size:8px!important}
+#ci-procare-report-page-1 .rp-report-meta .v{font-size:11px!important}
+.ann-report-page .ann-summary-box .l,
+.ann-report-page .ann-report-meta .l{font-size:8px!important}
+.ann-report-page .ann-report-map .ann-benefit-label{font-size:7.5px!important}
+.ann-report-page .ann-mini-table{font-size:6px!important;line-height:1.12!important}
 </style>
 
 </head>
