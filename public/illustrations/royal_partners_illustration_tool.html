@@ -9691,6 +9691,14 @@ function calcAnnuityFix(age,gender,annualPension,income,frequency){
   };
 }
 
+// Verified AIA illustration: male, entry age 35, 9 Pay, sum insured THB 1,000,000.
+// Cash surrender values for OTHER entry ages, genders, and sums are not available.
+// Never extrapolate this reference series to other contracts.
+const ANNUITY_SURE_AIA_REFERENCE_M35_9PAY_1M = Object.freeze({
+  49:2121000,50:2164000,51:2208000,52:2253000,53:2299000,
+  54:2347000,55:2396000,56:2447000,57:2499000,58:2554000,59:2610000
+});
+
 function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
   age=Number(age);
   sumInsured=Number(sumInsured)||0;
@@ -9719,7 +9727,14 @@ function calcAnnuitySure(age,gender,sumInsured,taxRate,payPlan){
 
       let deathBenefit=0;
       if(rowAge<60){
-        deathBenefit=Math.max(cumulativePremium*1.10,0);
+        // AIA pays the greater of 110% of premiums paid and surrender value.
+        // Exact cash value schedule is only verified for the reference case below.
+        const isVerifiedReference=isNine && age===35 && gender==='ชาย' && sumInsured===1000000;
+        const aiaReference=isVerifiedReference
+          ? ANNUITY_SURE_AIA_REFERENCE_M35_9PAY_1M[rowAge] : undefined;
+        deathBenefit=Number.isFinite(aiaReference)
+          ? Math.max(cumulativePremium*1.10,aiaReference)
+          : Math.max(cumulativePremium*1.10,0);
       }else if(rowAge<=74){
         deathBenefit=Math.max(
           cumulativePremium-cumulativePension,
