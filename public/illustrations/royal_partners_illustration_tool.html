@@ -8331,6 +8331,69 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 .ex-report-page .sc-benefit-grid,
 .sc-report-page .sc-benefit-grid{margin-left:14px!important;margin-right:14px!important}
 
+
+
+/* A4 CONSISTENCY — normalize legacy generic report canvas and remove double gutters.
+   Layout-only: no typography, row-height, data, calculation or pagination changes. */
+.rp-report-page > .rp-page-inner{
+  width:100%!important;
+  min-height:1123px!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+/* The shared KPI grid historically mixed outer margins with inner horizontal padding.
+   Keep one optical gutter so cards use the available A4 width consistently. */
+.rp-report-page .rp-report-kpis{
+  margin-left:14px!important;
+  margin-right:14px!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  box-sizing:border-box!important;
+}
+.rp-report-page .rp-report-kpis > *{
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+/* Keep the remaining native-width report families on the same 14px content track. */
+#excellent-report-page-1 .ex-summary-row,
+#excellent-report-page-1 .ex-chart,
+#excellent-report-page-1 .ex-plan-grid-report,
+#excellent-report-page-1 .rp-ex-section3,
+#pay25-report-page-1 .ex-summary-row,
+#pay25-report-page-1 .p25-chart,
+#pay25-report-page-1 .p25-plan-grid-report,
+#pay25-report-page-1 .p25-section2,
+#ci-supercare-report-page-1 .sc-chart,
+#ci-supercare-report-page-1 .sc-display-note,
+#ci-supercare-report-page-1 .sc-benefit-grid,
+#ci-supercare-report-page-1 .sc-condition-box{
+  margin-left:14px!important;
+  margin-right:14px!important;
+  box-sizing:border-box!important;
+}
+
+/* Annuity pages already use a native 794px canvas; align every outer content block,
+   including the final QR / note / promo area, to the same safe gutter. */
+.ann-report-page .ann-report-map,
+.ann-report-page .ann-ledger-grid,
+.ann-report-page .ann-report-note,
+.ann-report-page .ann-report-promo{
+  margin-left:14px!important;
+  margin-right:14px!important;
+  box-sizing:border-box!important;
+}
+
+/* Prevent fixed/grid children from forcing an artificial wider measurement,
+   which would make fitReportA4Contents scale the entire page down. */
+.rp-report-page .rp-page-inner > *,
+.ex-report-page .ex-report-inner > *,
+.sc-report-page .sc-report-inner > *,
+.ann-report-page .ann-report-inner > *{
+  min-width:0;
+  max-width:100%;
+}
 </style>
 
 </head>
