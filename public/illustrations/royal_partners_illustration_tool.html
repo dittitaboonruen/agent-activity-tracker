@@ -14773,7 +14773,10 @@ function fitReportA4Contents(root){
     // must not be treated as overflowing content or every page shrinks by default.
     // On 20PL in particular, scale only against actually rendered descendants.
     const measureNaturalContent = page.id === 'pay20life-report-page-1' ||
-      page.id === 'pay20life-report-page-2';
+      page.id === 'pay20life-report-page-2' ||
+      page.id === 'pay25-report-page-1' ||
+      page.id === 'ci-procare-report-page-1' ||
+      page.classList.contains('ann-report-page');
     let bottom = measureNaturalContent ? 0 : Math.max(inner.scrollHeight, inner.offsetHeight);
     let right = measureNaturalContent ? 0 : Math.max(inner.scrollWidth, inner.offsetWidth);
 
@@ -14788,8 +14791,8 @@ function fitReportA4Contents(root){
 
     // Preserve natural 794px A4 rendering unless real content exceeds the page.
     // Avoid shrinking 20PL by the wrapper's min-height plus a phantom 8px inset.
-    const heightBudget = measureNaturalContent ? page.clientHeight - 2 : availableHeight;
-    const widthBudget = measureNaturalContent ? page.clientWidth - 2 : availableWidth;
+    const heightBudget = measureNaturalContent ? page.clientHeight - 1 : availableHeight;
+    const widthBudget = measureNaturalContent ? page.clientWidth - 1 : availableWidth;
     const scale = Math.min(1, heightBudget / Math.max(1,bottom),
       widthBudget / Math.max(1,right));
     if(scale < 0.999){
