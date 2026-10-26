@@ -32,7 +32,7 @@ export async function GET(request:NextRequest){
      db.from("learning_quiz_results").select("submitted_at").not("submitted_at","is",null).order("submitted_at",{ascending:false}).limit(1),
      db.from("pep_notes").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
      db.from("agent_targets").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
-     db.from("learning_course_progress").select("id",{count:"exact",head:true}),
+     db.from("learning_course_progress").select("*",{count:"exact",head:true}),
      db.from("learning_quiz_results").select("id",{count:"exact",head:true}),
    ]);
    const timestampOnly=(module:string,result:{data?:{updated_at?:string|null}[]|null;error?:unknown})=>
