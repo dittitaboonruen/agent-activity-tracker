@@ -8782,13 +8782,13 @@ function calcExcellentPlanBTerm(age, gender, sum, term){
 
   // Workbook L17, L15, L19.
   const paidTotal = annualPremium * stopYear;
-  const netPaid = paidTotal - cashback;
-  const benefitAtStop = rpu + immediateCash;
-  const totalReceived = benefitAtStop + cashback;
-  // Excel N15/N17/N18: net paid after prior cashback is the denominator.
-  // Cashback is NOT added twice: it reduces paid premiums, while benefitAtStop
-  // contains only the RPU and immediate proceeds at the stop year.
-  const netDiff = benefitAtStop - netPaid;
+  const totalReceived = rpu + cashback + immediateCash;
+  // Excel N15 = paid premiums minus BOTH prior cashback and immediate cash.
+  // Excel N17 = RPU - N15; Excel N18 = IF(N17/N15<0,"",N17/N15).
+  // Keep raw received/paid amounts unchanged for the existing detail rows.
+  const netPaid = paidTotal - cashback - immediateCash;
+  const benefitAtStop = rpu;
+  const netDiff = rpu - netPaid;
   const returnPct = netPaid > 0 && netDiff >= 0 ? netDiff / netPaid : null;
 
   return {
@@ -9491,7 +9491,7 @@ function viewExcellent(app){
         </div>
         <div class="ex-planb-line final">
           <span>7. ผลตอบแทนส่วนต่างที่ได้รับ (%)</span>
-          <b>${planB.returnPct===null?'':(planB.returnPct*100).toFixed(1)+'%'}</b>
+          <b>${planB.returnPct===null?'':(planB.returnPct*100).toFixed(2)+'%'}</b>
         </div>
       </div>
     `;
