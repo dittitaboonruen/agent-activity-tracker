@@ -22,7 +22,7 @@ export async function GET(request:NextRequest){
  if(!timingSafeEqual(digest(token),digest(secret)))return json({error:"Unauthorized"},401);
  // Read only the most recent timestamp per known table. No agent rows or scores leave this API.
  let skool: {module:string;status:string;latestObservedAtUTC?:string;reason?:string;recordCount?:number} = {module:"skool_learning",status:"unknown",reason:"query_unavailable"};
- let quiz: {module:string;status:string;latestObservedAtUTC?:string;reason?:string} = {module:"google_forms_quiz",status:"unknown",reason:"query_unavailable"};
+ let quiz: {module:string;status:string;latestObservedAtUTC?:string;reason?:string;recordCount?:number} = {module:"google_forms_quiz",status:"unknown",reason:"query_unavailable"};
  let pepObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"agent_pep",status:"unknown",reason:"query_unavailable"};
  let targetObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"annual_targets",status:"unknown",reason:"query_unavailable"};
  try {
