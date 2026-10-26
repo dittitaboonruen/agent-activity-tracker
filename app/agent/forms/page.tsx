@@ -482,12 +482,12 @@ const FORMS: FormItem[] = [
     id: "form-028",
     name: "ใบปะหน้าเคลม",
     description:
-      "ใบปะหน้าสำหรับเอกสารเคลม",
+      "ใบนำส่งเอกสารเรียกร้องสินไหมทั่วไป (AIA)",
     file:
-      "/forms/ใบปะหน้าเคลม.pdf",
+      "/api/forms/claim-cover",
     active: true,
     order: 7,
-    version: "2026-09",
+    version: "21 May 2020",
     categories: ["เคลม"],
   },
   {
@@ -1317,7 +1317,9 @@ export default function AgentFormsPage() {
 
                         <a
                           href={
-                            form.file
+                            form.id === "form-028"
+                              ? "/api/forms/claim-cover?download=1"
+                              : form.file
                           }
                           download
                           style={{
