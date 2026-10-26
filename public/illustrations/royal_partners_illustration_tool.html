@@ -15585,7 +15585,7 @@ function setSumValidationUI(result){
 
 function parseInsuredAmount(value){
   const cleaned=String(value).replace(/,/g,'').trim();
-  if(!/^\\d+(?:\\.\\d{0,2})?$/.test(cleaned)) return NaN;
+  if(!/^\d+(?:\.\d{0,2})?$/.test(cleaned)) return NaN;
   return Number(cleaned);
 }
 function formatInsuredAmount(value){
@@ -15607,7 +15607,7 @@ function wireInputs(){
       state.sum=numericValue;
       render();
     }
-    if(/^\\d+(?:\\.\\d{0,2})?$/.test(raw)){
+    if(/^\d+(?:\.\d{0,2})?$/.test(raw)){
       const pieces=raw.split('.');
       input.value=Number(pieces[0]||0).toLocaleString('en-US')+
         (pieces.length===2?'.'+pieces[1]:'');
