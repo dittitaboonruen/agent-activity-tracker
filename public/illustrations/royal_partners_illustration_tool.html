@@ -8519,7 +8519,7 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 
       <div class="field" id="sum-field">
         <label>ทุนประกัน (บาท)</label>
-        <input type="text" id="in-sum" inputmode="numeric" autocomplete="off" value="1,000,000" aria-describedby="sum-help sum-error">
+        <input type="text" id="in-sum" inputmode="decimal" autocomplete="off" value="1,000,000" aria-describedby="sum-help sum-error">
         <span class="sum-help" id="sum-help">ขั้นต่ำ 100,000 • สูงสุด 50,000,000 บาท</span>
         <span class="sum-error" id="sum-error"></span>
       </div>
@@ -9356,13 +9356,43 @@ function viewExcellent(app){
     'ชำระเบี้ย 20 ปี คุ้มครอง 20 ปี พร้อมเงินคืนตามช่วงเวลาและความคุ้มครองชีวิตที่เพิ่มขึ้น'
   );
 
+  // Excellent premium input uses the same approved premium table, in reverse.
+  // No change to the original calcExcellent rate or benefit formulas.
+  const panel = app.querySelector('.panel');
+  const premiumEditor = document.createElement('div');
+  premiumEditor.className = 'ledger-wrap ex-premium-editor';
+  premiumEditor.style.cssText = 'padding:12px 16px;margin:12px 0;background:#fffaf1;border:1px solid #dfcfaa;border-radius:12px';
+  premiumEditor.innerHTML = '<label for="excellent-premium-input" style="display:block;font-size:13px;font-weight:800;margin-bottom:6px">เบี้ยประกันภัยต่อปี (บาท)</label>' +
+    '<input id="excellent-premium-input" type="text" inputmode="decimal" autocomplete="off" style="width:100%;max-width:280px;border:1px solid #c8b88d;border-radius:8px;padding:10px;font-size:16px;font-weight:700" value="' +
+    Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2}) + '">' +
+    '<div style="font-size:11px;margin-top:6px;color:#75694d">แก้เบี้ยแล้วระบบคำนวณทุนประกันกลับด้วยอัตรา Excellent ตามอายุเดิม</div>';
+  panel.prepend(premiumEditor);
+  premiumEditor.querySelector('#excellent-premium-input').addEventListener('change', e=>{
+    const raw=String(e.target.value).replace(/,/g,'').trim();
+    const amount=Number(raw);
+    const rate=EXCELLENT_LATEST.premiumByAge[getExcellentIssueAge(state.age)] || 0;
+    if(!raw || !Number.isFinite(amount) || amount<=0 || !rate){
+      e.target.value=Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2});
+      return;
+    }
+    const newSum=Math.round(amount * 1000000 / rate * 100)/100;
+    const check=validateSumInsured(newSum);
+    if(!check.ok){
+      alert(check.message);
+      e.target.value=Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2});
+      return;
+    }
+    state.sum=newSum;
+    document.getElementById('in-sum').value=newSum.toLocaleString('en-US',{maximumFractionDigits:2});
+    setSumValidationUI(check);
+    render();
+  });
+
   fillSummary(app, [
     {lbl:'เบี้ยประกันภัยต่อปี', val:fmt(r.net)},
     {lbl:'เงินคืนรวมระหว่างสัญญา', val:fmt(state.sum*0.4)+' (40%)'},
     {lbl:'เงินคืน + เงินครบกำหนดสัญญา', val:fmt(state.sum*3.4)+' (340%)'},
   ]);
-
-  const panel = app.querySelector('.panel');
 
   const chartWrap = document.createElement('div');
   chartWrap.innerHTML = buildExcellentChartHTML(state.sum);
@@ -15553,44 +15583,47 @@ function setSumValidationUI(result){
   }
 }
 
+function parseInsuredAmount(value){
+  const cleaned=String(value).replace(/,/g,'').trim();
+  if(!/^\\d+(?:\\.\\d{0,2})?$/.test(cleaned)) return NaN;
+  return Number(cleaned);
+}
+function formatInsuredAmount(value){
+  return Number(value).toLocaleString('en-US',{maximumFractionDigits:2});
+}
+
 function wireInputs(){
   document.getElementById('in-age').addEventListener('input', e=>{ state.age = Math.max(0, Math.min(99, parseInt(e.target.value)||0)); render(); });
   document.getElementById('in-gender').addEventListener('change', e=>{ state.gender = e.target.value; render(); });
   document.getElementById('in-sum').addEventListener('input', e=>{
-    const input = e.target;
-    const raw = input.value.replace(/[^\d]/g,'');
-    const numericValue = raw === '' ? NaN : Number(raw);
-    const validation = validateSumInsured(numericValue);
-
+    const input=e.target;
+    // Allow a decimal point and up to two decimal digits without removing it
+    // mid-entry (e.g. "150000." must remain editable).
+    const raw=input.value.replace(/,/g,'');
+    const numericValue=parseInsuredAmount(raw);
+    const validation=validateSumInsured(numericValue);
     setSumValidationUI(validation);
-
     if(validation.ok){
-      state.sum = numericValue;
+      state.sum=numericValue;
       render();
     }
-
-    if(raw !== ''){
-      const formatted = Number(raw).toLocaleString('en-US');
-      input.value = formatted;
+    if(/^\\d+(?:\\.\\d{0,2})?$/.test(raw)){
+      const pieces=raw.split('.');
+      input.value=Number(pieces[0]||0).toLocaleString('en-US')+
+        (pieces.length===2?'.'+pieces[1]:'');
     }
   });
-
   document.getElementById('in-sum').addEventListener('blur', e=>{
-    const input = e.target;
-    const raw = input.value.replace(/[^\d]/g,'');
-    const numericValue = raw === '' ? NaN : Number(raw);
-    const validation = validateSumInsured(numericValue);
-
+    const input=e.target;
+    const numericValue=parseInsuredAmount(input.value);
+    const validation=validateSumInsured(numericValue);
     setSumValidationUI(validation);
-
     if(validation.ok){
-      state.sum = numericValue;
-      input.value = numericValue.toLocaleString('en-US');
+      state.sum=numericValue;
+      input.value=formatInsuredAmount(numericValue);
       render();
     }else{
-      input.value = Number.isFinite(numericValue)
-        ? numericValue.toLocaleString('en-US')
-        : state.sum.toLocaleString('en-US');
+      input.value=formatInsuredAmount(state.sum);
     }
   });
   document.getElementById('in-tax').addEventListener('change', e=>{ state.tax = parseFloat(e.target.value); render(); });
