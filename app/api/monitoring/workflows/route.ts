@@ -21,17 +21,19 @@ export async function GET(request:NextRequest){
  const digest=(v:string)=>createHash("sha256").update(v,"utf8").digest();
  if(!timingSafeEqual(digest(token),digest(secret)))return json({error:"Unauthorized"},401);
  // Read only the most recent timestamp per known table. No agent rows or scores leave this API.
- let skool: {module:string;status:string;latestObservedAtUTC?:string;reason?:string} = {module:"skool_learning",status:"unknown",reason:"query_unavailable"};
+ let skool: {module:string;status:string;latestObservedAtUTC?:string;reason?:string;recordCount?:number} = {module:"skool_learning",status:"unknown",reason:"query_unavailable"};
  let quiz: {module:string;status:string;latestObservedAtUTC?:string;reason?:string} = {module:"google_forms_quiz",status:"unknown",reason:"query_unavailable"};
  let pepObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"agent_pep",status:"unknown",reason:"query_unavailable"};
  let targetObservation: {module:string;status:string;latestObservedAtUTC?:string;reason?:string}={module:"annual_targets",status:"unknown",reason:"query_unavailable"};
  try {
    const db=getSupabaseClient();
-   const [members,results,pep,targets]=await Promise.all([
+   const [members,results,pep,targets,skoolCount,quizCount]=await Promise.all([
      db.from("learning_course_progress").select("synced_at").not("synced_at","is",null).order("synced_at",{ascending:false}).limit(1),
      db.from("learning_quiz_results").select("submitted_at").not("submitted_at","is",null).order("submitted_at",{ascending:false}).limit(1),
      db.from("pep_notes").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
      db.from("agent_targets").select("updated_at").not("updated_at","is",null).order("updated_at",{ascending:false}).limit(1),
+     db.from("learning_course_progress").select("id",{count:"exact",head:true}),
+     db.from("learning_quiz_results").select("id",{count:"exact",head:true}),
    ]);
    const timestampOnly=(module:string,result:{data?:{updated_at?:string|null}[]|null;error?:unknown})=>
      result.error?{module,status:"unknown",reason:"query_failed"}:
@@ -42,9 +44,11 @@ export async function GET(request:NextRequest){
    skool=members.error?{module:"skool_learning",status:"unknown",reason:"query_failed"}:
      members.data?.[0]?.synced_at?{module:"skool_learning",status:"timestamp_observed",latestObservedAtUTC:members.data[0].synced_at}:
      {module:"skool_learning",status:"not_connected",reason:"no_sync_timestamp"};
+   if(!skoolCount.error && typeof skoolCount.count==="number" && skoolCount.count>=0){skool={...skool,recordCount:skoolCount.count};}
    quiz=results.error?{module:"google_forms_quiz",status:"unknown",reason:"query_failed"}:
      results.data?.[0]?.submitted_at?{module:"google_forms_quiz",status:"timestamp_observed",latestObservedAtUTC:results.data[0].submitted_at}:
      {module:"google_forms_quiz",status:"not_connected",reason:"no_submission_timestamp"};
+   if(!quizCount.error && typeof quizCount.count==="number" && quizCount.count>=0){quiz={...quiz,recordCount:quizCount.count};}
  } catch {
    // Fail closed. Do not disclose DB configuration, table schemas, or error text.
  }
