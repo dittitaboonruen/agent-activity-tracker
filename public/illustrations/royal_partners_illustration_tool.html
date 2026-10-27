@@ -11550,9 +11550,10 @@ function validateExcellentReportData(data){
 }
 
 function buildExcellentPlanATable(data){
-  const selectedYear = state.excellent.subtab==='planB' ? state.excellent.planBTerm : null;
+  // Plan A always shows its full 20-year schedule in the report.
+  // The selected RPU stop year belongs to Plan B only.
   const rows = data.planA
-    .filter(r => r.year >= 1 && r.year <= 20 && (selectedYear===null || r.year===selectedYear))
+    .filter(r => r.year >= 1 && r.year <= 20)
     .map(r=>{
       const benefit =
         (r.cashback===null || r.cashback===undefined || r.cashback===0)
