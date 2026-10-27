@@ -8859,6 +8859,13 @@ function calcExcellent(age, gender, sum, tax){
   };
 }
 
+// Excel N18: =IF((N17/N15)<0,"",(N17/N15)).
+function excelNetReturnPct(netDiff, netPaid){
+  if(!Number.isFinite(netPaid) || netPaid <= 0 || !Number.isFinite(netDiff)) return null;
+  const ratio = netDiff / netPaid;
+  return ratio < 0 ? null : ratio;
+}
+
 function calcExcellentPlanBTerm(age, gender, sum, term){
   const issueAge = getExcellentIssueAge(age);
   const stopYear = Math.max(6, Math.min(10, Math.round(Number(term) || 7)));
@@ -8902,7 +8909,7 @@ function calcExcellentPlanBTerm(age, gender, sum, term){
   const netPaid = paidTotal - cashback - immediateCash;
   const benefitAtStop = rpu;
   const netDiff = rpu - netPaid;
-  const returnPct = netPaid > 0 && netDiff >= 0 ? netDiff / netPaid : null;
+  const returnPct = excelNetReturnPct(netDiff, netPaid);
 
   return {
     stopYear,
@@ -9313,7 +9320,7 @@ function calcPay25RPU(age, gender, sum, annualPremium){
     const netPaid = totalPaid - cashback;
     const diff = rpuValue - netPaid;
     // Excel basis: amount returned at stop / net premiums, blank when negative.
-    const returnPct = netPaid > 0 && diff >= 0 ? diff / netPaid : null;
+    const returnPct = excelNetReturnPct(diff, netPaid);
 
     return {
       stopYear,
@@ -9583,7 +9590,7 @@ function viewExcellent(app){
       <div class="ex-planb-control">
         <div>
           <div class="ex-planb-label">ปีที่ต้องการหยุดชำระ</div>
-          <div class="ex-planb-help">ข้อมูลอ้างอิงในไฟล์ล่าสุดสำหรับปีที่ 6–10</div>
+          <div class="ex-planb-help">ข้อมูล ${state.gender} อายุ ${state.age} ปี • อ้างอิงปีที่ 6–10</div>
         </div>
         <select id="excellent-planb-term" class="ex-planb-select">
           ${EXCELLENT_LATEST.stopYears.map(y=>`
@@ -9686,7 +9693,7 @@ function viewPay25(app){
       <div class="ex-planb-control">
         <div>
           <div class="ex-planb-label">ปีที่ต้องการหยุดชำระ</div>
-          <div class="ex-planb-help">ข้อมูลจริงจากไฟล์ล่าสุดสำหรับปีที่ 7–10</div>
+          <div class="ex-planb-help">ข้อมูล ${state.gender} อายุ ${state.age} ปี • อ้างอิงปีที่ 7–10</div>
         </div>
         <select id="pay25-planb-term" class="ex-planb-select">
           ${PAY25_LATEST.stopYears.map(y=>`
@@ -12820,8 +12827,8 @@ function validatePay25ReportData(data){
 }
 
 function buildPay25PlanATable(data){
-  const selectedYear = state.pay25.subtab==='planB' ? state.pay25.planBTerm : null;
-  const rows = data.planA.filter(r=>selectedYear===null || r.year===selectedYear).map(r=>{
+  // Plan A shows its entire schedule regardless of selected Plan B year.
+  const rows = data.planA.map(r=>{
     const benefit = r.year===25
       ? `${fmt(r.cashback)} (121%)`
       : (r.cashback ? `${fmt(r.cashback)} (1%)` : '—');
