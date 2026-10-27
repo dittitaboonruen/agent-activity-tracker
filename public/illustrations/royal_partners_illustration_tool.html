@@ -8473,6 +8473,56 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 .ann-report-page .ann-report-meta .l{font-size:8px!important}
 .ann-report-page .ann-report-map .ann-benefit-label{font-size:7.5px!important}
 .ann-report-page .ann-mini-table{font-size:6px!important;line-height:1.12!important}
+
+/* Report alignment, isolated to the three requested A4 summaries. */
+#ci-procare-report-page-1 > .rp-page-inner,
+#excellent-report-page-1 > .ex-report-inner,
+#pay25-report-page-1 > .ex-report-inner {
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#ci-procare-report-page-1 .rp-report-meta,
+#ci-procare-report-page-1 .rp-report-kpis,
+#ci-procare-report-page-1 .rp-section,
+#ci-procare-report-page-1 .rp-report-chart,
+#excellent-report-page-1 .ex-summary-row,
+#pay25-report-page-1 .ex-summary-row{
+  box-sizing:border-box!important;
+  max-width:calc(100% - 28px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#excellent-report-page-1 .ex-plan-grid-report.rp-selected-year-layout,
+#pay25-report-page-1 .p25-plan-grid-report.rp-selected-year-layout{
+  width:calc(100% - 36px)!important;
+  max-width:calc(100% - 36px)!important;
+  margin:12px auto!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:12px!important;
+}
+#excellent-report-page-1 .rp-selected-year-layout .ex-plan-card,
+#pay25-report-page-1 .rp-selected-year-layout .p25-plan-card{
+  height:auto!important;
+  min-height:0!important;
+}
+#excellent-report-page-1 .rp-selected-year-layout .ex-planb-table,
+#pay25-report-page-1 .rp-selected-year-layout .p25-planb-table{
+  height:auto!important;
+  font-size:8px!important;
+}
+#excellent-report-page-1 .rp-selected-year-layout table td,
+#excellent-report-page-1 .rp-selected-year-layout table th,
+#pay25-report-page-1 .rp-selected-year-layout table td,
+#pay25-report-page-1 .rp-selected-year-layout table th{
+  padding:7px 3px!important;
+  height:auto!important;
+  line-height:1.3!important;
+}
+#excellent-report-page-1 .rp-selected-year-layout .ex-plan-total-box,
+#pay25-report-page-1 .rp-selected-year-layout .p25-plan-total-box{
+  margin-top:8px!important;
+}
 </style>
 
 </head>
@@ -11437,8 +11487,9 @@ function validateExcellentReportData(data){
 }
 
 function buildExcellentPlanATable(data){
+  const selectedYear = state.excellent.subtab==='planB' ? state.excellent.planBTerm : null;
   const rows = data.planA
-    .filter(r => r.year >= 1 && r.year <= 20)
+    .filter(r => r.year >= 1 && r.year <= 20 && (selectedYear===null || r.year===selectedYear))
     .map(r=>{
       const benefit =
         (r.cashback===null || r.cashback===undefined || r.cashback===0)
@@ -11479,7 +11530,8 @@ function buildExcellentPlanATable(data){
 }
 
 function buildExcellentPlanBTable(data){
-  const rows = data.planB.map(r=>{
+  const selectedYear = state.excellent.subtab==='planB' ? state.excellent.planBTerm : null;
+  const rows = data.planB.filter(r=>selectedYear===null || r.stopYear===selectedYear).map(r=>{
     const profit = (r.rpuValue || 0) + (r.cashback || 0) + (r.immediateCash || 0) - (r.totalPaid || 0);
     return `<tr>
       <td>${r.stopYear}</td>
@@ -11488,6 +11540,7 @@ function buildExcellentPlanBTable(data){
       <td>${fmt(r.immediateCash)}</td>
       <td>${fmt(r.totalPaid)}</td>
       <td class="em">${fmt(profit)}</td>
+      ${selectedYear!==null?'<td class="em">'+(r.returnPct===null?'—':(r.returnPct*100).toFixed(2)+'%')+'</td>':''}
     </tr>`;
   }).join('');
 
@@ -11501,6 +11554,7 @@ function buildExcellentPlanBTable(data){
           <th>เงินจ่ายคืนทันที</th>
           <th>เบี้ยรวมที่ส่งมา</th>
           <th>ผลกำไร</th>
+          ${selectedYear!==null?'<th>ผลตอบแทน (%)</th>':''}
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -11653,7 +11707,7 @@ function buildExcellentReportHTML(){
             <div class="rp-section-title">1 ผลประโยชน์แบบ Plan A และ Plan B</div>
           </div>
 
-          <div class="ex-plan-grid-report">
+          <div class="ex-plan-grid-report ${state.excellent.subtab==='planB'?'rp-selected-year-layout':''}">
             <div class="ex-plan-card">
               <div class="ex-plan-title">Plan A — ชำระเบี้ยเต็มสัญญา 20 ปี</div>
               ${buildExcellentPlanATable(data)}
@@ -12702,7 +12756,8 @@ function validatePay25ReportData(data){
 }
 
 function buildPay25PlanATable(data){
-  const rows = data.planA.map(r=>{
+  const selectedYear = state.pay25.subtab==='planB' ? state.pay25.planBTerm : null;
+  const rows = data.planA.filter(r=>selectedYear===null || r.year===selectedYear).map(r=>{
     const benefit = r.year===25
       ? `${fmt(r.cashback)} (121%)`
       : (r.cashback ? `${fmt(r.cashback)} (1%)` : '—');
@@ -12738,7 +12793,8 @@ function buildPay25PlanATable(data){
 }
 
 function buildPay25PlanBTable(data){
-  const rows = data.planB.map(r=>`<tr>
+  const selectedYear = state.pay25.subtab==='planB' ? state.pay25.planBTerm : null;
+  const rows = data.planB.filter(r=>selectedYear===null || r.stopYear===selectedYear).map(r=>`<tr>
     <td>${r.stopYear}</td>
     <td>${fmt(r.rpuValue)}</td>
     <td>${fmt(r.cashback)}</td>
@@ -12876,14 +12932,14 @@ function buildPay25ReportHTML(){
             <div class="rp-section-title">1 ผลประโยชน์แบบ Plan A และ Plan B</div>
           </div>
 
-          <div class="p25-plan-grid-report">
+          <div class="p25-plan-grid-report ${state.pay25.subtab==='planB'?'rp-selected-year-layout':''}">
             <div class="p25-plan-card">
               <div class="p25-plan-title">Plan A — ชำระเบี้ย 15 ปี คุ้มครองถึงปีที่ 25</div>
               ${buildPay25PlanATable(data)}
             </div>
 
             <div class="p25-plan-card">
-              <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU ปีที่ 7–10)</div>
+              <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU ${state.pay25.subtab==='planB'?'ปีที่ '+state.pay25.planBTerm:'ปีที่ 6–10'})</div>
               ${buildPay25PlanBTable(data)}
             </div>
           </div>
