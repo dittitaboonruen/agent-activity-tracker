@@ -8523,6 +8523,40 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 #pay25-report-page-1 .rp-selected-year-layout .p25-plan-total-box{
   margin-top:8px!important;
 }
+
+/* Calculator readability: stronger text contrast on pastel cards and tables.
+   UI only; excludes printable A4 reports and all calculation logic. */
+.rp-sales-shell .ex-summary-box .l,
+.rp-sales-shell .rp-kpi .l,
+.rp-sales-shell .summary-grid .l,
+.rp-sales-shell .summary-cards .l,
+.rp-sales-shell .plan-summary .l,
+.rp-sales-shell .ex-chart-label,
+.rp-sales-shell .p25-chart-label,
+.rp-sales-shell .ex-ui-tab:not(.active){
+  color:#142A47!important;
+  opacity:1!important;
+  font-weight:800!important;
+  text-shadow:none!important;
+}
+.rp-sales-shell .ex-ui-tab.active{
+  color:#10243F!important;
+  opacity:1!important;
+  font-weight:800!important;
+}
+.rp-sales-shell .panel table.ledger thead th,
+.rp-sales-shell .panel .ledger-wrap table.ledger thead th{
+  background:#142A47!important;
+  color:#FFFFFF!important;
+  font-weight:800!important;
+  text-shadow:none!important;
+}
+.rp-sales-shell .panel table.ledger thead th *,
+.rp-sales-shell .panel .ledger-wrap table.ledger thead th *{
+  color:#FFFFFF!important;
+  background:transparent!important;
+  text-shadow:none!important;
+}
 </style>
 
 </head>
