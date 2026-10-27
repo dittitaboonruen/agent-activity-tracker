@@ -8557,6 +8557,34 @@ body:has(.rp-sales-shell){background:#f8f6f2}
   background:transparent!important;
   text-shadow:none!important;
 }
+
+/* Contrast hotfix v2: cover ALL in-app dynamically rendered table headers.
+   Explicit text-fill-color prevents inherited dark type in Chromium.
+   Printable reports retain their own styling. */
+body > .rp-sales-shell table.ledger thead th,
+body > .rp-sales-shell .ledger-wrap table thead th,
+body > .rp-sales-shell .ex-ui-body table thead th,
+body > .rp-sales-shell .plan-grid table thead th,
+body > .rp-sales-shell .plus-ledger table thead th{
+  background:#142A47!important;
+  background-color:#142A47!important;
+  color:#FFFFFF!important;
+  -webkit-text-fill-color:#FFFFFF!important;
+  font-weight:800!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+body > .rp-sales-shell table.ledger thead th *,
+body > .rp-sales-shell .ledger-wrap table thead th *,
+body > .rp-sales-shell .ex-ui-body table thead th *,
+body > .rp-sales-shell .plan-grid table thead th *,
+body > .rp-sales-shell .plus-ledger table thead th *{
+  color:#FFFFFF!important;
+  -webkit-text-fill-color:#FFFFFF!important;
+  background:transparent!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
 </style>
 
 </head>
