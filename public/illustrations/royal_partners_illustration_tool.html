@@ -12457,17 +12457,20 @@ function build20PayLifeMedicalPageHTML(){
       // Health Saver: presentation labels and order; preserve actual plan-specific figures.
       const room=Number(String(card.room||'').replace(/,/g,'').split(' ')[0])||0;
       const planLimit=String(card.limit||'').trim();
-      const isVerifiedExample=state.age===23&&state.gender==='หญิง';
+      // Use the same plan-benefit source as the Health Saver comparison table.
+      // Benefits are plan-based, while premium remains age/sex-dependent.
+      const saverPlan=HEALTH_COMBO_BENEFITS.saver;
+      const saverIndex=saverPlan.limits.indexOf(Number(state.paylife20.opts.hsPlan));
+      const benefit=(rowIndex)=>saverIndex>=0?saverPlan.rows[rowIndex][1][saverIndex]:null;
+      const formatBenefit=v=>typeof v==='number'?fmt20(v)+' บาท':String(v||'ตามแผนและเงื่อนไข');
       const diagnostic=String(card.diagnosticCap||'ตามแผนและเงื่อนไข');
       const diagnosticAmount=diagnostic.split(' บาท')[0];
-      const diagnosticShort=diagnosticAmount&&/^[\d,]+$/.test(diagnosticAmount)?diagnosticAmount+' บาท':diagnostic;
-      // The following plan-specific entries are from the supplied Health Saver example.
-      // Other plan figures remain unasserted until their benefit tables are verified.
-      const outpatientAccident=isVerifiedExample&&room===2000?'8,000 บาท':'ตามแผนและเงื่อนไข';
-      const minorSurgery=isVerifiedExample&&room===2000?'15,000 บาท':'ตามแผนและเงื่อนไข';
-      const dialysis=isVerifiedExample&&room===2000?'300,000 บาท':'ตามแผนและเงื่อนไข';
-      const opdLimit=isVerifiedExample?(room===1500||room===2000?'ไม่คุ้มครอง':
-        room===3000?'1,000 บาท/ครั้ง':room===4000?'1,500 บาท/ครั้ง':(card.opd||'ตามแผนและเงื่อนไข')):(card.opd||'ตามแผนและเงื่อนไข');
+      const diagnosticShort=diagnosticAmount&&/^[\\d,]+$/.test(diagnosticAmount)?diagnosticAmount+' บาท':diagnostic;
+      const outpatientAccident=formatBenefit(benefit(5));
+      const minorSurgery=formatBenefit(benefit(7));
+      const dialysis=formatBenefit(benefit(6));
+      const opdLimit=formatBenefit(benefit(8));
+      const annualSharedLimit=saverIndex>=0?'เหมาจ่ายภายใต้วงเงินรวม '+fmt20(saverPlan.limits[saverIndex])+' บาท':'ตามแผนและเงื่อนไข';
       const saverRows=[
         ['วงเงินคุ้มครองตามแผน',card.limit],
         ['ค่าห้องและค่าอาหาร',card.room],
@@ -12476,21 +12479,21 @@ function build20PayLifeMedicalPageHTML(){
         ['ค่าบริการทางการแพทย์เพื่อการบำบัดรักษาและค่าบริการทางการพยาบาล',diagnosticShort],
         ['ค่ายา ค่าสารอาหารทางหลอดเลือด และค่าเวชภัณฑ์',diagnosticShort],
         ['ค่ายาและค่าเวชภัณฑ์สำหรับกลับบ้าน (ไม่เกิน 7 วัน)',card.homeMed],
-        ['ค่าแพทย์ตรวจ/วัน (สูงสุดไม่เกิน 365 วัน)',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าห้องผ่าตัดและค่าห้องทำหัตถการ',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่ายา ค่าสารอาหารทางหลอดเลือด ค่าเวชภัณฑ์ และค่าอุปกรณ์การผ่าตัดในห้องผ่าตัด',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าแพทย์ทำศัลยกรรมและหัตถการ',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าวิสัญญีแพทย์',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าผ่าตัดเปลี่ยนอวัยวะ',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าผ่าตัดใหญ่ที่ไม่ต้องเข้ารักษาตัวเป็นผู้ป่วยใน (Day Surgery)',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่าบริการทางการแพทย์เพื่อการตรวจวินิจฉัยภายใน 30 วันก่อนและหลังเข้ารักษาตัวเป็นผู้ป่วยใน',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
-        ['ค่ารักษาพยาบาลหลังการเข้าพักรักษาตัวเป็นผู้ป่วยในภายใน 30 วัน (สูงสุด 2 ครั้ง)','เหมาจ่ายตามจริง (จำกัด 2 ครั้ง)'],
+        ['ค่าแพทย์ตรวจ/วัน (สูงสุดไม่เกิน 365 วัน)',annualSharedLimit],
+        ['ค่าห้องผ่าตัดและค่าห้องทำหัตถการ',annualSharedLimit],
+        ['ค่ายา ค่าสารอาหารทางหลอดเลือด ค่าเวชภัณฑ์ และค่าอุปกรณ์การผ่าตัดในห้องผ่าตัด',annualSharedLimit],
+        ['ค่าแพทย์ทำศัลยกรรมและหัตถการ',annualSharedLimit],
+        ['ค่าวิสัญญีแพทย์',annualSharedLimit],
+        ['ค่าผ่าตัดเปลี่ยนอวัยวะ',annualSharedLimit],
+        ['ค่าผ่าตัดใหญ่ที่ไม่ต้องเข้ารักษาตัวเป็นผู้ป่วยใน (Day Surgery)',annualSharedLimit],
+        ['ค่าบริการทางการแพทย์เพื่อการตรวจวินิจฉัยภายใน 30 วันก่อนและหลังเข้ารักษาตัวเป็นผู้ป่วยใน',annualSharedLimit],
+        ['ค่ารักษาพยาบาลหลังการเข้าพักรักษาตัวเป็นผู้ป่วยในภายใน 30 วัน (สูงสุด 2 ครั้ง)',annualSharedLimit+' (จำกัด 2 ครั้ง)'],
         ['ค่ารักษาผู้ป่วยนอกเนื่องจากอุบัติเหตุภายใน 24 ชั่วโมง',outpatientAccident],
         ['ค่าเวชศาสตร์ฟื้นฟูหลังการเข้าพักรักษาตัวเป็นผู้ป่วยใน','ไม่คุ้มครอง'],
         ['ค่าล้างไตผ่านทางเส้นเลือด',dialysis],
         ['ค่ารังสีรักษา',dialysis],
         ['ค่าเคมีบำบัด',dialysis],
-        ['ค่าบริการรถพยาบาลฉุกเฉิน',planLimit?'เหมาจ่าย '+planLimit:'ตามแผนและเงื่อนไข'],
+        ['ค่าบริการรถพยาบาลฉุกเฉิน',annualSharedLimit],
         ['ค่ารักษาพยาบาลโดยการผ่าตัดเล็ก / ต่อครั้ง',minorSurgery],
         ['ค่ารักษาพยาบาลผู้ป่วยนอกทั่วไป สูงสุด 30 ครั้งต่อรอบปีกรมธรรม์',opdLimit]
       ];
