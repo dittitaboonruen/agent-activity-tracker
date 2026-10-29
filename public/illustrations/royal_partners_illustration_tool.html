@@ -15727,7 +15727,7 @@ function healthComboModel(type){
 function comboDisplay(v){
  return typeof v==='number'?fmt(v):String(v??'—');
 }
-function healthComboTable(model,showSaverPlanLimits=false){
+function healthComboTable(model,showSaverPlanLimits=true){
  const {info,premiums,main,selected}=model;
  const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
  const typeIsHappy=info.title==='20PL + Health Happy';
