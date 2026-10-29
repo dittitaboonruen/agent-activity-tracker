@@ -15727,6 +15727,7 @@ function comboDisplay(v){
 function healthComboTable(model){
  const {info,premiums,main,selected}=model;
  const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
+ const typeIsHappy=info.title==='20PL + Health Happy';
  const tr=(label,values)=>'<tr><td>'+label+'</td>'+values.map((v,i)=>
   '<td'+(i===selected?' class="hc-current-plan-cell"':'')+'>'+comboDisplay(v)+'</td>').join('')+'</tr>';
  return '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table"><thead><tr>'+
@@ -15734,7 +15735,7 @@ function healthComboTable(model){
  info.limits.map((l,i)=>'<th'+(i===selected?' class="hc-current-plan"':'')+'><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(l)+' บาท</span></th>').join('')+
  '</tr></thead><tbody>'+
  tr('ทุนประกันสัญญาหลัก',Array(4).fill(state.sum))+
- info.rows.map(row=>tr(row[0],row[1])).join('')+
+ info.rows.map(row=>tr(row[0],row[1].map((v,i)=>typeIsHappy&&v==='เหมาจ่ายตามจริง'?'เหมาจ่าย '+fmt(info.limits[i])+' บาท':v))).join('')+
  tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
  tr('เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
  tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main?x+main.net:'ไม่รับประกัน'))+
