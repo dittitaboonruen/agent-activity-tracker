@@ -1627,6 +1627,55 @@
     gap:10px;
     margin:8px 18px 0;
   }
+  /* Excellent Plan A: full A4-width premium, refund and coverage visual hierarchy. */
+  .ex-report-page .ex-plan-grid-report.ex-plan-a-only{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    width:auto;
+    margin-left:18px;
+    margin-right:18px;
+  }
+  .ex-report-page .ex-plan-a-only>.ex-plan-card{width:100%;min-width:0;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table{
+    width:100%;
+    table-layout:fixed;
+    font-size:11px;
+    color:#142A47;
+  }
+  .ex-report-page .ex-plan-a-only .ex-mini-table th,
+  .ex-report-page .ex-plan-a-only .ex-mini-table td{
+    font-size:11px;
+    padding:5px 10px;
+    text-align:center;
+    border:1px solid #E5DFD4;
+    line-height:1.2;
+  }
+  .ex-report-page .ex-plan-a-only .ex-mini-table th{font-weight:800;padding:8px 10px;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(1),
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(2){background:#F8F6F2;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(3),
+  .ex-report-page .ex-plan-a-only .ex-mini-table td:nth-child(3){background:#EAF4FF;color:#205A91;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(4),
+  .ex-report-page .ex-plan-a-only .ex-mini-table td:nth-child(4){background:#FCEEF5;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(4){color:#A92C69;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table th:nth-child(5),
+  .ex-report-page .ex-plan-a-only .ex-mini-table td:nth-child(5){background:#E7F5E9;color:#216A44;}
+  .ex-report-page .ex-plan-a-only .ex-mini-table td.accent{color:#C51E55;font-weight:800;}
+  .ex-report-page .ex-plan-a-only .ex-plan-total-box{
+    background:#FFF0F2;
+    border:1px solid #F0C9D0;
+    border-radius:6px;
+    margin:8px;
+    padding:10px 14px;
+  }
+  .ex-report-page .ex-plan-a-only .ex-plan-total-box .v{color:#B42335;font-weight:800;}
+  .ex-report-page .ex-plan-a-only .ex-plan-title{
+    background:#EAF4FF;
+    color:#142A47;
+    border-left:4px solid #4A90E2;
+    padding:10px 12px;
+    font-size:12px;
+  }
   /* Excellent Plan A: enlarge the single report table without changing Plan B. */
   .ex-report-page .ex-plan-grid-report.ex-plan-a-only{grid-template-columns:minmax(0,1fr);}
   .ex-report-page .ex-plan-a-only .ex-mini-table{width:100%;font-size:10.5px;table-layout:fixed;}
