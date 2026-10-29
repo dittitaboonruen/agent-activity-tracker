@@ -8680,6 +8680,21 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note{margin:0!important;padding:3px!important;border:0!important;background:transparent!important;font-size:9px!important}
 #pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note ol{font-size:9px!important;line-height:1.35!important}
 #pay20life-report-page-2 .pl20-medical-note{margin:8px 10px!important;width:calc(100% - 20px)!important;box-sizing:border-box;font-size:9px!important}
+/* 20PL Health Happy: combine repeated annual shared limits in a single readable table cell. */
+#pay20life-report-page-2 .pl20-health-benefit-table td.pl20-health-shared-limit{
+  vertical-align:middle!important;text-align:center!important;
+  background:#f0f7f3!important;border-left:1px solid #c8ded1!important;
+}
+#pay20life-report-page-2 .pl20-health-limit-box{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;padding:8px 5px;line-height:1.35;
+}
+#pay20life-report-page-2 .pl20-health-limit-box strong{
+  color:#176b52;font-size:12px;font-weight:800;
+}
+#pay20life-report-page-2 .pl20-health-limit-box span{
+  color:#4d6559;font-size:8px;font-weight:500;
+}
 </style>
 
 </head>
@@ -12438,7 +12453,7 @@ function build20PayLifeMedicalPageHTML(){
     const planAmount=isHappy?String(card.limit||'').split(' บาท/ปี')[0].trim():'';
     const lump=isHappy?'เหมาจ่าย '+planAmount+' บาท':'';
     const is25=isHappy&&planAmount==='25,000,000';
-    const common=[
+    const rows=[
       ['วงเงินคุ้มครองตามแผน',card.limit],
       ['ค่าห้องและค่าอาหาร',card.room],
       ['ค่าห้อง ICU',isHappy?lump:card.icu],
@@ -12459,7 +12474,18 @@ function build20PayLifeMedicalPageHTML(){
       ['ค่ารักษาผู้ป่วยนอกภายใน 30 วันหลังการรักษาตัว (สูงสุด 2 ครั้ง)',isHappy?lump:'ตามแผนและเงื่อนไข'],
       ['ค่ารักษาพยาบาลผู้ป่วยนอกทั่วไป สูงสุด 30 ครั้งต่อรอบปีกรมธรรม์',isHappy?(is25?'2,000 บาท/ครั้ง':'ไม่คุ้มครอง'):(card.opd||'ตามแผนและเงื่อนไข')]
     ];
-    return common.map(([label,value])=>'<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>').join('');
+    if(!isHappy) return rows.map(([label,value])=>'<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>').join('');
+    // One displayed shared-limit cell per contiguous benefit group, not per item.
+    // These groups use the same annual plan limit; they do not each have a separate limit.
+    const merged=[{from:2,to:is25?9:7},{from:10,to:17}];
+    const sharedCell=(span)=>'<td rowspan="'+span+'" class="pl20-health-shared-limit"><div class="pl20-health-limit-box"><strong>'+lump+'</strong><span>ภายใต้วงเงินรวมตามแผน</span></div></td>';
+    return rows.map(([label,value],i)=>{
+      const group=merged.find(g=>i>=g.from&&i<=g.to);
+      if(group){
+        return '<tr><td>'+label+'</td>'+(i===group.from?sharedCell(group.to-group.from+1):'')+'</tr>';
+      }
+      return '<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>';
+    }).join('');
   };
   const group=(heading,items)=>items?.length?'<div class="pl20-health-table-extra"><div class="h">'+heading+'</div>'+bulletList(items)+'</div>':'';
   return `
