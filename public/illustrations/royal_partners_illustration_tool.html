@@ -12457,17 +12457,17 @@ function build20PayLifeMedicalPageHTML(){
       // Health Saver: presentation labels and order; preserve actual plan-specific figures.
       const room=Number(String(card.room||'').replace(/,/g,'').split(' ')[0])||0;
       const planLimit=String(card.limit||'').trim();
-      const planNumber=Number(planLimit.replace(/,/g,'').split(' ')[0])||0;
+      const isVerifiedExample=state.age===23&&state.gender==='หญิง';
       const diagnostic=String(card.diagnosticCap||'ตามแผนและเงื่อนไข');
       const diagnosticAmount=diagnostic.split(' บาท')[0];
       const diagnosticShort=diagnosticAmount&&/^[\d,]+$/.test(diagnosticAmount)?diagnosticAmount+' บาท':diagnostic;
       // The following plan-specific entries are from the supplied Health Saver example.
       // Other plan figures remain unasserted until their benefit tables are verified.
-      const outpatientAccident=room===2000?'8,000 บาท':'ตามแผนและเงื่อนไข';
-      const minorSurgery=room===2000?'15,000 บาท':'ตามแผนและเงื่อนไข';
-      const dialysis=room===2000?'300,000 บาท':'ตามแผนและเงื่อนไข';
-      const opdLimit=room===1500||room===2000?'ไม่คุ้มครอง':
-        room===3000?'1,000 บาท/ครั้ง':room===4000?'1,500 บาท/ครั้ง':(card.opd||'ตามแผนและเงื่อนไข');
+      const outpatientAccident=isVerifiedExample&&room===2000?'8,000 บาท':'ตามแผนและเงื่อนไข';
+      const minorSurgery=isVerifiedExample&&room===2000?'15,000 บาท':'ตามแผนและเงื่อนไข';
+      const dialysis=isVerifiedExample&&room===2000?'300,000 บาท':'ตามแผนและเงื่อนไข';
+      const opdLimit=isVerifiedExample?(room===1500||room===2000?'ไม่คุ้มครอง':
+        room===3000?'1,000 บาท/ครั้ง':room===4000?'1,500 บาท/ครั้ง':(card.opd||'ตามแผนและเงื่อนไข')):(card.opd||'ตามแผนและเงื่อนไข');
       const saverRows=[
         ['วงเงินคุ้มครองตามแผน',card.limit],
         ['ค่าห้องและค่าอาหาร',card.room],
@@ -12497,9 +12497,10 @@ function build20PayLifeMedicalPageHTML(){
       const sharedGroups=[{from:3,to:5},{from:7,to:14},{from:18,to:20}];
       const cell=(text,span)=>'<td rowspan="'+span+'" class="pl20-health-shared-limit"><div class="pl20-health-limit-box"><strong>'+text+'</strong><span>วงเงินร่วมตามหมวด/แผน</span></div></td>';
       return saverRows.map(([label,value],i)=>{
+        const shown=label==='ค่ารักษาพยาบาลหลังการเข้าพักรักษาตัวเป็นผู้ป่วยในภายใน 30 วัน (สูงสุด 2 ครั้ง)'?value:normalize(value);
         const g=sharedGroups.find(x=>i>=x.from&&i<=x.to);
-        if(g)return '<tr><td>'+label+'</td>'+(i===g.from?cell(normalize(value),g.to-g.from+1):'')+'</tr>';
-        return '<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>';
+        if(g)return '<tr><td>'+label+'</td>'+(i===g.from?cell(shown,g.to-g.from+1):'')+'</tr>';
+        return '<tr><td>'+label+'</td><td>'+shown+'</td></tr>';
       }).join('');
     }
     const rows=[
