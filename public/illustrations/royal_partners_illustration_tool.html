@@ -12435,7 +12435,7 @@ function build20PayLifeMedicalPageHTML(){
   const bulletList=items=>items?.length?'<ul>'+items.map(x=>'<li>'+normalize(x)+'</li>').join('')+'</ul>':'<span>—</span>';
   const benefitRows=card=>{
     const isHappy=card.key==='healthhappy';
-    const planAmount=isHappy?String(card.limit||'').replace(/\\s*บาท\\/ปี.*$/,'').trim():'';
+    const planAmount=isHappy?String(card.limit||'').split(' บาท/ปี')[0].trim():'';
     const lump=isHappy?'เหมาจ่าย '+planAmount+' บาท':'';
     const is25=isHappy&&planAmount==='25,000,000';
     const common=[
