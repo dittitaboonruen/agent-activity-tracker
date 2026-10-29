@@ -8656,6 +8656,10 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-1 .pl20-premium-other{color:#4b5383!important;background:#eeeefa!important;border-color:#c7c9e2!important}
 #pay20life-report-page-1 .pl20-premium-total{color:#142a47!important;background:#e5e9ef!important;border-color:#b8c3d1!important}
 #pay20life-report-page-1 .pl20-other-rider>b{color:inherit!important}
+/* 20PL rider labels: matching category highlights, no extra line-break on annual premium. */
+#pay20life-report-page-1 .pl20-rider-name-tag{display:inline-block;border:1px solid transparent;border-radius:6px;padding:4px 8px;font-size:10px!important;font-weight:800!important;line-height:1.25!important;max-width:100%;white-space:normal}
+#pay20life-report-page-1 .pl20-other-rider>b{display:flex!important;align-items:center!important;flex-shrink:0!important;white-space:nowrap!important}
+#pay20life-report-page-1 .pl20-other-rider>b .pl20-premium-tag{white-space:nowrap!important}
 </style>
 
 </head>
@@ -12365,15 +12369,18 @@ function build20PayLifeAllRidersHTML(data){
   const riders=data.riders||[];
   const healthNames=new Set(['AIA Health Happy','AIA Health Happy Kids','AIA Health Saver','AIA Infinite Care']);
   const riderCategory=name=>healthNames.has(name)?'health':/CI|Cancer|Lady Care|LadyCare/i.test(name)?'ci':/อุบัติเหตุ|TPD|ADB|ADD|AI\//i.test(name)?'accident':/HB/i.test(name)?'daily':'other';
+  const healthCards=build20PayLifeMedicalSummaryData();
+  const planInfo=r=>{const c=healthCards.find(card=>card.name===r.name);return c?[c.plan,c.limit?'วงเงิน '+c.limit:''].filter(Boolean).join(' • '):(r.note||'—');};
+  const riderNameTag=name=>'<span class="pl20-rider-name-tag pl20-premium-'+riderCategory(name)+'">'+escapeResourceHtml(name)+'</span>';
   const premiumTag=(name,premium)=>'<span class="pl20-premium-tag pl20-premium-'+riderCategory(name)+'">'+fmt20(premium)+' บาท</span>';
   if(!riders.length) return '<div class="pl20-rider-overview"><div class="pl20-rider-empty">ไม่ได้เลือกสัญญาเพิ่มเติม</div></div>';
-  const summary='<div class="pl20-rider-overview"><div class="pl20-rider-heading">สรุปสัญญาเพิ่มเติมทั้งหมดที่เลือก</div><table class="pl20-rider-overview-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / แผน / ข้อมูลที่เลือก</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
-    riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'ดูรายละเอียดตามแบบประกัน')+'</td><td>'+premiumTag(r.name,r.premium)+'</td></tr>').join('')+
+  const summary='<div class="pl20-rider-overview"><div class="pl20-rider-heading">สรุปสัญญาเพิ่มเติมทั้งหมดที่เลือก</div><table class="pl20-rider-overview-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุนประกันและแผนที่เลือก</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
+    riders.map(r=>'<tr><td>'+riderNameTag(r.name)+'</td><td>'+escapeResourceHtml(planInfo(r))+'</td><td>'+premiumTag(r.name,r.premium)+'</td></tr>').join('')+
     '<tr class="pl20-rider-total"><td colspan="2">รวมเบี้ยสัญญาเพิ่มเติม</td><td><span class="pl20-premium-tag pl20-premium-total">'+fmt20(data.premium.riderTotal)+' บาท</span></td></tr></tbody></table></div>';
   const others=riders.filter(r=>!healthNames.has(r.name));
-  const otherHTML=others.length?'<div class="pl20-other-riders"><div class="pl20-rider-heading">ความคุ้มครอง CI / อุบัติเหตุ / สัญญาเพิ่มเติมอื่น</div>'+
-    others.map(r=>'<div class="pl20-other-rider"><div><strong>'+escapeResourceHtml(r.name)+'</strong><span>'+escapeResourceHtml(r.note||'รายละเอียดผลประโยชน์และเงื่อนไขให้ยึดเอกสารประกอบการเสนอขายของบริษัท')+'</span></div><b>'+premiumTag(r.name,r.premium)+'/ปี</b></div>').join('')+
-    '<div class="pl20-other-disclaimer">ทุนและข้อมูลที่แสดงเป็นค่าจากตัวเลือกในเครื่องคำนวณ ไม่ใช่การยืนยันการรับประกันภัยหรือข้อกำหนดการจ่ายสินไหม</div></div>':'';
+  const otherHTML=others.length?'<div class="pl20-other-riders"><div class="pl20-rider-heading">รายละเอียดความคุ้มครองเพิ่มเติม</div>'+
+    others.map(r=>'<div class="pl20-other-rider"><div><strong>'+riderNameTag(r.name)+'</strong><span>'+escapeResourceHtml(r.note||'รายละเอียดผลประโยชน์และเงื่อนไขให้ยึดเอกสารประกอบการเสนอขายของบริษัท')+'</span></div><b>'+premiumTag(r.name,r.premium)+'</b></div>').join('')+
+    '</div>':'';
   return summary+otherHTML;
 }
 
