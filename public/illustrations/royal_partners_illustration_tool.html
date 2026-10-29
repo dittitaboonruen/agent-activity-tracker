@@ -8660,6 +8660,26 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-1 .pl20-rider-name-tag{display:inline-block;border:1px solid transparent;border-radius:6px;padding:4px 8px;font-size:10px!important;font-weight:800!important;line-height:1.25!important;max-width:100%;white-space:normal}
 #pay20life-report-page-1 .pl20-other-rider>b{display:flex!important;align-items:center!important;flex-shrink:0!important;white-space:nowrap!important}
 #pay20life-report-page-1 .pl20-other-rider>b .pl20-premium-tag{white-space:nowrap!important}
+/* 20PL page 2: full-width readable, two-column health benefits table. */
+#pay20life-report-page-2 .pl20-health-table-list{margin:10px 10px 0!important;width:calc(100% - 20px)!important;box-sizing:border-box}
+#pay20life-report-page-2 .pl20-health-table-card{width:100%!important;margin:0 0 10px!important;border:1px solid #d9d2bf;background:#fffdf9;box-sizing:border-box;break-inside:avoid}
+#pay20life-report-page-2 .pl20-health-table-head{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;background:#f4ecda;border-bottom:1px solid #d9d2bf}
+#pay20life-report-page-2 .pl20-health-table-name{font-size:15px;font-weight:800;color:#142a47}
+#pay20life-report-page-2 .pl20-health-table-sub{font-size:9px;line-height:1.3;color:#675c49}
+#pay20life-report-page-2 .pl20-health-table-premium{text-align:right;white-space:nowrap}
+#pay20life-report-page-2 .pl20-health-table-premium span{font-size:9px;color:#786c56}
+#pay20life-report-page-2 .pl20-health-table-premium strong{display:block;font-size:13px;color:#936515}
+#pay20life-report-page-2 .pl20-health-benefit-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px!important;line-height:1.25}
+#pay20life-report-page-2 .pl20-health-benefit-table th{padding:7px 10px!important;background:#142a47!important;color:#fff!important;-webkit-text-fill-color:#fff!important;text-align:left;font-size:10px!important}
+#pay20life-report-page-2 .pl20-health-benefit-table td{padding:5px 10px!important;border-bottom:1px solid #e7e1d4;vertical-align:top;font-size:10px!important}
+#pay20life-report-page-2 .pl20-health-benefit-table td:first-child{width:67%;color:#28394b}
+#pay20life-report-page-2 .pl20-health-benefit-table td:last-child{width:33%;color:#142a47;font-weight:700;text-align:right}
+#pay20life-report-page-2 .pl20-health-table-extra{padding:8px 11px;border-top:1px solid #ded6c7;break-inside:avoid}
+#pay20life-report-page-2 .pl20-health-table-extra .h{font-size:10px!important;color:#142a47;font-weight:800;margin-bottom:4px}
+#pay20life-report-page-2 .pl20-health-table-extra ul{padding-left:17px;margin:0;font-size:9px!important;line-height:1.35!important}
+#pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note{margin:0!important;padding:3px!important;border:0!important;background:transparent!important;font-size:9px!important}
+#pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note ol{font-size:9px!important;line-height:1.35!important}
+#pay20life-report-page-2 .pl20-medical-note{margin:8px 10px!important;width:calc(100% - 20px)!important;box-sizing:border-box;font-size:9px!important}
 </style>
 
 </head>
@@ -12411,82 +12431,61 @@ function build20PayLifeMedicalInlineHTML(){
 function build20PayLifeMedicalPageHTML(){
   const cards=build20PayLifeMedicalSummaryData();
   if(!cards.length) return '';
-
-  const bulletList=(items)=>items?.length
-    ? `<ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul>`
-    : '<div class="pl20-benefit-none">—</div>';
-
+  const normalize=v=>String(v||'—').replace(/เหมาจ่ายตามจริง/g,'เหมาจ่ายตามแผนที่เลือก');
+  const bulletList=items=>items?.length?'<ul>'+items.map(x=>'<li>'+normalize(x)+'</li>').join('')+'</ul>':'<span>—</span>';
+  const benefitRows=card=>{
+    // Only explicitly supported rider data is used for numeric values.
+    // Do not invent per-benefit payouts from the overall annual limit.
+    const rows=[
+      ['วงเงินคุ้มครองตามแผน',card.limit],
+      ['ค่าห้องและค่าอาหาร',card.room],
+      ['ค่าห้อง ICU',card.icu],
+      ['ค่ารักษาพยาบาลและเวชภัณฑ์','ตามแผนที่เลือก'],
+      ['ค่าแพทย์ผ่าตัด','ตามแผนที่เลือก'],
+      ['ค่าแพทย์วิสัญญี','ตามแผนที่เลือก'],
+      ['ค่าห้องผ่าตัดและอุปกรณ์ผ่าตัด','ตามแผนที่เลือก'],
+      ['ค่ารถพยาบาลฉุกเฉิน','ตามแผนและเงื่อนไข'],
+      ['ค่าแพทย์ตรวจต่อวัน',card.physician],
+      ['ค่ายาและเวชภัณฑ์สำหรับกลับบ้าน',card.homeMed],
+      ['ค่าตรวจวินิจฉัยและรังสีวิทยา',card.diagnosticCap||'ตามแผนที่เลือก'],
+      ['ค่าตรวจและรักษาต่อเนื่องภายใน 30 วัน','ตามแผนและเงื่อนไข'],
+      ['ค่าล้างไต เคมีบำบัด และรังสีบำบัด','ตามแผนและเงื่อนไข'],
+      ['ค่ารักษาโรคมะเร็งและโรคไตเรื้อรัง','ตามแผนและเงื่อนไข'],
+      ['ค่ารักษาและผ่าตัดแบบผู้ป่วยนอก','ตามแผนและเงื่อนไข'],
+      ['ค่ารักษาผู้ป่วยนอกจากอุบัติเหตุ','ตามแผนและเงื่อนไข'],
+      ['ค่ารักษาผู้ป่วยนอกทั่วไป',card.opd||'ตามแผนและเงื่อนไข']
+    ];
+    return rows.map(([label,value])=>'<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>').join('');
+  };
+  const group=(heading,items)=>items?.length?'<div class="pl20-health-table-extra"><div class="h">'+heading+'</div>'+bulletList(items)+'</div>':'';
   return `
     <section class="ex-report-page pl20-medical-page" id="pay20life-report-page-2">
       <div class="ex-report-inner">
         <div class="rp-report-head">
-          <div>
-            <div class="rp-report-title">รายละเอียดผลประโยชน์สุขภาพ</div>
-            <div class="pl20-medical-subtitle">ผู้ป่วยใน • ผู้ป่วยนอก • ผลประโยชน์เพิ่มเติม</div>
-          </div>
-          <div class="rp-report-sum">
-            <div class="l">ผู้เอาประกันภัย</div>
-            <div class="v">${state.customer.firstName || state.customer.lastName ? `${escapeResourceHtml(state.customer.firstName||'')} ${escapeResourceHtml(state.customer.lastName||'')}`.trim() : '—'}</div>
-          </div>
+          <div><div class="rp-report-title">รายละเอียดผลประโยชน์สุขภาพ</div><div class="pl20-medical-subtitle">ตามสัญญาเพิ่มเติมและแผนที่เลือก</div></div>
+          <div class="rp-report-sum"><div class="l">ผู้เอาประกันภัย</div><div class="v">${state.customer.firstName||state.customer.lastName?escapeResourceHtml((state.customer.firstName||'')+' '+(state.customer.lastName||'')):'—'}</div></div>
         </div>
-
-        <div class="pl20-medical-intro">
-          แสดงเฉพาะสัญญาเพิ่มเติมสุขภาพที่เลือก และเปลี่ยนรายละเอียดตามแผนที่เลือกในหน้าคำนวณ
-        </div>
-
-        <div class="pl20-health-detail-list">
+        <div class="pl20-health-table-list">
           ${cards.map(card=>`
-            <section class="pl20-health-detail-card">
-              <div class="pl20-health-detail-head">
-                <div>
-                  <div class="pl20-medical-name">${card.name}</div>
-                  <div class="pl20-medical-plan">${card.plan} • วงเงิน ${card.limit}</div>
-                  <div class="pl20-medical-meta">${card.extraMeta}</div>
-                </div>
-                <div class="pl20-medical-premium">
-                  <span>เบี้ยปีปัจจุบัน</span>
-                  <strong>${fmt20(card.premium)} บาท</strong>
-                </div>
+            <div class="pl20-health-table-card">
+              <div class="pl20-health-table-head">
+                <div><div class="pl20-health-table-name">${card.name}</div>
+                  <div class="pl20-health-table-sub">${card.plan} • ${card.limit}</div>
+                  <div class="pl20-health-table-sub">${card.extraMeta}</div></div>
+                <div class="pl20-health-table-premium"><span>เบี้ยปีปัจจุบัน</span><strong>${fmt20(card.premium)} บาท</strong></div>
               </div>
-
-              <div class="pl20-health-key-grid">
-                <div><span>ค่าห้อง</span><strong>${card.room||'—'}</strong></div>
-                <div><span>ICU</span><strong>${card.icu||'—'}</strong></div>
-                <div><span>ค่าแพทย์ประจำวัน</span><strong>${card.physician||'—'}</strong></div>
-                <div><span>ค่ายากลับบ้าน</span><strong>${card.homeMed||'—'}</strong></div>
-                ${card.diagnosticCap ? `<div class="wide"><span>วงเงินตรวจวินิจฉัย/บำบัดรักษา</span><strong>${card.diagnosticCap}</strong></div>` : ''}
-                ${card.opd ? `<div class="wide"><span>OPD ทั่วไป</span><strong>${card.opd}</strong></div>` : ''}
-              </div>
-
-              <div class="pl20-health-groups">
-                <div class="pl20-health-group">
-                  <div class="h">ผู้ป่วยใน (IPD) / ไม่ต้องนอน รพ.</div>
-                  ${bulletList(card.ipd)}
-                </div>
-                <div class="pl20-health-group">
-                  <div class="h">ผู้ป่วยนอก / การรักษาต่อเนื่อง</div>
-                  ${bulletList(card.outpatient)}
-                </div>
-                <div class="pl20-health-group">
-                  <div class="h">ผลประโยชน์เพิ่มเติม / เงื่อนไขสำคัญ</div>
-                  ${bulletList(card.other)}
-                </div>
-                ${['healthhappy','healthsaver'].includes(card.key) && state.paylife20.mode==='full'
-                  ? `<div class="pl20-health-group pl20-health-critical"><div class="h">ผลประโยชน์เพิ่มเติมกรณีโรคร้ายแรง</div>${healthComboCriticalIllnessNoticeHTML()}</div>` : ''}
-              </div>
-            </section>
-          `).join('')}
+              <table class="pl20-health-benefit-table"><thead><tr><th>รายการผลประโยชน์</th><th>ความคุ้มครองตามแผน</th></tr></thead><tbody>${benefitRows(card)}</tbody></table>
+              ${group('ผู้ป่วยใน (IPD) / ไม่ต้องนอนโรงพยาบาล',card.ipd)}
+              ${group('ผู้ป่วยนอก / การรักษาต่อเนื่อง',card.outpatient)}
+              ${group('ผลประโยชน์เพิ่มเติม / เงื่อนไขสำคัญ',card.other)}
+              ${['healthhappy','healthsaver'].includes(card.key)&&state.paylife20.mode==='full'
+                ?'<div class="pl20-health-table-extra pl20-health-table-critical"><div class="h">ผลประโยชน์เพิ่มเติมกรณีโรคร้ายแรง</div>'+healthComboCriticalIllnessNoticeHTML()+'</div>':''}
+            </div>`).join('')}
         </div>
-
-        <div class="pl20-medical-note">
-          สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น รายละเอียดการจ่ายจริง ข้อยกเว้น วงเงินรวม
-          การมีส่วนร่วมจ่าย ความรับผิดส่วนแรก และเงื่อนไขอื่น ให้ยึดกรมธรรม์/เอกสารเสนอขายของบริษัทเป็นหลัก
-        </div>
-
+        <div class="pl20-medical-note">สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น การจ่ายผลประโยชน์จริง ข้อยกเว้น และเงื่อนไข ให้ยึดกรมธรรม์และเอกสารของบริษัทเป็นหลัก</div>
         <div class="rp-page-number">หน้า 2 / 2 • Report v${PAY20LIFE_REPORT_VERSION}</div>
       </div>
-    </section>
-  `;
+    </section>`;
 }
 
 function build20PayLifeReportData(){
