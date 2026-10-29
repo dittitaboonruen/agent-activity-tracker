@@ -10062,7 +10062,7 @@ function viewPlusHealth(app,kind){
  section.innerHTML='<h3>เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' • '+state.gender+' อายุ '+state.age+' ปี</h3>';
  panel.appendChild(section);
  const tableWrap=document.createElement('div');tableWrap.className='plus-health-comparison';
- tableWrap.innerHTML=healthComboTable(model);
+ tableWrap.innerHTML=healthComboTable(model,kind==='saver');
  section.appendChild(tableWrap);
  const action=document.createElement('div');action.className='plus-health-report-actions';
  action.innerHTML='<button type="button">ดูตัวอย่างภาพสรุป</button>';
@@ -10103,7 +10103,7 @@ function buildPlusHealthReportHTML(kind){
  '<div class="cell"><div class="l">อายุ</div><div class="v">'+state.age+' ปี</div></div>'+
  '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
  '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' · '+state.gender+' อายุ '+state.age+' ปี</div>'+
- healthComboTable(model)+'</div>'+
+ healthComboTable(model,kind==='saver')+'</div>'+
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
