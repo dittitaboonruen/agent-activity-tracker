@@ -8623,6 +8623,30 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-1 .pl20-other-rider span{display:block;color:#736953;margin-top:2px;line-height:1.25}
 #pay20life-report-page-1 .pl20-other-rider>b{white-space:nowrap;color:#96701c;font-size:9px}
 #pay20life-report-page-1 .pl20-other-disclaimer,#pay20life-report-page-1 .pl20-rider-empty{padding:6px 9px;font-size:7px;color:#746a5a;border-top:1px solid #e4dfd5}
+/* 20PL two-page presentation: use readable full-width content and keep critical illness inside health card. */
+#pay20life-report-page-1 .ex-report-inner,#pay20life-report-page-2 .ex-report-inner{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+#pay20life-report-page-1 .pl20-rider-overview,#pay20life-report-page-1 .pl20-other-riders{margin-left:10px!important;margin-right:10px!important}
+#pay20life-report-page-1 .pl20-rider-overview-table{font-size:10px!important;line-height:1.4!important}
+#pay20life-report-page-1 .pl20-rider-overview-table th{font-size:10px!important;padding:8px!important}
+#pay20life-report-page-1 .pl20-rider-overview-table td{padding:8px!important}
+#pay20life-report-page-1 .pl20-rider-heading{font-size:11px!important;padding:8px 10px!important}
+#pay20life-report-page-1 .pl20-other-rider{font-size:10px!important;padding:9px 11px!important}
+#pay20life-report-page-1 .pl20-other-rider strong,#pay20life-report-page-1 .pl20-other-rider>b{font-size:10px!important}
+#pay20life-report-page-1 .pl20-other-rider span,#pay20life-report-page-1 .pl20-other-disclaimer{font-size:9px!important}
+#pay20life-report-page-2 .pl20-medical-intro,#pay20life-report-page-2 .pl20-health-detail-list,#pay20life-report-page-2 .pl20-medical-note{margin-left:10px!important;margin-right:10px!important;width:calc(100% - 20px)!important;box-sizing:border-box!important}
+#pay20life-report-page-2 .pl20-health-detail-card{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+#pay20life-report-page-2 .pl20-medical-name{font-size:13px!important}
+#pay20life-report-page-2 .pl20-medical-plan,#pay20life-report-page-2 .pl20-medical-meta{font-size:9px!important}
+#pay20life-report-page-2 .pl20-medical-premium strong{font-size:12px!important}
+#pay20life-report-page-2 .pl20-health-key-grid span{font-size:9px!important}
+#pay20life-report-page-2 .pl20-health-key-grid strong{font-size:10px!important}
+#pay20life-report-page-2 .pl20-health-group .h{font-size:10px!important}
+#pay20life-report-page-2 .pl20-health-group ul{font-size:9px!important;line-height:1.4!important;padding-left:17px!important}
+#pay20life-report-page-2 .pl20-health-group{padding:8px 11px!important}
+#pay20life-report-page-2 .pl20-health-key-grid>div{padding:7px 10px!important}
+#pay20life-report-page-2 .pl20-health-critical .hc-critical-illness-note{margin:4px 0 0!important;padding:7px 9px!important;border:0!important;background:transparent!important;font-size:9px!important}
+#pay20life-report-page-2 .pl20-health-critical .hc-critical-illness-note ol{font-size:9px!important;line-height:1.4!important}
+#pay20life-report-page-2 .pl20-medical-note{font-size:9px!important}
 </style>
 
 </head>
@@ -12433,13 +12457,12 @@ function build20PayLifeMedicalPageHTML(){
                   <div class="h">ผลประโยชน์เพิ่มเติม / เงื่อนไขสำคัญ</div>
                   ${bulletList(card.other)}
                 </div>
+                ${['healthhappy','healthsaver'].includes(card.key) && state.paylife20.mode==='full'
+                  ? `<div class="pl20-health-group pl20-health-critical"><div class="h">ผลประโยชน์เพิ่มเติมกรณีโรคร้ายแรง</div>${healthComboCriticalIllnessNoticeHTML()}</div>` : ''}
               </div>
             </section>
           `).join('')}
         </div>
-
-        ${state.paylife20.mode==='full' && (state.paylife20.riders.healthhappy || state.paylife20.riders.healthsaver)
-          ? healthComboCriticalIllnessNoticeHTML() : ''}
 
         <div class="pl20-medical-note">
           สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น รายละเอียดการจ่ายจริง ข้อยกเว้น วงเงินรวม
@@ -12799,7 +12822,8 @@ function build20PayLifeReportHTML(){
   const validation=validate20PayLifeReportData(data);
   if(!validation.ok) return `<div class="rp-report"><div class="rp-report-error">${validation.errors.join('<br>')}</div></div>`;
 
-  const totalPages=1;
+  const medicalPageHTML=build20PayLifeMedicalPageHTML();
+  const totalPages=medicalPageHTML ? 2 : 1;
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
@@ -12829,13 +12853,13 @@ function build20PayLifeReportHTML(){
 
           <div class="rp-section"><div class="rp-section-title">1 สัญญาหลักและสัญญาเพิ่มเติม</div></div>
           ${build20PayLifeAllRidersHTML(data)}
-          ${build20PayLifeMedicalInlineHTML()}
 
           ${build20PayLifeSection2HTML(data)}
           <div class="ex-footer-spacer"></div>
           <div class="rp-page-number">หน้า 1 / ${totalPages} • Report v${data.reportVersion}</div>
         </div>
       </section>
+      ${medicalPageHTML}
     </div>
   </div>`;
 }
