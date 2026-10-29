@@ -8586,6 +8586,26 @@ body > .rp-sales-shell .plus-ledger table thead th *{
   opacity:1!important;
   text-shadow:none!important;
 }
+/* 20PL: compact in-page medical details; print and preview share one A4 layout. */
+#pay20life-report-page-1 .pl20-inline-health{margin:5px 14px 0!important;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:7px;align-items:start}
+#pay20life-report-page-1 .pl20-inline-health-card{min-width:0;border:1px solid #d9d2bf;background:#fffdf9;break-inside:avoid}
+#pay20life-report-page-1 .pl20-inline-health-head{display:flex;justify-content:space-between;gap:8px;background:#f4ecda;border-bottom:1px solid #d9d2bf;padding:7px 9px}
+#pay20life-report-page-1 .pl20-inline-health-name{font-weight:800;color:#142a47;font-size:10px}
+#pay20life-report-page-1 .pl20-inline-health-sub{font-size:7px;color:#695d48;line-height:1.35}
+#pay20life-report-page-1 .pl20-inline-health-premium{font-size:9px;white-space:nowrap;font-weight:800;color:#98701b;text-align:right}
+#pay20life-report-page-1 .pl20-inline-health-keys{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e8e2d5}
+#pay20life-report-page-1 .pl20-inline-health-keys>div{padding:5px 7px;border-right:1px solid #e8e2d5;border-bottom:1px solid #e8e2d5;min-width:0}
+#pay20life-report-page-1 .pl20-inline-health-keys>div:nth-child(even){border-right:0}
+#pay20life-report-page-1 .pl20-inline-health-keys .wide{grid-column:1/-1;border-right:0}
+#pay20life-report-page-1 .pl20-inline-health-keys span{display:block;font-size:7px;color:#716954}
+#pay20life-report-page-1 .pl20-inline-health-keys strong{display:block;font-size:8px;color:#142a47;line-height:1.25}
+#pay20life-report-page-1 .pl20-inline-health-group{padding:5px 8px;border-bottom:1px solid #e8e2d5}
+#pay20life-report-page-1 .pl20-inline-health-group:last-child{border-bottom:0}
+#pay20life-report-page-1 .pl20-inline-health-group b{font-size:8px;color:#142a47}
+#pay20life-report-page-1 .pl20-inline-health-group ul{margin:3px 0 0;padding-left:15px;font-size:7px;line-height:1.3;color:#554c3f}
+#pay20life-report-page-1 .pl20-inline-health-note{grid-column:1/-1;padding:6px 9px;border:1px solid #d9d2bf;background:#fbf8f0;font-size:7px;line-height:1.35;color:#423b30}
+#pay20life-report-page-1 .pl20-inline-health-note .hc-critical-illness-note{margin:0!important;padding:6px!important;font-size:7px!important}
+#pay20life-report-page-1 .pl20-inline-health-note .hc-critical-illness-note ol{font-size:7px!important}
 </style>
 
 </head>
@@ -12291,6 +12311,34 @@ function build20PayLifeMedicalSummaryData(){
   return cards;
 }
 
+function build20PayLifeMedicalInlineHTML(){
+  const cards = build20PayLifeMedicalSummaryData();
+  if(!cards.length){
+    return '<div class="pl20-inline-health"><div class="pl20-inline-health-note">ไม่ได้เลือกสัญญาเพิ่มเติมสุขภาพ</div></div>';
+  }
+  const group=(title,items)=>items&&items.length
+    ? '<div class="pl20-inline-health-group"><b>'+title+'</b><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>' : '';
+  return '<div class="pl20-inline-health">'+cards.map(card=>
+    '<section class="pl20-inline-health-card">'+
+      '<div class="pl20-inline-health-head"><div><div class="pl20-inline-health-name">'+card.name+'</div>'+
+      '<div class="pl20-inline-health-sub">'+card.plan+' • วงเงิน '+card.limit+'</div>'+
+      '<div class="pl20-inline-health-sub">'+card.extraMeta+'</div></div>'+
+      '<div class="pl20-inline-health-premium">เบี้ยปีปัจจุบัน<br>'+fmt20(card.premium)+' บาท</div></div>'+
+      '<div class="pl20-inline-health-keys">'+
+      [['ค่าห้อง',card.room],['ICU',card.icu],['ค่าแพทย์ประจำวัน',card.physician],['ค่ายากลับบ้าน',card.homeMed],['วงเงินตรวจวินิจฉัย/บำบัดรักษา',card.diagnosticCap],['OPD ทั่วไป',card.opd]]
+        .filter(item=>item[1]).map(item=>'<div><span>'+item[0]+'</span><strong>'+item[1]+'</strong></div>').join('')+
+      '</div>'+
+      group('ผู้ป่วยใน (IPD) / ไม่ต้องนอน รพ.',card.ipd)+
+      group('ผู้ป่วยนอก / การรักษาต่อเนื่อง',card.outpatient)+
+      group('ผลประโยชน์เพิ่มเติม / เงื่อนไขสำคัญ',card.other)+
+    '</section>'
+  ).join('')+
+  '<div class="pl20-inline-health-note">'+
+    ((state.paylife20.riders.healthhappy||state.paylife20.riders.healthsaver)&&state.paylife20.mode==='full' ? healthComboCriticalIllnessNoticeHTML() : '')+
+    '<div>สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น การจ่ายจริง ข้อยกเว้น วงเงินรวม การมีส่วนร่วมจ่าย และเงื่อนไขอื่น ให้ยึดกรมธรรม์/เอกสารเสนอขายของบริษัทเป็นหลัก</div>'+
+  '</div></div>';
+}
+
 function build20PayLifeMedicalPageHTML(){
   const cards=build20PayLifeMedicalSummaryData();
   if(!cards.length) return '';
@@ -12720,8 +12768,7 @@ function build20PayLifeReportHTML(){
   const validation=validate20PayLifeReportData(data);
   if(!validation.ok) return `<div class="rp-report"><div class="rp-report-error">${validation.errors.join('<br>')}</div></div>`;
 
-  const medicalPageHTML=build20PayLifeMedicalPageHTML();
-  const totalPages=medicalPageHTML ? 2 : 1;
+  const totalPages=1;
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
@@ -12745,29 +12792,18 @@ function build20PayLifeReportHTML(){
             <div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">${fmt20(data.premium.annual)} บาท</div></div>
             <div class="ex-summary-box"><div class="l">สัญญาเพิ่มเติมรวม</div><div class="v">${fmt20(data.premium.riderTotal)} บาท</div></div>
             <div class="ex-summary-box"><div class="l">เบี้ยรวมปีปัจจุบัน</div><div class="v">${fmt20(data.premium.totalCurrent)} บาท</div></div>
-            <div class="ex-summary-box em"><div class="l">ครบกำหนดอายุ 99 ปี</div><div class="v">${fmt20(data.benefits.maturity)} บาท</div></div>
           </div>
 
           ${build20PayLifeBenefitHTML({maturityBenefit:data.benefits.maturity})}
 
           <div class="rp-section"><div class="rp-section-title">1 สัญญาหลักและสัญญาเพิ่มเติม</div></div>
-          <div class="pl20-report-grid">
-            <div class="pl20-report-card">
-              <div class="pl20-report-title">สัญญาหลัก — ตารางชำระเบี้ย 20 ปี</div>
-              ${build20PayLifeMainTable(data)}
-            </div>
-            <div class="pl20-report-card">
-              <div class="pl20-report-title">รายละเอียดการคำนวณ — สัญญาเพิ่มเติมที่เลือก</div>
-              ${build20PayLifeCalculationDetailHTML()}
-            </div>
-          </div>
+          ${build20PayLifeMedicalInlineHTML()}
 
           ${build20PayLifeSection2HTML(data)}
           <div class="ex-footer-spacer"></div>
           <div class="rp-page-number">หน้า 1 / ${totalPages} • Report v${data.reportVersion}</div>
         </div>
       </section>
-      ${medicalPageHTML}
     </div>
   </div>`;
 }
