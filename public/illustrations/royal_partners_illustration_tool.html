@@ -15728,14 +15728,48 @@ function comboDisplay(v){
  return typeof v==='number'?fmt(v):String(v??'—');
 }
 function healthComboTable(model,showSaverPlanLimits=true){
- const {info,premiums,main,selected}=model;
+ const {info,premiums,main}=model;
  const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
  const typeIsHappy=info.title==='20PL + Health Happy';
- const tr=(label,values)=>'<tr><td>'+label+'</td>'+values.map((v,i)=>
-  '<td'+(i===selected?' class="hc-current-plan-cell"':'')+'>'+comboDisplay(v)+'</td>').join('')+'</tr>';
- return '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table"><thead><tr>'+
+ const category=(label)=>{
+  if(label==='รวมเบี้ยปีแรก / ปี')return 'total';
+  if(label.includes('เบี้ย'))return 'premium';
+  if(label.includes('ไม่คุ้มครอง'))return 'excluded';
+  if(label.includes('เงินช่วยเหลือ')||label.includes('โรคร้ายแรง')||label.includes('วงเงินค่ารักษาพยาบาลสูงสุด')||label.includes('ผลประโยชน์สูงสุด'))return 'extra';
+  if(label.includes('ผู้ป่วยนอก')||label.includes('อุบัติเหตุผู้ป่วยนอก'))return 'outpatient';
+  if(label.includes('ผ่าตัด')||label.includes('แพทย์')||label.includes('รังสี')||label.includes('เคมีบำบัด')||label.includes('รักษาต่อเนื่อง'))return 'surgery';
+  return 'ipd';
+ };
+ const tr=(label,values)=>{
+  const kind=category(label);
+  return '<tr class="rp-hc-row rp-hc-'+kind+'"><td>'+label+'</td>'+values.map(v=>{
+   const shown=comboDisplay(v);
+   const excluded=shown==='ไม่คุ้มครอง';
+   const shared=shown.startsWith('เหมาจ่าย')||shown.startsWith('ไม่เกิน 6 เท่าค่าห้อง');
+   return '<td'+(excluded?' class="rp-hc-excluded"':shared?' class="rp-hc-shared"':'')+'>'+ (excluded?'<span class="rp-hc-no">'+shown+'</span>':shared?'<span class="rp-hc-pill">'+shown+'</span>':shown)+'</td>';
+  }).join('')+'</tr>';
+ };
+ const css='<style>'+
+ '.rp-hc-color-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}'+
+ '.rp-hc-color-table thead th{background:#142A47!important;color:#fff!important;border-bottom:2px solid #C4A363!important}'+
+ '.rp-hc-color-table tbody td{border-bottom:1px solid #E7E1D8!important;padding:6px 8px!important;vertical-align:middle!important}'+
+ '.rp-hc-color-table tbody tr:nth-child(even) td{background:#FAF9F6}'+
+ '.rp-hc-color-table tbody tr.rp-hc-ipd td:first-child{border-left:3px solid #8FC4ED!important}'+
+ '.rp-hc-color-table tbody tr.rp-hc-surgery td:first-child{border-left:3px solid #EAA6C9!important;background:#FFF5F9!important}'+
+ '.rp-hc-color-table tbody tr.rp-hc-outpatient td:first-child{border-left:3px solid #A9A1E7!important;background:#F4F1FF!important}'+
+ '.rp-hc-color-table tbody tr.rp-hc-extra td:first-child{border-left:3px solid #97CDA7!important;background:#F0FAF1!important}'+
+ '.rp-hc-color-table tbody tr.rp-hc-premium td:first-child{border-left:3px solid #C4A363!important;background:#FFF9EC!important}'+
+ '.rp-hc-color-table tbody tr.rp-hc-total td{background:#E7F5E9!important;color:#145B35!important;font-weight:800!important;border-top:2px solid #85BB95!important}'+
+ '.rp-hc-color-table .rp-hc-pill{display:inline-block;background:#EAF4FF;color:#205A91;border:1px solid #D4E8FB;border-radius:5px;padding:3px 5px;font-weight:700;line-height:1.4;max-width:100%;box-sizing:border-box}'+
+ '.rp-hc-color-table .rp-hc-surgery .rp-hc-pill{background:#FCE5F0;color:#A92C69;border-color:#F4C8DB}'+
+ '.rp-hc-color-table .rp-hc-excluded{background:#FDE8E8!important}'+
+ '.rp-hc-color-table .rp-hc-no{color:#B42335;font-weight:700}'+
+ '.rp-hc-color-table td:first-child{text-align:left!important}'+
+ '@media print{.rp-hc-color-table tr,.rp-hc-color-table td,.rp-hc-color-table .rp-hc-pill{break-inside:avoid}}'+
+ '</style>';
+ return css+'<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table rp-hc-color-table"><thead><tr>'+
  '<th class="hc-title-col">'+productName+'</th>'+
- info.limits.map((l,i)=>'<th'+(i===selected?' class="hc-current-plan"':'')+'><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(l)+' บาท</span></th>').join('')+
+ info.limits.map((l,i)=>'<th><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(l)+' บาท</span></th>').join('')+
  '</tr></thead><tbody>'+
  tr('ทุนประกันสัญญาหลัก',Array(4).fill(state.sum))+
  info.rows.map(row=>tr(row[0],row[1].map((v,i)=>{
