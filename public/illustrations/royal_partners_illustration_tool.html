@@ -15846,7 +15846,7 @@ function build20HealthComboReportHTML(type){
  '<div class="cell"><div class="l">อายุ</div><div class="v">'+m.age+' ปี</div></div>'+
  '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">20 ปี</div></div></div>'+
  '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+(isHappy?'Health Happy':'Health Saver')+' · '+m.gender+' อายุ '+m.age+' ปี</div>'+
- healthComboTable(m)+'</div>'+
+ healthComboTable(m,type==='saver')+'</div>'+
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="AIA ผ่อน 0% นาน 4 เดือน" loading="eager" decoding="sync"></div>'+
