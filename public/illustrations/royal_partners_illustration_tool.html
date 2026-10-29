@@ -12477,7 +12477,7 @@ function build20PayLifeMedicalPageHTML(){
     if(!isHappy) return rows.map(([label,value])=>'<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>').join('');
     // One displayed shared-limit cell per contiguous benefit group, not per item.
     // These groups use the same annual plan limit; they do not each have a separate limit.
-    const merged=[{from:2,to:is25?9:7},{from:10,to:17}];
+    const merged=[{from:2,to:7},{from:10,to:17}];
     const sharedCell=(span)=>'<td rowspan="'+span+'" class="pl20-health-shared-limit"><div class="pl20-health-limit-box"><strong>'+lump+'</strong><span>ภายใต้วงเงินรวมตามแผน</span></div></td>';
     return rows.map(([label,value],i)=>{
       const group=merged.find(g=>i>=g.from&&i<=g.to);
