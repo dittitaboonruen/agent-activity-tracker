@@ -12377,11 +12377,7 @@ function build20PayLifeAllRidersHTML(data){
   const summary='<div class="pl20-rider-overview"><div class="pl20-rider-heading">สรุปสัญญาเพิ่มเติมทั้งหมดที่เลือก</div><table class="pl20-rider-overview-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุนประกันและแผนที่เลือก</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
     riders.map(r=>'<tr><td>'+riderNameTag(r.name)+'</td><td>'+escapeResourceHtml(planInfo(r))+'</td><td>'+premiumTag(r.name,r.premium)+'</td></tr>').join('')+
     '<tr class="pl20-rider-total"><td colspan="2">รวมเบี้ยสัญญาเพิ่มเติม</td><td><span class="pl20-premium-tag pl20-premium-total">'+fmt20(data.premium.riderTotal)+' บาท</span></td></tr></tbody></table></div>';
-  const others=riders.filter(r=>!healthNames.has(r.name));
-  const otherHTML=others.length?'<div class="pl20-other-riders"><div class="pl20-rider-heading">รายละเอียดความคุ้มครองเพิ่มเติม</div>'+
-    others.map(r=>'<div class="pl20-other-rider"><div><strong>'+riderNameTag(r.name)+'</strong><span>'+escapeResourceHtml(r.note||'รายละเอียดผลประโยชน์และเงื่อนไขให้ยึดเอกสารประกอบการเสนอขายของบริษัท')+'</span></div><b>'+premiumTag(r.name,r.premium)+'</b></div>').join('')+
-    '</div>':'';
-  return summary+otherHTML;
+  return summary;
 }
 
 function build20PayLifeMedicalInlineHTML(){
