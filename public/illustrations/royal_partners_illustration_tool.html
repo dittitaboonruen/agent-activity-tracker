@@ -4787,6 +4787,37 @@
     padding:4.2px 3px !important;
     height:19px !important;
   }
+  /* Excellent Plan A only: readable full-width A4 financial table.
+     Specificity + important override historical compact report rules. */
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table{
+    width:100% !important;
+    font-size:11px !important;
+    line-height:1.25 !important;
+    font-variant-numeric:tabular-nums !important;
+  }
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table th{
+    font-size:11px !important;
+    font-weight:800 !important;
+    line-height:1.25 !important;
+    padding:7px 8px !important;
+    height:auto !important;
+    color:#142A47;
+  }
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td{
+    font-size:10.5px !important;
+    font-weight:600 !important;
+    line-height:1.25 !important;
+    padding:5px 8px !important;
+    height:auto !important;
+    color:#142A47;
+  }
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td:nth-child(-n+2){text-align:center !important;}
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td:nth-child(n+3){text-align:right !important;}
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td:nth-child(3){color:#205A91 !important;}
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td:nth-child(4){color:#A92C69 !important;}
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td:nth-child(5){color:#216A44 !important;}
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only .ex-mini-table td.accent{color:#C51E55 !important;font-weight:800 !important;}
+
 
   #excellent-report-page-1 .ex-planb-table{
     font-size:7px !important;
