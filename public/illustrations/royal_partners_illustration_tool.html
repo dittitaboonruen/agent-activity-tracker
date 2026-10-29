@@ -12465,7 +12465,7 @@ function build20PayLifeMedicalPageHTML(){
       const formatBenefit=v=>typeof v==='number'?fmt20(v)+' บาท':String(v||'ตามแผนและเงื่อนไข');
       const diagnostic=String(card.diagnosticCap||'ตามแผนและเงื่อนไข');
       const diagnosticAmount=diagnostic.split(' บาท')[0];
-      const diagnosticShort=diagnosticAmount&&/^[\\d,]+$/.test(diagnosticAmount)?diagnosticAmount+' บาท':diagnostic;
+      const diagnosticShort=diagnosticAmount&&/^[\d,]+$/.test(diagnosticAmount)?diagnosticAmount+' บาท':diagnostic;
       const outpatientAccident=formatBenefit(benefit(5));
       const minorSurgery=formatBenefit(benefit(7));
       const dialysis=formatBenefit(benefit(6));
