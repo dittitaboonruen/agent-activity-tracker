@@ -8587,7 +8587,8 @@ body > .rp-sales-shell .plus-ledger table thead th *{
   text-shadow:none!important;
 }
 /* 20PL: compact in-page medical details; print and preview share one A4 layout. */
-#pay20life-report-page-1 .pl20-inline-health{margin:5px 14px 0!important;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:7px;align-items:start}
+#pay20life-report-page-1 .pl20-inline-health{margin:5px 14px 0!important;display:grid;grid-template-columns:minmax(0,1fr);gap:7px;align-items:start}
+#pay20life-report-page-1 .pl20-inline-health:has(> .pl20-inline-health-card:nth-of-type(2)){grid-template-columns:repeat(2,minmax(0,1fr))}
 #pay20life-report-page-1 .pl20-inline-health-card{min-width:0;border:1px solid #d9d2bf;background:#fffdf9;break-inside:avoid}
 #pay20life-report-page-1 .pl20-inline-health-head{display:flex;justify-content:space-between;gap:8px;background:#f4ecda;border-bottom:1px solid #d9d2bf;padding:7px 9px}
 #pay20life-report-page-1 .pl20-inline-health-name{font-weight:800;color:#142a47;font-size:10px}
