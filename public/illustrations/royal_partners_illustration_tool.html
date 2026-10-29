@@ -15724,7 +15724,7 @@ function healthComboModel(type){
 function comboDisplay(v){
  return typeof v==='number'?fmt(v):String(v??'—');
 }
-function healthComboTable(model){
+function healthComboTable(model,showSaverPlanLimits=false){
  const {info,premiums,main,selected}=model;
  const productName=info.title.includes('Happy')?'Health Happy':'Health Saver';
  const typeIsHappy=info.title==='20PL + Health Happy';
@@ -15735,7 +15735,13 @@ function healthComboTable(model){
  info.limits.map((l,i)=>'<th'+(i===selected?' class="hc-current-plan"':'')+'><span class="hc-th-plan">แผน '+(i+1)+'</span><span class="hc-th-limit">'+fmt(l)+' บาท</span></th>').join('')+
  '</tr></thead><tbody>'+
  tr('ทุนประกันสัญญาหลัก',Array(4).fill(state.sum))+
- info.rows.map(row=>tr(row[0],row[1].map((v,i)=>typeIsHappy&&v==='เหมาจ่ายตามจริง'?'เหมาจ่าย '+fmt(info.limits[i])+' บาท':v))).join('')+
+ info.rows.map(row=>tr(row[0],row[1].map((v,i)=>{
+  if(v!=='เหมาจ่ายตามจริง')return v;
+  if(typeIsHappy)return 'เหมาจ่าย '+fmt(info.limits[i])+' บาท';
+  if(showSaverPlanLimits && row[0].includes('ICU'))return 'ไม่เกิน 6 เท่าค่าห้อง ('+fmt(info.rows[0][1][i]*6)+' บาท/วัน)';
+  if(showSaverPlanLimits)return 'เหมาจ่ายภายใต้วงเงินรวม '+fmt(info.limits[i])+' บาท';
+  return v;
+ }))).join('')+
  tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
  tr('เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
  tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main?x+main.net:'ไม่รับประกัน'))+
@@ -15812,7 +15818,7 @@ function view20HealthCombo(app,type){
  compare.innerHTML=healthComboComparisonCards(model,type)+
  '<div class="hc-view hc-only-comparison"><div class="hc-heading">เปรียบเทียบความคุ้มครอง 4 แผน — '+(type==='happy'?'Health Happy':'Health Saver')+
  ' · '+model.gender+' อายุ '+model.age+' ปี</div>'+
- healthComboTable(model)+'</div>';
+ healthComboTable(model,type==='saver')+'</div>';
  panel.appendChild(compare);
  compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{
   state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();
