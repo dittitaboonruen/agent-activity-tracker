@@ -1676,6 +1676,20 @@
     padding:10px 12px;
     font-size:12px;
   }
+  /* Match the id-scoped legacy two-column !important rules, only for Plan A. */
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    width:auto !important;
+    margin:6px 12px 0 !important;
+    gap:0 !important;
+  }
+  #excellent-report-page-1 .ex-plan-grid-report.ex-plan-a-only>.ex-plan-card{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+  }
   /* Excellent Plan A: enlarge the single report table without changing Plan B. */
   .ex-report-page .ex-plan-grid-report.ex-plan-a-only{grid-template-columns:minmax(0,1fr);}
   .ex-report-page .ex-plan-a-only .ex-mini-table{width:100%;font-size:10.5px;table-layout:fixed;}
