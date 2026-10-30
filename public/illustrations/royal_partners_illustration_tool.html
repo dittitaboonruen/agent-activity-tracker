@@ -2092,6 +2092,14 @@
 
   /* ---------- CI ProCare report layout v34 ---------- */
   #ci-procare-report-page-1 .rp-page-inner{
+    /* Restore the 119.05% pre-scale width: 119.05% × 0.84 ≈ 100%.
+       A later shared 100% rule otherwise leaves an empty right strip. */
+    width:119.05% !important;
+    max-width:none !important;
+    min-height:1337px !important;
+    box-sizing:border-box !important;
+    transform:scale(0.84) !important;
+    transform-origin:top left !important;
     padding-top:0;
   }
 
