@@ -9985,6 +9985,30 @@ function buildPayLifePlusBenefitChartHTML(r,compact=false){
 }
 
 const PAYLIFE_PLUS_WPCI_GROUPS=[["กลุ่ม 1 โรคมะเร็งและเนื้องอก",["โรคมะเร็งระยะลุกลาม","เนื้องอกในสมองชนิดที่ไม่ใช่มะเร็ง"]],["กลุ่ม 2 โรคหัวใจ ระบบหายใจ และระบบไหลเวียนโลหิต",["กล้ามเนื้อหัวใจตายเฉียบพลันจากการขาดเลือด","การผ่าตัดเส้นเลือดเลี้ยงกล้ามเนื้อหัวใจ","โรคกล้ามเนื้อหัวใจ","การผ่าตัดลิ้นหัวใจโดยวิธีการเปิดหัวใจ","การผ่าตัดเส้นเลือดแดงใหญ่เอออร์ตา","โรคแรงดันในหลอดเลือดแดงปอดสูงแบบปฐมภูมิ","โรคหลอดลมปอดอุดกั้นเรื้อรังขั้นรุนแรง / โรคปอดระยะสุดท้าย","โรคโลหิตจางจากไขกระดูกไม่สร้างเม็ดโลหิต"]],["กลุ่ม 3 โรคหลอดเลือดสมอง ระบบประสาทและกล้ามเนื้อ",["โรคหลอดเลือดสมองแตกหรืออุดตัน","โรคหลอดเลือดสมองโป่งพองที่ต้องรักษาโดยการผ่าตัด","ภาวะโคม่า","โรคสมองเสื่อมชนิดอัลไซเมอร์","โรคเยื่อหุ้มสมองและไขสันหลังอักเสบจากเชื้อแบคทีเรีย","สมองอักเสบจากเชื้อไวรัส","โรคพาร์กินสัน","โรคระบบประสาทมัลติเพิลสเคลอโรซิส","โรคของเซลล์ประสาทควบคุมการเคลื่อนไหว","ภาวะอะแพลลิก","อัมพาตของกล้ามเนื้อแขนหรือขา","โรคโปลิโอ","โรคกล้ามเนื้อเสื่อม"]],["กลุ่ม 4 โรคอวัยวะและระบบการทำงานที่สำคัญของร่างกาย",["ตับวาย","ไตวายเรื้อรัง","โรคลำไส้อักเสบเป็นแผลรุนแรง","การผ่าตัดเปลี่ยนอวัยวะ หรือปลูกถ่ายไขกระดูก","โรคไวรัสตับอักเสบขั้นรุนแรง","ภาวะตับอ่อนอักเสบที่กลับเป็นซ้ำและเรื้อรัง","ไตอักเสบลูปูส จากโรคซิสเต็มมิค ลูปูส อิริเธมาโตซูส","ภาวะข้ออักเสบรูมาตอยด์ชนิดรุนแรง"]],["กลุ่ม 5 ภาวะติดเชื้อ การบาดเจ็บรุนแรง และภาวะทุพพลภาพ",["แผลไหม้ฉกรรจ์ (การเกิดแผลไหม้ระดับ 3)","การบาดเจ็บที่ศีรษะอย่างรุนแรง","การสูญเสียการดำรงชีพอย่างอิสระ","การทุพพลภาพถาวรสิ้นเชิง","ตาบอด","การฉีกขาดของรากประสาทต้นแขน","การสูญเสียความสามารถในการพูด","โรคเนื้อเยื่อพังผืดอักเสบติดเชื้อและเป็นเนื้อตาย","โรคเท้าช้าง"]],["กลุ่ม 6 โรคร้ายแรงสำหรับผู้เยาว์ (คุ้มครองถึงอายุ 16 ปี)",["โรคไข้รูมาติกที่ทำให้หัวใจผิดปกติ","โรคคาวาซากิที่ทำให้เกิดโรคแทรกซ้อนของหัวใจ","โรคเบาหวานชนิดที่ 1","โรคน้ำไขสันหลังคั่งในโพรงสมองซึ่งเกิดภายหลังและต้องใส่ท่อระบาย"]]];
+function buildWPCIAppendixHTML(){
+ const groups=PAYLIFE_PLUS_WPCI_GROUPS;
+ const total=groups.reduce((n,g)=>n+g[1].length,0);
+ const columns=[[0,2,4],[1,3,5]];
+ const block=i=>'<div class="wpci-card"><div class="wpci-name">'+escapeResourceHtml(groups[i][0])+' <small>('+groups[i][1].length+' รายการ)</small></div><ol>'+groups[i][1].map(v=>'<li>'+escapeResourceHtml(v)+'</li>').join('')+'</ol></div>';
+ return '<section class="ex-report-page rp-wpci-appendix"><style>'+
+ '.rp-wpci-appendix{position:relative;background:#fffdf8;font-family:"IBM Plex Sans Thai Looped",sans-serif;color:#142A47}'+
+ '.rp-wpci-appendix .wpci-head{padding:18px 22px 14px;background:#142A47;color:white;border-bottom:3px solid #C4A363}'+
+ '.rp-wpci-appendix .wpci-head b{font-size:19px;line-height:1.35;display:block}'+
+ '.rp-wpci-appendix .wpci-head p{font-size:11px;color:#E9E1D4;margin:5px 0 0}'+
+ '.rp-wpci-appendix .wpci-body{padding:15px 20px 12px}'+
+ '.rp-wpci-appendix .wpci-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}'+
+ '.rp-wpci-appendix .wpci-card{border:1px solid #DDE4EA;margin-bottom:10px;background:white;border-radius:6px;overflow:hidden;break-inside:avoid}'+
+ '.rp-wpci-appendix .wpci-name{padding:7px 9px;background:#EAF4FF;border-left:4px solid #C4A363;font-size:10.5px;font-weight:800;line-height:1.35}'+
+ '.rp-wpci-appendix .wpci-name small{font-size:9px;color:#647386}'+
+ '.rp-wpci-appendix ol{margin:0;padding:7px 8px 8px 26px}'+
+ '.rp-wpci-appendix li{font-size:9.3px;line-height:1.5;padding:0;margin:0 0 2px;overflow-wrap:anywhere}'+
+ '.rp-wpci-appendix .wpci-note{background:#FFF7E8;border:1px solid #E7D8B8;padding:8px 10px;margin-top:7px;font-size:9px;line-height:1.5}'+
+ '.rp-wpci-appendix .wpci-footer{position:absolute;bottom:16px;right:20px;font-size:9px;color:#667382}'+
+ '</style><div class="wpci-head"><b>WPCI · 6 หมวด '+total+' โรค/ภาวะ</b><p>ยกเว้นเบี้ยประกันภัยกรณีโรคร้ายแรง · AIA 20Pay Life Plus</p></div>'+
+ '<div class="wpci-body"><div class="wpci-columns">'+columns.map(ids=>'<div>'+ids.map(block).join('')+'</div>').join('')+'</div>'+
+ '<div class="wpci-note"><b>ข้อควรทราบ:</b> ข้อมูลนี้เป็นรายชื่อจากชุดข้อมูล WPCI ในระบบ เงื่อนไขความคุ้มครองเป็นไปตามเอกสารกรมธรรม์และคำจำกัดความของแต่ละโรค/ภาวะ หมวดที่ 6 ระบุว่าคุ้มครองถึงอายุ 16 ปี</div></div>'+
+ '<div class="wpci-footer">ROYAL PARTNERS · ภาคผนวก WPCI · 2/2</div></section>';
+}
 function buildPayLifePlusReportHTML(){
  const r=calcPayLifePlus(state.age,state.gender,state.sum,state.paylifeplus.term,state.tax);
  if(!r.ok)throw Error('กรุณาตรวจสอบอายุและทุนประกัน');
@@ -9997,7 +10021,7 @@ function buildPayLifePlusReportHTML(){
  const summary='<div class="ex-summary-row"><div class="ex-summary-box"><div class="l">เบี้ยหลัก/ปี</div><div class="v">'+fmt20(r.annual)+' บาท</div></div><div class="ex-summary-box"><div class="l">TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)</div><div class="v">'+fmt20(r.tiBenefit)+' บาท</div></div><div class="ex-summary-box"><div class="l">เบี้ยรวม '+r.term+' ปี</div><div class="v">'+fmt20(r.annual*r.term)+' บาท</div></div><div class="ex-summary-box em"><div class="l">ครบอายุ 99 ปี</div><div class="v">'+fmt20(r.maturityBenefit)+' บาท</div></div></div>';
  const table='<div class="rp-section"><div class="rp-section-title">1 ตารางชำระเบี้ยสัญญาหลัก '+r.term+' ปี</div></div><div class="plus-a4-body"><table class="plus-a4-table"><thead><tr><th>ปี</th><th>อายุ</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>ทุนคุ้มครอง</th><th>ลดหย่อนภาษี</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
  const benefits='<div class="rp-section"><div class="rp-section-title">2 ระยะเวลาคุ้มครองและภาษี</div></div><div class="plus-a4-body"><div class="plus-info-grid"><div><b>ความคุ้มครอง</b><div>ชำระเบี้ย '+r.term+' ปี • คุ้มครองถึงอายุ 99 ปี • WPCI ยกเว้นเบี้ยถึงอายุ '+r.wpciUntil+' ปี</div></div><div><b>ประมาณการลดหย่อนภาษี</b><div>'+fmt20(r.taxRelief)+' บาท/ปี ตามฐานภาษี '+Math.round(state.tax*100)+'%</div></div></div><div class="plus-footnote">หมายเหตุ: ผลประโยชน์เป็นไปตามเงื่อนไขกรมธรรม์ • ใช้ประกอบการอธิบายเท่านั้น</div><div class="plus-payment-banner"><img src="'+escapeResourceHtml(payment.imagePath)+'" alt="'+escapeResourceHtml(payment.title||'รูปแบบการชำระเงิน')+'"></div></div>';
- return '<div class="rp-report" data-report-version="'+PAYLIFE_PLUS_REPORT_VERSION+'"><div class="rp-report-pages"><section class="ex-report-page plus-report-page" id="paylifeplus-report-page-1"><div class="ex-report-inner">'+css+header+meta+summary+'<div class="plus-a4-body">'+buildPayLifePlusBenefitChartHTML(r,true)+'</div>'+table+benefits+'<div class="ex-footer-spacer"></div><div class="rp-page-number">หน้า 1 / 1 • Report v'+PAYLIFE_PLUS_REPORT_VERSION+'</div></div></section></div></div>';
+ return '<div class="rp-report" data-report-version="'+PAYLIFE_PLUS_REPORT_VERSION+'"><div class="rp-report-pages"><section class="ex-report-page plus-report-page" id="paylifeplus-report-page-1"><div class="ex-report-inner">'+css+header+meta+summary+'<div class="plus-a4-body">'+buildPayLifePlusBenefitChartHTML(r,true)+'</div>'+table+benefits+'<div class="ex-footer-spacer"></div><div class="rp-page-number">หน้า 1 / 2 • Report v'+PAYLIFE_PLUS_REPORT_VERSION+'</div></div></section>'+buildWPCIAppendixHTML()+'</div></div>';
 }
 async function downloadPayLifePlusPDF(btn){
  if(btn.dataset.busy==='1')return;
@@ -10005,8 +10029,12 @@ async function downloadPayLifePlusPDF(btn){
  if(!page||!window.jspdf?.jsPDF){alert('ไม่พบใบสรุปหรือเครื่องมือ PDF');return;}
  const old=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
  try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
- const canvas=await renderReportPageToCanvas(page);
+ const pages=[page,page.closest('.rp-report-pages')?.querySelector('.rp-wpci-appendix')].filter(Boolean);
+   for(let i=0;i<pages.length;i++){
+     if(i>0)pdf.addPage();
+     const canvas=await renderReportPageToCanvas(pages[i]);
  pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+   }
  await savePdfCrossDevice(pdf,'royal-partner-paylife-plus-'+Date.now()+'.pdf');
  }catch(err){console.error(err);alert(err?.message||'ไม่สามารถสร้าง PDF ได้');}
  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=old;}
@@ -10210,15 +10238,19 @@ function buildPlusHealthReportHTML(kind){
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
- '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
- '</div></section></div></div>';
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/2</div>'+
+ '</div></section>'+buildWPCIAppendixHTML()+'</div></div>';
 }
 async function downloadPlusHealthPDF(btn){
  if(btn.dataset.busy==='1')return;
  const page=document.getElementById('plus-health-report-page-1');
  if(!page||!window.jspdf?.jsPDF){alert('ไม่พบเอกสาร PDF');return;}
  const old=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
- try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const canvas=await renderReportPageToCanvas(page);pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');await savePdfCrossDevice(pdf,'royal-partner-plus-health-'+Date.now()+'.pdf');}
+ try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const pages=[page,page.closest('.rp-report-pages')?.querySelector('.rp-wpci-appendix')].filter(Boolean);
+   for(let i=0;i<pages.length;i++){
+     if(i>0)pdf.addPage();
+     const canvas=await renderReportPageToCanvas(pages[i]);pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+   }await savePdfCrossDevice(pdf,'royal-partner-plus-health-'+Date.now()+'.pdf');}
  catch(err){console.error(err);alert(err?.message||'สร้าง PDF ไม่สำเร็จ');}
  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=old;}
 }
