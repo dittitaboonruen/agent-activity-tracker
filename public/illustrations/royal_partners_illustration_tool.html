@@ -15578,7 +15578,7 @@ function riderControlsHTML(){
   const rs=state.paylife20.riders, op=state.paylife20.opts;
   const on=k=>rs[k]?'on':'';
   const selected=(a,b)=>a===b?'selected':'';
-  const toggle=(key,name)=>`<div class="pl20-rider-main"><div class="pl20-rider-name">${name}</div><button type="button" class="pl20-toggle ${on(key)}" data-rider-btn="${key}">${rs[key]?'มี':'ไม่มี'}</button></div>`;
+  const toggle=(key,name)=>`<div class="pl20-rider-main"><div class="pl20-rider-name">${name}</div><button type="button" class="pl20-toggle ${on(key)}" data-rider-btn="${key}">${rs[key]?'✓ เลือกแล้ว':'○ ยังไม่เลือก'}</button></div>`;
   const moneyInput=(key,value,label='ทุนประกัน')=>`<label class="pl20-num-field"><span>${label}</span><input type="text" inputmode="numeric" data-money-input="1" data-rider-opt="${key}" value="${pl20FormatMoneyInput(value)}"></label>`;
 
   return `
@@ -15699,6 +15699,15 @@ function riderControlsHTML(){
 }
 
 function wireRiderControls(box){
+  const riderForOption={"healthhappyPlan":"healthhappy","hhkidsPlan":"hhkids","hhkidsTier":"hhkids","hsPlan":"healthsaver","icPlan":"infinitecare","icTerritory":"infinitecare","mpSi":"multipayci","tpdSi":"tpd","ciplusSi":"ciplus","ctuSi":"citopup","hcUnits":"healthcancer","hcSmoker":"healthcancer","cfcUnits":"cfc","lcPlan":"ladycare","lcSi":"ladycare","aiSi":"ai","aiClass":"ai","aiRcc":"ai","addSi":"add","addClass":"add","addRcc":"add","adbSi":"adb","adbClass":"adb","adbRcc":"adb","hbDaily":"hb","hbClass":"hb","hbExtraDaily":"hbextra","hbExtraClass":"hbextra"};
+  const autoSelect=(key,value)=>{
+    const rider=riderForOption[key];
+    if(!rider)return;
+    const amounts=['mpSi','tpdSi','ciplusSi','ctuSi','lcSi','aiSi','addSi','adbSi','hbDaily','hbExtraDaily','hcUnits','cfcUnits'];
+    if(amounts.includes(key))state.paylife20.riders[rider]=Number(value)>0;
+    else state.paylife20.riders[rider]=true;
+    if(rider==='citopup'&&state.paylife20.riders.citopup)state.paylife20.riders.ciplus=true;
+  };
   box.querySelectorAll('[data-rider-btn]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const key=btn.dataset.riderBtn;
@@ -15715,6 +15724,7 @@ function wireRiderControls(box){
       const key=el.dataset.riderOpt;
       const v=pl20ParseMoneyInput(el.value);
       state.paylife20.opts[key]=v;
+      autoSelect(key,v);
       el.value=pl20FormatMoneyInput(v);
       render();
     });
@@ -15729,6 +15739,7 @@ function wireRiderControls(box){
       let v=el.type==='checkbox' ? el.checked : el.value;
       if(['healthhappyPlan','hcSmoker','hcUnits','cfcUnits','aiClass','addClass','adbClass','hhkidsPlan','hsPlan','hbClass','hbExtraClass'].includes(key)) v=parseFloat(v);
       state.paylife20.opts[key]=v;
+      autoSelect(key,v);
       render();
     });
   });
