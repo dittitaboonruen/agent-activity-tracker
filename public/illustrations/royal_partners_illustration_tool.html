@@ -4967,6 +4967,55 @@
   }
 
 
+  /* 15 Pay 25: Plan A-only full-width report, matching Excellent visual hierarchy. */
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-plan-card{
+    border:1px solid #D6DDE4 !important;
+    border-radius:6px !important;
+    background:#fff !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-plan-title{
+    background:#EAF4FF !important;
+    border-left:4px solid #4A90E2 !important;
+    color:#174B79 !important;
+    font-size:11px !important;
+    padding:8px 10px !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table{
+    font-size:9.5px !important;
+    line-height:1.25 !important;
+    font-variant-numeric:tabular-nums !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table th{
+    font-size:10px !important;
+    padding:5px 7px !important;
+    background:#F2F5F8 !important;
+    color:#142A47 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table td{
+    font-size:9.5px !important;
+    font-weight:650 !important;
+    padding:3.5px 7px !important;
+    line-height:1.2 !important;
+    color:#142A47 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table td:nth-child(3){
+    background:#EAF4FF !important;color:#205A91 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table td:nth-child(4){
+    background:#FCEEF5 !important;color:#A92C69 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table td:nth-child(5){
+    background:#E9F5EC !important;color:#216A44 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-mini-table td.accent{
+    color:#C51E55 !important;font-weight:800 !important;
+  }
+  #pay25-report-page-1 .p25-plan-grid-report.p25-plan-a-only .p25-plan-total-box{
+    border-radius:6px !important;
+  }
   /* ---------- v52: 15 Pay 25 Plan A total summary ---------- */
   #pay25-report-page-1 .p25-plan-card-stack{
     display:flex !important;
@@ -13423,16 +13472,16 @@ function buildPay25ReportHTML(){
             <div class="rp-section-title">1 ผลประโยชน์แบบ Plan A และ Plan B</div>
           </div>
 
-          <div class="p25-plan-grid-report ${state.pay25.subtab==='planB'?'rp-selected-year-layout':''}">
+          <div class="p25-plan-grid-report ${state.pay25.subtab==='planB'?'rp-selected-year-layout':'p25-plan-a-only'}">
             <div class="p25-plan-card">
               <div class="p25-plan-title">Plan A — ชำระเบี้ย 15 ปี คุ้มครองถึงปีที่ 25</div>
               ${buildPay25PlanATable(data)}
             </div>
 
-            <div class="p25-plan-card">
+            ${state.pay25.subtab==='planB'?`            <div class="p25-plan-card">
               <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU ${state.pay25.subtab==='planB'?'ปีที่ '+state.pay25.planBTerm:'ปีที่ 6–10'})</div>
               ${buildPay25PlanBTable(data)}
-            </div>
+            </div>`:''}
           </div>
 
           ${buildPay25Section2HTML(data)}
