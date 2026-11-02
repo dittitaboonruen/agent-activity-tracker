@@ -12865,7 +12865,7 @@ function build20PayLifeMedicalPageHTML(){
     if(card.key==='infinitecare'){
       // Display the selected annual plan limit only once for each contiguous
       // benefit group; these are not separate per-benefit allowances.
-      const annualLimit=String(card.limit||'').replace(/\\s*บาท\\/ปี.*$/,'').trim();
+      const annualLimit=String(card.limit||'').split(' บาท/ปี')[0].trim();
       const sharedLimitText='เหมาจ่าย '+annualLimit+' บาท';
       const sharedGroups=[{from:2,to:7},{from:10,to:17}];
       const sharedCell=(span)=>'<td rowspan="'+span+'" class="pl20-health-shared-limit"><div class="pl20-health-limit-box"><strong>'+sharedLimitText+'</strong><span>ภายใต้วงเงินรวมตามแผนและเงื่อนไข</span></div></td>';
