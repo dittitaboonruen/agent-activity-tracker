@@ -8637,6 +8637,23 @@ body:has(.rp-sales-shell){background:#f8f6f2}
 
 
 
+
+/* Annuity Fix / Sure A4: equal visual gutters and use full printable width.
+   Presentation only. Do not change values, table row count or pagination. */
+.ann-report-page.ann-report-annual-page > .ann-report-inner{width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important}
+.ann-report-annual-page .ann-report-head{width:100%!important}
+.ann-report-annual-page .ann-report-customer{width:calc(100% - 28px)!important;margin-left:14px!important;margin-right:14px!important;padding-left:0!important;padding-right:0!important}
+.ann-report-annual-page .ann-report-meta,
+.ann-report-annual-page .ann-report-summary,
+.ann-report-annual-page .ann-table-title,
+.ann-report-annual-page .ann-report-year-table,
+.ann-report-annual-page .ann-report-bottom{width:calc(100% - 28px)!important;max-width:none!important;min-width:0!important;margin-left:14px!important;margin-right:14px!important}
+.ann-report-annual-page .ann-full-year-table{width:100%!important;min-width:100%!important;max-width:none!important;table-layout:fixed!important}
+.ann-report-annual-page .ann-full-year-table th:first-child,
+.ann-report-annual-page .ann-full-year-table td:first-child{width:9%!important;text-align:center}
+.ann-report-annual-page .ann-full-year-table th:nth-child(2){width:29%!important}
+.ann-report-annual-page .ann-report-summary{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+
 /* A4 CONSISTENCY — normalize legacy generic report canvas and remove double gutters.
    Layout-only: no typography, row-height, data, calculation or pagination changes. */
 .rp-report-page > .rp-page-inner{
