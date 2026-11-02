@@ -13039,25 +13039,25 @@ function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
     </section>`;
 }
 
-function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages){
+function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kind){
   if(state.paylife20.mode!=='full') return '';
   const rs=state.paylife20.riders;
-  if(!rs.tpd&&!rs.healthcancer&&!rs.cfc) return '';
+  if(!rs[kind]) return '';
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const renewal=item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ตามอายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหม โดยเป็นไปตามเงื่อนไขและความเห็นชอบของนายทะเบียน');
-  const tpd=rs.tpd?section('AIA TPD RIDER — ทุพพลภาพถาวรสิ้นเชิง',[
+  const tpd=kind==='tpd'?section('AIA TPD RIDER — ทุพพลภาพถาวรสิ้นเชิง',[
     item('🛡️','เหตุทุพพลภาพที่ได้รับความคุ้มครอง','คุ้มครองกรณีบาดเจ็บจากอุบัติเหตุหรือเจ็บป่วยจนเป็นเหตุให้ทุพพลภาพถาวรสิ้นเชิงตามนิยามของสัญญาเพิ่มเติม'),
     item('♿','ไม่สามารถดำรงกิจวัตรหรือทำงานได้','รวมกรณีไม่สามารถปฏิบัติกิจวัตรประจำวันด้วยตนเองอย่างน้อย 3 อย่าง หรือไม่สามารถทำงานหรือประกอบอาชีพเพื่อรับค่าตอบแทน โดยต่อเนื่องอย่างน้อย <strong>180 วัน</strong> ตามเงื่อนไขสัญญา'),
     item('👁️','การสูญเสียอวัยวะหรือประสาทสัมผัส','รวมถึงการสูญเสียสายตาทั้งสองข้าง หรือการสูญเสียมือและ/หรือเท้าตามลักษณะที่กำหนดไว้ในสัญญาเพิ่มเติม'),
     renewal
   ]):'';
-  const hc=rs.healthcancer?section('AIA HEALTH CANCER',[
+  const hc=kind==='healthcancer'?section('AIA HEALTH CANCER',[
     item('🎗️','ผลประโยชน์เมื่อเสียชีวิตเนื่องจากโรคร้ายแรง','คุ้มครองกรณีเสียชีวิตจากโรคร้ายแรงตามนิยามที่กำหนด เช่น มะเร็งบางระยะ โรคโปลิโอ ปอดอุดกั้นเรื้อรังชนิดถุงลมโป่งพอง กล้ามเนื้อเสื่อม โรคระบบประสาทมัลติเพิลสเคลอโรสิส และโรคตับแข็ง'),
     item('🏥','ค่าชดเชยรายวันกรณีผู้ป่วยใน','กรณีเข้าพักรักษาตัวในโรงพยาบาลเนื่องจากโรคร้ายแรงที่คุ้มครอง จ่ายค่าชดเชยรายวันตามจำนวนหน่วยที่เลือก โดยคุ้มครองไม่เกิน <strong>500 วันตลอดอายุสัญญา</strong>'),
     renewal
   ]):'';
-  const cfc=rs.cfc?section('AIA CARE FOR CANCER',[
+  const cfc=kind==='cfc'?section('AIA CARE FOR CANCER',[
     item('💗','ค่าชดเชยรายวันเนื่องจากโรคมะเร็ง','เมื่อได้รับการวินิจฉัยว่าเป็นโรคมะเร็งที่คุ้มครองและได้รับการรักษาตามเงื่อนไข ให้ผลประโยชน์รายวันเมื่อเข้ารักษาเป็นผู้ป่วยใน และค่าชดเชยตามประเภทการรักษาเป็นผู้ป่วยนอก'),
     item('💉','การรักษาโรคมะเร็งแบบผู้ป่วยนอก','ครอบคลุมตามข้อกำหนดสำหรับเคมีบำบัด ยาออกฤทธิ์จำเพาะต่อเซลล์มะเร็ง ภูมิคุ้มกันบำบัด ฮอร์โมนบำบัด และการรักษาด้วยรังสี รวมทั้งวิธีให้ยาตามเกณฑ์ที่กำหนด'),
     item('🩻','การตรวจติดตามด้วยภาพวินิจฉัย','การตรวจ MRI, CT หรือ PET ที่เกี่ยวข้องโดยตรงกับการรักษาโรคมะเร็ง และเกิดขึ้นภายใน <strong>60 วัน</strong> ก่อนหรือหลังการวินิจฉัยหรือการรักษาที่เข้าเงื่อนไข โดยมีข้อจำกัดจำนวนครั้งและประเภทผลประโยชน์'),
@@ -13431,12 +13431,12 @@ function build20PayLifeReportHTML(){
   const hasMedical=build20PayLifeMedicalSummaryData().length>0;
   const hasCriticalIllness=state.paylife20.mode==='full'&&!!state.paylife20.riders.multipayci;
   const hasCIPlusDetails=state.paylife20.mode==='full'&&!!state.paylife20.riders.ciplus;
-  const hasOtherCriticalDetails=state.paylife20.mode==='full'&&!!(state.paylife20.riders.tpd||state.paylife20.riders.healthcancer||state.paylife20.riders.cfc);
-  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+Number(hasOtherCriticalDetails);
+  const otherCriticalKeys=state.paylife20.mode==='full'?['tpd','healthcancer','cfc'].filter(key=>!!state.paylife20.riders[key]):[];
+  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalKeys.length;
   const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages):'';
   const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(2+Number(hasMedical),totalPages):'';
   const ciPlusDetailPageHTML=hasCIPlusDetails?build20PayLifeCIPlusDetailPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness),totalPages):'';
-  const otherCriticalDetailPageHTML=hasOtherCriticalDetails?build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails),totalPages):'';
+  const otherCriticalDetailPageHTML=otherCriticalKeys.map((kind,i)=>build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+i,totalPages,kind)).join('');
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
