@@ -9001,6 +9001,25 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-ci .pl20-ci-item-body strong{font-weight:800;color:#8b5518}
 #pay20life-report-page-ci .pl20-ci-footnote{margin:1px 0 0;background:#f5f2ed;border-left:3px solid #b78e39;border-radius:10px;color:#595349;padding:9px 12px;font-size:9px;line-height:1.45}
 
+
+/* Same rounded-card presentation for CI Plus / CI Top Up detail page. */
+/* CI details: report presentation only; no premium or calculation changes. */
+#pay20life-report-page-ci-plus .ex-report-inner{width:100%;max-width:100%;box-sizing:border-box}
+#pay20life-report-page-ci-plus .pl20-ci-wrap{margin:12px 18px;display:flex;flex-direction:column;gap:10px}
+#pay20life-report-page-ci-plus .pl20-ci-heading{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #eadcc6;border-radius:16px;background:linear-gradient(115deg,#fffdf8,#f9f0e4)}
+#pay20life-report-page-ci-plus .pl20-ci-heading-icon{font-size:19px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:#ead4a1;border-radius:13px;flex:none}
+#pay20life-report-page-ci-plus .pl20-ci-heading h2{margin:0;color:#142a47;font-size:18px;line-height:1.3}
+#pay20life-report-page-ci-plus .pl20-ci-heading p{margin:3px 0 0;font-size:10px;color:#6d6050}
+#pay20life-report-page-ci-plus .pl20-ci-panel{border:1px solid #e6d9c5;border-radius:16px;padding:9px;background:#fffdf9;break-inside:avoid;box-shadow:0 2px 9px rgba(20,42,71,.04)}
+#pay20life-report-page-ci-plus .pl20-ci-panel-title{padding:9px 13px;background:linear-gradient(110deg,#142a47 0%,#1b395b 78%,#674a60 100%);color:#fff;border-radius:12px;font-size:13px;font-weight:800}
+#pay20life-report-page-ci-plus .pl20-ci-item{display:flex;gap:11px;margin-top:8px;border-radius:12px;border:1px solid #f0dfc9;background:linear-gradient(110deg,#fff9ef,#fcf0e2);padding:10px 12px;break-inside:avoid}
+#pay20life-report-page-ci-plus .pl20-ci-item-icon{font-size:17px;background:#fff0df;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex:none}
+#pay20life-report-page-ci-plus .pl20-ci-item-body{min-width:0}
+#pay20life-report-page-ci-plus .pl20-ci-item-body h3{font-size:12px;color:#142a47;margin:0 0 4px;font-weight:800}
+#pay20life-report-page-ci-plus .pl20-ci-item-body p{font-size:10px;line-height:1.52;margin:0;color:#4b4038}
+#pay20life-report-page-ci-plus .pl20-ci-item-body strong{font-weight:800;color:#8b5518}
+#pay20life-report-page-ci-plus .pl20-ci-footnote{margin:1px 0 0;background:#f5f2ed;border-left:3px solid #b78e39;border-radius:10px;color:#595349;padding:9px 12px;font-size:9px;line-height:1.45}
+
 /* 20PL Health Happy: combine repeated annual shared limits in a single readable table cell. */
 #pay20life-report-page-2 .pl20-health-benefit-table td.pl20-health-shared-limit{
   vertical-align:middle!important;text-align:center!important;
@@ -12970,6 +12989,39 @@ function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages){
     </section>`;
 }
 
+function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
+  const selected=state.paylife20.mode==='full'&&state.paylife20.riders.ciplus;
+  if(!selected) return '';
+  const hasTopUp=!!state.paylife20.riders.citopup;
+  const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
+  const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
+  const renewal=item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัยรายปีอาจมีการปรับเบี้ยในรอบปีกรมธรรม์ ตามอายุ ชั้นอาชีพ ประสบการณ์การจ่ายสินไหม และข้อกำหนดที่เกี่ยวข้อง ทั้งนี้เป็นไปตามเงื่อนไขของบริษัทและความเห็นชอบของนายทะเบียน');
+  const ciPlus=section('AIA CI PLUS',[
+    item('🩺','ผลประโยชน์เมื่อได้รับการวินิจฉัยโรคร้ายแรง','คุ้มครองโรคร้ายแรงระดับรุนแรงตามนิยามของสัญญาเพิ่มเติม เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ โดยจ่ายผลประโยชน์เพียงโรคเดียวและครั้งเดียวตลอดอายุสัญญาเพิ่มเติม'),
+    item('🛡️','กรณีเสียชีวิตและข้อจำกัดการจ่าย','มีผลประโยชน์กรณีเสียชีวิตตามที่กำหนดในสัญญาเพิ่มเติม โดยผลประโยชน์โรคร้ายแรงและกรณีเสียชีวิตจะจ่ายเพียงอย่างใดอย่างหนึ่ง ไม่ใช่วงเงินที่จ่ายเพิ่มแยกจากกัน'),
+    item('📋','เงื่อนไขความคุ้มครอง','การจ่ายผลประโยชน์ขึ้นอยู่กับคำนิยามโรคร้ายแรง ระยะเวลารอคอย และข้อยกเว้นของสัญญาเพิ่มเติม รวมถึงเงื่อนไขการยืนยันการวินิจฉัย'),
+    renewal
+  ]);
+  const topUp=hasTopUp?section('AIA CI TOP UP – CI PLUS',[
+    item('💗','โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ ว่าเป็นโรคร้ายแรงระดับต้นถึงระดับปานกลางที่กำหนดไว้ภายใต้สัญญาเพิ่มเติม AIA CI Top Up จะจ่ายผลประโยชน์ตามเงื่อนไข และบันทึกสลักหลังสิ้นผลบังคับหลังจ่ายตามที่กำหนด'),
+    item('🔗','เงื่อนไขการแนบสัญญา','สัญญาเพิ่มเติมนี้ต้องแนบกับ AIA CI Plus และเป็นความคุ้มครองส่วนเพิ่มสำหรับโรคร้ายแรงระดับต้นถึงระดับปานกลาง ไม่ใช่การเปลี่ยนแปลงวงเงินหรือเงื่อนไขของ AIA CI Plus'),
+    renewal
+  ]):'';
+  return `
+    <section class="ex-report-page" id="pay20life-report-page-ci-plus">
+      <div class="ex-report-inner">
+        <div class="rp-report-head"><div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div></div>
+        <div class="pl20-ci-wrap">
+          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true">📋</span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>สัญญาเพิ่มเติมที่เลือก • ข้อมูลทุนและเบี้ยอยู่ในหน้าสรุป</p></div></div>
+          ${ciPlus}
+          ${topUp}
+          <div class="pl20-ci-footnote">เอกสารนี้เป็นสรุปเพื่อประกอบการนำเสนอเท่านั้น มิใช่กรมธรรม์หรือเอกสารรับรองผลประโยชน์ รายละเอียดโรคที่คุ้มครอง เงื่อนไข การจ่ายผลประโยชน์ ระยะเวลารอคอย และข้อยกเว้น ให้ยึดเอกสารสัญญาเพิ่มเติมฉบับที่ใช้จริง</div>
+        </div>
+        <div class="rp-page-number">หน้า ${pageNumber} / ${totalPages} • Report v${PAY20LIFE_REPORT_VERSION}</div>
+      </div>
+    </section>`;
+}
+
 function build20PayLifeReportData(){
   const result=calc20PayLife(state.age,state.gender,state.sum,state.tax);
   const riders=state.paylife20.mode==='full' ? get20PayLifeSelectedRiders() : [];
@@ -13319,9 +13371,11 @@ function build20PayLifeReportHTML(){
 
   const hasMedical=build20PayLifeMedicalSummaryData().length>0;
   const hasCriticalIllness=state.paylife20.mode==='full'&&!!state.paylife20.riders.multipayci;
-  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness);
+  const hasCIPlusDetails=state.paylife20.mode==='full'&&!!state.paylife20.riders.ciplus;
+  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails);
   const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages):'';
-  const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(hasMedical?3:2,totalPages):'';
+  const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(2+Number(hasMedical),totalPages):'';
+  const ciPlusDetailPageHTML=hasCIPlusDetails?build20PayLifeCIPlusDetailPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness),totalPages):'';
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
@@ -13359,6 +13413,7 @@ function build20PayLifeReportHTML(){
       </section>
       ${medicalPageHTML}
       ${criticalIllnessPageHTML}
+      ${ciPlusDetailPageHTML}
     </div>
   </div>`;
 }
