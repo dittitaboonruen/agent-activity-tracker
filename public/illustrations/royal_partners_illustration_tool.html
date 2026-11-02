@@ -12862,6 +12862,19 @@ function build20PayLifeMedicalPageHTML(){
       ['ค่ารักษาผู้ป่วยนอกภายใน 30 วันหลังการรักษาตัว (สูงสุด 2 ครั้ง)',isHappy?lump:'ตามแผนและเงื่อนไข'],
       ['ค่ารักษาพยาบาลผู้ป่วยนอกทั่วไป สูงสุด 30 ครั้งต่อรอบปีกรมธรรม์',isHappy?(is25?'2,000 บาท/ครั้ง':'ไม่คุ้มครอง'):(card.opd||'ตามแผนและเงื่อนไข')]
     ];
+    if(card.key==='infinitecare'){
+      // Display the selected annual plan limit only once for each contiguous
+      // benefit group; these are not separate per-benefit allowances.
+      const annualLimit=String(card.limit||'').replace(/\\s*บาท\\/ปี.*$/,'').trim();
+      const sharedLimitText='เหมาจ่าย '+annualLimit+' บาท';
+      const sharedGroups=[{from:2,to:7},{from:10,to:17}];
+      const sharedCell=(span)=>'<td rowspan="'+span+'" class="pl20-health-shared-limit"><div class="pl20-health-limit-box"><strong>'+sharedLimitText+'</strong><span>ภายใต้วงเงินรวมตามแผนและเงื่อนไข</span></div></td>';
+      return rows.map(([label,value],i)=>{
+        const group=sharedGroups.find(g=>i>=g.from&&i<=g.to);
+        if(group) return '<tr><td>'+label+'</td>'+(i===group.from?sharedCell(group.to-group.from+1):'')+'</tr>';
+        return '<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>';
+      }).join('');
+    }
     if(!isHappy) return rows.map(([label,value])=>'<tr><td>'+label+'</td><td>'+normalize(value)+'</td></tr>').join('');
     // One displayed shared-limit cell per contiguous benefit group, not per item.
     // These groups use the same annual plan limit; they do not each have a separate limit.
