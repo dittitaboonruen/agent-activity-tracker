@@ -15285,10 +15285,12 @@ async function downloadPay25PDF(btn){
 async function download20PayLifePDF(btn){
   if(btn.dataset.busy==='1') return;
 
-  const pages=[
-    document.getElementById('pay20life-report-page-1'),
-    document.getElementById('pay20life-report-page-2')
-  ].filter(Boolean);
+  // Export every generated A4 page, not only pages 1 and 2.
+  // The 20PL report adds rider-detail pages dynamically based on selections.
+  const reportRoot=document.getElementById('pay20life-report-page-1')?.closest('.rp-report-pages');
+  const pages=reportRoot
+    ? Array.from(reportRoot.querySelectorAll(':scope > .ex-report-page'))
+    : [];
 
   if(!pages.length){
     alert('ไม่พบใบสรุป 20PL');
