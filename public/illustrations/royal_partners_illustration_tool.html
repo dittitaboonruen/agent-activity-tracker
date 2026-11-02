@@ -9037,6 +9037,12 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-ci-other .pl20-ci-item-body p{font-size:10px;line-height:1.52;margin:0;color:#4b4038}
 #pay20life-report-page-ci-other .pl20-ci-item-body strong{font-weight:800;color:#8b5518}
 #pay20life-report-page-ci-other .pl20-ci-footnote{margin:1px 0 0;background:#f5f2ed;border-left:3px solid #b78e39;border-radius:10px;color:#595349;padding:9px 12px;font-size:9px;line-height:1.45}
+/* Compact rider detail pages: remove duplicate hero and reclaim upper A4 space. */
+#pay20life-report-page-ci-other .pl20-ci-wrap{margin:6px 13px 0!important;gap:7px!important}
+#pay20life-report-page-ci-other .pl20-ci-panel{padding:7px!important;border-radius:13px!important}
+#pay20life-report-page-ci-other .pl20-ci-panel-title{padding:7px 11px!important;border-radius:9px!important}
+#pay20life-report-page-ci-other .pl20-ci-item{margin-top:6px!important;padding:8px 10px!important}
+#pay20life-report-page-ci-other .pl20-ci-footnote{padding:7px 10px!important}
 /* 20PL Health Happy: combine repeated annual shared limits in a single readable table cell. */
 #pay20life-report-page-2 .pl20-health-benefit-table td.pl20-health-shared-limit{
   vertical-align:middle!important;text-align:center!important;
@@ -13039,27 +13045,27 @@ function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
     </section>`;
 }
 
-function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kind){
+function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kinds){
   if(state.paylife20.mode!=='full') return '';
   const rs=state.paylife20.riders;
-  if(!rs[kind]) return '';
+  if(!kinds.some(key=>rs[key])) return '';
   const cancerUnits=Math.max(0,Number(state.paylife20.opts.hcUnits)||0);
   const careUnits=Math.max(0,Number(state.paylife20.opts.cfcUnits)||0);
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const renewal=item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ตามอายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหม โดยเป็นไปตามเงื่อนไขและความเห็นชอบของนายทะเบียน');
-  const tpd=kind==='tpd'?section('AIA TPD RIDER — ทุพพลภาพถาวรสิ้นเชิง',[
+  const tpd=kinds.includes('tpd')?section('AIA TPD RIDER — ทุพพลภาพถาวรสิ้นเชิง',[
     item('🛡️','เหตุทุพพลภาพที่ได้รับความคุ้มครอง','คุ้มครองกรณีบาดเจ็บจากอุบัติเหตุหรือเจ็บป่วยจนเป็นเหตุให้ทุพพลภาพถาวรสิ้นเชิงตามนิยามของสัญญาเพิ่มเติม'),
     item('♿','ไม่สามารถดำรงกิจวัตรหรือทำงานได้','รวมกรณีไม่สามารถปฏิบัติกิจวัตรประจำวันด้วยตนเองอย่างน้อย 3 อย่าง หรือไม่สามารถทำงานหรือประกอบอาชีพเพื่อรับค่าตอบแทน โดยต่อเนื่องอย่างน้อย <strong>180 วัน</strong> ตามเงื่อนไขสัญญา'),
     item('👁️','การสูญเสียอวัยวะหรือประสาทสัมผัส','รวมถึงการสูญเสียสายตาทั้งสองข้าง หรือการสูญเสียมือและ/หรือเท้าตามลักษณะที่กำหนดไว้ในสัญญาเพิ่มเติม'),
     renewal
   ]):'';
-  const hc=kind==='healthcancer'?section('AIA HEALTH CANCER',[
+  const hc=kinds.includes('healthcancer')?section('AIA HEALTH CANCER',[
     item('🎗️','ผลประโยชน์เมื่อเสียชีวิตเนื่องจากโรคร้ายแรง','คุ้มครองกรณีเสียชีวิตจากโรคร้ายแรงตามนิยามที่กำหนด เช่น มะเร็งบางระยะ โรคโปลิโอ ปอดอุดกั้นเรื้อรังชนิดถุงลมโป่งพอง กล้ามเนื้อเสื่อม โรคระบบประสาทมัลติเพิลสเคลอโรสิส และโรคตับแข็ง'),
     item('🏥','ค่าชดเชยรายวันกรณีผู้ป่วยใน','กรณีเข้าพักรักษาตัวในโรงพยาบาลเนื่องจากโรคร้ายแรงที่คุ้มครอง จ่ายค่าชดเชยรายวัน <strong>'+fmt20(cancerUnits*1000)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก โดยคุ้มครองไม่เกิน <strong>500 วันตลอดอายุสัญญา</strong>'),
     renewal
   ]):'';
-  const cfc=kind==='cfc'?section('AIA CARE FOR CANCER',[
+  const cfc=kinds.includes('cfc')?section('AIA CARE FOR CANCER',[
     item('💗','ค่าชดเชยรายวันเนื่องจากโรคมะเร็ง','เมื่อได้รับการวินิจฉัยว่าเป็นโรคมะเร็งที่คุ้มครองและได้รับการรักษาตามเงื่อนไข ให้ค่าชดเชยผู้ป่วยใน <strong>'+fmt20(careUnits*2000)+' บาท/วัน</strong> และค่าชดเชยผู้ป่วยนอกที่เข้าเงื่อนไข <strong>'+fmt20(careUnits*500)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก'),
     item('💉','การรักษาโรคมะเร็งแบบผู้ป่วยนอก','ครอบคลุมตามข้อกำหนดสำหรับเคมีบำบัด ยาออกฤทธิ์จำเพาะต่อเซลล์มะเร็ง ภูมิคุ้มกันบำบัด ฮอร์โมนบำบัด และการรักษาด้วยรังสี รวมทั้งวิธีให้ยาตามเกณฑ์ที่กำหนด'),
     item('🩻','การตรวจติดตามด้วยภาพวินิจฉัย','การตรวจ MRI, CT หรือ PET ที่เกี่ยวข้องโดยตรงกับการรักษาโรคมะเร็ง และเกิดขึ้นภายใน <strong>60 วัน</strong> ก่อนหรือหลังการวินิจฉัยหรือการรักษาที่เข้าเงื่อนไข โดยมีข้อจำกัดจำนวนครั้งและประเภทผลประโยชน์'),
@@ -13072,7 +13078,6 @@ function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kind){
     <div class="ex-report-inner">
       <div class="rp-report-head"><div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div></div>
       <div class="pl20-ci-wrap">
-        <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true">📋</span><div><h2>รายละเอียดผลประโยชน์สัญญาเพิ่มเติม</h2><p>แสดงเฉพาะแผนที่เลือก • เบี้ยและทุนประกันดูได้ในหน้าสรุป</p></div></div>
         ${tpd}
         ${hc}
         ${cfc}
@@ -13434,11 +13439,16 @@ function build20PayLifeReportHTML(){
   const hasCriticalIllness=state.paylife20.mode==='full'&&!!state.paylife20.riders.multipayci;
   const hasCIPlusDetails=state.paylife20.mode==='full'&&!!state.paylife20.riders.ciplus;
   const otherCriticalKeys=state.paylife20.mode==='full'?['tpd','healthcancer','cfc'].filter(key=>!!state.paylife20.riders[key]):[];
-  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalKeys.length;
+  // Short TPD and Health Cancer sections fit together; the longer Care for Cancer keeps its own A4 page.
+  const otherCriticalGroups=[
+    otherCriticalKeys.filter(key=>key==='tpd'||key==='healthcancer'),
+    otherCriticalKeys.filter(key=>key==='cfc')
+  ].filter(group=>group.length>0);
+  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length;
   const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages):'';
   const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(2+Number(hasMedical),totalPages):'';
   const ciPlusDetailPageHTML=hasCIPlusDetails?build20PayLifeCIPlusDetailPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness),totalPages):'';
-  const otherCriticalDetailPageHTML=otherCriticalKeys.map((kind,i)=>build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+i,totalPages,kind)).join('');
+  const otherCriticalDetailPageHTML=otherCriticalGroups.map((kinds,i)=>build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+i,totalPages,kinds)).join('');
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
