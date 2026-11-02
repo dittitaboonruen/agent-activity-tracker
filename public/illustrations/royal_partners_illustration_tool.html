@@ -8983,6 +8983,24 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note{margin:0!important;padding:3px!important;border:0!important;background:transparent!important;font-size:9px!important}
 #pay20life-report-page-2 .pl20-health-table-critical .hc-critical-illness-note ol{font-size:9px!important;line-height:1.35!important}
 #pay20life-report-page-2 .pl20-medical-note{margin:8px 10px!important;width:calc(100% - 20px)!important;box-sizing:border-box;font-size:9px!important}
+
+/* CI details: report presentation only; no premium or calculation changes. */
+#pay20life-report-page-ci .ex-report-inner{width:100%;max-width:100%;box-sizing:border-box}
+#pay20life-report-page-ci .pl20-ci-wrap{margin:12px 18px;display:flex;flex-direction:column;gap:10px}
+#pay20life-report-page-ci .pl20-ci-heading{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #eadcc6;border-radius:16px;background:linear-gradient(115deg,#fffdf8,#f9f0e4)}
+#pay20life-report-page-ci .pl20-ci-heading-icon{font-size:19px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:#ead4a1;border-radius:13px;flex:none}
+#pay20life-report-page-ci .pl20-ci-heading h2{margin:0;color:#142a47;font-size:18px;line-height:1.3}
+#pay20life-report-page-ci .pl20-ci-heading p{margin:3px 0 0;font-size:10px;color:#6d6050}
+#pay20life-report-page-ci .pl20-ci-panel{border:1px solid #e6d9c5;border-radius:16px;padding:9px;background:#fffdf9;break-inside:avoid;box-shadow:0 2px 9px rgba(20,42,71,.04)}
+#pay20life-report-page-ci .pl20-ci-panel-title{padding:9px 13px;background:linear-gradient(110deg,#142a47 0%,#1b395b 78%,#674a60 100%);color:#fff;border-radius:12px;font-size:13px;font-weight:800}
+#pay20life-report-page-ci .pl20-ci-item{display:flex;gap:11px;margin-top:8px;border-radius:12px;border:1px solid #f0dfc9;background:linear-gradient(110deg,#fff9ef,#fcf0e2);padding:10px 12px;break-inside:avoid}
+#pay20life-report-page-ci .pl20-ci-item-icon{font-size:17px;background:#fff0df;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex:none}
+#pay20life-report-page-ci .pl20-ci-item-body{min-width:0}
+#pay20life-report-page-ci .pl20-ci-item-body h3{font-size:12px;color:#142a47;margin:0 0 4px;font-weight:800}
+#pay20life-report-page-ci .pl20-ci-item-body p{font-size:10px;line-height:1.52;margin:0;color:#4b4038}
+#pay20life-report-page-ci .pl20-ci-item-body strong{font-weight:800;color:#8b5518}
+#pay20life-report-page-ci .pl20-ci-footnote{margin:1px 0 0;background:#f5f2ed;border-left:3px solid #b78e39;border-radius:10px;color:#595349;padding:9px 12px;font-size:9px;line-height:1.45}
+
 /* 20PL Health Happy: combine repeated annual shared limits in a single readable table cell. */
 #pay20life-report-page-2 .pl20-health-benefit-table td.pl20-health-shared-limit{
   vertical-align:middle!important;text-align:center!important;
@@ -12778,7 +12796,7 @@ function build20PayLifeMedicalInlineHTML(){
   '</div></div>';
 }
 
-function build20PayLifeMedicalPageHTML(){
+function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2){
   const cards=build20PayLifeMedicalSummaryData();
   if(!cards.length) return '';
   const normalize=v=>String(v||'—').replace(/เหมาจ่ายตามจริง/g,'เหมาจ่ายตามแผนที่เลือก');
@@ -12914,7 +12932,40 @@ function build20PayLifeMedicalPageHTML(){
             </div>`).join('')}
         </div>
         <div class="pl20-medical-note">สรุปนี้จัดทำเพื่อประกอบการนำเสนอเท่านั้น การจ่ายผลประโยชน์จริง ข้อยกเว้น และเงื่อนไข ให้ยึดกรมธรรม์และเอกสารของบริษัทเป็นหลัก</div>
-        <div class="rp-page-number">หน้า 2 / 2 • Report v${PAY20LIFE_REPORT_VERSION}</div>
+        <div class="rp-page-number">หน้า ${pageNumber} / ${totalPages} • Report v${PAY20LIFE_REPORT_VERSION}</div>
+      </div>
+    </section>`;
+}
+
+
+function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages){
+  // The reference provided for this detail page covers Multi-Pay CI Plus
+  // and its Total Care benefits. Other riders remain unchanged.
+  if(state.paylife20.mode!=='full'||!state.paylife20.riders.multipayci) return '';
+  const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
+  const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
+  const multipay=section('AIA MULTI-PAY CI (UNDER AIA MULTI-PAY CI PLUS)',[
+    item('🎗️','1. โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>40%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 5 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายในกลุ่มโรคเดียวกันตามเงื่อนไข'),
+    item('❤️','2. โรคร้ายแรงระดับรุนแรง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>100%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 6 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายซ้ำในกลุ่มโรคเดียวกัน'),
+    item('🔁','3. การกลับมาเป็นซ้ำของโรคร้ายแรงระดับรุนแรง (Relapsed CI)','ครอบคลุมการกลับมาเป็นซ้ำตามเงื่อนไข เช่น มะเร็งระยะลุกลามที่ยังคงอยู่ แพร่กระจาย กลับมาเป็นซ้ำ หรือเกิดชนิดใหม่ รวมถึงภาวะหัวใจและหลอดเลือดบางรายการที่กำหนด โดยมีเกณฑ์และข้อยกเว้นเฉพาะ'),
+    item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ โดยพิจารณาปัจจัย เช่น อายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหมของบริษัท ภายใต้ข้อกำหนดและการเห็นชอบที่เกี่ยวข้อง')
+  ]);
+  const totalCare=section('AIA TOTAL CARE (UNDER AIA MULTI-PAY CI PLUS)',[
+    item('🏥','1. ผลประโยชน์ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต','กรณีเจ็บป่วยหรือบาดเจ็บที่เข้าเงื่อนไข เช่น การพักรักษาในห้องผู้ป่วยวิกฤตต่อเนื่องตามระยะเวลาที่กำหนด ร่วมกับภาวะที่กำหนด เช่น การผ่าตัดใหญ่ การใช้เครื่องช่วยพยุงระบบหายใจหรือไหลเวียนโลหิต หรือภาวะล้มเหลวของอวัยวะสำคัญ'),
+    item('💗','2. ผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง','สำหรับโรคร้ายแรงที่เข้าเงื่อนไข เช่น อัลไซเมอร์ พาร์กินสัน โรคของเซลล์ประสาทควบคุมการเคลื่อนไหว กล้ามเนื้อเสื่อม ข้ออักเสบรูมาตอยด์ชนิดรุนแรง การบาดเจ็บศีรษะอย่างรุนแรง การสูญเสียการดำรงชีพอย่างอิสระ และทุพพลภาพถาวรสิ้นเชิง'),
+    item('🛡️','3. ผลประโยชน์ยกเว้นเบี้ยประกันภัย','เมื่อผู้เอาประกันภัยได้รับการวินิจฉัยตามเกณฑ์และได้รับผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง อาจได้รับการยกเว้นเบี้ยของสัญญาเพิ่มเติมนี้นับแต่วันครบรอบที่กำหนดตามเงื่อนไข')
+  ]);
+  return `
+    <section class="ex-report-page" id="pay20life-report-page-ci">
+      <div class="ex-report-inner">
+        <div class="rp-report-head"><div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div></div>
+        <div class="pl20-ci-wrap">
+          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true">📋</span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>รายละเอียดสัญญาเพิ่มเติมที่เลือก • วงเงินและเบี้ยแสดงในหน้าสรุปแล้ว</p></div></div>
+          ${multipay}
+          ${totalCare}
+          <div class="pl20-ci-footnote">สรุปเพื่อประกอบการนำเสนอเท่านั้น รายละเอียดนิยามโรค ระยะเวลารอคอย ระยะเวลาห้ามเคลม การจ่ายซ้ำ ข้อยกเว้น และการจ่ายผลประโยชน์จริง ให้ยึดกรมธรรม์และเอกสารสัญญาเพิ่มเติมของ AIA เป็นหลัก</div>
+        </div>
+        <div class="rp-page-number">หน้า ${pageNumber} / ${totalPages} • Report v${PAY20LIFE_REPORT_VERSION}</div>
       </div>
     </section>`;
 }
@@ -13266,8 +13317,11 @@ function build20PayLifeReportHTML(){
   const validation=validate20PayLifeReportData(data);
   if(!validation.ok) return `<div class="rp-report"><div class="rp-report-error">${validation.errors.join('<br>')}</div></div>`;
 
-  const medicalPageHTML=build20PayLifeMedicalPageHTML();
-  const totalPages=medicalPageHTML ? 2 : 1;
+  const hasMedical=build20PayLifeMedicalSummaryData().length>0;
+  const hasCriticalIllness=state.paylife20.mode==='full'&&!!state.paylife20.riders.multipayci;
+  const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness);
+  const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages):'';
+  const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(hasMedical?3:2,totalPages):'';
 
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
@@ -13304,6 +13358,7 @@ function build20PayLifeReportHTML(){
         </div>
       </section>
       ${medicalPageHTML}
+      ${criticalIllnessPageHTML}
     </div>
   </div>`;
 }
