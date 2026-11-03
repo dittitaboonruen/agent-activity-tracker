@@ -57,6 +57,10 @@ interface AgentMasterRow {
     | string
     | null;
 
+  jotform_agent_name:
+    | string
+    | null;
+
   active:
     | boolean
     | null;
@@ -143,7 +147,7 @@ async function loadAgentMaster(): Promise<
         "agent_master"
       )
       .select(
-        "id, agent_name, agent_nickname, active"
+        "id, agent_name, agent_nickname, jotform_agent_name, active"
       )
       .eq(
         "active",
@@ -174,6 +178,7 @@ async function loadAgentMaster(): Promise<
    รองรับการ match ด้วย:
    - agent_name
    - agent_nickname
+   - jotform_agent_name (ชื่อเดิมหลังปรับ Agent Master)
 
    ถ้าชื่อ/ชื่อเล่นซ้ำหลายคน
    จะไม่เดา agent_id ให้
@@ -248,6 +253,11 @@ function buildAgentLookup(
         agent.agent_nickname
       );
 
+    const legacyNameKey =
+      normalizeAgentKey(
+        agent.jotform_agent_name
+      );
+
     addKey(
       nameKey,
       agent.id
@@ -255,6 +265,11 @@ function buildAgentLookup(
 
     addKey(
       nicknameKey,
+      agent.id
+    );
+
+    addKey(
+      legacyNameKey,
       agent.id
     );
   }
