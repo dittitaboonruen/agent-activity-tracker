@@ -44,6 +44,7 @@ const ADMIN_ALLOWED_PATHS = [
 
 const ADMIN_ALLOWED_API_PATHS = [
   "/api/daily-production",
+  "/api/monthly-production",
   "/api/agent-master",
   "/api/dashboard-agents",
   "/api/admin/skool-import",
@@ -155,6 +156,7 @@ function isDailyProductionPath(
   pathname: string
 ) {
   return (
+    pathMatches(pathname, "/api/monthly-production") ||
     pathMatches(
       pathname,
       "/admin/production"

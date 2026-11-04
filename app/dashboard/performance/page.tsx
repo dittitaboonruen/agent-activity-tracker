@@ -20,7 +20,7 @@ import {
 
 import PageTopBar from "@/components/PageTopBar";
 import AiaMonthlyReport from "@/components/performance/AiaMonthlyReport";
-import { ReportSourceTabs } from "@/components/performance/PerformanceControls";
+import { bangkokPeriod } from "@/lib/aia-monthly";
 
 /* ------------------------------------------------------------------ */
 /* TYPES                                                               */
@@ -386,8 +386,7 @@ function countActive(
 /* PAGE                                                                */
 /* ------------------------------------------------------------------ */
 
-export default function PerformanceDashboardPage() {
-  const [reportSource, setReportSource] = useState<"daily" | "aia">("daily");
+function LegacyPerformanceDashboardPage({ onMonthly }: { onMonthly: () => void }) {
   const [reportColumns, setReportColumns] = useState("month");
   const initial =
     currentBangkokYearMonth();
@@ -1305,7 +1304,7 @@ export default function PerformanceDashboardPage() {
   /* RENDER                                                            */
   /* ---------------------------------------------------------------- */
 
-  if (reportSource === "aia") return <AiaMonthlyReport year={Number(year)} month={Number(month)} initialScope={view === "agent" ? "person" : "unit"} onDaily={() => setReportSource("daily")} onPeriodChange={(y, m) => { setYear(String(y)); setMonth(String(m).padStart(2, "0")); }} />;
+
 
   return (
     <main
@@ -1426,8 +1425,8 @@ export default function PerformanceDashboardPage() {
         }}
       >
         <PageTopBar />
-        <ReportSourceTabs aia={false} onDaily={() => {}} onAia={() => setReportSource("aia")} />
-        <div className="rp-aia-hint">แหล่งข้อมูล: บันทึกรายวัน · ยอดระหว่างเดือน ยังไม่ใช่ยอดยืนยัน AIA</div>
+        <div className="rp-performance-tabs"><button type="button" onClick={onMonthly}>← กลับรายงานรายเดือนปัจจุบัน</button></div>
+        <div className="rp-aia-hint">ข้อมูลเดิมก่อนปรับระบบ · อ่านย้อนหลังเท่านั้น · ไม่รวมเข้ากับยอดรายเดือนชุดใหม่</div>
         {view !== "rank" && <div className="rp-performance-segments" role="group" aria-label="กลุ่มคอลัมน์รายงาน" style={{ margin: "16px 0" }}>
           {(view === "agent" ? [["month", "เดือนนี้"], ["ytd", "สะสม YTD"], ["pa", "PA"], ["all", "ทุกคอลัมน์"]] : [["month", "เดือนนี้"], ["ytd", "สะสม YTD"], ["all", "ทุกคอลัมน์"]]).map(([key, label]) => <button key={key} type="button" aria-pressed={(view !== "agent" && reportColumns === "pa" ? "month" : reportColumns) === key} onClick={() => setReportColumns(key)}>{label}</button>)}
         </div>}
@@ -4691,3 +4690,10 @@ const filterStyle = {
   cursor:
     "pointer",
 };
+
+export default function PerformanceDashboardPage() {
+  const [selection, setSelection] = useState(bangkokPeriod);
+  const [legacy, setLegacy] = useState(false);
+  return legacy ? <LegacyPerformanceDashboardPage onMonthly={() => setLegacy(false)} />
+    : <AiaMonthlyReport {...selection} initialScope="person" onLegacy={() => setLegacy(true)} onPeriodChange={(year, month) => setSelection({ year, month })} />;
+}

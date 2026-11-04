@@ -11,7 +11,7 @@ const report = load(path.join(root, 'lib/aia-monthly-report.ts'));
 const entity = { entity_code: '403422', entity_name: 'ณัฐยา', nickname: null, unit_id: 1, unit_code: 'CENTRAL', unit_name: 'หน่วยกลาง' };
 const complete = () => Object.fromEntries([...Object.entries(aia.emptyAiaRow(entity)), ...aia.AIA_METRICS.map(m => [m.key, 0])]);
 
-test('empty and zero remain distinct; confirmed rows need all nine metrics', () => {
+test('empty and zero remain distinct; confirmed rows need all monthly metrics', () => {
   assert.equal(aia.parseAiaNumber('', 'lap'), null);
   assert.equal(aia.parseAiaNumber('0', 'lap'), 0);
   assert.throws(() => aia.validateAiaRows([aia.emptyAiaRow(entity)], true), /ยังไม่ได้กรอก/);
@@ -20,6 +20,8 @@ test('empty and zero remain distinct; confirmed rows need all nine metrics', () 
 test('numbers reject negatives, nonfinite, exponent syntax, excessive decimals and invalid percentages', () => {
   for (const value of ['-1', 'NaN', 'Infinity', '1e3', '1.123', '1,23', {}, true]) assert.throws(() => aia.parseAiaNumber(value, 'exp'));
   assert.throws(() => aia.parseAiaNumber('1.2', 'month_cases'));
+  for (const key of ['month_cases_submitted','month_pa_cases','ytd_pa_cases','approved_months']) assert.throws(() => aia.parseAiaNumber('1.2', key));
+  assert.throws(() => aia.parseAiaNumber('13', 'approved_months'));
   assert.throws(() => aia.parseAiaNumber('100.01', 'limra'));
   assert.equal(aia.parseAiaNumber('1,234,567.89', 'month_fyp'), 1234567.89);
   assert.equal(aia.parseAiaNumber('100', 'limra'), 100);
@@ -39,6 +41,15 @@ test('Excel paste matches codes, preserves other groups, and is atomic on invali
 });
 test('duplicate financial identities cannot be confirmed', () => {
   assert.throws(() => aia.validateAiaRows([complete(), complete()], true), /ซ้ำ/);
+});
+test('one monthly record holds submitted, approved and PA totals independently', () => {
+  const rows = aia.validateAiaRows([{ ...complete(), month_cases_submitted: 7, month_cases: 3,
+    month_fyp_submitted: 10000, month_fyp: 7000, month_pa_cases: 2, month_pa_fyp: 300,
+    ytd_pa_fyp: 1200, note: 'ยอดรวมสิงหาคม' }], true);
+  assert.equal(rows[0].month_cases_submitted, 7); assert.equal(rows[0].month_cases, 3);
+  assert.equal(rows[0].month_fyp_submitted, 10000); assert.equal(rows[0].month_fyp, 7000);
+  assert.equal(rows[0].month_pa_fyp, 300); assert.equal(rows[0].ytd_pa_fyp, 1200);
+  assert.equal(rows[0].note, 'ยอดรวมสิงหาคม');
 });
 test('daily references follow stable codes, keep YTD boundaries and do not replace AIA values', () => {
   const row = { ...complete(), month_fyp: 999, ytd_fyp: 1234 };

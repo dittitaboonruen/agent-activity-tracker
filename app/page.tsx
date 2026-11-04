@@ -42,8 +42,8 @@ const sections: ModuleSection[] = [
     items: [
       {
         icon: "📥",
-        title: "Daily Production",
-        description: "บันทึกผลงานนำส่งและอนุมัติประจำวัน",
+        title: "Monthly Production",
+        description: "กรอกยอดรวมนำส่งและอนุมัติ เดือนละครั้ง",
         href: "/admin/production",
         badge: "พร้อมใช้งาน",
       },

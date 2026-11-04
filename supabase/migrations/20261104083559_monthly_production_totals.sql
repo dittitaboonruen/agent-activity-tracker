@@ -1,0 +1,83 @@
+-- Monthly totals only. Additive upgrade; never copies or deletes legacy daily rows.
+begin;
+alter table public.aia_monthly_rows add column if not exists month_cases_submitted integer check (month_cases_submitted >= 0);
+alter table public.aia_monthly_rows add column if not exists month_fyp_submitted numeric(18,2) check (month_fyp_submitted >= 0);
+alter table public.aia_monthly_rows add column if not exists month_pa_cases integer check (month_pa_cases >= 0);
+alter table public.aia_monthly_rows add column if not exists month_pa_fyp numeric(18,2) check (month_pa_fyp >= 0);
+alter table public.aia_monthly_rows add column if not exists month_pa_fyc numeric(18,2) check (month_pa_fyc >= 0);
+alter table public.aia_monthly_rows add column if not exists ytd_pa_cases integer check (ytd_pa_cases >= 0);
+alter table public.aia_monthly_rows add column if not exists ytd_pa_fyp numeric(18,2) check (ytd_pa_fyp >= 0);
+alter table public.aia_monthly_rows add column if not exists ytd_pa_fyc numeric(18,2) check (ytd_pa_fyc >= 0);
+alter table public.aia_monthly_rows add column if not exists approved_months integer check (approved_months between 0 and 12);
+alter table public.aia_monthly_rows add column if not exists note text not null default '' check (length(note)<=2000);
+
+create or replace function public.save_aia_monthly_batch(
+  p_year integer, p_month integer, p_scope text, p_as_of_date date,
+  p_action text, p_expected_revision integer, p_rows jsonb, p_actor uuid
+) returns jsonb language plpgsql security invoker set search_path=public,pg_temp as $function$
+declare
+  b public.aia_monthly_batches%rowtype;
+  before_data jsonb;
+  after_data jsonb;
+begin
+  if p_year is null or p_year not between 2000 and 2200 or p_month is null or p_month not between 1 and 12
+     or p_scope is null or p_scope not in ('person','unit') or p_action is null or p_action not in ('draft','confirm','reopen')
+     or p_actor is null or p_as_of_date is null or p_expected_revision is null or p_expected_revision<0 then
+    raise exception 'Invalid monthly batch request' using errcode='22023';
+  end if;
+  -- Serializes initial inserts as well as updates; revision still guards stale browser tabs.
+  perform pg_advisory_xact_lock(hashtextextended('aia-monthly:'||p_year||':'||p_month||':'||p_scope,0));
+  select * into b from public.aia_monthly_batches
+    where report_year=p_year and report_month=p_month and scope=p_scope for update;
+  if coalesce(b.revision,0)<>p_expected_revision then
+    raise exception 'Monthly batch changed; reload before saving' using errcode='40001';
+  end if;
+  if b.id is not null then
+    select jsonb_build_object('batch',to_jsonb(b),'rows',coalesce(jsonb_agg(to_jsonb(r) order by r.entity_code),'[]'::jsonb))
+      into before_data from public.aia_monthly_rows r where r.batch_id=b.id;
+  end if;
+  if p_action='reopen' then
+    if b.id is null or b.status<>'confirmed' then raise exception 'Only a confirmed batch can be reopened' using errcode='55000'; end if;
+    update public.aia_monthly_batches set status='draft',confirmed_by=null,confirmed_at=null,
+      updated_by=p_actor,updated_at=now(),revision=revision+1 where id=b.id returning * into b;
+  else
+    if b.status='confirmed' then raise exception 'Reopen confirmed batch before editing' using errcode='55000'; end if;
+    if jsonb_typeof(p_rows) is distinct from 'array' then raise exception 'Rows must be an array' using errcode='22023'; end if;
+    if jsonb_array_length(p_rows) not between 1 and 2000 then raise exception 'Invalid row count' using errcode='22023'; end if;
+    if exists(select 1 from jsonb_array_elements(p_rows) x where jsonb_typeof(x)<>'object'
+      or nullif(btrim(x->>'entity_code'),'') is null or nullif(btrim(x->>'entity_name'),'') is null)
+      or (select count(distinct x->>'entity_code') from jsonb_array_elements(p_rows) x)<>jsonb_array_length(p_rows)
+      then raise exception 'Invalid or duplicate entity codes' using errcode='22023'; end if;
+    if p_action='confirm' and exists(
+      select 1 from jsonb_array_elements(p_rows) r cross join unnest(array['month_cases','month_fyp','month_fyc','ytd_cases','ytd_fyp','ytd_fyc','exp','lap','limra','month_cases_submitted','month_fyp_submitted','month_pa_cases','month_pa_fyp','month_pa_fyc','ytd_pa_cases','ytd_pa_fyp','ytd_pa_fyc']) k
+      where not (r ? k) or r->k='null'::jsonb
+    ) then raise exception 'Confirmed rows must contain all monthly production metrics' using errcode='22023'; end if;
+    if b.id is null then
+      insert into public.aia_monthly_batches(report_year,report_month,scope,as_of_date,updated_by)
+      values(p_year,p_month,p_scope,p_as_of_date,p_actor) returning * into b;
+    else
+      update public.aia_monthly_batches set revision=revision+1,updated_by=p_actor,updated_at=now(),as_of_date=p_as_of_date
+        where id=b.id returning * into b;
+    end if;
+    delete from public.aia_monthly_rows where batch_id=b.id;
+    insert into public.aia_monthly_rows(batch_id,entity_code,entity_name,nickname,unit_id,unit_code,unit_name,
+      month_cases,month_fyp,month_fyc,ytd_cases,ytd_fyp,ytd_fyc,exp,lap,limra,active_agents,month_cases_submitted,month_fyp_submitted,month_pa_cases,month_pa_fyp,month_pa_fyc,ytd_pa_cases,ytd_pa_fyp,ytd_pa_fyc,approved_months,note)
+    select b.id,x.entity_code,x.entity_name,x.nickname,x.unit_id,x.unit_code,x.unit_name,
+      x.month_cases,x.month_fyp,x.month_fyc,x.ytd_cases,x.ytd_fyp,x.ytd_fyc,x.exp,x.lap,x.limra,x.active_agents,x.month_cases_submitted,x.month_fyp_submitted,x.month_pa_cases,x.month_pa_fyp,x.month_pa_fyc,x.ytd_pa_cases,x.ytd_pa_fyp,x.ytd_pa_fyc,x.approved_months,coalesce(x.note,'')
+    from jsonb_to_recordset(p_rows) as x(entity_code text,entity_name text,nickname text,unit_id bigint,unit_code text,unit_name text,
+      month_cases integer,month_fyp numeric,month_fyc numeric,ytd_cases integer,ytd_fyp numeric,ytd_fyc numeric,exp numeric,lap numeric,limra numeric,active_agents integer,month_cases_submitted integer,month_fyp_submitted numeric,month_pa_cases integer,month_pa_fyp numeric,month_pa_fyc numeric,ytd_pa_cases integer,ytd_pa_fyp numeric,ytd_pa_fyc numeric,approved_months integer,note text);
+    update public.aia_monthly_batches set status=case when p_action='confirm' then 'confirmed' else 'draft' end,
+      confirmed_by=case when p_action='confirm' then p_actor else null end,
+      confirmed_at=case when p_action='confirm' then now() else null end
+      where id=b.id returning * into b;
+  end if;
+  select jsonb_build_object('batch',to_jsonb(b),'rows',coalesce(jsonb_agg(to_jsonb(r) order by r.entity_code),'[]'::jsonb))
+    into after_data from public.aia_monthly_rows r where r.batch_id=b.id;
+  insert into public.aia_monthly_audit(batch_id,revision,action,changed_by,before_snapshot,after_snapshot)
+    values(b.id,b.revision,p_action,p_actor,before_data,after_data);
+  return to_jsonb(b);
+end;
+$function$;
+revoke all on function public.save_aia_monthly_batch(integer,integer,text,date,text,integer,jsonb,uuid) from public,anon,authenticated;
+grant execute on function public.save_aia_monthly_batch(integer,integer,text,date,text,integer,jsonb,uuid) to service_role;
+commit;

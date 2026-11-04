@@ -5,16 +5,20 @@ const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const actor = '00000000-0000-4000-8000-000000000001';
 const row = (code = '403422') => ({ entity_code: code, entity_name: 'ณัฐยา', unit_id: 1, unit_code: 'CENTRAL', unit_name: 'หน่วยกลาง', nickname: null,
-  month_cases: 1, month_fyp: 1000, month_fyc: 300, ytd_cases: 10, ytd_fyp: 10000, ytd_fyc: 3000, exp: 10000, lap: 100, limra: 99, active_agents: null });
+  month_cases_submitted: 4, month_fyp_submitted: 3000, month_pa_cases: 2, month_pa_fyp: 200, month_pa_fyc: 40, ytd_pa_cases: 5, ytd_pa_fyp: 500, ytd_pa_fyc: 100, approved_months: 2, note: 'สรุปยอดทั้งเดือน', month_cases: 1, month_fyp: 1000, month_fyc: 300, ytd_cases: 10, ytd_fyp: 10000, ytd_fyc: 3000, exp: 10000, lap: 100, limra: 99, active_agents: null });
 test('transactional snapshots: permissions, independent scopes/months, rollback, revision conflicts, audit and reopening', async () => {
   const db = new PGlite();
   try {
     await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
-    const sql = fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261104061040_aia_monthly_snapshots.sql'), 'utf8');
+    const sql = fs.readFileSync(path.join(__dirname, '../supabase/INSTALL_MONTHLY_PRODUCTION.sql'), 'utf8');
     await db.exec(sql); await db.exec(sql); // repeat installation is safe
     const save = (scope, month, action, revision, rows) => db.query('select public.save_aia_monthly_batch($1,$2,$3,$4,$5,$6,$7::jsonb,$8::uuid) as batch', [2026, month, scope, `2026-${String(month).padStart(2,'0')}-28`, action, revision, JSON.stringify(rows), actor]);
     let result = await save('person', 8, 'confirm', 0, [row()]);
     assert.equal(result.rows[0].batch.status, 'confirmed');
+    const saved = (await db.query('select * from public.aia_monthly_rows')).rows[0];
+    assert.equal(saved.month_cases_submitted, 4); assert.equal(saved.month_fyp_submitted, '3000.00');
+    assert.equal(saved.month_pa_fyp, '200.00'); assert.equal(saved.ytd_pa_fyp, '500.00');
+    assert.equal(saved.note, 'สรุปยอดทั้งเดือน'); assert.equal(saved.approved_months, 2);
     await assert.rejects(save('person', 8, 'draft', 1, [row()]), e => e.code === '55000');
     await assert.rejects(save('person', 8, 'reopen', 0, []), e => e.code === '40001');
     result = await save('unit', 8, 'draft', 0, [{ ...row('CENTRAL'), lap: null }]);
@@ -46,5 +50,19 @@ test('transactional snapshots: permissions, independent scopes/months, rollback,
     await db.exec('reset role');
     assert.equal((await db.query("select count(*)::int n from pg_policies where tablename like 'aia_monthly_%'")).rows[0].n, 0);
     assert.equal((await db.query("select count(*)::int n from pg_class where relname in ('aia_monthly_batches','aia_monthly_rows','aia_monthly_audit') and relrowsecurity")).rows[0].n, 3);
+  } finally { await db.close(); }
+});
+
+test('upgrade keeps existing confirmed snapshots and legacy data without inventing missing totals', async () => {
+  const db = new PGlite();
+  try {
+    await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create table public.daily_production(id int primary key,amount numeric); insert into public.daily_production values(1,12345);');
+    await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261104061040_aia_monthly_snapshots.sql'),'utf8'));
+    await db.query('select public.save_aia_monthly_batch($1,$2,$3,$4,$5,$6,$7::jsonb,$8::uuid)',[2026,8,'person','2026-08-31','confirm',0,JSON.stringify([row()]),actor]);
+    await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261104083559_monthly_production_totals.sql'),'utf8'));
+    const r=(await db.query('select * from public.aia_monthly_rows')).rows[0];
+    assert.equal(r.month_fyp,'1000.00'); assert.equal(r.month_cases_submitted,null); assert.equal(r.month_pa_fyp,null);
+    assert.equal((await db.query('select status,revision from public.aia_monthly_batches')).rows[0].status,'confirmed');
+    assert.equal((await db.query('select amount from public.daily_production')).rows[0].amount,'12345');
   } finally { await db.close(); }
 });

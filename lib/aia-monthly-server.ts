@@ -7,7 +7,7 @@ import { AiaEntity, AiaScope, validateAiaRows } from "@/lib/aia-monthly";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
 const json = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
-const missingSchema = (error: { code?: string } | null) => !!error && ["42P01", "PGRST205", "PGRST202"].includes(error.code ?? "");
+const missingSchema = (error: { code?: string } | null) => !!error && ["42P01", "42703", "PGRST204", "PGRST205", "PGRST202"].includes(error.code ?? "");
 
 function period(year: unknown, month: unknown, scope: unknown) {
   const y = Number(year), m = Number(month);
@@ -36,11 +36,13 @@ export async function readAiaMonthly(request: NextRequest, area: "daily-producti
     try { selection = period(request.nextUrl.searchParams.get("year"), request.nextUrl.searchParams.get("month"), request.nextUrl.searchParams.get("scope")); }
     catch (e) { return json({ error: (e as Error).message }, 400); }
     const db = getSupabaseClient();
-    const [{ data: batch, error }, entities] = await Promise.all([
+    const [{ data: batch, error }, entities, schema] = await Promise.all([
       db.from("aia_monthly_batches").select("*").eq("report_year", selection.year).eq("report_month", selection.month).eq("scope", selection.scope).maybeSingle(),
       roster(selection.scope),
+      db.from("aia_monthly_rows").select("month_cases_submitted,month_pa_fyp,approved_months,note").limit(0),
     ]);
-    if (missingSchema(error)) return json({ configured: false, batch: null, rows: [], entities, history: [] });
+    if (missingSchema(error) || missingSchema(schema.error)) return json({ configured: false, batch: null, rows: [], entities, history: [] });
+    if (schema.error) throw schema.error;
     if (error) throw new Error("ไม่สามารถโหลดเดือนรายงานได้");
     if (!batch) return json({ configured: true, batch: null, rows: [], entities, history: [] });
     const [rowsResult, historyResult] = await Promise.all([
@@ -65,6 +67,7 @@ export async function writeAiaMonthly(request: NextRequest) {
     let body;
     try { body = await request.json(); } catch { return json({ error: "ข้อมูลที่ส่งมาไม่ถูกต้อง" }, 400); }
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "ข้อมูลที่ส่งมาไม่ถูกต้อง" }, 400);
+    if (body.schema_version !== 2) return json({ error: "หน้ากรอกเป็นเวอร์ชันเก่า กรุณารีเฟรชหน้าเว็บก่อนบันทึก" }, 409);
     let selection, rows;
     try {
       selection = period(body.year, body.month, body.scope);
@@ -74,6 +77,9 @@ export async function writeAiaMonthly(request: NextRequest) {
       rows = body.action === "reopen" ? [] : validateAiaRows(body.rows, body.action === "confirm");
     } catch (error) { return json({ error: error instanceof Error ? error.message : "ข้อมูลไม่ถูกต้อง" }, 400); }
     const db = getSupabaseClient();
+    const schema = await db.from("aia_monthly_rows").select("month_cases_submitted,month_pa_fyp,approved_months,note").limit(0);
+    if (missingSchema(schema.error)) return json({ error: "ต้องรันไฟล์ติดตั้งระบบรายเดือนฉบับล่าสุดก่อนบันทึก", code: "AIA_SETUP_REQUIRED" }, 503);
+    if (schema.error) throw schema.error;
     if (body.action !== "reopen") {
       const currentRoster = await roster(selection.scope);
       const { data: existingBatch, error: batchError } = await db.from("aia_monthly_batches").select("id").eq("report_year", selection.year).eq("report_month", selection.month).eq("scope", selection.scope).maybeSingle();

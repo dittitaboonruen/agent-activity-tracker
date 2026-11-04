@@ -7,7 +7,7 @@ const ts = require('typescript');
 const root = path.resolve(__dirname, '..');
 const accessActor = '00000000-0000-4000-8000-000000000001';
 const entity = { entity_code: '403422', entity_name: 'ณัฐยา', nickname: null, unit_id: 1, unit_code: 'CENTRAL', unit_name: 'หน่วยกลาง' };
-const complete = () => ({ ...entity, month_cases: 0, month_fyp: 0, month_fyc: 0, ytd_cases: 0, ytd_fyp: 0, ytd_fyc: 0, exp: 0, lap: 0, limra: 0, active_agents: null });
+const complete = () => ({ ...entity, month_cases_submitted: 0, month_fyp_submitted: 0, month_pa_cases: 0, month_pa_fyp: 0, month_pa_fyc: 0, ytd_pa_cases: 0, ytd_pa_fyp: 0, ytd_pa_fyc: 0, approved_months: null, note: '', month_cases: 0, month_fyp: 0, month_fyc: 0, ytd_cases: 0, ytd_fyp: 0, ytd_fyc: 0, exp: 0, lap: 0, limra: 0, active_agents: null });
 class AccessError extends Error { constructor(message, status) { super(message); this.status = status; } }
 function fixture(options = {}) {
   let calls = 0, rpc = null, area = null;
@@ -16,7 +16,7 @@ function fixture(options = {}) {
     const result = table === 'agent_master' ? { data: [{ agent_code: '403422', agent_name: 'ณัฐยา', agent_nickname: null, unit_id: 1 }] }
       : table === 'units' ? { data: [{ id: 1, unit_code: 'CENTRAL', unit_name: 'หน่วยกลาง' }] }
       : table === 'aia_monthly_batches' ? options.missing ? { data: null, error: { code: 'PGRST205' } } : { data: options.existing ? { id: 10, revision: 1, status: 'draft' } : null }
-      : table === 'aia_monthly_rows' ? { data: options.existing ? [{ ...complete(), lap: 100 }] : [] } : { data: [] };
+      : table === 'aia_monthly_rows' ? options.oldSchema ? { data: null, error: { code: '42703' } } : { data: options.existing ? [{ ...complete(), lap: 100 }] : [] } : { data: [] };
     const chain = { select() { return this; }, eq() { return this; }, order() { return this; }, limit() { return this; }, maybeSingle: async () => result, then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); } };
     return chain;
   }, async rpc(name, args) { rpc = { name, args }; return options.conflict ? { data: null, error: { code: '40001' } } : { data: { id: 10, revision: 2, status: 'draft' }, error: null }; } };
@@ -32,7 +32,7 @@ function fixture(options = {}) {
     throw Error('Unexpected import '+name);
   });
   const request = body => ({ nextUrl: new URL('https://example.org/api/daily-production/aia?year=2026&month=8&scope=person'), json: async () => body });
-  const body = overrides => ({ year: 2026, month: 8, scope: 'person', action: 'draft', revision: options.existing ? 1 : 0, as_of_date: '2026-08-31', rows: [complete()], ...overrides });
+  const body = overrides => ({ schema_version: 2, year: 2026, month: 8, scope: 'person', action: 'draft', revision: options.existing ? 1 : 0, as_of_date: '2026-08-31', rows: [complete()], ...overrides });
   return { handlers, request, body, get calls() { return calls; }, get rpc() { return rpc; }, get area() { return area; } };
 }
 test('read and write deny unauthorized users before touching service-role storage', async () => {
@@ -84,4 +84,30 @@ test('legacy monthly daily source reads past server row caps instead of truncati
   assert.equal(response.status, 200); const data = await response.json();
   assert.equal(data.rows.length, 1501); assert.equal(data.rows.reduce((s,r) => s+r.aia_fyp_approved,0),1501);
   assert.deepEqual(offsets,[0,500,1000,1500,1501]);
+});
+
+test('old nine-field schema cannot silently discard submitted totals or PA', async () => {
+  const f = fixture({ oldSchema: true });
+  const read = await f.handlers.readAiaMonthly(f.request(), 'monthly-performance');
+  assert.equal((await read.json()).configured, false);
+  const write = await f.handlers.writeAiaMonthly(f.request(f.body()));
+  assert.equal(write.status, 503); assert.equal(f.rpc, null);
+});
+
+test('stale pre-monthly clients cannot drop monthly submitted and PA fields', async () => {
+  const f = fixture(); const body = f.body(); delete body.schema_version;
+  const response = await f.handlers.writeAiaMonthly(f.request(body));
+  assert.equal(response.status, 409); assert.equal(f.rpc, null); assert.equal(f.calls, 0);
+});
+test('legacy daily writes return 410 and never obtain a database write client', async () => {
+  const file = path.join(root, 'app/api/daily-production/route.ts');
+  const m = new Module(file, module); m.filename = file; m.paths = module.paths;
+  m.require = name => {
+    if (name === 'next/server') return { NextResponse: { json: (body, opts) => Response.json(body, opts) } };
+    if (name === '@/lib/supabase') return { getSupabaseClient: () => { throw Error('Legacy write touched database'); } };
+    if (name === '@/lib/dashboard-access') return { DashboardAccessError: AccessError, getDashboardAccess: async () => ({ canSeeAll: true }) };
+    throw Error('Unexpected import '+name);
+  };
+  m._compile(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, file);
+  for (const method of ['POST','PUT','PATCH','DELETE']) assert.equal((await m.exports[method]()).status,410);
 });
