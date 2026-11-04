@@ -1,5 +1,6 @@
 import {
   NextResponse,
+  type NextRequest,
 } from "next/server";
 
 import {
@@ -37,7 +38,7 @@ function errorResponse(
   );
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     /*
       ตรวจสิทธิ์ Monthly Performance
@@ -53,40 +54,36 @@ export async function GET() {
     const supabase =
       getSupabaseClient();
 
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("daily_production")
-      .select("*")
-      .order(
-        "production_date",
-        {
-          ascending: true,
-        }
-      )
-      .order(
-        "agent_code",
-        {
-          ascending: true,
-        }
-      );
-
-    if (error) {
-      console.error(
-        "[monthly-performance] GET error:",
-        error
-      );
-
-      return errorResponse(
-        "ไม่สามารถโหลด Monthly Performance ได้",
-        500
-      );
+    const yearText = request.nextUrl.searchParams.get("year");
+    const monthText = request.nextUrl.searchParams.get("month");
+    const year = Number(yearText), month = Number(monthText || "12");
+    if ((yearText !== null && (!Number.isInteger(year) || year < 2000 || year > 2200)) ||
+        (monthText !== null && (!yearText || !Number.isInteger(month) || month < 1 || month > 12))) {
+      return errorResponse("เดือนหรือปีรายงานไม่ถูกต้อง", 400);
+    }
+    const rows: Record<string, unknown>[] = [];
+    // PostgREST caps individual responses. Read every page so YTD does not stop at 1,000 rows.
+    for (;;) {
+      let query = supabase.from("daily_production").select("*")
+        .order("production_date", { ascending: true })
+        .order("agent_code", { ascending: true }).order("agent_name", { ascending: true });
+      if (yearText) {
+        const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        query = query.gte("production_date", `${year}-01-01`)
+          .lte("production_date", `${year}-${String(month).padStart(2, "0")}-${lastDay}`);
+      }
+      const { data, error } = await query.range(rows.length, rows.length + 999);
+      if (error) {
+        console.error("[monthly-performance] GET error:", error);
+        return errorResponse("ไม่สามารถโหลด Monthly Performance ได้", 500);
+      }
+      if (!data?.length) break;
+      rows.push(...data);
     }
 
     return NextResponse.json(
       {
-        rows: data ?? [],
+        rows,
       },
       {
         headers:

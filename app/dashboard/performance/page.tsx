@@ -19,6 +19,8 @@ import {
 } from "recharts";
 
 import PageTopBar from "@/components/PageTopBar";
+import AiaMonthlyReport from "@/components/performance/AiaMonthlyReport";
+import { ReportSourceTabs } from "@/components/performance/PerformanceControls";
 
 /* ------------------------------------------------------------------ */
 /* TYPES                                                               */
@@ -385,6 +387,8 @@ function countActive(
 /* ------------------------------------------------------------------ */
 
 export default function PerformanceDashboardPage() {
+  const [reportSource, setReportSource] = useState<"daily" | "aia">("daily");
+  const [reportColumns, setReportColumns] = useState("month");
   const initial =
     currentBangkokYearMonth();
 
@@ -1301,8 +1305,12 @@ export default function PerformanceDashboardPage() {
   /* RENDER                                                            */
   /* ---------------------------------------------------------------- */
 
+  if (reportSource === "aia") return <AiaMonthlyReport year={Number(year)} month={Number(month)} initialScope={view === "agent" ? "person" : "unit"} onDaily={() => setReportSource("daily")} onPeriodChange={(y, m) => { setYear(String(y)); setMonth(String(m).padStart(2, "0")); }} />;
+
   return (
     <main
+      className="rp-daily-columns"
+      data-columns={view !== "agent" && reportColumns === "pa" ? "month" : reportColumns}
       style={{
         minHeight:
           "100vh",
@@ -1418,6 +1426,11 @@ export default function PerformanceDashboardPage() {
         }}
       >
         <PageTopBar />
+        <ReportSourceTabs aia={false} onDaily={() => {}} onAia={() => setReportSource("aia")} />
+        <div className="rp-aia-hint">แหล่งข้อมูล: บันทึกรายวัน · ยอดระหว่างเดือน ยังไม่ใช่ยอดยืนยัน AIA</div>
+        {view !== "rank" && <div className="rp-performance-segments" role="group" aria-label="กลุ่มคอลัมน์รายงาน" style={{ margin: "16px 0" }}>
+          {(view === "agent" ? [["month", "เดือนนี้"], ["ytd", "สะสม YTD"], ["pa", "PA"], ["all", "ทุกคอลัมน์"]] : [["month", "เดือนนี้"], ["ytd", "สะสม YTD"], ["all", "ทุกคอลัมน์"]]).map(([key, label]) => <button key={key} type="button" aria-pressed={(view !== "agent" && reportColumns === "pa" ? "month" : reportColumns) === key} onClick={() => setReportColumns(key)}>{label}</button>)}
+        </div>}
 
         {/* HEADER */}
 
@@ -1923,6 +1936,7 @@ export default function PerformanceDashboardPage() {
             hint="เรียงตาม FYC อนุมัติของเดือนนี้ มากไปน้อย"
           >
             <table
+              className="rp-agent-table"
               style={{
                 ...tableStyle,
 
@@ -4002,6 +4016,7 @@ function UnitTable({
 
   return (
     <table
+      className={ranked ? undefined : "rp-unit-table"}
       style={{
         ...tableStyle,
 

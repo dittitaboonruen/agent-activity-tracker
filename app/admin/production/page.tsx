@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PageTopBar from "@/components/PageTopBar";
+import MonthEndEntry from "@/components/performance/MonthEndEntry";
+import { EntryModeTabs } from "@/components/performance/PerformanceControls";
 
 type AgentMaster = {
   id?: number;
@@ -121,6 +123,8 @@ function createRowFromAgent(
 }
 
 export default function DailyProductionPage() {
+  const [monthlyMode, setMonthlyMode] = useState(false);
+  const [dailyColumns, setDailyColumns] = useState("approved");
   const [productionDate, setProductionDate] =
     useState(todayBangkok());
 
@@ -509,8 +513,12 @@ export default function DailyProductionPage() {
     }
   }
 
+  if (monthlyMode) return <MonthEndEntry onDaily={() => setMonthlyMode(false)} />;
+
   return (
     <main
+      className="rp-production-columns"
+      data-columns={dailyColumns}
       style={{
         minHeight: "100vh",
         background:
@@ -528,6 +536,11 @@ export default function DailyProductionPage() {
         }}
       >
         <PageTopBar />
+        <EntryModeTabs monthly={false} onDaily={() => {}} onMonthly={() => {
+          if (loading || deleting) return;
+          if (dirtyCount > 0 && !window.confirm("มีข้อมูลรายวันที่ยังไม่บันทึก ต้องการสลับไปปิดยอด AIA หรือไม่?")) return;
+          setMonthlyMode(true);
+        }} />
 
         {/* HEADER */}
         <div style={{ marginBottom: 24 }}>
@@ -656,6 +669,9 @@ export default function DailyProductionPage() {
         )}
 
         {/* TABLE */}
+        <div className="rp-performance-segments" role="group" aria-label="กลุ่มคอลัมน์รายวัน" style={{ marginBottom: 14 }}>
+          {[["submitted", "นำส่ง"], ["approved", "อนุมัติ"], ["pa", "PA"], ["all", "ทุกคอลัมน์"]].map(([key, label]) => <button key={key} type="button" aria-pressed={dailyColumns === key} onClick={() => setDailyColumns(key)}>{label}</button>)}
+        </div>
         <div
           style={{
             background:
@@ -675,6 +691,7 @@ export default function DailyProductionPage() {
             }}
           >
             <table
+              className="rp-production-table"
               style={{
                 width: "100%",
                 minWidth: 1700,
