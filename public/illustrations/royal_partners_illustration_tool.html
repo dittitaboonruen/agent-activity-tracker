@@ -6895,21 +6895,11 @@ tbody tr:hover td{
   box-shadow:var(--rp-shadow-sm);
 }
 
-/* High-net-worth category: navigation UI only, no live Legacy calculations yet. */
-.rp-product-card .rp-high-net-worth-group{
-  border:1px solid #b49ae5;
-  border-radius:13px;
-  background:linear-gradient(110deg,#f5efff,#eeeaff);
-  padding:10px 12px;
-  margin-top:6px;
-}
-.rp-high-net-worth-group .rp-group-icon{background:#e4d8fc;color:#663bb3}
-.rp-high-net-worth-new{border-radius:999px;background:#f5cc63;color:#4a3104;padding:3px 7px;font-size:9px}
-.rp-product-card .rp-legacy-coming-soon{border:1px solid #b390e4;color:#49326e;background:#fffdfd;opacity:1;cursor:not-allowed}
-.rp-product-card .rp-legacy-coming-soon:hover{transform:none;box-shadow:none;background:#fffdfd}
-.rp-legacy-coming-soon-note{font-size:10px;color:#775f98;align-self:center;font-weight:700}
-@media(max-width:640px){.rp-product-card .rp-high-net-worth-group{padding:10px}.rp-legacy-coming-soon-note{width:100%}}
-
+/* Legacy Prestige Plus follows the existing Royal Partner grouping system. */
+.rp-product-card .rp-high-net-worth-group{border:0;background:transparent;padding:0;margin-top:0}
+.rp-high-net-worth-group .rp-group-icon{background:#F8F6F2;color:#C4A363}
+.rp-high-net-worth-new{display:none}
+@media(max-width:640px){.rp-product-card .rp-high-net-worth-group{padding:0}}
 .rp-product-card .tab.active{
   background:linear-gradient(135deg,#182f50,#0f233f);
   color:#fff;
@@ -9270,8 +9260,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
     <div class="rp-product-group rp-high-net-worth-group">
       <div class="tabgroup-label"><span class="rp-group-icon">◆</span><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
       <div class="tabs" id="tabs-high-net-worth">
-        <button type="button" class="tab rp-legacy-coming-soon" disabled aria-disabled="true" title="AIA Legacy Prestige Plus อยู่ระหว่างตรวจสอบสูตรและข้อมูลผลประโยชน์">AIA Legacy Prestige Plus</button>
-        <span class="rp-legacy-coming-soon-note">กำลังพัฒนาระบบคำนวณ</span>
+        <!-- Filled by buildTabs(), same shared product selector as groups 1–4. -->
       </div>
     </div>
   </div>
@@ -9976,7 +9965,9 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   excellent: { subtab:'planA', planBTerm:7 },
   pay25: { subtab:'planA', planBTerm:7 },
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
-  annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' }
+  annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' },
+  legacy: { term:10, savedSum:null },
+  standardSavedSum:1000000
 };
 
 const TABS = [
@@ -9992,6 +9983,7 @@ const TABS = [
   {id:'cisupercare', label:'CI SuperCare', group:'ci'},
   {id:'annuityfix', label:'Annuity Fix', group:'retirement'},
   {id:'annuitysure', label:'Annuity Sure', group:'retirement'},
+  {id:'legacy', label:'AIA Legacy Prestige Plus', group:'high-net-worth'},
 ];
 
 function buildTabs(){
@@ -9999,6 +9991,7 @@ function buildTabs(){
   const sEl = document.getElementById('tabs-savings');
   const cEl = document.getElementById('tabs-ci');
   const rEl = document.getElementById('tabs-retirement');
+  const hEl = document.getElementById('tabs-high-net-worth');
 
   TABS.forEach(t=>{
     const b = document.createElement('button');
@@ -10007,11 +10000,25 @@ function buildTabs(){
     b.dataset.id = t.id;
     b.setAttribute('aria-pressed','false');
     b.setAttribute('aria-label',t.label);
-    b.onclick = ()=>{ state.tab = t.id; render(); };
+    b.onclick = ()=>{
+      if(t.id==='legacy' && state.tab!=='legacy'){
+        state.standardSavedSum=state.sum;
+        const remembered=state.legacy.savedSum;
+        state.sum=remembered || (state.sum>=10000000 && state.sum<=50000000 ? state.sum : 10000000);
+      }else if(t.id!=='legacy' && state.tab==='legacy'){
+        state.legacy.savedSum=state.sum;
+        state.sum=state.standardSavedSum;
+      }
+      state.tab=t.id;
+      document.getElementById('in-sum').value=formatInsuredAmount(state.sum);
+      setSumValidationUI(validateSumInsured(state.sum));
+      render();
+    };
 
     if(t.group==='life') lEl.appendChild(b);
     else if(t.group==='savings') sEl.appendChild(b);
     else if(t.group==='ci') cEl.appendChild(b);
+    else if(t.group==='high-net-worth') hEl.appendChild(b);
     else rEl.appendChild(b);
   });
 }
@@ -16607,12 +16614,93 @@ async function download20HealthComboPDF(key,btn){
  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=text;}
 }
 
+
+/* =========================================================
+ * AIA Legacy Prestige Plus — MAIN POLICY ONLY
+ * Source: uploaded AIA rate matrix / Benefits Plus 2025.
+ * Rates per THB 1,000 sum insured, columns M10,F10,M15,F15,M20,F20.
+ * No preferred-health discount, rider prices, cash values, or PDF
+ * are extrapolated from incomplete source material.
+ * ========================================================= */
+const LEGACY_PRESTIGE_RATES = [[22.13,17.19,15.37,12.66,12.67,10.92],[22.32,17.42,15.53,12.8,12.73,10.97],[22.69,17.79,15.8,12.96,12.92,10.99],[23.06,18.14,16.09,13.15,13.11,11.07],[23.45,18.52,16.39,13.36,13.32,11.19],[23.86,18.91,16.72,13.57,13.55,11.32],[24.29,19.32,17.04,13.8,13.79,11.48],[24.72,19.73,17.39,14.05,14.03,11.67],[25.2,20.27,17.76,14.32,14.3,11.86],[25.69,20.73,18.14,14.59,14.58,12.08],[26.2,21.19,18.55,14.88,14.87,12.33],[26.75,21.63,18.96,15.19,15.19,12.58],[27.3,22.08,19.4,15.49,15.51,12.83],[27.87,22.55,19.93,15.82,15.84,13.11],[28.43,23.02,20.39,16.14,16.16,13.38],[29.01,23.5,20.85,16.5,16.49,13.63],[29.6,24.02,21.29,16.85,16.83,13.88],[30.2,24.54,21.7,17.22,17.16,14.15],[30.8,25.08,22.13,17.6,17.51,14.41],[31.42,25.63,22.58,17.98,17.84,14.69],[32.06,26.2,23.02,18.39,18.2,14.98],[32.7,27.07,23.49,19.1,18.57,15.46],[33.37,27.72,23.96,19.72,18.95,15.74],[34.06,28.4,24.46,20.43,19.34,16.05],[34.78,29.11,24.97,20.9,19.76,16.39],[35.51,29.86,25.5,21.37,20.29,16.75],[36.3,30.62,26.06,21.83,20.74,17.12],[37.05,31.42,26.63,22.32,21.21,17.52],[37.85,32.12,27.25,22.83,21.68,17.92],[38.67,32.8,27.88,23.37,22.16,18.37],[39.55,33.52,28.53,23.92,22.67,18.81],[40.46,34.28,29.23,24.5,23.2,19.29],[41.41,35.07,29.95,25.1,23.78,19.79],[42.41,35.91,30.7,25.73,24.37,20.42],[43.45,36.78,31.47,26.39,24.97,20.97],[44.52,37.69,32.22,27.08,25.57,21.5],[45.66,38.65,33.0,27.8,26.2,22.07],[46.83,39.65,33.81,28.55,26.85,22.65],[48.05,40.7,34.66,29.32,27.54,23.26],[49.33,41.8,35.53,30.13,28.26,23.9],[50.57,42.93,36.45,30.99,28.99,24.57],[51.85,44.12,37.4,31.87,29.79,25.26],[53.18,45.36,38.39,32.79,30.61,26.0],[54.57,46.66,39.42,33.72,31.47,26.76],[56.0,48.01,40.49,34.65,32.38,27.5],[57.49,49.42,41.61,35.61,33.43,28.29],[59.04,50.89,42.77,36.61,34.61,29.11],[60.64,52.35,43.98,37.66,35.82,29.99],[62.3,53.83,45.25,38.75,37.12,30.9],[64.02,55.37,46.56,39.89,38.27,31.86],[65.8,56.97,47.88,41.09,39.45,32.87],[67.65,58.64,49.15,42.34,40.6,34.0],[69.58,60.38,50.47,43.65,41.81,35.34],[71.58,62.2,51.86,45.02,43.1,36.76],[73.53,64.09,53.32,46.47,44.47,38.15],[75.43,66.06,54.86,47.94,45.93,39.49],[77.42,68.12,56.5,49.35,47.5,40.78],[79.5,70.26,58.22,50.82,49.2,42.17],[81.68,72.51,60.07,52.39,51.01,43.66],[83.96,74.58,61.25,54.05,52.31,45.26],[86.36,76.71,62.37,55.82,53.59,47.0],[88.9,78.96,63.29,57.72,54.9,48.88],[91.58,81.32,64.56,59.77,56.25,50.92],[94.41,83.83,65.68,61.97,57.62,53.16],[95.3,86.5,66.79,63.51,59.04,55.01],[97.8,89.34,67.89,64.96,60.48,56.64],[105.34,92.4,73.82,67.82,64.4,59.87],[107.98,95.66,77.1,69.94,68.7,63.41],[111.16,99.6,83.29,73.46,71.02,67.29],[114.97,103.09,89.31,79.36,82.39,70.15],[119.38,106.56,94.16,82.41,87.49,73.03],[123.85,110.78,99.22,86.98,93.04,77.69],[128.31,115.83,104.93,91.92,97.97,82.76],[134.4,121.23,111.11,97.27,104.45,88.3],[139.55,127.0,117.8,104.06,111.47,94.32],[146.47,133.17,125.01,110.4,119.05,99.74]];
+function calcLegacyPrestige(age,gender,sum,term,tax){
+  if(!Number.isInteger(age) || age<0 || age>75 ||
+     !Number.isFinite(sum) || sum<10000000 || sum>1000000000 ||
+     ![10,15,20].includes(term) || !['ชาย','หญิง'].includes(gender)){
+    return {ok:false,message:'กรุณากรอกอายุ 0–75 ปี และทุนประกัน 10–1,000 ล้านบาท'};
+  }
+  const column=({10:0,15:2,20:4})[term]+(gender==='ชาย'?0:1);
+  const rate=LEGACY_PRESTIGE_RATES[age]?.[column];
+  if(!Number.isFinite(rate)||rate<=0)return {ok:false,message:'ไม่มีอัตราเบี้ยประกันสำหรับข้อมูลที่เลือก'};
+  const annual=rate*(sum/1000);
+  const maxYears=99-age;
+  const rows=Array.from({length:maxYears},(_,idx)=>{
+    const year=idx+1;
+    const premium=year<=term?annual:0;
+    return {year,age:age+year,premium,paid:Math.min(year,term)*annual,coverage:sum,
+      taxRelief:year<=term?Math.min(annual,100000)*tax:0};
+  });
+  return {ok:true,annual,term,rate,rows,taxRelief:Math.min(annual,100000)*tax,
+    wpciUntil:Math.min(age+term,80),sum};
+}
+function viewLegacyPrestige(app){
+  const term=state.legacy.term;
+  const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
+  app.innerHTML=panelShell('life','AIA Legacy Prestige Plus',
+    'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • ข้อมูลเบี้ยมาตรฐานก่อนส่วนลดสุขภาพ');
+  const panel=app.querySelector('.panel');
+  const controls=document.createElement('div');
+  controls.className='pl20-rider-wrap plus-term-panel';
+  controls.innerHTML='<label for="legacy-term" style="display:block;margin-bottom:8px;font-weight:700">ระยะเวลาชำระเบี้ยประกัน</label>'+
+    '<select id="legacy-term" style="max-width:280px;width:100%;padding:10px;border:1px solid #d9d2bf;border-radius:8px">'+
+    [10,15,20].map(n=>'<option value="'+n+'" '+(n===term?'selected':'')+'>'+n+' ปี</option>').join('')+'</select>';
+  panel.appendChild(controls);
+  controls.querySelector('#legacy-term').addEventListener('change',e=>{
+    state.legacy.term=Number(e.target.value);
+    render();
+  });
+  if(!r.ok){
+    const note=document.createElement('div');
+    note.className='ledger-wrap';
+    note.textContent=r.message;
+    panel.appendChild(note);
+    return;
+  }
+  fillSummary(app,[
+    {lbl:'เบี้ยประกันภัยหลักต่อปี (ก่อนส่วนลด)',val:fmt(r.annual)},
+    {lbl:'ระยะเวลาชำระเบี้ย',val:r.term+' ปี'},
+    {lbl:'จำนวนเงินเอาประกันภัย',val:fmt(r.sum)},
+    {lbl:'ประมาณการประหยัดภาษีต่อปี (ตามฐานภาษี)',val:fmt(r.taxRelief)}
+  ]);
+  const note=document.createElement('div');
+  note.className='ledger-wrap';
+  note.style.cssText='font-size:12px;line-height:1.7;padding:14px 18px';
+  note.textContent='ผลคำนวณนี้เป็นเบี้ยมาตรฐานของแบบประกันหลักเท่านั้น ไม่รวมส่วนลดสุขภาพ เบี้ยเพิ่ม และสัญญาเพิ่มเติม • WPCI เป็นไปตามเงื่อนไขและวงเงินที่บริษัทอนุมัติ • TI อาจจ่ายล่วงหน้าได้สูงสุด 90% ตามเงื่อนไขกรมธรรม์ • จำนวนทุนในตารางไม่ใช่มูลค่าเวนคืนหรือผลประโยชน์กรณีเสียชีวิตที่ปรับตามเหตุการณ์พิเศษ';
+  panel.appendChild(note);
+  const table=document.createElement('div');
+  table.className='ledger-wrap';
+  table.innerHTML='<h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div>';
+  panel.appendChild(table);
+  renderLedger(table.querySelector('.ledger-el'),r.rows,[
+    {key:'year',label:'ปีกรมธรรม์'},
+    {key:'age',label:'อายุสิ้นปี'},
+    {key:'premium',label:'เบี้ยหลัก/ปี'},
+    {key:'paid',label:'เบี้ยหลักสะสม'},
+    {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
+  ]);
+  const footer=document.createElement('div');
+  footer.className='ledger-wrap';
+  footer.style.cssText='font-size:12px;padding:12px 18px;color:#75694d';
+  footer.textContent='ตารางมูลค่าเวนคืนและรายงาน PDF ของผลิตภัณฑ์นี้ยังไม่เปิดใช้งาน เนื่องจากเอกสารต้นทางมีตัวอย่างมูลค่าเวนคืนเพียงกรณีเฉพาะ ไม่สามารถนำไปใช้แทนทุกอายุและเพศได้';
+  panel.appendChild(footer);
+}
+
 /* ===================== main render ===================== */
 function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacy:viewLegacyPrestige };
   map[state.tab](app);
 }
 
@@ -16624,12 +16712,14 @@ function validateSumInsured(value){
     return {ok:false, message:'กรุณากรอกทุนประกันเป็นตัวเลข'};
   }
 
-  if(numericValue < SUM_INSURED_MIN){
-    return {ok:false, message:'ทุนประกันขั้นต่ำ 100,000 บาท'};
+  const minimum=state.tab==='legacy'?10000000:SUM_INSURED_MIN;
+  const maximum=state.tab==='legacy'?1000000000:SUM_INSURED_MAX;
+  if(numericValue < minimum){
+    return {ok:false, message:state.tab==='legacy'?'ทุนประกันขั้นต่ำ 10,000,000 บาท':'ทุนประกันขั้นต่ำ 100,000 บาท'};
   }
 
-  if(numericValue > SUM_INSURED_MAX){
-    return {ok:false, message:'ทุนประกันสูงสุด 50,000,000 บาท'};
+  if(numericValue > maximum){
+    return {ok:false, message:state.tab==='legacy'?'ทุนประกันสูงสุด 1,000,000,000 บาท':'ทุนประกันสูงสุด 50,000,000 บาท'};
   }
 
   return {ok:true, message:''};
