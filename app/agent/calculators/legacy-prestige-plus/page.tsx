@@ -179,6 +179,7 @@ export default function App() {
   const [tiPct, setTiPct] = useState(90);
   const [showCv, setShowCv] = useState(true);
   const [showWpci, setShowWpci] = useState(false);
+  const [showFullReport, setShowFullReport] = useState(false);
   const [taxR, setTaxR] = useState(0.10);
 
   const [hhWant, setHhWant] = useState(false);
@@ -215,6 +216,10 @@ export default function App() {
   const grandTotal = main + hh + mp.total + hhk + tpdP + ic + cip;
   const displayedTotal = main;
   const taxDeduct = Math.min(main, 100000) * taxR;
+  const wpciEndAge = Math.min(clampedAge + term, 80);
+  const coverageYears = Math.max(1, 99 - clampedAge);
+  const payYears = Math.min(term, coverageYears);
+  const percent=(agePoint)=> Math.max(0, Math.min(100, ((agePoint-clampedAge)/coverageYears)*100));
 
   const riderRows = [
     {
@@ -261,24 +266,21 @@ export default function App() {
         input[type=number]::-webkit-inner-spin-button { opacity: 1; }
       `}</style>
 
-      <div style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", borderBottom: "1px solid #E2DCC8", background: "#fff" }}>
-        <span style={{ display: "inline-block", background: TEAL, color: "#fff", fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 6 }}>
-          AIA Legacy Prestige Plus (Non Par)
-        </span>
-        <span style={{ fontSize: 13, color: "#6b7280" }}>เอไอเอ เลกาซี เพรสทีจ พลัส จ่าย 10 / 15 / 20 ปี คุ้มครองตลอดชีพ — ทุน 10 ล้านบาทขึ้นไป</span>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 13, color: "#6b7280" }}>Royal Partners — Sandbox สำหรับทดสอบ</span>
-      </div>
-
       <div style={{maxWidth:1180,margin:"16px auto 0",padding:"0 24px"}}>
-        <a href="/agent/calculators" style={{fontSize:13,color:"#1F3A4D",textDecoration:"none",fontWeight:700}}>← กลับ Insurance Calculator</a>
+        <div style={{fontSize:12,color:"#9B7A35",fontWeight:800,letterSpacing:1}}>ROYAL PARTNER · SELECTED PLAN / SANDBOX</div>
         <div role="status" style={{marginTop:12,padding:"14px 18px",background:"#fff4d8",color:"#704713",border:"2px solid #d4a946",borderRadius:12,fontFamily:"'IBM Plex Sans Thai',sans-serif",fontSize:13,lineHeight:1.65}}>
           <strong>โหมดทดสอบ (Preview / UAT) — ไม่ใช้เสนอขายหรือออกใบเสนอราคา</strong>
           <div>ใช้ตารางเบี้ย Standard Rate ที่ถอดจาก Benefit Plus 2025 ส่วน Preferred Rate, ตารางมูลค่าเวนคืนครบทุกกรณี, Paid-up และเงื่อนไขผลประโยชน์ยังต้องตรวจสอบกับเอกสารทางการ</div>
-          <div>ในรอบนี้ไม่ได้เชื่อมรายงาน A4/PDF และไม่ได้แก้สูตรประกันของแบบอื่น</div>
+          <div>ใบสรุป A4 ใช้ตรวจรูปแบบเท่านั้น ยังไม่รองรับดาวน์โหลด PDF และไม่ได้แก้สูตรประกันของแบบอื่น</div>
         </div>
       </div>
       <div style={{ padding: "22px 24px 60px", maxWidth: 1180, margin: "0 auto" }}>
+        <section style={{background:"#fffdf8",border:"1px solid #E2D5B8",borderRadius:20,padding:"18px 22px",marginBottom:16,boxShadow:"0 3px 15px rgba(20,42,71,.05)"}}>
+          <div style={{fontSize:10,fontWeight:800,letterSpacing:"1.4px",color:"#AE8A41"}}>SELECTED PLAN</div>
+          <h2 style={{fontFamily:"'Noto Serif Thai',serif",fontSize:23,margin:"6px 0",color:"#142A47"}}>AIA Legacy Prestige Plus</h2>
+          <p style={{fontSize:12,margin:0,color:"#645E51"}}>แบบประกันสำหรับการวางแผนส่งต่อความมั่งคั่ง • ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี</p>
+          <span style={{display:"inline-block",marginTop:10,padding:"5px 10px",borderRadius:999,background:"#FFF1D1",color:"#7D5412",fontSize:11,fontWeight:800}}>กำลังทดสอบสูตร · ไม่ใช้เสนอขาย</span>
+        </section>
         {/* inputs */}
         <div style={{ background: CARD_BG, borderRadius: 10, padding: "18px 20px", display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
           <Field label="อายุ (0 = แรกเกิด/15วัน)">
@@ -352,6 +354,46 @@ export default function App() {
             <div style={{ fontSize: 18, fontWeight: 700, color: GREEN }}>{Math.min(clampedAge + term, 80)} ปี</div>
             <div onClick={() => setShowWpci(!showWpci)} style={{ fontSize: 12, color: TEAL, cursor: "pointer", textDecoration: "underline", marginTop: 2 }}>{showWpci ? "ซ่อนรายชื่อโรค" : "ดูรายชื่อโรคร้ายแรง 44 โรค"}</div>
           </div>
+        </div>
+
+
+        {/* Legacy coverage timeline — a conceptual diagram, not calculated policy value */}
+        <section style={{border:"1px solid #e2d4b8",borderRadius:18,background:"#fffdf8",padding:"16px 20px",marginBottom:18,boxShadow:"0 3px 15px rgba(20,42,71,.05)"}}>
+          <div style={{fontSize:10,color:"#b08d47",fontWeight:800,letterSpacing:1.4}}>BENEFIT TIMELINE</div>
+          <h3 style={{fontSize:17,color:"#142a47",margin:"4px 0 10px"}}>ภาพรวมระยะความคุ้มครอง</h3>
+          <p style={{fontSize:11,color:"#766a55",margin:"0 0 14px"}}>แผนภาพช่วงเวลาตามอายุและระยะชำระเบี้ยที่เลือก ไม่ใช่ตารางมูลค่าเวนคืนหรือคำรับรองผลประโยชน์</p>
+          {[
+            {label:"WPCI · ยกเว้นเบี้ยกรณีโรคร้ายแรง",end:wpciEndAge,color:"#A98B4B",note:"ถึงอายุ "+wpciEndAge+" ปี (ตามเงื่อนไข)"},
+            {label:"TI · เจ็บป่วยระยะสุดท้าย",end:99,color:"#777568",note:"ถึงอายุ 99 ปี (ตามเงื่อนไข)"},
+            {label:"คุ้มครองชีวิต",end:99,color:"#142a47",note:"ถึงอายุ 99 ปี"},
+          ].map((bar)=>(
+            <div key={bar.label} style={{margin:"10px 0"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:10,fontSize:11,fontWeight:700,color:"#27374c",marginBottom:5}}>
+                <span>{bar.label}</span><span style={{color:"#887552",fontWeight:500}}>{bar.note}</span>
+              </div>
+              <div style={{height:24,background:"#EEE9DE",borderRadius:7,overflow:"hidden"}}>
+                <div style={{width:percent(bar.end)+"%",height:"100%",background:bar.color,borderRadius:7,minWidth:6}}/>
+              </div>
+            </div>
+          ))}
+          <div style={{marginTop:15,borderRadius:11,background:"#F5F1E8",padding:"11px 12px"}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#142a47",marginBottom:8}}>ปีกรมธรรม์ / ระยะเวลาชำระเบี้ย</div>
+            <div style={{display:"flex",gap:3}}>
+              {Array.from({length:Math.min(20,term)},(_,i)=>(
+                <div key={i} style={{flex:1,textAlign:"center",background:"#A98B4B",color:"#fff",padding:"6px 0",borderRadius:4,fontSize:10,fontWeight:800}}>{i+1}</div>
+              ))}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",marginTop:7,fontSize:11,color:"#655C4E"}}>
+              <span>เริ่มอายุ {clampedAge} ปี</span>
+              <span>ชำระเบี้ย {term} ปี</span>
+              <span>คุ้มครองถึงอายุ 99 ปี</span>
+            </div>
+          </div>
+        </section>
+        <div style={{display:"flex",justifyContent:"flex-end",marginBottom:18}}>
+          <button type="button" onClick={()=>setShowFullReport(true)} style={{background:"#142a47",color:"#fff",border:"1px solid #C8A151",borderRadius:12,padding:"13px 20px",fontWeight:800,cursor:"pointer",fontSize:13}}>
+            ดูใบสรุปฉบับเต็ม (A4 Preview)
+          </button>
         </div>
 
         {showWpci && (
@@ -435,6 +477,46 @@ export default function App() {
           ตัวเลขจากต้นแบบทดสอบเท่านั้น ไม่ใช่ใบเสนอราคาหรือเอกสารรับรองผลประโยชน์ ต้องตรวจสอบตารางและเงื่อนไขทางการก่อนใช้งานจริง
         </div>
       </div>
+
+      {showFullReport && (
+        <div role="dialog" aria-modal="true" aria-label="ใบสรุป AIA Legacy Prestige Plus" style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(7,18,34,.84)",overflowY:"auto",padding:"24px 12px"}}>
+          <div style={{maxWidth:820,margin:"0 auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:12}}>
+              <div style={{fontSize:13,color:"#fff",fontWeight:800}}>ใบสรุปฉบับเต็ม · ตัวอย่าง A4</div>
+              <button type="button" onClick={()=>setShowFullReport(false)} style={{background:"#fff",color:"#142A47",fontSize:12,padding:"10px 17px",borderRadius:10,border:0,cursor:"pointer",fontWeight:800}}>ปิดใบสรุป ✕</button>
+            </div>
+            <article style={{background:"#fffdf8",minHeight:960,boxShadow:"0 20px 60px rgba(0,0,0,.3)",padding:25,color:"#152b46",borderRadius:5}}>
+              <header style={{background:"#142a47",padding:"22px 25px",color:"#fff",borderBottom:"4px solid #C9A45E"}}>
+                <div style={{fontSize:11,color:"#e6c88a"}}>ROYAL PARTNER · LEGACY PLAN</div>
+                <h2 style={{fontSize:24,margin:"6px 0"}}>AIA Legacy Prestige Plus</h2>
+                <div style={{fontSize:11}}>สรุปตัวอย่างเพื่อทดสอบระบบ · ยังไม่ใช่เอกสารประกอบการขาย</div>
+              </header>
+              <div style={{marginTop:17,display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}>
+                {[
+                  ["อายุ / เพศ",clampedAge+" ปี / "+gender],
+                  ["ระยะชำระเบี้ย",term+" ปี"],
+                  ["ทุนประกันหลัก",fmt(sumIns)+" บาท"],
+                  ["เบี้ยหลักมาตรฐาน / ปี",fmt(main)+" บาท"],
+                  ["จำนวนเบี้ยที่ชำระ (ตามระยะ)",fmt(main*term)+" บาท (ประมาณการ)"],
+                  ["TI (ตามสัดส่วนที่เลือก)",fmt(sumIns*tiPct/100)+" บาท — เพดานตัวอย่าง"],
+                ].map(([label,value])=><div key={label} style={{padding:"13px",background:"#F7F0E3",borderRadius:11,border:"1px solid #e4d7bd"}}><div style={{fontSize:11,color:"#6A5F4D"}}>{label}</div><div style={{fontWeight:800,marginTop:4,fontSize:14}}>{value}</div></div>)}
+              </div>
+              <section style={{marginTop:20}}>
+                <h3 style={{fontSize:16,borderBottom:"2px solid #c9a45e",paddingBottom:8}}>ภาพรวมผลประโยชน์</h3>
+                <div style={{fontSize:12,lineHeight:2.1}}>
+                  <div>• ความคุ้มครองชีวิตตามนิยามสัญญาเพิ่มเติม ถึงอายุ 99 ปี</div>
+                  <div>• WPCI ยกเว้นเบี้ยเมื่อเข้าเงื่อนไขโรคร้ายแรง — คุ้มครองถึงอายุ {wpciEndAge} ปี</div>
+                  <div>• TI เจ็บป่วยระยะสุดท้าย — ภายใต้เงื่อนไขของสัญญา</div>
+                  <div>• มูลค่าเวนคืนและมูลค่าใช้เงินสำเร็จ: ยังไม่มีตารางที่ผ่านการตรวจครบทุกกรณี</div>
+                </div>
+              </section>
+              <div style={{marginTop:24,padding:15,background:"#fff0d8",borderLeft:"4px solid #c69b50",fontSize:11,lineHeight:1.8}}>
+                <strong>UAT ONLY — NOT FOR SALES</strong><div>อัตราเบี้ยมาตรฐานอยู่ระหว่างตรวจสอบกับ Benefit Plus; Preferred Rate, มูลค่าเวนคืน, Paid-up และการจ่ายผลประโยชน์จริงยังไม่ผ่าน QA ครบถ้วน รายงานนี้ไม่มีการรับรองจากบริษัทประกัน</div>
+              </div>
+            </article>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
