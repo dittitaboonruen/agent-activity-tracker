@@ -6895,6 +6895,11 @@ tbody tr:hover td{
   box-shadow:var(--rp-shadow-sm);
 }
 
+/* Legacy UAT renders under the existing Selected Plan area, not in a separate calculator page. */
+.rp-high-net-worth-group .tab.high-net-worth{border-color:#c0a2e9;color:#51357b;background:#fff}
+.rp-high-net-worth-group .tab.high-net-worth.active{background:linear-gradient(135deg,#182f50,#0f233f);border-color:#d4ad56;color:white}
+.rp-legacy-inline-frame{display:block;width:100%;height:1550px;max-width:100%;border:0;border-radius:16px;background:#f7f3ea;margin-top:10px}
+@media(max-width:700px){.rp-legacy-inline-frame{height:1800px}}
 /* High-net-worth category: navigation UI only, no live Legacy calculations yet. */
 .rp-product-card .rp-high-net-worth-group{
   border:1px solid #b49ae5;
@@ -9270,8 +9275,8 @@ body > .rp-sales-shell .plus-ledger table thead th *{
     <div class="rp-product-group rp-high-net-worth-group">
       <div class="tabgroup-label"><span class="rp-group-icon">◆</span><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
       <div class="tabs" id="tabs-high-net-worth">
-        <a class="tab rp-legacy-coming-soon" href="/agent/calculators/legacy-prestige-plus" target="_parent" title="เปิด AIA Legacy Prestige Plus ในโหมดทดสอบ">AIA Legacy Prestige Plus · ทดลอง</a>
-        <span class="rp-legacy-coming-soon-note">เปิดโหมดทดสอบ • ยังไม่ใช้เสนอขาย</span>
+        
+        <span class="rp-legacy-coming-soon-note">ทดลองคำนวณในหน้าเดียวกัน • ยังไม่ใช้เสนอขาย</span>
       </div>
     </div>
   </div>
@@ -9992,6 +9997,7 @@ const TABS = [
   {id:'cisupercare', label:'CI SuperCare', group:'ci'},
   {id:'annuityfix', label:'Annuity Fix', group:'retirement'},
   {id:'annuitysure', label:'Annuity Sure', group:'retirement'},
+  {id:'legacyprestigeplus', label:'AIA Legacy Prestige Plus', group:'high-net-worth'},
 ];
 
 function buildTabs(){
@@ -9999,6 +10005,7 @@ function buildTabs(){
   const sEl = document.getElementById('tabs-savings');
   const cEl = document.getElementById('tabs-ci');
   const rEl = document.getElementById('tabs-retirement');
+  const hEl = document.getElementById('tabs-high-net-worth');
 
   TABS.forEach(t=>{
     const b = document.createElement('button');
@@ -10012,6 +10019,7 @@ function buildTabs(){
     if(t.group==='life') lEl.appendChild(b);
     else if(t.group==='savings') sEl.appendChild(b);
     else if(t.group==='ci') cEl.appendChild(b);
+    else if(t.group==='high-net-worth') hEl.appendChild(b);
     else rEl.appendChild(b);
   });
 }
@@ -16608,11 +16616,26 @@ async function download20HealthComboPDF(key,btn){
 }
 
 /* ===================== main render ===================== */
+function viewLegacyPrestigePlus(app){
+  app.innerHTML = panelShell(
+    'high-net-worth',
+    'AIA Legacy Prestige Plus',
+    'แบบประกันสำหรับกลุ่มสินทรัพย์สูง • ชำระเบี้ย 10 / 15 / 20 ปี • ทดสอบ Standard Rate'
+  );
+  const panel=app.querySelector('.panel');
+  const frame=document.createElement('iframe');
+  frame.title='AIA Legacy Prestige Plus — Calculator Preview';
+  frame.src='/agent/calculators/legacy-prestige-plus?embedded=1';
+  frame.className='rp-legacy-inline-frame';
+  frame.setAttribute('loading','eager');
+  panel.appendChild(frame);
+}
+
 function render(){
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacyprestigeplus:viewLegacyPrestigePlus };
   map[state.tab](app);
 }
 
