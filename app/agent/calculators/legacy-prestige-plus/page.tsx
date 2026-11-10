@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 /* ============================================================
    RATE DATA — uploaded prototype, subject to independent source validation
@@ -170,17 +170,34 @@ const HH_PLAN_OPTS = ["แผน 1 (1 ล้านบาท)", "แผน 2 (5 �
    APP
    ============================================================ */
 export default function App() {
+  // Inputs are owned by the parent Insurance Calculator. Query values hydrate
+  // the embedded frame immediately; postMessage keeps it updated without remounting.
+  const initial = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const [mode, setMode] = useState("full"); // "mainOnly" | "full"
-  const [age, setAge] = useState(40);
-  const [gender, setGender] = useState("ชาย");
-  const [sumIns, setSumIns] = useState(20000000);
+  const [age, setAge] = useState(() => Number(initial.get("age") ?? 40));
+  const [gender, setGender] = useState(() => initial.get("gender") === "หญิง" ? "หญิง" : "ชาย");
+  const [sumIns, setSumIns] = useState(() => Number(initial.get("sum") ?? 20000000));
   const [term, setTerm] = useState(10);
   const [disc, setDisc] = useState(0); // Preferred discount disabled until its official rate schedule is confirmed.
   const [tiPct, setTiPct] = useState(90);
   const [showCv, setShowCv] = useState(true);
   const [showWpci, setShowWpci] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
-  const [taxR, setTaxR] = useState(0.10);
+  const [taxR, setTaxR] = useState(() => Number(initial.get("tax") ?? 0.10));
+
+  useEffect(() => {
+    const sync = (event) => {
+      if (event.origin !== window.location.origin || event.source !== window.parent) return;
+      const data = event.data;
+      if (!data || data.type !== "RP_LEGACY_INPUTS") return;
+      if (Number.isFinite(Number(data.age))) setAge(Number(data.age));
+      if (data.gender === "ชาย" || data.gender === "หญิง") setGender(data.gender);
+      if (Number.isFinite(Number(data.sum))) setSumIns(Number(data.sum));
+      if (Number.isFinite(Number(data.tax))) setTaxR(Number(data.tax));
+    };
+    window.addEventListener("message", sync);
+    return () => window.removeEventListener("message", sync);
+  }, []);
 
   const [hhWant, setHhWant] = useState(false);
   const [hhPlan, setHhPlan] = useState(1);
@@ -281,81 +298,52 @@ export default function App() {
           <p style={{fontSize:12,margin:0,color:"#645E51"}}>แบบประกันสำหรับการวางแผนส่งต่อความมั่งคั่ง • ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี</p>
           <span style={{display:"inline-block",marginTop:10,padding:"5px 10px",borderRadius:999,background:"#FFF1D1",color:"#7D5412",fontSize:11,fontWeight:800}}>กำลังทดสอบสูตร · ไม่ใช้เสนอขาย</span>
         </section>
-        {/* inputs */}
-        <div style={{ background: CARD_BG, borderRadius: 10, padding: "18px 20px", display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-          <Field label="อายุ (0 = แรกเกิด/15วัน)">
-            <input type="number" value={age} min={0} max={75} onChange={(e) => setAge(Number(e.target.value))} style={{ ...inputStyle, width: 90 }} />
-          </Field>
-          <Field label="เพศ">
-            <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ ...inputStyle, width: 110 }}>
-              <option value="ชาย">ชาย</option>
-              <option value="หญิง">หญิง</option>
-            </select>
-          </Field>
+        {/* Legacy-specific options only; shared age/gender/tax/sum inputs stay above in the parent. */}
+        <div style={{background:"#fffdf7",border:"1px solid #e6d8bb",borderRadius:16,padding:"16px 18px",display:"flex",flexWrap:"wrap",gap:16,alignItems:"end",marginBottom:16}}>
           <Field label="ระยะเวลาชำระเบี้ย">
-            <select value={term} onChange={(e) => setTerm(Number(e.target.value))} style={{ ...inputStyle, width: 110 }}>
+            <select value={term} onChange={(e) => setTerm(Number(e.target.value))} style={{...inputStyle,minWidth:135,borderRadius:9}}>
               <option value={10}>10 ปี</option><option value={15}>15 ปี</option><option value={20}>20 ปี</option>
             </select>
           </Field>
-          <Field label="ทุนประกัน (บาท)">
-            <input type="number" value={sumIns} step={1000000} min={0} onChange={(e) => setSumIns(Number(e.target.value))} style={{ ...inputStyle, width: 150 }} />
-          </Field>
-          <Field label="ส่วนลดสุขภาพดีกว่ามาตรฐาน (บาท/ทุน 1,000)">
-            <input type="number" value={0} disabled title="รอตาราง Preferred Rate ที่ยืนยันจากบริษัท" style={{ ...inputStyle, width: 110, background: "#f4f1ea", cursor:"not-allowed" }} />
-          </Field>
           <Field label="ทุน TI (% ของทุนประกัน)">
-            <select value={tiPct} onChange={(e) => setTiPct(Number(e.target.value))} style={{ ...inputStyle, width: 100 }}>
-              {[90, 80, 70, 60, 50, 40, 30, 20, 10].map((v) => <option key={v} value={v}>{v}%</option>)}
+            <select value={tiPct} onChange={(e) => setTiPct(Number(e.target.value))} style={{...inputStyle,minWidth:135,borderRadius:9}}>
+              {[90,80,70,60,50,40,30,20,10].map(v=><option key={v} value={v}>{v}%</option>)}
             </select>
           </Field>
-          <Field label="ฐานภาษี">
-            <select value={taxR} onChange={(e) => setTaxR(Number(e.target.value))} style={{ ...inputStyle, width: 100 }}>
-              {[0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35].map((v) => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}
-            </select>
-          </Field>
-          <div style={{ flex: 1 }} />
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>เบี้ยสัญญาหลักต่อปี</div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: TEAL, fontVariantNumeric: "tabular-nums" }}>{fmt(main)}</div>
+          <div style={{flex:1,minWidth:240}}>
+            <div style={{fontSize:11,color:"#766b57"}}>ข้อมูลจากแบบฟอร์มหลักด้านบน (อัปเดตอัตโนมัติ)</div>
+            <div style={{fontSize:13,color:"#142a47",fontWeight:800,marginTop:5}}>{gender} · {clampedAge} ปี · ทุน {fmt(sumIns)} บาท · ฐานภาษี {Math.round(taxR*100)}%</div>
           </div>
         </div>
-
-        {(age < 0 || age > 75 || sumIns < MIN_SI || sumIns > MAX_SI) && (
-          <div style={{ color: "#C62828", fontSize: 13, fontWeight: 600, margin: "-8px 2px 14px" }}>
-            {(age < 0 || age > 75) ? "⚠ อายุรับประกัน 15 วัน - 75 ปี" : "⚠ ทุนประกัน 10,000,000 - 1,000,000,000 บาท"}
+        {(age<0||age>75||sumIns<MIN_SI||sumIns>MAX_SI)&&(
+          <div role="alert" style={{borderRadius:10,padding:"11px 14px",background:"#fff0f0",color:"#ad1d32",marginBottom:14,fontSize:12,fontWeight:700}}>
+            {age<0||age>75?"อายุรับประกัน Legacy 15 วัน – 75 ปี":"ทุนประกัน Legacy ขั้นต่ำ 10,000,000 บาท และสูงสุด 1,000,000,000 บาท"} · ยังไม่ควรใช้ผลคำนวณ
           </div>
         )}
-
-        {/* main benefits */}
-        <div style={{ background: CARD_BG, borderRadius: 10, padding: "16px 20px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", gap: 40, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>กรณีเสียชีวิต (ตลอดชีพ ถึงอายุ 99 ปี) — ทุนประกัน / เงินค่าเวนคืน / เบี้ยหลักที่ชำระแล้ว แล้วแต่อย่างใดสูงกว่า</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1C" }}>{fmt(sumIns)} บาท</div>
+        {/* Financial outputs from the existing formulas; visual-only redesign. */}
+        <section style={{marginBottom:18}}>
+          <div style={{fontSize:11,fontWeight:800,color:"#a17a36",letterSpacing:"1px",marginBottom:8}}>YOUR PLAN AT A GLANCE</div>
+          <h3 style={{color:"#142a47",fontSize:17,margin:"0 0 12px"}}>สรุปแผนที่เลือก</h3>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12}}>
+            {[
+              {icon:"฿",name:"เบี้ยประกันหลักต่อปี",val:fmt(main)+" บาท",note:"อัตรา Standard Rate (อยู่ระหว่าง QA)",bg:"#FFF0D6",stroke:"#E7C98B",ink:"#805514"},
+              {icon:"♜",name:"ทุนประกันหลัก",val:fmt(sumIns)+" บาท",note:"คุ้มครองชีวิตถึงอายุ 99 ปี",bg:"#E6F0F9",stroke:"#A5C4E1",ink:"#183D62"},
+              {icon:"✧",name:"TI ภาวะเจ็บป่วยระยะสุดท้าย",val:fmt(sumIns*tiPct/100)+" บาท",note:"ตามสัดส่วนที่เลือกและเงื่อนไข",bg:"#F1EBFA",stroke:"#C9B6E7",ink:"#59417E"},
+              {icon:"↗",name:"ทุนประกันคงเหลือหลังจ่าย TI",val:fmt(sumIns-sumIns*tiPct/100)+" บาท",note:"ตัวอย่างคำนวณตามสัดส่วน TI",bg:"#EBF4E8",stroke:"#B7D5AA",ink:"#315E2F"},
+              {icon:"⌁",name:"สิทธิประโยชน์ภาษีโดยประมาณ",val:fmt(taxDeduct)+" บาท",note:"อิงฐานภาษีที่กรอก (ไม่รับรองสิทธิจริง)",bg:"#FFF0ED",stroke:"#E8B8B0",ink:"#8C3F37"},
+              {icon:"✦",name:"WPCI ยกเว้นเบี้ย",val:"ถึงอายุ "+wpciEndAge+" ปี",note:"โรคร้ายแรง 44 โรคตามเงื่อนไข",bg:"#EDF4F1",stroke:"#B6D6C8",ink:"#2F6254"},
+            ].map(card=>(
+              <div key={card.name} style={{background:card.bg,border:"1px solid "+card.stroke,borderRadius:15,padding:"15px 16px",minHeight:124}}>
+                <div style={{display:"flex",gap:8,alignItems:"center",fontSize:12,fontWeight:800,color:card.ink}}>
+                  <span style={{background:"#ffffffaa",width:27,height:27,display:"grid",placeItems:"center",borderRadius:9}}>{card.icon}</span>{card.name}
+                </div>
+                <div style={{fontWeight:850,fontSize:"clamp(17px,2.1vw,24px)",margin:"10px 0 5px",color:card.ink,wordBreak:"break-word"}}>{card.val}</div>
+                <div style={{fontSize:10.5,color:"#675f51",lineHeight:1.5}}>{card.note}</div>
+              </div>
+            ))}
           </div>
-          <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>เงินคืน ณ วันครบกำหนดสัญญา (อายุ 99 ปี)</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1C" }}>{fmt(sumIns)} บาท</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>สิทธิลดหย่อนภาษี (ปีที่ 1-{term})</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: GREEN }}>{fmt(taxDeduct)} บาท</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี สูงสุด 90% ของทุนประกัน — ถึงอายุ 99 ปี)</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1C" }}>{fmt(sumIns * tiPct / 100)} บาท</div>
-          </div>
-                    <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>หลังจ่าย TI: ทุนประกันหลักคงเหลือ</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1C" }}>{fmt(sumIns - sumIns * tiPct / 100)} บาท</div>
-            <div style={{ fontSize: 12, color: GREEN, marginTop: 2 }}>และยกเว้นเบี้ยหลักที่เหลือ (ไม่รวมสัญญาเพิ่มเติม)</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>WPCI ยกเว้นเบี้ยเมื่อป่วยโรคร้ายแรง 44 โรค (ฟรี) — คุ้มครองถึงอายุ</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: GREEN }}>{Math.min(clampedAge + term, 80)} ปี</div>
-            <div onClick={() => setShowWpci(!showWpci)} style={{ fontSize: 12, color: TEAL, cursor: "pointer", textDecoration: "underline", marginTop: 2 }}>{showWpci ? "ซ่อนรายชื่อโรค" : "ดูรายชื่อโรคร้ายแรง 44 โรค"}</div>
-          </div>
-        </div>
-
+          <button type="button" onClick={()=>setShowWpci(!showWpci)} style={{border:0,background:"transparent",color:"#184a77",textDecoration:"underline",fontWeight:700,fontSize:12,marginTop:10,cursor:"pointer"}}>{showWpci?"ซ่อนรายชื่อโรคร้ายแรง 44 โรค":"ดูรายชื่อโรคร้ายแรง 44 โรค"}</button>
+        </section>
 
         {/* Legacy coverage timeline — a conceptual diagram, not calculated policy value */}
         <section style={{border:"1px solid #e2d4b8",borderRadius:18,background:"#fffdf8",padding:"16px 20px",marginBottom:18,boxShadow:"0 3px 15px rgba(20,42,71,.05)"}}>
