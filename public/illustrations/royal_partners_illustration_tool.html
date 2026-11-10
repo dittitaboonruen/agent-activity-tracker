@@ -16628,7 +16628,7 @@ function viewLegacyPrestigePlus(app){
   const panel=app.querySelector('.panel');
   const frame=document.createElement('iframe');
   frame.title='AIA Legacy Prestige Plus — Calculator Preview';
-  frame.src='/agent/calculators/legacy-prestige-plus?embedded=1';
+  frame.src='/agent/calculators/legacy-prestige-plus?embedded=1&age='+encodeURIComponent(state.age)+'&gender='+encodeURIComponent(state.gender)+'&sum='+encodeURIComponent(state.sum)+'&tax='+encodeURIComponent(state.tax);
   frame.className='rp-legacy-inline-frame';
   frame.setAttribute('loading','eager');
   frame.onload=()=>frame.contentWindow?.postMessage({type:'RP_LEGACY_INPUTS',age:state.age,gender:state.gender,sum:state.sum,tax:state.tax},window.location.origin);
