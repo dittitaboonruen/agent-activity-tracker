@@ -101,6 +101,12 @@ const nextConfig = {
           "/illustrations/royal_partners_illustration_tool.html",
         headers: CALCULATOR_SECURITY_HEADERS,
       },
+      {
+        // Legacy UAT is nested inside the same-origin Calculator iframe.
+        // Keep this exception limited to its own preview route.
+        source: "/agent/calculators/legacy-prestige-plus",
+        headers: CALCULATOR_SECURITY_HEADERS,
+      },
     ];
   },
 };
