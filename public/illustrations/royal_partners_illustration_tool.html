@@ -6895,6 +6895,9 @@ tbody tr:hover td{
   box-shadow:var(--rp-shadow-sm);
 }
 
+/* Legacy receives shared Client Details fields rather than duplicating controls. */
+.rp-legacy-inline-frame{height:1880px}
+@media(max-width:700px){.rp-legacy-inline-frame{height:2200px}}
 /* Legacy UAT renders under the existing Selected Plan area, not in a separate calculator page. */
 .rp-high-net-worth-group .tab.high-net-worth{border-color:#c0a2e9;color:#51357b;background:#fff}
 .rp-high-net-worth-group .tab.high-net-worth.active{background:linear-gradient(135deg,#182f50,#0f233f);border-color:#d4ad56;color:white}
@@ -10014,7 +10017,7 @@ function buildTabs(){
     b.dataset.id = t.id;
     b.setAttribute('aria-pressed','false');
     b.setAttribute('aria-label',t.label);
-    b.onclick = ()=>{ state.tab = t.id; render(); };
+    b.onclick = ()=>{ state.tab = t.id; if(t.id==='legacyprestigeplus'&&state.sum<10000000){state.sum=20000000;document.getElementById('in-sum').value=formatInsuredAmount(state.sum);} render(); };
 
     if(t.group==='life') lEl.appendChild(b);
     else if(t.group==='savings') sEl.appendChild(b);
@@ -16628,12 +16631,18 @@ function viewLegacyPrestigePlus(app){
   frame.src='/agent/calculators/legacy-prestige-plus?embedded=1';
   frame.className='rp-legacy-inline-frame';
   frame.setAttribute('loading','eager');
+  frame.onload=()=>frame.contentWindow?.postMessage({type:'RP_LEGACY_INPUTS',age:state.age,gender:state.gender,sum:state.sum,tax:state.tax},window.location.origin);
   panel.appendChild(frame);
 }
 
 function render(){
   syncTabActive();
   const app = document.getElementById('app');
+  const activeLegacy=state.tab==='legacyprestigeplus'&&app.querySelector('.rp-legacy-inline-frame');
+  if(activeLegacy){
+    activeLegacy.contentWindow?.postMessage({type:'RP_LEGACY_INPUTS',age:state.age,gender:state.gender,sum:state.sum,tax:state.tax},window.location.origin);
+    return;
+  }
   app.innerHTML = '';
   const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacyprestigeplus:viewLegacyPrestigePlus };
   map[state.tab](app);
@@ -16647,12 +16656,12 @@ function validateSumInsured(value){
     return {ok:false, message:'กรุณากรอกทุนประกันเป็นตัวเลข'};
   }
 
-  if(numericValue < SUM_INSURED_MIN){
-    return {ok:false, message:'ทุนประกันขั้นต่ำ 100,000 บาท'};
+  if(numericValue < (state.tab==='legacyprestigeplus'?10000000:SUM_INSURED_MIN)){
+    return {ok:false, message:state.tab==='legacyprestigeplus'?'ทุนประกัน Legacy ขั้นต่ำ 10,000,000 บาท':'ทุนประกันขั้นต่ำ 100,000 บาท'};
   }
 
-  if(numericValue > SUM_INSURED_MAX){
-    return {ok:false, message:'ทุนประกันสูงสุด 50,000,000 บาท'};
+  if(numericValue > (state.tab==='legacyprestigeplus'?1000000000:SUM_INSURED_MAX)){
+    return {ok:false, message:state.tab==='legacyprestigeplus'?'ทุนประกัน Legacy สูงสุด 1,000,000,000 บาท':'ทุนประกันสูงสุด 50,000,000 บาท'};
   }
 
   return {ok:true, message:''};
