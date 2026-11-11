@@ -16738,65 +16738,102 @@ function validateLegacyReportData(d){
   if(d.c.ok && d.c.rows.at(-1)?.age!==99)errors.push('ตารางรายปีไม่ครบ');
   return {ok:errors.length===0,errors};
 }
+
+const LEGACY_BROCHURE_FIXED={
+ title:'โบรชัวร์ AIA Legacy Prestige Plus',
+ targetUrl:'https://www.aia.co.th/content/dam/th/th/docs/brochure/AIA%20Legacy%20Prestige%20Plus.pdf',
+ qrImagePath:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaAQAAAAAQ03yvAAAByklEQVR42pVUz4ccQRT+el9fmhc15JpLWHIaavSwlo5q5rp/Rq4h7N8R5po/Iww5DRV1iKVbN3tahr0sexqqdbFCtcohRPo1IXWq8qnvx3v1Kkv4s75f4K/1j8OQbbPV5lVbZ7lAKHGHk/6wN14S5NPH87sfj5dDPUdyIHB9fBxupE4O4HBi0MIBxqQJttLOjHaGZH5V/t61dJw7UMl+mQoUSFHoBKz0Xr++QzZKHYpVMkDUQifnn9vTEKh46YJIOlGj+wd9aKdesHmtTGVV1ClJtm7ATr296nPhDUmDrcJYqdIKxHTk0UWKgi1LucbnT/TwjcM0vxMpjj6proJkG20VnWaOLJIimkhkoy0lcoHDFRoKqvBvZN18p9hApVLWrdgNZ9o4bEj2NFln0BigceJOUPVXDoGfObTCm2qMSx18qYQ3urztETZU85PQiboZtTUV2MmklR45ltbL/sArC0XRJFp0IZVQPjVxdLI6G2uOvA1baPkOmKkBe4tOdg6hx3UfdmeaJ82Hlb4vnknp2i1mwUAbVTq/cJCHxoU1T6ubxWQV4X1zH+puOY2g07an6/VTK9gircu9uXvpF+8apYceI9wyz3//Lr8AVSbhEOQa5qgAAAAASUVORK5CYII=',
+ version:'Official AIA · 17/07/2021',active:true
+};
 function buildLegacyReportHTML(){
-  const d=buildLegacyReportData(),v=validateLegacyReportData(d);
-  if(!v.ok)throw Error(v.errors.join('; '));
-  const esc=escapeResourceHtml;
-  const css='<style>'+
-  '.legacy-report-page .ex-report-inner{box-sizing:border-box;width:100%;padding-bottom:30px}'+
-  '.legacy-report-page .legacy-body{padding:9px 18px;color:#142A47}'+
-  '.legacy-report-page .legacy-title{font-size:14px;font-weight:800;color:#142A47;border-left:3px solid #C4A363;padding-left:8px;margin:9px 0}'+
-  '.legacy-report-page .legacy-meta{font-size:11px;margin:8px 0}'+
-  '.legacy-report-page .legacy-cards{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}'+
-  '.legacy-report-page .legacy-cards>div{background:#F8F6F2;padding:9px;border:1px solid #e4ddd0}'+
-  '.legacy-report-page .legacy-cards small{display:block;font-size:9px;color:#766e61}'+
-  '.legacy-report-page .legacy-cards b{font-size:14px;color:#142A47}'+
-  '.legacy-report-page .legacy-band{padding:9px;background:#B49B69;color:#fff;margin:5px 0;font-size:11px;border-radius:4px}'+
-  '.legacy-report-page .legacy-band.alt{background:#4B564D}.legacy-report-page .legacy-band.navy{background:#142A47}'+
-  '.legacy-report-page table.legacy-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:10px}'+
-  '.legacy-report-page .legacy-table th{background:#142A47!important;color:#fff!important;text-align:center;padding:7px 3px}'+
-  '.legacy-report-page .legacy-table td{padding:6px 3px;border-bottom:1px solid #E2DBCF;text-align:right}'+
-  '.legacy-report-page .legacy-table td:first-child,.legacy-report-page .legacy-table td:nth-child(2){text-align:center}'+
-  '.legacy-report-page .legacy-table tr:nth-child(even){background:#F8F6F2}'+
-  '.legacy-report-page .legacy-foot{color:#6B6455;font-size:9px;line-height:1.6;margin:10px 0}'+
-  '.legacy-report-page .legacy-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'+
-  '.legacy-report-page .legacy-group{padding:9px;background:#F8F6F2;border-radius:5px;font-size:10px;line-height:1.55;overflow-wrap:anywhere}'+
-  '.legacy-report-page .legacy-group b{font-size:11px;display:block;margin-bottom:4px}'+
-  '.legacy-report-page .legacy-group ol{padding-left:20px;margin:3px 0}.legacy-report-page .legacy-group li{margin:2px 0}'+
-  '.legacy-report-page .legacy-pageno{text-align:right;color:#786F61;font-size:9px;margin-top:8px}'+
-  '</style>';
-  const rows=d.c.rows;
-  const firstRows=rows.slice(0,12),rest=rows.slice(12),parts=[];
-  for(let i=0;i<rest.length;i+=25)parts.push(rest.slice(i,i+25));
-  const total=1+parts.length+2;let number=0;
-  const header='<div class="rp-report-head"><div><div class="rp-report-title">AIA Legacy Prestige Plus</div><div class="rp-report-sub">ชำระเบี้ย '+d.term+' ปี • คุ้มครองถึงอายุ 99 ปี</div></div>'+
-    '<div class="rp-report-sum"><div class="l">ทุนประกัน</div><div class="v">'+fmt(d.sum)+' บาท</div></div></div>';
-  const wrap=(body,style=false)=>{number++;return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+number+'"><div class="ex-report-inner">'+
-    (style?css:'')+header+'<div class="legacy-body">'+body+'<div class="legacy-pageno">หน้า '+number+' / '+total+' • v'+LEGACY_REPORT_VERSION+'</div></div></div></section>'};
-  const tab=(list)=>'<table class="legacy-table"><thead><tr><th>ปี</th><th>อายุสิ้นปี</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>ทุนประกัน*</th></tr></thead><tbody>'+
-    list.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td><td>'+fmt(r.premium)+'</td><td>'+fmt(r.paid)+'</td><td>'+fmt(r.coverage)+'</td></tr>').join('')+'</tbody></table>';
-  const intro='<div class="legacy-meta">ลูกค้า: <b>'+esc(d.name||'—')+'</b> • '+esc(d.gender)+' • อายุ '+d.age+' ปี • ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+
-  '<div class="legacy-cards"><div><small>เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)</small><b>'+fmt(d.c.annual)+' บาท</b></div>'+
-  '<div><small>เบี้ยหลักรวม '+d.term+' ปี หากชำระครบ</small><b>'+fmt(d.c.annual*d.term)+' บาท</b></div>'+
-  '<div><small>TI สูงสุด 90% ของทุนประกัน</small><b>'+fmt(d.sum*.9)+' บาท</b></div>'+
-  '<div><small>ทุนประกันหลักคงเหลือหากจ่าย TI เต็ม 90%</small><b>'+fmt(d.sum*.1)+' บาท</b></div></div>'+
-  '<div class="legacy-title">1 ความคุ้มครองชีวิต</div>'+
-  '<div class="legacy-band">WPCI • โรคร้ายแรง 44 โรค/การรักษา • ยกเว้นเบี้ยตามเงื่อนไขถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน</div>'+
-  '<div class="legacy-band alt">TI • เจ็บป่วยระยะสุดท้าย (ฟรี) สูงสุด 90% • ถึงอายุ 99 ปี ตามเงื่อนไข</div>'+
-  '<div class="legacy-band navy">ระยะเวลาคุ้มครองถึงอายุ 99 ปี • ชำระเบี้ย '+d.term+' ปี</div>'+
-  '<div class="legacy-title">2 ตารางเบี้ยประกันหลักและทุนประกัน (ปีที่ 1–12)</div>'+tab(firstRows)+
-  '<div class="legacy-foot">* ทุนประกันไม่ใช่มูลค่าเวนคืน • ตัวเลขเบี้ยเป็นเบี้ยหลักมาตรฐานก่อนส่วนลดสุขภาพ เบี้ยเพิ่ม และสัญญาเพิ่มเติม • ผลประโยชน์เป็นไปตามข้อกำหนดในกรมธรรม์</div>';
-  const pages=[wrap(intro,true)];
-  parts.forEach(p=>pages.push(wrap('<div class="legacy-title">2 ตารางเบี้ยประกันหลัก (ต่อ) ปีที่ '+p[0].year+'–'+p.at(-1).year+'</div>'+tab(p)+
-    '<div class="legacy-foot">เบี้ยสะสมเป็นเบี้ยหลักก่อนส่วนลด ไม่ใช่มูลค่าเวนคืน</div>')));
-  let counter=0;
-  [d.groups.slice(0,3),d.groups.slice(3)].forEach((groups,i)=>{
-    const cards=groups.map(g=>{let start=counter+1;counter+=g.items.length;return '<div class="legacy-group"><b>'+esc(g.title)+'</b><ol start="'+start+'">'+
-      g.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>'}).join('');
-    pages.push(wrap('<div class="legacy-title">3 WPCI — โรคร้ายแรง 44 โรค/การรักษา '+(i?'(ต่อ)':'')+'</div>'+
-      '<div class="legacy-groups">'+cards+'</div><div class="legacy-foot">ข้อมูลประกอบการอธิบายเท่านั้น การรับสิทธิ์ขึ้นอยู่กับคำนิยาม ข้อยกเว้น และเงื่อนไขกรมธรรม์</div>'));
-  });
-  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+'"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
+ const d=buildLegacyReportData(),valid=validateLegacyReportData(d);
+ if(!valid.ok)throw Error(valid.errors.join('; '));
+ const esc=escapeResourceHtml,fmtB=n=>fmt(n)+' บาท';
+ const css='<style>'+
+ '.legacy-report-page .ex-report-inner{width:100%;box-sizing:border-box}'+
+ '.legacy-report-page .legacy3-body{padding:11px 18px;color:#142A47}'+
+ '.legacy-report-page .legacy3-heading{margin:10px 0 8px;padding-left:8px;border-left:4px solid #C4A363;font-size:15px;font-weight:800;color:#142A47}'+
+ '.legacy-report-page .legacy3-meta{font-size:11px;background:#F8F6F2;padding:8px;margin:8px 0;border-radius:5px}'+
+ '.legacy-report-page .legacy3-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}'+
+ '.legacy-report-page .legacy3-stat{background:#F8F6F2;border:1px solid #e1d9cc;border-radius:6px;padding:9px}'+
+ '.legacy-report-page .legacy3-stat small{font-size:10px;display:block;color:#766D5E}'+
+ '.legacy-report-page .legacy3-stat strong{font-size:16px;color:#142A47}'+
+ '.legacy-report-page .legacy3-bar{padding:9px 11px;margin:6px 0;background:#A28F61;color:#fff;border-radius:5px;font-size:11px;line-height:1.5}'+
+ '.legacy-report-page .legacy3-bar.ti{background:#526057}.legacy-report-page .legacy3-bar.navy{background:#142A47}'+
+ '.legacy-report-page .legacy3-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}'+
+ '.legacy-report-page .legacy3-benefits>div{background:#F8F6F2;border:1px solid #e1d9cc;padding:9px;border-radius:6px;font-size:10px;line-height:1.6}'+
+ '.legacy-report-page .legacy3-benefits b{display:block;font-size:12px}'+
+ '.legacy-report-page .legacy3-example{background:#FAF0DA;border:1px solid #C4A363;padding:10px;border-radius:6px;font-size:12px;font-weight:700;margin:8px 0}'+
+ '.legacy-report-page .legacy3-years,.legacy-report-page .legacy3-tris{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));text-align:center;gap:1px}'+
+ '.legacy-report-page .legacy3-years{background:#142A47;color:#fff;padding:8px 5px;border-radius:5px}'+
+ '.legacy-report-page .legacy3-years span{font-size:9px}.legacy-report-page .legacy3-tris span{font-size:12px;color:#B29A63}'+
+ '.legacy-report-page .legacy3-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px}'+
+ '.legacy-report-page .legacy3-table th{background:#142A47!important;color:white!important;padding:8px 2px;text-align:center}'+
+ '.legacy-report-page .legacy3-table td{padding:6px 3px;border-bottom:1px solid #ddd5c7;text-align:right}'+
+ '.legacy-report-page .legacy3-table td:first-child,.legacy-report-page .legacy3-table td:nth-child(2){text-align:center}'+
+ '.legacy-report-page .legacy3-table tr:nth-child(even){background:#F8F6F2}'+
+ '.legacy-report-page .legacy3-values{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}'+
+ '.legacy-report-page .legacy3-values>div{background:#F8F6F2;padding:9px;border:1px solid #e1d9cc;font-size:10px;line-height:1.6}'+
+ '.legacy-report-page .legacy3-groups{display:grid;grid-template-columns:1fr 1fr;gap:8px}'+
+ '.legacy-report-page .legacy3-groups>div{padding:9px;background:#F8F6F2;border:1px solid #e1d9cc;border-radius:5px;font-size:11px;line-height:1.5}'+
+ '.legacy-report-page .legacy3-note{font-size:10px;line-height:1.6;color:#686056;margin:8px 0}'+
+ '.legacy-report-page .legacy3-brochure{padding:10px 0}'+
+ '.legacy-report-page .legacy3-brochure .rp-resource-payment-image img{max-height:140px;width:100%;height:auto;object-fit:contain}'+
+ '.legacy-report-page .legacy3-brochure .rp-resource-card[data-resource-type="brochure"]{max-width:380px}'+
+ '.legacy-report-page .legacy3-pageno{text-align:right;font-size:9px;color:#7b7062;margin-top:8px}'+
+ '</style>';
+ let counter=0;
+ const wrap=(body,first=false)=>{
+   counter++;
+   return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+counter+'"><div class="ex-report-inner">'+
+    (first?css:'')+
+    '<div class="rp-report-head"><div><div class="rp-report-title">AIA Legacy Prestige Plus</div><div class="rp-report-sub">ROYAL PARTNERS · ใบสรุปฉบับเต็ม</div></div>'+
+    '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">'+fmtB(d.sum)+'</div></div></div>'+
+    '<div class="legacy3-body">'+body+'<div class="legacy3-pageno">ROYAL PARTNERS · หน้า '+counter+' / 3 · Report v'+LEGACY_REPORT_VERSION+'</div></div></div></section>';
+ };
+ const stats='<div class="legacy3-stats">'+[
+  ['เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)',fmtB(d.c.annual)],
+  ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
+  ['ทุนประกัน',fmtB(d.sum)],
+  ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
+ ].map(([l,v])=>'<div class="legacy3-stat"><small>'+l+'</small><strong>'+v+'</strong></div>').join('')+'</div>';
+ const benefits='<div class="legacy3-heading">1 ความคุ้มครองชีวิต</div>'+
+  '<div class="legacy3-bar">WPCI — โรคร้ายแรง 44 โรค/การรักษา · ยกเว้นเบี้ยหลักตามเกณฑ์ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน</div>'+
+  '<div class="legacy3-bar ti">TI — ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี) · สูงสุด 90% ของทุนประกัน ถึงอายุ 99 ปี</div>'+
+  '<div class="legacy3-bar navy">คุ้มครองชีวิตถึงอายุ 99 ปี · ชำระเบี้ย '+d.term+' ปี</div>'+
+  '<div class="legacy3-benefits"><div><b>WPCI</b>เมื่อเข้าเงื่อนไขโรคร้ายแรง จะยกเว้นเบี้ยหลักส่วนที่ได้รับอนุมัติ ไม่ใช่เงินชดเชย</div>'+
+  '<div><b>TI</b>รับผลประโยชน์ล่วงหน้าตามเกณฑ์ของบริษัท สูงสุด 90% จากผลประโยชน์กรณีเสียชีวิต</div>'+
+  '<div><b>หลังจ่าย TI</b>ทุนประกันหลักลดลงตามจำนวนเงินเอาประกันภัย TI ที่ได้รับอนุมัติ</div></div>'+
+  '<div class="legacy3-example">กรณีจ่าย TI เต็ม 90%: TI สูงสุด '+fmtB(d.sum*.9)+' · ทุนประกันหลักคงเหลือ '+fmtB(d.sum*.1)+'</div>';
+ const y=Array.from({length:20},(_,i)=>'<span>'+(i+1)+'</span>').join('');
+ const t=Array.from({length:20},(_,i)=>'<span>'+(i<d.term?'▲':'·')+'</span>').join('');
+ const timeline='<div class="legacy3-heading">2 ระยะเวลาคุ้มครองและชำระเบี้ย</div>'+
+  '<div class="legacy3-years">'+y+'</div><div class="legacy3-tris">'+t+'</div>'+
+  '<div class="legacy3-note">▲ คือปีที่ชำระเบี้ย · คุ้มครองถึงอายุ 99 ปี (รวม '+(99-d.age)+' ปีนับจากอายุแรกเข้า) · ภาษีเป็นเพียงประมาณการ</div>';
+ const page1=wrap('<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits+timeline,true);
+ const selectedYears=[...new Set([1,2,3,5,d.term,10,15,20,30,40,99-d.age])].filter(v=>v>=1&&v<=99-d.age).sort((a,b)=>a-b);
+ const table='<div class="legacy3-heading">3 ตารางเบี้ยและมูลค่ากรมธรรม์</div>'+
+  '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เวนคืน</th><th>ใช้เงินสำเร็จ</th></tr></thead><tbody>'+
+  selectedYears.map(n=>{const a=d.c.rows[n-1];return '<tr><td>'+a.year+'</td><td>'+a.age+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>—</td><td>—</td></tr>'}).join('')+'</tbody></table>'+
+  '<div class="legacy3-values"><div><b>มูลค่าเวนคืน</b><div>จำนวนเงินที่อาจได้รับเมื่อยกเลิกกรมธรรม์ตามตารางรับรองเฉพาะราย</div></div>'+
+  '<div><b>มูลค่าใช้เงินสำเร็จ</b><div>ความคุ้มครองที่อาจคงอยู่เมื่อหยุดชำระเบี้ยตามสิทธิในกรมธรรม์</div></div></div>'+
+  '<div class="legacy3-note">— = ยังไม่มีตารางรับรองตรงกับอายุ เพศ ทุน และแผนที่เลือก ไม่ใช่จำนวน 0 บาท และห้ามนำไปอนุมานหรือเสนอขาย</div>';
+ const groups='<div class="legacy3-heading">4 WPCI — 44 โรค/การรักษา</div>'+
+  '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+'</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
+  '<div class="legacy3-note">รายละเอียดรายชื่อทั้งหมด 44 ข้อดูได้ในหน้า Calculator และเอกสารโบรชัวร์ AIA</div>';
+ const page2=wrap(table+groups);
+ const last='<div class="legacy3-heading">5 โบรชัวร์และเอกสารประกอบ</div>'+
+  '<div class="legacy3-brochure"><div class="rp-resource-grid">'+buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
+  '<div class="rp-red-remark rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
+  '<div class="rp-resource-payment-row">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
+  '<div class="legacy3-heading">6 ข้อควรทราบ</div><div class="legacy3-note">'+
+  '• QR เชื่อมโบรชัวร์ AIA Legacy Prestige Plus ฉบับแนบ 17/07/2021<br>'+
+  '• แบนเนอร์การชำระ 0% 4 เดือนเป็นข้อมูลโปรโมชั่นที่ต้องตรวจวันสิ้นสุดและเงื่อนไขกับธนาคารก่อนใช้งานจริง<br>'+
+  '• เบี้ยเป็นอัตรามาตรฐานก่อนส่วนลดและเบี้ยเพิ่ม ไม่ใช่ใบเสนอขายจากบริษัท<br>'+
+  '• ต้องมีตารางมูลค่าเวนคืน/ใช้เงินสำเร็จตามเงื่อนไขที่บริษัทรับรองก่อนแสดงตัวเลข และยึดเงื่อนไขกรมธรรม์ที่ออกจริง</div>';
+ const page3=wrap(last);
+ if(counter!==3)throw Error('Three-page invariant failed');
+ return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+'"><div class="rp-report-pages">'+page1+page2+page3+'</div></div>';
 }
 async function downloadLegacyReportPDF(btn){
   if(btn.dataset.busy==='1')return;
