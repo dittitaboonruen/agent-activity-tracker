@@ -15923,6 +15923,10 @@ function showReportPreview(key){
       }
 
       reportHTML = buildExcellentReportHTML();
+    }else if(key==='legacy'){
+      const v=validateLegacyReportData(buildLegacyReportData());
+      if(!v.ok){alert('ข้อมูลรายงานไม่พร้อม: '+v.errors.join('; '));return;}
+      reportHTML=buildLegacyReportHTML();
     }else if(key==='pay25'){
       const data = buildPay25ReportData();
       const validation = validatePay25ReportData(data);
@@ -15977,10 +15981,10 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='legacy'?'Legacy Prestige Plus — ใบสรุป A4':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='legacy'?'Report v'+LEGACY_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -15997,7 +16001,7 @@ function showReportPreview(key){
     const previewContent = host.querySelector('.rp-preview-content');
     const fitStage = host.querySelector('.rp-preview-fit-stage');
     const fitPaper = host.querySelector('.rp-preview-fit-paper');
-    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylifeplus','plusHappy','plusSaver','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
+    const isPdfReport = ['ciprocare','cisupercare','excellent','legacy','pay25','paylifeplus','plusHappy','plusSaver','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
     if(isPdfReport && previewContent && fitStage && fitPaper){
       const pdfSource = document.createElement('div');
       pdfSource.className = 'rp-preview-pdf-source';
@@ -16051,7 +16055,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -16064,6 +16068,8 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadCISuperCarePDF(pdfBtn));
       }else if(key==='excellent'){
         pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
+      }else if(key==='legacy'){
+        pdfBtn.addEventListener('click', ()=>downloadLegacyReportPDF(pdfBtn));
       }else if(key==='pay25'){
         pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
       }else if(key==='plusHappy'||key==='plusSaver'){
@@ -16106,7 +16112,7 @@ function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
   row.innerHTML = `<button class="btn-export">${
-      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='annuityfix' || key==='annuitysure'
+      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='annuityfix' || key==='annuitysure'
         ? 'ดูใบสรุปฉบับเต็ม'
         : 'ดูตัวอย่างภาพสรุป'
     }</button>`;
@@ -16717,6 +16723,99 @@ function buildLegacyWPCICategoriesHTML(){
    }).join('')+'</div>'+
   '<div class="legacy-wpci-footer">รายชื่อ 44 โรค/การรักษานี้เป็นข้อมูลอธิบายขอบเขตเบื้องต้นเท่านั้น การยกเว้นเบี้ยขึ้นอยู่กับคำนิยามโรค เงื่อนไขการรับประกัน และข้อกำหนดในกรมธรรม์ ไม่ใช่การรับรองว่าจะได้รับสิทธิ์ทุกกรณี</div></section>';
 }
+
+const LEGACY_REPORT_VERSION='1.0.0';
+function buildLegacyReportData(){
+  const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
+  return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
+    name:[state.customer.firstName,state.customer.lastName].filter(Boolean).join(' '),
+    tax:state.tax,groups:LEGACY_WPCI_CATEGORIES};
+}
+function validateLegacyReportData(d){
+  const errors=[];
+  if(!d.c.ok)errors.push(d.c.message||'ข้อมูลแบบประกันไม่ถูกต้อง');
+  if(d.groups.length!==6||d.groups.reduce((n,g)=>n+g.items.length,0)!==44)errors.push('ข้อมูล WPCI ไม่ครบ 44 รายการ');
+  if(d.c.ok && d.c.rows.at(-1)?.age!==99)errors.push('ตารางรายปีไม่ครบ');
+  return {ok:errors.length===0,errors};
+}
+function buildLegacyReportHTML(){
+  const d=buildLegacyReportData(),v=validateLegacyReportData(d);
+  if(!v.ok)throw Error(v.errors.join('; '));
+  const esc=escapeResourceHtml;
+  const css='<style>'+
+  '.legacy-report-page .ex-report-inner{box-sizing:border-box;width:100%;padding-bottom:30px}'+
+  '.legacy-report-page .legacy-body{padding:9px 18px;color:#142A47}'+
+  '.legacy-report-page .legacy-title{font-size:14px;font-weight:800;color:#142A47;border-left:3px solid #C4A363;padding-left:8px;margin:9px 0}'+
+  '.legacy-report-page .legacy-meta{font-size:11px;margin:8px 0}'+
+  '.legacy-report-page .legacy-cards{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}'+
+  '.legacy-report-page .legacy-cards>div{background:#F8F6F2;padding:9px;border:1px solid #e4ddd0}'+
+  '.legacy-report-page .legacy-cards small{display:block;font-size:9px;color:#766e61}'+
+  '.legacy-report-page .legacy-cards b{font-size:14px;color:#142A47}'+
+  '.legacy-report-page .legacy-band{padding:9px;background:#B49B69;color:#fff;margin:5px 0;font-size:11px;border-radius:4px}'+
+  '.legacy-report-page .legacy-band.alt{background:#4B564D}.legacy-report-page .legacy-band.navy{background:#142A47}'+
+  '.legacy-report-page table.legacy-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:10px}'+
+  '.legacy-report-page .legacy-table th{background:#142A47!important;color:#fff!important;text-align:center;padding:7px 3px}'+
+  '.legacy-report-page .legacy-table td{padding:6px 3px;border-bottom:1px solid #E2DBCF;text-align:right}'+
+  '.legacy-report-page .legacy-table td:first-child,.legacy-report-page .legacy-table td:nth-child(2){text-align:center}'+
+  '.legacy-report-page .legacy-table tr:nth-child(even){background:#F8F6F2}'+
+  '.legacy-report-page .legacy-foot{color:#6B6455;font-size:9px;line-height:1.6;margin:10px 0}'+
+  '.legacy-report-page .legacy-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'+
+  '.legacy-report-page .legacy-group{padding:9px;background:#F8F6F2;border-radius:5px;font-size:10px;line-height:1.55;overflow-wrap:anywhere}'+
+  '.legacy-report-page .legacy-group b{font-size:11px;display:block;margin-bottom:4px}'+
+  '.legacy-report-page .legacy-group ol{padding-left:20px;margin:3px 0}.legacy-report-page .legacy-group li{margin:2px 0}'+
+  '.legacy-report-page .legacy-pageno{text-align:right;color:#786F61;font-size:9px;margin-top:8px}'+
+  '</style>';
+  const rows=d.c.rows;
+  const firstRows=rows.slice(0,12),rest=rows.slice(12),parts=[];
+  for(let i=0;i<rest.length;i+=25)parts.push(rest.slice(i,i+25));
+  const total=1+parts.length+2;let number=0;
+  const header='<div class="rp-report-head"><div><div class="rp-report-title">AIA Legacy Prestige Plus</div><div class="rp-report-sub">ชำระเบี้ย '+d.term+' ปี • คุ้มครองถึงอายุ 99 ปี</div></div>'+
+    '<div class="rp-report-sum"><div class="l">ทุนประกัน</div><div class="v">'+fmt(d.sum)+' บาท</div></div></div>';
+  const wrap=(body,style=false)=>{number++;return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+number+'"><div class="ex-report-inner">'+
+    (style?css:'')+header+'<div class="legacy-body">'+body+'<div class="legacy-pageno">หน้า '+number+' / '+total+' • v'+LEGACY_REPORT_VERSION+'</div></div></div></section>'};
+  const tab=(list)=>'<table class="legacy-table"><thead><tr><th>ปี</th><th>อายุสิ้นปี</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>ทุนประกัน*</th></tr></thead><tbody>'+
+    list.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td><td>'+fmt(r.premium)+'</td><td>'+fmt(r.paid)+'</td><td>'+fmt(r.coverage)+'</td></tr>').join('')+'</tbody></table>';
+  const intro='<div class="legacy-meta">ลูกค้า: <b>'+esc(d.name||'—')+'</b> • '+esc(d.gender)+' • อายุ '+d.age+' ปี • ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+
+  '<div class="legacy-cards"><div><small>เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)</small><b>'+fmt(d.c.annual)+' บาท</b></div>'+
+  '<div><small>เบี้ยหลักรวม '+d.term+' ปี หากชำระครบ</small><b>'+fmt(d.c.annual*d.term)+' บาท</b></div>'+
+  '<div><small>TI สูงสุด 90% ของทุนประกัน</small><b>'+fmt(d.sum*.9)+' บาท</b></div>'+
+  '<div><small>ทุนประกันหลักคงเหลือหากจ่าย TI เต็ม 90%</small><b>'+fmt(d.sum*.1)+' บาท</b></div></div>'+
+  '<div class="legacy-title">1 ความคุ้มครองชีวิต</div>'+
+  '<div class="legacy-band">WPCI • โรคร้ายแรง 44 โรค/การรักษา • ยกเว้นเบี้ยตามเงื่อนไขถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน</div>'+
+  '<div class="legacy-band alt">TI • เจ็บป่วยระยะสุดท้าย (ฟรี) สูงสุด 90% • ถึงอายุ 99 ปี ตามเงื่อนไข</div>'+
+  '<div class="legacy-band navy">ระยะเวลาคุ้มครองถึงอายุ 99 ปี • ชำระเบี้ย '+d.term+' ปี</div>'+
+  '<div class="legacy-title">2 ตารางเบี้ยประกันหลักและทุนประกัน (ปีที่ 1–12)</div>'+tab(firstRows)+
+  '<div class="legacy-foot">* ทุนประกันไม่ใช่มูลค่าเวนคืน • ตัวเลขเบี้ยเป็นเบี้ยหลักมาตรฐานก่อนส่วนลดสุขภาพ เบี้ยเพิ่ม และสัญญาเพิ่มเติม • ผลประโยชน์เป็นไปตามข้อกำหนดในกรมธรรม์</div>';
+  const pages=[wrap(intro,true)];
+  parts.forEach(p=>pages.push(wrap('<div class="legacy-title">2 ตารางเบี้ยประกันหลัก (ต่อ) ปีที่ '+p[0].year+'–'+p.at(-1).year+'</div>'+tab(p)+
+    '<div class="legacy-foot">เบี้ยสะสมเป็นเบี้ยหลักก่อนส่วนลด ไม่ใช่มูลค่าเวนคืน</div>')));
+  let counter=0;
+  [d.groups.slice(0,3),d.groups.slice(3)].forEach((groups,i)=>{
+    const cards=groups.map(g=>{let start=counter+1;counter+=g.items.length;return '<div class="legacy-group"><b>'+esc(g.title)+'</b><ol start="'+start+'">'+
+      g.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>'}).join('');
+    pages.push(wrap('<div class="legacy-title">3 WPCI — โรคร้ายแรง 44 โรค/การรักษา '+(i?'(ต่อ)':'')+'</div>'+
+      '<div class="legacy-groups">'+cards+'</div><div class="legacy-foot">ข้อมูลประกอบการอธิบายเท่านั้น การรับสิทธิ์ขึ้นอยู่กับคำนิยาม ข้อยกเว้น และเงื่อนไขกรมธรรม์</div>'));
+  });
+  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+'"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
+}
+async function downloadLegacyReportPDF(btn){
+  if(btn.dataset.busy==='1')return;
+  if(!window.jspdf?.jsPDF){alert('ไม่พบเครื่องมือ PDF');return;}
+  const pages=[...document.querySelectorAll('.rp-preview-pdf-source .legacy-report-page')];
+  if(!pages.length){alert('ไม่พบต้นฉบับรายงาน');return;}
+  const previous=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
+  try{
+    const {jsPDF}=window.jspdf,pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    for(let i=0;i<pages.length;i++){
+      if(i)pdf.addPage();
+      const canvas=await renderReportPageToCanvas(pages[i]);
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
+    await savePdfCrossDevice(pdf,'royal-partner-legacy-prestige-plus-'+Date.now()+'.pdf');
+  }catch(error){console.error('Legacy PDF',error);alert(error?.message||'สร้าง PDF ไม่สำเร็จ');}
+  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=previous;}
+}
+
 function viewLegacyPrestige(app){
   const term=state.legacy.term;
   const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
@@ -16771,8 +16870,9 @@ function viewLegacyPrestige(app){
   const footer=document.createElement('div');
   footer.className='ledger-wrap';
   footer.style.cssText='font-size:12px;padding:12px 18px;color:#75694d';
-  footer.textContent='ตารางมูลค่าเวนคืนและรายงาน PDF ของผลิตภัณฑ์นี้ยังไม่เปิดใช้งาน เนื่องจากเอกสารต้นทางมีตัวอย่างมูลค่าเวนคืนเพียงกรณีเฉพาะ ไม่สามารถนำไปใช้แทนทุกอายุและเพศได้';
+  footer.textContent='ตารางมูลค่าเวนคืนยังไม่เปิดใช้งาน เนื่องจากข้อมูลต้นทางไม่ครบทุกกรณี · ใบสรุป A4 แสดงข้อมูลที่ตรวจสอบได้เท่านั้น';
   panel.appendChild(footer);
+  addExportButton(app,'legacy');
 }
 
 /* ===================== main render ===================== */
