@@ -16660,7 +16660,7 @@ function calcLegacyIllustratedBenefits(r,age){
   const wpciAnnual=r.annual;
   return {
     tiMaximum:r.sum*0.9,
-    remainingAfterFullTI:r.sum*0.1,
+    wpciCoverage:r.sum,
     wpciYears,
     wpciAnnual,
     wpciCeiling:wpciAnnual*wpciYears,
@@ -16678,10 +16678,9 @@ function buildLegacyBenefitSummaryHTML(r,age){
     '<style>'+
     '.legacy-benefit-summary{margin:14px 0;padding:18px;background:#fffdf8}'+
     '.legacy-benefit-summary h3{color:#142A47;font-size:18px;margin:0 0 12px;font-weight:800}'+
-    '.legacy-benefit-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'+
+    '.legacy-benefit-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'+
     '.legacy-benefit-summary-item{background:#FFF0D7;border:1px solid #ECD39D;border-bottom:2px solid #C4A363;border-radius:17px;padding:14px;min-width:0;box-shadow:var(--rp-shadow-sm)}'+
     '.legacy-benefit-summary-item:nth-child(2){background:#E3F3EC;border-color:#C7E8D8;border-bottom-color:#68A68D}'+
-    '.legacy-benefit-summary-item:nth-child(3){background:#E6EFFB;border-color:#C8DDF5;border-bottom-color:#7297C2}'+
     '.legacy-benefit-summary-item .label{font-family:\'IBM Plex Sans Thai Looped\',sans-serif;font-size:10px;color:var(--rp-text-soft);line-height:1.35;font-weight:400}'+
     '.legacy-benefit-summary-item .amount{font-family:\'Noto Serif Thai\',serif;font-size:26px;font-weight:700;color:var(--rp-navy);line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:5px}'+
     '.legacy-benefit-summary-item .amount .unit{font-family:\'IBM Plex Sans Thai Looped\',sans-serif;font-size:13px;font-weight:500;color:#736B5F;margin-left:3px}'+
@@ -16691,17 +16690,14 @@ function buildLegacyBenefitSummaryHTML(r,age){
     '</style>'+
     '<h3>ผลประโยชน์ WPCI และ TI</h3>'+
     '<div class="legacy-benefit-summary-grid">'+
-      '<div class="legacy-benefit-summary-item"><div class="label">WPCI · เบี้ยหลักที่อาจได้รับยกเว้นสูงสุด</div>'+
-      '<div class="amount">'+money(b.wpciCeiling)+'<span class="unit">บาท</span></div>'+
-      '<div class="hint">'+money(b.wpciAnnual)+' บาท/ปี × '+b.wpciYears+' ปี · ไม่ใช่เงินสด</div></div>'+
+      '<div class="legacy-benefit-summary-item"><div class="label">WPCI · ทุนความคุ้มครองโรคร้ายแรง 44 โรค/การรักษา</div>'+
+      '<div class="amount">'+money(b.wpciCoverage)+'<span class="unit">บาท</span></div>'+
+      '<div class="hint">แสดงทุน WPCI อ้างอิงทุนประกันหลัก · เป็นสิทธิยกเว้นเบี้ย ไม่ใช่เงินสด</div></div>'+
       '<div class="legacy-benefit-summary-item"><div class="label">TI · ผลประโยชน์สูงสุด 90%</div>'+
       '<div class="amount">'+money(b.tiMaximum)+'<span class="unit">บาท</span></div>'+
       '<div class="hint">คำนวณตามทุนประกันที่กรอก</div></div>'+
-      '<div class="legacy-benefit-summary-item"><div class="label">ทุนหลักคงเหลือหลังจ่าย TI เต็ม 90%</div>'+
-      '<div class="amount">'+money(b.remainingAfterFullTI)+'<span class="unit">บาท</span></div>'+
-      '<div class="hint">เฉพาะกรณีได้รับ TI เต็ม 90%</div></div>'+
     '</div>'+
-    '<p class="legacy-benefit-summary-assumption">WPCI เป็นเพดานสมมติกรณีได้รับอนุมัติทุน WPCI เท่าทุนหลักและเริ่มยกเว้นก่อนเบี้ยงวดแรก จำนวนจริงขึ้นกับวงเงิน WPCI และจำนวนเบี้ยในอนาคตที่เข้าเงื่อนไข</p>'+
+    '<p class="legacy-benefit-summary-assumption">จำนวนเงิน WPCI ที่แสดงเป็นทุนความคุ้มครองอ้างอิงตามทุนประกันหลัก ไม่ใช่จำนวนเงินชดเชยหรือเบี้ยที่จะได้รับยกเว้นจริง สิทธิขึ้นอยู่กับทุน WPCI ที่ได้รับอนุมัติและเงื่อนไขกรมธรรม์</p>'+
     '</section>';
 }
 
