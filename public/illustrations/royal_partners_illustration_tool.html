@@ -16903,6 +16903,57 @@ async function downloadLegacyReportPDF(btn){
   finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=previous;}
 }
 
+
+/* Legacy display table model is intentionally independent from the actuarial
+ * report rows: the customer age entered is the FIRST displayed age. */
+function buildLegacyAgeTableRows(issueAge,term,annual,sum){
+  if(!Number.isInteger(issueAge)||issueAge<0||issueAge>75||
+     ![10,15,20].includes(term)||!Number.isFinite(annual)||annual<=0||
+     !Number.isFinite(sum)||sum<=0)return [];
+  return Array.from({length:100-issueAge},(_,index)=>({
+    age:issueAge+index,
+    premium:index<term?annual:null,
+    coverage:sum
+  }));
+}
+/* Skeleton only. AIA contract values must come from an approved rate/value
+ * table for the exact sex, age, payment plan and coverage. Never extrapolate. */
+function buildLegacyPolicyValuesTableHTML(displayRows){
+  const thClass='legacy-values-age';
+  const rows=displayRows.map(r=>'<tr><td class="'+thClass+'">'+r.age+'</td>'+
+    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
+    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
+    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
+    '<td class="legacy-values-placeholder">—</td></tr>').join('');
+  return '<section class="ledger-wrap legacy-values-section">'+
+    '<style>'+
+    '.legacy-values-section{margin-top:18px}'+
+    '.legacy-values-scroll{overflow:auto;max-height:530px;border:1px solid #E1D8C9;border-radius:10px;overscroll-behavior-x:contain}'+
+    '.legacy-values-table{width:100%;min-width:960px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}'+
+    '.legacy-values-table th{background:#142A47;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:11.5px;text-align:center;line-height:1.45;padding:9px 6px;border-right:1px solid rgba(255,255,255,.16)}'+
+    '.legacy-values-table thead tr:nth-child(2) th{background:#234263}'+
+    '.legacy-values-table td{text-align:right;padding:7px 10px;border-bottom:1px solid #E8E1D6;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+    '.legacy-values-table tbody tr:nth-child(even){background:#F8F6F2}'+
+    '.legacy-values-table .legacy-values-age{position:sticky;left:0;z-index:2;text-align:center;background:#F8F6F2;width:68px}'+
+    '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
+    '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
+    '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
+    '@media(max-width:760px){.legacy-values-table{min-width:900px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
+    '</style>'+
+    '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
+    '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
+    '<table class="legacy-values-table"><thead>'+
+    '<tr><th class="legacy-values-age" rowspan="2" scope="col">อายุ</th>'+
+    '<th rowspan="2" scope="col">เงินค่าเวนคืนกรมธรรม์</th>'+
+    '<th colspan="2" scope="colgroup">กรมธรรม์ใช้เงินสำเร็จ</th>'+
+    '<th colspan="4" scope="colgroup">การประกันภัยแบบขยายเวลา</th></tr>'+
+    '<tr><th scope="col">มูลค่าใช้เงินสำเร็จ</th><th scope="col">เงินจ่ายคืนทันที</th>'+
+    '<th scope="col">ปี</th><th scope="col">วัน</th><th scope="col">เงินครบกำหนด</th><th scope="col">เงินจ่ายคืนทันที</th></tr>'+
+    '</thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงยังไม่มีค่าจากตาราง AIA ที่ยืนยันสำหรับข้อมูลผู้เอาประกันที่เลือก ไม่ได้หมายถึงมูลค่า 0 บาท</p>'+
+    '</section>';
+}
+
 function viewLegacyPrestige(app){
   const term=state.legacy.term;
   const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
@@ -16941,17 +16992,19 @@ function viewLegacyPrestige(app){
   const wpci=document.createElement('div');
   wpci.innerHTML=buildLegacyWPCICategoriesHTML();
   panel.appendChild(wpci.firstElementChild);
+  const displayRows=buildLegacyAgeTableRows(state.age,r.term,r.annual,r.sum);
   const table=document.createElement('div');
   table.className='ledger-wrap';
   table.innerHTML='<h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div>';
   panel.appendChild(table);
-  renderLedger(table.querySelector('.ledger-el'),r.rows,[
-    {key:'year',label:'ปีกรมธรรม์'},
-    {key:'age',label:'อายุสิ้นปี'},
-    {key:'premium',label:'เบี้ยหลัก/ปี'},
-    {key:'paid',label:'เบี้ยหลักสะสม'},
+  renderLedger(table.querySelector('.ledger-el'),displayRows,[
+    {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยหลักต่อปี'},
     {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
   ]);
+  const policyValues=document.createElement('div');
+  policyValues.innerHTML=buildLegacyPolicyValuesTableHTML(displayRows);
+  panel.appendChild(policyValues.firstElementChild);
   addExportButton(app,'legacy');
 }
 
