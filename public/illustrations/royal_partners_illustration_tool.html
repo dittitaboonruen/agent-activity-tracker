@@ -16918,13 +16918,36 @@ function buildLegacyAgeTableRows(issueAge,term,annual,sum){
 }
 /* Skeleton only. AIA contract values must come from an approved rate/value
  * table for the exact sex, age, payment plan and coverage. Never extrapolate. */
-function buildLegacyPolicyValuesTableHTML(displayRows){
+
+/* AIA iPOS screenshot evidence supplied 12 Nov 2026:
+ * Female, issue age 51, 20-year premium payment, THB 15,000,000 coverage.
+ * Values are *literal transcriptions*, NOT formulas/rates or general cash-value curves.
+ * Source shows age 51–98 only; 99 and any missing columns remain unavailable.
+ * Each array: [age, surrender, paidUp, extendedYears, extendedDays].
+ * Instant payout and extended maturity values are absent on screenshot.
+ */
+const LEGACY_IPOS_VALUES_F51_20_15M = [[51,null,null,null,null],[52,180000,585000,3,55],[53,510000,1575000,7,77],[54,885000,2625000,10,94],[55,1275000,3645000,12,116],[56,1710000,4710000,13,320],[57,2205000,5850000,15,52],[58,2610000,6675000,15,239],[59,3030000,7470000,16,11],[60,3480000,8280000,16,126],[61,3930000,9030000,16,198],[62,4410000,9780000,16,270],[63,4890000,10470000,16,315],[64,5385000,11145000,16,357],[65,5910000,11835000,17,55],[66,6450000,12495000,17,131],[67,7005000,13140000,17,229],[68,7575000,13770000,17,360],[69,8160000,14400000,18,205],[70,8760000,null,null,null],[71,9015000,null,null,null],[72,9270000,null,null,null],[73,9510000,null,null,null],[74,9750000,null,null,null],[75,9975000,null,null,null],[76,10200000,null,null,null],[77,10425000,null,null,null],[78,10635000,null,null,null],[79,10845000,null,null,null],[80,11055000,null,null,null],[81,11250000,null,null,null],[82,11445000,null,null,null],[83,11625000,null,null,null],[84,11805000,null,null,null],[85,11985000,null,null,null],[86,12165000,null,null,null],[87,12345000,null,null,null],[88,12525000,null,null,null],[89,12690000,null,null,null],[90,12840000,null,null,null],[91,13005000,null,null,null],[92,13170000,null,null,null],[93,13320000,null,null,null],[94,13500000,null,null,null],[95,13710000,null,null,null],[96,13965000,null,null,null],[97,14355000,null,null,null],[98,15000000,null,null,null]];
+const LEGACY_IPOS_MATCH = Object.freeze({age:51,gender:'หญิง',sum:15000000,term:20});
+function lookupLegacyIPOSValues(issueAge,gender,sum,term){
+  if(issueAge!==LEGACY_IPOS_MATCH.age || gender!==LEGACY_IPOS_MATCH.gender ||
+     sum!==LEGACY_IPOS_MATCH.sum || term!==LEGACY_IPOS_MATCH.term)return null;
+  return new Map(LEGACY_IPOS_VALUES_F51_20_15M.map(row=>[row[0],{
+    age:row[0],surrender:row[1],paidUp:row[2],extendedYears:row[3],
+    extendedDays:row[4],paidUpInstant:null,extendedMaturity:null,extendedInstant:null
+  }]));
+}
+function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
+  const matches=lookupLegacyIPOSValues(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const thClass='legacy-values-age';
-  const rows=displayRows.map(r=>'<tr><td class="'+thClass+'">'+r.age+'</td>'+
-    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
-    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
-    '<td class="legacy-values-placeholder">—</td><td class="legacy-values-placeholder">—</td>'+
-    '<td class="legacy-values-placeholder">—</td></tr>').join('');
+  const renderValue=(value)=>{
+    if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
+    return '<td>'+fmt(value)+'</td>';
+  };
+  const rows=displayRows.map(r=>{
+    const data=matches?.get(r.age);
+    const cols=['surrender','paidUp','paidUpInstant','extendedYears','extendedDays','extendedMaturity','extendedInstant'];
+    return '<tr><td class="'+thClass+'">'+r.age+'</td>'+cols.map(k=>renderValue(data?.[k])).join('')+'</tr>';
+  }).join('');
   return '<section class="ledger-wrap legacy-values-section">'+
     '<style>'+
     '.legacy-values-section{margin-top:18px}'+
@@ -16938,9 +16961,15 @@ function buildLegacyPolicyValuesTableHTML(displayRows){
     '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
+    '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
     '@media(max-width:760px){.legacy-values-table{min-width:900px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
+    '<div class="legacy-values-reference">'+
+      (matches?'ตัวอย่างข้อมูล AIA iPOS: หญิง อายุเริ่มต้น 51 ปี ทุนประกัน 15,000,000 บาท ชำระเบี้ย 20 ปี (ตามภาพที่ได้รับ)'+
+       ' · แสดงเฉพาะค่าที่ปรากฏในภาพ ไม่ใช่ตารางที่รับรองสำหรับการเสนอขาย':
+       'ยังไม่มีตารางมูลค่า AIA iPOS สำหรับอายุ เพศ ทุนประกัน และระยะชำระเบี้ยที่เลือก')+
+    '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
     '<table class="legacy-values-table"><thead>'+
     '<tr><th class="legacy-values-age" rowspan="2" scope="col">อายุ</th>'+
@@ -16950,7 +16979,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows){
     '<tr><th scope="col">มูลค่าใช้เงินสำเร็จ</th><th scope="col">เงินจ่ายคืนทันที</th>'+
     '<th scope="col">ปี</th><th scope="col">วัน</th><th scope="col">เงินครบกำหนด</th><th scope="col">เงินจ่ายคืนทันที</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงยังไม่มีค่าจากตาราง AIA ที่ยืนยันสำหรับข้อมูลผู้เอาประกันที่เลือก ไม่ได้หมายถึงมูลค่า 0 บาท</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีตัวเลขที่ยืนยันจากภาพต้นฉบับสำหรับช่องนี้ ไม่ได้หมายถึงมูลค่า 0 บาท · ภาพที่ได้รับแสดงค่าเฉพาะอายุ 51–98 ปี</p>'+
     '</section>';
 }
 
@@ -17020,7 +17049,7 @@ function viewLegacyPrestige(app){
     {key:'premium',label:'เบี้ยหลักต่อปี'},
     {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
   ]);
-  tableSwitch.querySelector('#legacy-table-B').innerHTML=buildLegacyPolicyValuesTableHTML(displayRows);
+  tableSwitch.querySelector('#legacy-table-B').innerHTML=buildLegacyPolicyValuesTableHTML(displayRows,{age:state.age,gender:state.gender,sum:state.sum,term:r.term});
   const setTableView=(view)=>{
     const current=view==='B'?'B':'A';
     state.legacy.tableView=current;
