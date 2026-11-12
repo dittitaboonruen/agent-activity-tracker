@@ -16864,10 +16864,10 @@ function buildLegacyReportHTML(){
  const selectedYears=[...new Set([1,2,3,5,d.term,10,15,20,30,40,99-d.age])].filter(v=>v>=1&&v<=99-d.age).sort((a,b)=>a-b);
  const table='<div class="legacy3-heading">3 ตารางเบี้ยและมูลค่ากรมธรรม์</div>'+
   '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เวนคืน</th><th>ใช้เงินสำเร็จ</th></tr></thead><tbody>'+
-  selectedYears.map(n=>{const a=d.c.rows[n-1];return '<tr><td>'+a.year+'</td><td>'+a.age+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>—</td><td>—</td></tr>'}).join('')+'</tbody></table>'+
+  selectedYears.map(n=>{const a=d.c.rows[n-1];const exact=lookupLegacyPolicyValueEvidence(d.age,d.gender,d.sum,d.term)?.byAge.get(a.age);const shown=v=>Number.isFinite(v)?fmt(v):'—';return '<tr><td>'+a.year+'</td><td>'+a.age+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>'+shown(exact?.surrender)+'</td><td>'+shown(exact?.paidUp)+'</td></tr>'}).join('')+'</tbody></table>'+
   '<div class="legacy3-values"><div><b>มูลค่าเวนคืน</b><div>จำนวนเงินที่อาจได้รับเมื่อยกเลิกกรมธรรม์ตามตารางรับรองเฉพาะราย</div></div>'+
   '<div><b>มูลค่าใช้เงินสำเร็จ</b><div>ความคุ้มครองที่อาจคงอยู่เมื่อหยุดชำระเบี้ยตามสิทธิในกรมธรรม์</div></div></div>'+
-  '<div class="legacy3-note">— = ยังไม่มีตารางรับรองตรงกับอายุ เพศ ทุน และแผนที่เลือก ไม่ใช่จำนวน 0 บาท และห้ามนำไปอนุมานหรือเสนอขาย</div>';
+  '<div class="legacy3-note">'+(lookupLegacyPolicyValueEvidence(d.age,d.gender,d.sum,d.term)?'ค่ามูลค่ากรมธรรม์ที่แสดงอ้างอิงจาก '+esc(lookupLegacyPolicyValueEvidence(d.age,d.gender,d.sum,d.term).source)+' เฉพาะกรณีข้อมูลตรงกัน · ยังไม่ใช่ตารางรับรองสำหรับเสนอขาย · ':'')+'— = ไม่มีค่าที่ตรวจสอบได้สำหรับช่องนั้น ไม่ใช่ 0 บาท ห้ามประมาณค่าจากอายุหรือทุนอื่น</div>';
  const groups='<div class="legacy3-heading">4 WPCI — 44 โรค/การรักษา</div>'+
   '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+'</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
   '<div class="legacy3-note">รายละเอียดรายชื่อทั้งหมด 44 ข้อดูได้ในหน้า Calculator และเอกสารโบรชัวร์ AIA</div>';
@@ -16941,12 +16941,22 @@ const LEGACY_IPOS_MATCH = Object.freeze({age:51,gender:'หญิง',sum:150000
  * the existing calculator's premium engine uses undiscounted rates.
  */
 const LEGACY_BROCHURE_CASH_M40_10_20M = [0,320000,1020000,1760000,2660000,3380000,4140000,4940000,5780000,6640000,6880000,7120000,7360000,7600000,7860000,8120000,8380000,8660000,8940000,9220000,9520000,9820000,10120000,10420000,10720000,11040000,11340000,11660000,11980000,12280000,12580000,12880000,13180000,13480000,13760000,14040000,14300000,14560000,14800000,15040000,15260000,15480000,15700000,15900000,16100000,16300000,16500000,16720000,16900000,17100000,17280000,17460000,17660000,17840000,18040000,18300000,18640000,19140000,20000000];
+/* Exact AIA iPOS+ screenshot transcription, female age 60, 20-pay, THB 15m, 12 Nov 2026. */
+const LEGACY_IPOS_VALUES_F60_20_15M = [[60,null,null,null,null],[61,240000,555000,1,254],[62,705000,1575000,4,35],[63,1215000,2610000,5,303],[64,1740000,3615000,7,6],[65,2325000,4665000,7,352],[66,2970000,5760000,8,280],[67,3510000,6585000,9,48],[68,4050000,7365000,9,141],[69,4605000,8130000,9,217],[70,5160000,8850000,9,274],[71,5730000,9540000,9,326],[72,6315000,10245000,10,15],[73,6900000,10905000,10,69],[74,7500000,11565000,10,134],[75,8115000,12210000,10,215],[76,8745000,12870000,10,319],[77,9405000,13545000,11,110],[78,10110000,14280000,11,352],[79,10845000,null,null,null],[80,11055000,null,null,null],[81,11250000,null,null,null],[82,11445000,null,null,null],[83,11625000,null,null,null],[84,11805000,null,null,null],[85,11985000,null,null,null],[86,12165000,null,null,null],[87,12345000,null,null,null],[88,12525000,null,null,null],[89,12690000,null,null,null],[90,12840000,null,null,null],[91,13005000,null,null,null],[92,13170000,null,null,null],[93,13320000,null,null,null],[94,13500000,null,null,null],[95,13710000,null,null,null],[96,13965000,null,null,null],[97,14355000,null,null,null],[98,15000000,null,null,null]];
 const LEGACY_POLICY_VALUE_EVIDENCE = Object.freeze([
   {
     id:'ipos-f51-20-15m',source:'AIA iPOS screenshot',
     issueAge:51,gender:'หญิง',term:20,sum:15000000,
     status:'reference_only',
     records:LEGACY_IPOS_VALUES_F51_20_15M.map(([age,surrender,paidUp,extendedYears,extendedDays])=>({
+      age,surrender,paidUp,extendedYears,extendedDays,
+      paidUpInstant:null,extendedMaturity:null,extendedInstant:null
+    }))
+  },
+  {
+    id:'ipos-f60-20-15m',source:'AIA iPOS+ screenshot 12 Nov 2026 11:39–11:40',
+    issueAge:60,gender:'หญิง',term:20,sum:15000000,status:'reference_only',
+    records:LEGACY_IPOS_VALUES_F60_20_15M.map(([age,surrender,paidUp,extendedYears,extendedDays])=>({
       age,surrender,paidUp,extendedYears,extendedDays,
       paidUpInstant:null,extendedMaturity:null,extendedInstant:null
     }))
