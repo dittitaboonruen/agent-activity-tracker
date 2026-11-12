@@ -16993,41 +16993,42 @@ function lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term){
     sum:match.sum,byAge,
     factors:match.records.map(row=>legacyPolicyValueFactorRecord(row,match.sum))};
 }
-/* Research-only dynamic model. The values for non-exact cases are NOT AIA
- * contractual figures. Anchor to the closest verified female/20-pay case,
- * use a same-duration factor and the relative standard-premium rate.
- * This is an intentionally conservative, unvalidated scenario experiment.
- * Do not use the simulated values in customer-facing PDF or sales quotes.
+/* Experimental policy-value model v2, research only. NOT AIA rates.
+ * Inputs: exact female age 51 and age 60 iPOS+, both 20-pay/THB15m.
+ * For each duration n: log F(age,n) is linear across issue ages 51 and 60.
+ * Age outside [51,60] is an unvalidated high-risk extrapolation.
+ * Benefits Plus 2025 pp.32–34 provide premium rates, not value factors.
  */
 function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
   const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
   if(exact)return {...exact,mode:'exact'};
   if(gender!=='หญิง'||term!==20||!Number.isInteger(issueAge)||
-     issueAge<0||issueAge>75||!Number.isFinite(sum)||
-     sum<10000000||sum>1000000000)return null;
-  const anchors=LEGACY_POLICY_VALUE_EVIDENCE.filter(e=>
-    e.gender==='หญิง'&&e.term===20&&e.sum===15000000);
-  if(!anchors.length)return null;
-  const anchor=anchors.reduce((best,e)=>
-    !best||Math.abs(e.issueAge-issueAge)<Math.abs(best.issueAge-issueAge)?e:best,null);
-  const rate=LEGACY_PRESTIGE_RATES[issueAge]?.[5];
-  const anchorRate=LEGACY_PRESTIGE_RATES[anchor.issueAge]?.[5];
-  if(!Number.isFinite(rate)||!Number.isFinite(anchorRate)||anchorRate<=0)return null;
-  const rateRatio=rate/anchorRate,capitalRatio=sum/anchor.sum;
-  const byAge=new Map(anchor.records.map(source=>{
-    const duration=source.age-anchor.issueAge;
-    const age=issueAge+duration;
-    if(duration<0||age>98)return null;
-    const estimated=v=>Number.isFinite(v)?
-      Math.max(0,Math.min(sum,Math.round(v*capitalRatio*rateRatio/1000)*1000)):null;
-    return [age,{age,surrender:estimated(source.surrender),
-      paidUp:estimated(source.paidUp),paidUpInstant:null,
-      extendedYears:null,extendedDays:null,extendedMaturity:null,
-      extendedInstant:null}];
-  }).filter(Boolean));
-  return {id:'simulation-'+anchor.id,source:anchor.source,
-    mode:'simulation',sum,byAge,anchorAge:anchor.issueAge,
-    note:'แบบจำลองภายในจากอัตราเบี้ยสัมพัทธ์และปีกรมธรรม์เดียวกัน ไม่ใช่สูตร AIA'};
+    issueAge<0||issueAge>75||!Number.isFinite(sum)||
+    sum<10000000||sum>1000000000)return null;
+  const a=LEGACY_POLICY_VALUE_EVIDENCE.find(e=>e.id==='ipos-f51-20-15m');
+  const b=LEGACY_POLICY_VALUE_EVIDENCE.find(e=>e.id==='ipos-f60-20-15m');
+  if(!a||!b)return null;
+  const mA=new Map(a.records.map(r=>[r.age-51,r]));
+  const mB=new Map(b.records.map(r=>[r.age-60,r]));
+  const predicted=(va,vb)=>{
+    if(!Number.isFinite(va)||!Number.isFinite(vb)||va<=0||vb<=0)return null;
+    const f1=va/a.sum*1000, f2=vb/b.sum*1000;
+    const f=Math.exp(Math.log(f1)+(issueAge-51)/9*(Math.log(f2)-Math.log(f1)));
+    if(!Number.isFinite(f)||f<=0)return null;
+    return Math.max(0,Math.min(sum,Math.round((f*sum/1000)/1000)*1000));
+  };
+  const byAge=new Map();
+  for(let n=0;n<=98-issueAge;n++){
+    const aa=mA.get(n),bb=mB.get(n),age=issueAge+n;
+    byAge.set(age,{age,surrender:predicted(aa?.surrender,bb?.surrender),
+      paidUp:predicted(aa?.paidUp,bb?.paidUp),
+      paidUpInstant:null,extendedYears:null,extendedDays:null,
+      extendedMaturity:null,extendedInstant:null});
+  }
+  return {id:'simulation-loglinear-2anchors-v2',mode:'simulation',sum,byAge,
+    source:'หญิง 51 และ 60 ปี จาก AIA iPOS+ 20 Pay / 15 ล้านบาท',
+    highRisk:issueAge<51||issueAge>60,
+    note:'Log-linear Factor ตามปีกรมธรรม์; ไม่ใช่สูตรมูลค่ากรมธรรม์ของ AIA'};
 }
 /* Backward-compatible exact lookup: map returned only for matching evidence. */
 function lookupLegacyIPOSValues(issueAge,gender,sum,term){
@@ -17065,7 +17066,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
-      (isSimulation?'<strong style="color:#9b3c2b">SIMULATION เท่านั้น — ไม่ใช่มูลค่าจาก AIA iPOS+ หรือกรมธรรม์จริง</strong> · เปลี่ยนอายุ/ทุนแล้วปรับค่าทดลองอัตโนมัติ · ใช้ฐานข้อมูลหญิง อายุ '+evidence.anchorAge+' ปี และเทียบอัตราเบี้ย · ตัวเลขอาจคลาดเคลื่อนมาก · ห้ามใช้เสนอขาย':
+      (isSimulation?'<strong style="color:#9b3c2b">SIMULATION เท่านั้น — ไม่ใช่มูลค่าจาก AIA iPOS+ หรือกรมธรรม์จริง</strong> · เปลี่ยนอายุ/ทุนแล้วปรับค่าทดลองอัตโนมัติ · ใช้ Log-linear Factor จากหญิงอายุ 51 และ 60 ปี · '+(evidence.highRisk?'EXTRAPOLATION อายุอยู่นอกช่วงฐานข้อมูล 51–60 ปี · ':'')+' · ตัวเลขอาจคลาดเคลื่อนมาก · ห้ามใช้เสนอขาย':
        evidence?'ข้อมูลจริงจาก '+evidence.source+' · ตรงกับอายุ เพศ ทุนประกัน และระยะชำระที่เลือก · ไม่ใช่ตารางรับรองสำหรับเสนอขาย':
        'ไม่มีข้อมูล AIA ที่ตรงเคส และไม่มีแบบจำลองสำหรับชุดเงื่อนไขนี้')+
     '</div>'+
