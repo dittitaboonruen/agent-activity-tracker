@@ -9966,7 +9966,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   pay25: { subtab:'planA', planBTerm:7 },
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
   annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' },
-  legacy: { term:10, savedSum:null },
+  legacy: { term:10, savedSum:null, tableView:'A' },
   standardSavedSum:1000000
 };
 
@@ -16992,19 +16992,49 @@ function viewLegacyPrestige(app){
   const wpci=document.createElement('div');
   wpci.innerHTML=buildLegacyWPCICategoriesHTML();
   panel.appendChild(wpci.firstElementChild);
+
   const displayRows=buildLegacyAgeTableRows(state.age,r.term,r.annual,r.sum);
-  const table=document.createElement('div');
-  table.className='ledger-wrap';
-  table.innerHTML='<h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div>';
-  panel.appendChild(table);
-  renderLedger(table.querySelector('.ledger-el'),displayRows,[
+  const tableSwitch=document.createElement('section');
+  tableSwitch.className='legacy-table-switch-wrap';
+  tableSwitch.innerHTML='<style>'+
+    '.legacy-table-switch-wrap{margin:20px 22px 6px}'+
+    '.legacy-table-switch-header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}'+
+    '.legacy-table-switch-header h3{font-size:17px;color:#142A47;margin:0}'+
+    '.legacy-table-choice{display:flex;gap:5px;padding:4px;background:#F8F6F2;border:1px solid #E1D8C9;border-radius:10px;flex-wrap:wrap}'+
+    '.legacy-table-choice button{font-family:inherit;border:1px solid transparent;border-radius:7px;background:transparent;color:#142A47;min-height:38px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}'+
+    '.legacy-table-choice button[aria-pressed="true"]{background:#142A47;color:#fff;border-color:#C4A363}'+
+    '.legacy-table-choice button:focus-visible{outline:2px solid #C4A363;outline-offset:2px}'+
+    '.legacy-table-switch-wrap .ledger-wrap{margin:0}'+
+    '@media(max-width:640px){.legacy-table-switch-wrap{margin:16px 10px 6px}.legacy-table-choice{width:100%}.legacy-table-choice button{flex:1}}'+
+    '</style>'+
+    '<div class="legacy-table-switch-header"><h3>ตารางผลประโยชน์</h3>'+
+    '<div class="legacy-table-choice" role="group" aria-label="เลือกตารางที่ต้องการดู">'+
+    '<button type="button" data-legacy-table="A" aria-pressed="false">ตาราง A · เบี้ยประกัน</button>'+
+    '<button type="button" data-legacy-table="B" aria-pressed="false">ตาราง B · มูลค่ากรมธรรม์</button>'+
+    '</div></div>'+
+    '<div class="legacy-table-panel" id="legacy-table-A"><div class="ledger-wrap"><h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div></div></div>'+
+    '<div class="legacy-table-panel" id="legacy-table-B" hidden></div>';
+  panel.appendChild(tableSwitch);
+  renderLedger(tableSwitch.querySelector('#legacy-table-A .ledger-el'),displayRows,[
     {key:'age',label:'อายุ'},
     {key:'premium',label:'เบี้ยหลักต่อปี'},
     {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
   ]);
-  const policyValues=document.createElement('div');
-  policyValues.innerHTML=buildLegacyPolicyValuesTableHTML(displayRows);
-  panel.appendChild(policyValues.firstElementChild);
+  tableSwitch.querySelector('#legacy-table-B').innerHTML=buildLegacyPolicyValuesTableHTML(displayRows);
+  const setTableView=(view)=>{
+    const current=view==='B'?'B':'A';
+    state.legacy.tableView=current;
+    for(const key of ['A','B']){
+      const active=key===current;
+      tableSwitch.querySelector('#legacy-table-'+key).hidden=!active;
+      const button=tableSwitch.querySelector('[data-legacy-table="'+key+'"]');
+      button.setAttribute('aria-pressed',String(active));
+    }
+  };
+  tableSwitch.querySelectorAll('[data-legacy-table]').forEach(button=>{
+    button.addEventListener('click',()=>setTableView(button.dataset.legacyTable));
+  });
+  setTableView(state.legacy.tableView);
   addExportButton(app,'legacy');
 }
 
