@@ -16650,9 +16650,27 @@ function calcLegacyPrestige(age,gender,sum,term,tax){
     wpciUntil:Math.min(age+term,80),sum};
 }
 
+/* Legacy illustration-only figures. WPCI is a conditional waiver of future
+ * unpaid base policy premiums; never a cash benefit or guaranteed award.
+ * WPCI benefit sum is not independently captured in the current shared UI,
+ * so the upper bound assumes it is approved at 100% of the base sum. */
+function calcLegacyIllustratedBenefits(r,age){
+  if(!r?.ok)return null;
+  const wpciYears=Math.max(0,Math.min(r.term,80-age));
+  const wpciAnnual=r.annual;
+  return {
+    tiMaximum:r.sum*0.9,
+    remainingAfterFullTI:r.sum*0.1,
+    wpciYears,
+    wpciAnnual,
+    wpciCeiling:wpciAnnual*wpciYears,
+    wpciUntil:r.wpciUntil
+  };
+}
 function buildLegacyCoverageIllustrationHTML(r,age){
   if(!r.ok)return '';
   const money=n=>Number(n).toLocaleString('th-TH',{maximumFractionDigits:2});
+  const benefits=calcLegacyIllustratedBenefits(r,age);
   const years=Array.from({length:20},(_,i)=>'<span>'+(i+1)+'</span>').join('');
   const paymentOptions=[10,15,20].map(term=>{
     const selected=term===r.term;
@@ -16671,6 +16689,11 @@ function buildLegacyCoverageIllustrationHTML(r,age){
   '.legacy-graphic .legacy-graphic-band.ti{background:#4C564E;margin-top:6px}'+
   '.legacy-graphic .legacy-graphic-band .bar{flex:1;border-top:1px solid #fff;min-width:10px}'+
   '.legacy-graphic .legacy-graphic-band strong{white-space:nowrap}'+
+  '.legacy-graphic .legacy-benefit-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}'+
+  '.legacy-graphic .legacy-benefit-card{background:#F8F6F2;border:1px solid #e3dacb;border-radius:7px;padding:10px;min-width:0}'+
+  '.legacy-graphic .legacy-benefit-card strong{display:block;font-size:18px;color:#142A47;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}'+
+  '.legacy-graphic .legacy-benefit-card .kicker{font-size:12px;color:#5f584c;line-height:1.5}'+
+  '.legacy-graphic .legacy-benefit-card small{display:block;font-size:10px;color:#786a52;line-height:1.55;margin-top:4px}'+
   '.legacy-graphic .legacy-graphic-death{background:#F0ECE4;border-radius:5px;padding:12px;font-size:12px;line-height:1.7;margin-top:6px}'+
   '.legacy-graphic .legacy-graphic-years{display:flex;gap:7px;align-items:center;background:#142A47;color:#fff;border-radius:5px;padding:9px 7px}'+
   '.legacy-graphic .legacy-graphic-grid,.legacy-graphic .legacy-graphic-ticks{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));flex:1;gap:1px;text-align:center}'+
@@ -16679,13 +16702,19 @@ function buildLegacyCoverageIllustrationHTML(r,age){
   '.legacy-graphic .legacy-graphic-option.selected{opacity:1;background:#F8F6F2;outline:1px solid #C4A363;border-radius:5px}'+
   '.legacy-graphic .legacy-graphic-option b{font-size:11px}.legacy-graphic .legacy-graphic-ticks span{font-size:12px;color:#A28F61}'+
   '.legacy-graphic .legacy-graphic-note{font-size:11px;line-height:1.65;color:#6B6455;margin:7px 0}'+
-  '@media(max-width:640px){.legacy-graphic{padding:10px}.legacy-graphic .legacy-graphic-row{grid-template-columns:1fr;gap:4px}.legacy-graphic .legacy-graphic-band{font-size:10px;padding:7px}.legacy-graphic .legacy-graphic-grid span,.legacy-graphic .legacy-graphic-ticks span{font-size:8px}.legacy-graphic .legacy-graphic-years strong{font-size:9px}.legacy-graphic .legacy-graphic-years{gap:3px;padding:5px 3px}}'+
+  '@media(max-width:640px){.legacy-graphic .legacy-benefit-cards{grid-template-columns:1fr}.legacy-graphic .legacy-benefit-card strong{font-size:16px}.legacy-graphic{padding:10px}.legacy-graphic .legacy-graphic-row{grid-template-columns:1fr;gap:4px}.legacy-graphic .legacy-graphic-band{font-size:10px;padding:7px}.legacy-graphic .legacy-graphic-grid span,.legacy-graphic .legacy-graphic-ticks span{font-size:8px}.legacy-graphic .legacy-graphic-years strong{font-size:9px}.legacy-graphic .legacy-graphic-years{gap:3px;padding:5px 3px}}'+
   '</style>'+
   '<h3>ภาพแสดงผลประโยชน์และความคุ้มครองชีวิต</h3>'+
   '<div class="legacy-graphic-facts"><span>อายุ '+age+' ปี</span><span>ทุนประกัน '+money(r.sum)+' บาท</span><span>เบี้ยหลัก '+money(r.annual)+' บาท/ปี</span><span>ชำระ '+r.term+' ปี</span></div>'+
   '<div class="legacy-graphic-row"><div class="legacy-graphic-label">ความคุ้มครองชีวิต</div><div>'+
   '<div class="legacy-graphic-band">WPCI ยกเว้นเบี้ยเมื่อเจ็บป่วยโรคร้ายแรง <i class="bar"></i><strong>ถึงอายุ 80 ปี</strong></div>'+
   '<div class="legacy-graphic-band ti">TI ผลประโยชน์ภาวะเจ็บป่วยระยะสุดท้าย <i class="bar"></i><strong>ถึงอายุ 99 ปี</strong></div>'+
+  '<div class="legacy-benefit-cards">'+
+    '<div class="legacy-benefit-card"><div class="kicker">WPCI · เบี้ยหลักที่อาจได้รับยกเว้นสูงสุด</div><strong>'+money(benefits.wpciCeiling)+' บาท</strong><small>'+money(benefits.wpciAnnual)+' บาท/ปี × '+benefits.wpciYears+' ปี · ไม่ใช่เงินสด</small></div>'+
+    '<div class="legacy-benefit-card"><div class="kicker">TI · ผลประโยชน์สูงสุด 90%</div><strong>'+money(benefits.tiMaximum)+' บาท</strong><small>คำนวณจากทุนประกันที่กรอก</small></div>'+
+    '<div class="legacy-benefit-card"><div class="kicker">ทุนหลักคงเหลือหลังจ่าย TI เต็ม 90%</div><strong>'+money(benefits.remainingAfterFullTI)+' บาท</strong><small>กรณีได้รับอนุมัติ TI เต็ม 90%</small></div>'+
+  '</div>'+
+  '<div class="legacy-graphic-note">WPCI คิดเป็นเพดานสมมติกรณีทุน WPCI ได้รับอนุมัติเท่าทุนหลัก และได้รับสิทธิ์ก่อนเบี้ยงวดแรก; จำนวนที่ยกเว้นจริงขึ้นกับเบี้ยค้างชำระในอนาคตและวงเงิน WPCI ที่บริษัทอนุมัติ</div>'+
   '<div class="legacy-graphic-death"><strong>จำนวนเงินเอาประกันภัย '+money(r.sum)+' บาท</strong><div>กรณีเสียชีวิต จ่ายจำนวนใดที่มากกว่าระหว่างจำนวนเงินเอาประกันภัย เงินค่าเวนคืนกรมธรรม์ หรือเบี้ยหลักสะสมที่ปรับตามการลดทุน (ถ้ามี) ตามเงื่อนไขบริษัท</div></div></div></div>'+
   '<div class="legacy-graphic-row"><div class="legacy-graphic-label">ระยะเวลาคุ้มครอง</div><div class="legacy-graphic-years"><div class="legacy-graphic-grid">'+years+'</div><strong>→ อายุ 99 ปี</strong></div></div>'+
   '<div class="legacy-graphic-row"><div class="legacy-graphic-label">เลือกชำระเบี้ยได้ 3 แบบ</div><div>'+paymentOptions+'</div></div>'+
@@ -16721,7 +16750,7 @@ function buildLegacyWPCICategoriesHTML(){
      return '<details'+(i===0?' open':'')+'><summary>'+group.title+' ('+group.items.length+' รายการ)</summary>'+
        '<ol start="'+start+'">'+group.items.map(item=>'<li>'+item+'</li>').join('')+'</ol></details>';
    }).join('')+'</div>'+
-  '<div class="legacy-wpci-footer">รายชื่อ 44 โรค/การรักษานี้เป็นข้อมูลอธิบายขอบเขตเบื้องต้นเท่านั้น การยกเว้นเบี้ยขึ้นอยู่กับคำนิยามโรค เงื่อนไขการรับประกัน และข้อกำหนดในกรมธรรม์ ไม่ใช่การรับรองว่าจะได้รับสิทธิ์ทุกกรณี</div></section>';
+  '</section>';
 }
 
 const LEGACY_REPORT_VERSION='1.0.0';
@@ -16888,11 +16917,6 @@ function viewLegacyPrestige(app){
   const wpci=document.createElement('div');
   wpci.innerHTML=buildLegacyWPCICategoriesHTML();
   panel.appendChild(wpci.firstElementChild);
-  const note=document.createElement('div');
-  note.className='ledger-wrap';
-  note.style.cssText='font-size:12px;line-height:1.7;padding:14px 18px';
-  note.textContent='ผลคำนวณนี้เป็นเบี้ยมาตรฐานของแบบประกันหลักเท่านั้น ไม่รวมส่วนลดสุขภาพ เบี้ยเพิ่ม และสัญญาเพิ่มเติม • WPCI เป็นไปตามเงื่อนไขและวงเงินที่บริษัทอนุมัติ • TI อาจจ่ายล่วงหน้าได้สูงสุด 90% ตามเงื่อนไขกรมธรรม์ • จำนวนทุนในตารางไม่ใช่มูลค่าเวนคืนหรือผลประโยชน์กรณีเสียชีวิตที่ปรับตามเหตุการณ์พิเศษ';
-  panel.appendChild(note);
   const table=document.createElement('div');
   table.className='ledger-wrap';
   table.innerHTML='<h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div>';
@@ -16904,11 +16928,6 @@ function viewLegacyPrestige(app){
     {key:'paid',label:'เบี้ยหลักสะสม'},
     {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
   ]);
-  const footer=document.createElement('div');
-  footer.className='ledger-wrap';
-  footer.style.cssText='font-size:12px;padding:12px 18px;color:#75694d';
-  footer.textContent='ตารางมูลค่าเวนคืนยังไม่เปิดใช้งาน เนื่องจากข้อมูลต้นทางไม่ครบทุกกรณี · ใบสรุป A4 แสดงข้อมูลที่ตรวจสอบได้เท่านั้น';
-  panel.appendChild(footer);
   addExportButton(app,'legacy');
 }
 
