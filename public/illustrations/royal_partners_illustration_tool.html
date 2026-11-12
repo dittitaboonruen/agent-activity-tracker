@@ -16993,17 +16993,54 @@ function lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term){
     sum:match.sum,byAge,
     factors:match.records.map(row=>legacyPolicyValueFactorRecord(row,match.sum))};
 }
+/* Research-only dynamic model. The values for non-exact cases are NOT AIA
+ * contractual figures. Anchor to the closest verified female/20-pay case,
+ * use a same-duration factor and the relative standard-premium rate.
+ * This is an intentionally conservative, unvalidated scenario experiment.
+ * Do not use the simulated values in customer-facing PDF or sales quotes.
+ */
+function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
+  const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+  if(exact)return {...exact,mode:'exact'};
+  if(gender!=='หญิง'||term!==20||!Number.isInteger(issueAge)||
+     issueAge<0||issueAge>75||!Number.isFinite(sum)||
+     sum<10000000||sum>1000000000)return null;
+  const anchors=LEGACY_POLICY_VALUE_EVIDENCE.filter(e=>
+    e.gender==='หญิง'&&e.term===20&&e.sum===15000000);
+  if(!anchors.length)return null;
+  const anchor=anchors.reduce((best,e)=>
+    !best||Math.abs(e.issueAge-issueAge)<Math.abs(best.issueAge-issueAge)?e:best,null);
+  const rate=LEGACY_PRESTIGE_RATES[issueAge]?.[5];
+  const anchorRate=LEGACY_PRESTIGE_RATES[anchor.issueAge]?.[5];
+  if(!Number.isFinite(rate)||!Number.isFinite(anchorRate)||anchorRate<=0)return null;
+  const rateRatio=rate/anchorRate,capitalRatio=sum/anchor.sum;
+  const byAge=new Map(anchor.records.map(source=>{
+    const duration=source.age-anchor.issueAge;
+    const age=issueAge+duration;
+    if(duration<0||age>98)return null;
+    const estimated=v=>Number.isFinite(v)?
+      Math.max(0,Math.min(sum,Math.round(v*capitalRatio*rateRatio/1000)*1000)):null;
+    return [age,{age,surrender:estimated(source.surrender),
+      paidUp:estimated(source.paidUp),paidUpInstant:null,
+      extendedYears:null,extendedDays:null,extendedMaturity:null,
+      extendedInstant:null}];
+  }).filter(Boolean));
+  return {id:'simulation-'+anchor.id,source:anchor.source,
+    mode:'simulation',sum,byAge,anchorAge:anchor.issueAge,
+    note:'แบบจำลองภายในจากอัตราเบี้ยสัมพัทธ์และปีกรมธรรม์เดียวกัน ไม่ใช่สูตร AIA'};
+}
 /* Backward-compatible exact lookup: map returned only for matching evidence. */
 function lookupLegacyIPOSValues(issueAge,gender,sum,term){
   return lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term)?.byAge||null;
 }
 function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
-  const evidence=lookupLegacyPolicyValueEvidence(inputs.age,inputs.gender,inputs.sum,inputs.term);
+  const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const matches=evidence?.byAge||null;
+  const isSimulation=evidence?.mode==='simulation';
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
-    return '<td>'+fmt(value)+'</td>';
+    return '<td>'+(isSimulation?'≈ ':'')+fmt(value)+'</td>';
   };
   const rows=displayRows.map(r=>{
     const data=matches?.get(r.age);
@@ -17028,9 +17065,9 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
-      (evidence?'ข้อมูลอ้างอิงจาก '+evidence.source+' · อายุเริ่มต้น '+inputs.age+' ปี · '+inputs.gender+
-        ' · ทุน '+fmt(inputs.sum)+' บาท · ชำระ '+inputs.term+' ปี · แสดงเฉพาะค่าตามตัวอย่างต้นทาง ไม่ใช่ตารางที่รับรองสำหรับการเสนอขาย':
-       'ยังไม่มีค่าจาก AIA iPOS / โบรชัวร์ที่ตรงกับอายุ เพศ ทุนประกัน และระยะชำระเบี้ยที่เลือก')+
+      (isSimulation?'<strong style="color:#9b3c2b">SIMULATION เท่านั้น — ไม่ใช่มูลค่าจาก AIA iPOS+ หรือกรมธรรม์จริง</strong> · เปลี่ยนอายุ/ทุนแล้วปรับค่าทดลองอัตโนมัติ · ใช้ฐานข้อมูลหญิง อายุ '+evidence.anchorAge+' ปี และเทียบอัตราเบี้ย · ตัวเลขอาจคลาดเคลื่อนมาก · ห้ามใช้เสนอขาย':
+       evidence?'ข้อมูลจริงจาก '+evidence.source+' · ตรงกับอายุ เพศ ทุนประกัน และระยะชำระที่เลือก · ไม่ใช่ตารางรับรองสำหรับเสนอขาย':
+       'ไม่มีข้อมูล AIA ที่ตรงเคส และไม่มีแบบจำลองสำหรับชุดเงื่อนไขนี้')+
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
     '<table class="legacy-values-table"><thead>'+
@@ -17041,7 +17078,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<tr><th scope="col">มูลค่าใช้เงินสำเร็จ</th><th scope="col">เงินจ่ายคืนทันที</th>'+
     '<th scope="col">ปี</th><th scope="col">วัน</th><th scope="col">เงินครบกำหนด</th><th scope="col">เงินจ่ายคืนทันที</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่พบข้อมูลในเอกสารอ้างอิง ไม่ใช่จำนวน 0 บาท · ตัวเลขอ้างอิงจากตัวอย่างเท่านั้น และไม่คำนวณข้ามเคสโดยประมาณ</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีข้อมูล ไม่ใช่ 0 บาท · ≈ หมายถึงผลจำลองที่ยังไม่ตรวจสอบกับ iPOS+ ห้ามใช้เป็นสิทธิประโยชน์จริงหรือประกอบการเสนอขาย'+(isSimulation?' · เวนคืนและใช้เงินสำเร็จเป็นเพียงโมเดลทดลอง; ระยะเวลาขยายความคุ้มครองยังไม่สามารถคำนวณได้':'')+'</p>'+
     '</section>';
 }
 
