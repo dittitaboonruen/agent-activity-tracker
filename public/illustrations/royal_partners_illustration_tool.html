@@ -17035,11 +17035,10 @@ function lookupLegacyIPOSValues(issueAge,gender,sum,term){
 function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const matches=evidence?.byAge||null;
-  const isSimulation=false;
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
-    return '<td>'+(isSimulation?'≈ ':'')+fmt(value)+'</td>';
+    return '<td>'+fmt(value)+'</td>';
   };
   const rows=displayRows.map(r=>{
     const data=matches?.get(r.age);
@@ -17076,7 +17075,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<tr><th scope="col">มูลค่าใช้เงินสำเร็จ</th><th scope="col">เงินจ่ายคืนทันที</th>'+
     '<th scope="col">ปี</th><th scope="col">วัน</th><th scope="col">เงินครบกำหนด</th><th scope="col">เงินจ่ายคืนทันที</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีข้อมูล ไม่ใช่ 0 บาท · ≈ หมายถึงผลจำลองที่ยังไม่ตรวจสอบกับ iPOS+ ห้ามใช้เป็นสิทธิประโยชน์จริงหรือประกอบการเสนอขาย'+(isSimulation?' · เวนคืนและใช้เงินสำเร็จเป็นเพียงโมเดลทดลอง; ระยะเวลาขยายความคุ้มครองยังไม่สามารถคำนวณได้':'')+'</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีค่าที่แสดงในตารางอ้างอิง ไม่ใช่จำนวน 0 บาท · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'++
     '</section>';
 }
 
