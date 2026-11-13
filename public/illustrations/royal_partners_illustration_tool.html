@@ -16922,7 +16922,7 @@ function buildLegacyAgeTableRows(issueAge,term,annual,sum){
   if(!Number.isInteger(issueAge)||issueAge<0||issueAge>75||
      ![10,15,20].includes(term)||!Number.isFinite(annual)||annual<=0||
      !Number.isFinite(sum)||sum<=0)return [];
-  return Array.from({length:100-issueAge},(_,index)=>({
+  return Array.from({length:99-issueAge},(_,index)=>({
     age:issueAge+index,
     premium:index<term?annual:null,
     coverage:sum
