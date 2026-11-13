@@ -17036,8 +17036,27 @@ function lookupLegacyManualF20(issueAge,gender,sum,term){
     source:'AIA Legacy Prestige Plus (New) internal manual 2025 / CV p.18, RPU p.22, ETI p.20'};
 }
 function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
-  return lookupLegacyManualF20(issueAge,gender,sum,term)||
-    lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+  const manual=lookupLegacyManualF20(issueAge,gender,sum,term);
+  const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+  if(!manual)return exact;
+  if(!exact)return manual;
+  // Only fill genuinely unavailable manual cells from the same exact iPOS+
+  // gender/issue age/term/sum case. Never estimate across capital or age.
+  const keys=['surrender','paidUp','paidUpInstant','extendedYears',
+    'extendedDays','extendedMaturity','extendedInstant'];
+  const byAge=new Map(manual.byAge);
+  for(const [age,reference] of exact.byAge){
+    const current=byAge.get(age)||{age};
+    const row={...current};
+    for(const key of keys){
+      if(row[key]===null||row[key]===undefined){
+        if(Number.isFinite(reference[key]))row[key]=reference[key];
+      }
+    }
+    byAge.set(age,row);
+  }
+  return {...manual,byAge,source:manual.source+' + iPOS+ เฉพาะเคสตรงกัน',
+    status:'manual_with_exact_case_ipos_fallback'};
 }
 /* Backward-compatible exact lookup: map returned only for matching evidence. */
 function lookupLegacyIPOSValues(issueAge,gender,sum,term){
