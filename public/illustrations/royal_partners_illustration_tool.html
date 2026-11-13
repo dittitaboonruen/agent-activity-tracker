@@ -16863,12 +16863,23 @@ function buildLegacyReportHTML(){
   '<div class="legacy3-note">▲ คือปีที่ชำระเบี้ย · คุ้มครองถึงอายุ 99 ปี (รวม '+(99-d.age)+' ปีนับจากอายุแรกเข้า) · ภาษีเป็นเพียงประมาณการ</div>';
  const page1=wrap('<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits+timeline,true);
  const selectedYears=[...new Set([1,2,3,5,d.term,10,15,20,30,40,99-d.age])].filter(v=>v>=1&&v<=99-d.age).sort((a,b)=>a-b);
+ const policyValues=lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term);
  const table='<div class="legacy3-heading">3 ตารางเบี้ยและมูลค่ากรมธรรม์</div>'+
-  '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เวนคืน</th><th>ใช้เงินสำเร็จ</th></tr></thead><tbody>'+
-  selectedYears.map(n=>{const a=d.c.rows[n-1];const exact=lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term)?.byAge.get(a.age);const shown=v=>Number.isFinite(v)?fmt(v):'—';return '<tr><td>'+a.year+'</td><td>'+a.age+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>'+shown(exact?.surrender)+'</td><td>'+shown(exact?.paidUp)+'</td></tr>'}).join('')+'</tbody></table>'+
-  '<div class="legacy3-values"><div><b>มูลค่าเวนคืน</b><div>จำนวนเงินที่อาจได้รับเมื่อยกเลิกกรมธรรม์ตามตารางรับรองเฉพาะราย</div></div>'+
-  '<div><b>มูลค่าใช้เงินสำเร็จ</b><div>ความคุ้มครองที่อาจคงอยู่เมื่อหยุดชำระเบี้ยตามสิทธิในกรมธรรม์</div></div></div>'+
-  '<div class="legacy3-note">'+(lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term)?'ตัวเลขจาก '+esc(lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term).source)+' · ใช้ตรวจสอบภายในเท่านั้น ห้ามใช้เป็นเอกสารเสนอขาย · ':'')+'— หมายถึงไม่มีค่าจาก Factor ที่ระบุในเอกสาร ไม่ใช่ศูนย์ และไม่มีการประมาณค่า</div>';
+  '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ ณ ต้นปีกรมธรรม์</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เวนคืน</th><th>ใช้เงินสำเร็จ</th><th>ขยายเวลา ปี / วัน</th></tr></thead><tbody>'+
+  selectedYears.map(n=>{
+    const a=d.c.rows[n-1];
+    // AIA manual year 1 starts at issueAge, year 2 at issueAge+1.
+    // calcLegacyPrestige.rows[].age is end-year; subtract one for policy value lookup.
+    const policyAge=d.age+n-1;
+    const v=policyValues?.byAge.get(policyAge);
+    const shown=x=>Number.isFinite(x)?fmt(x):'—';
+    const termText=Number.isFinite(v?.extendedYears)&&Number.isFinite(v?.extendedDays)?
+      v.extendedYears+' ปี '+v.extendedDays+' วัน':'—';
+    return '<tr><td>'+a.year+'</td><td>'+policyAge+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>'+shown(v?.surrender)+'</td><td>'+shown(v?.paidUp)+'</td><td>'+termText+'</td></tr>';
+  }).join('')+'</tbody></table>'+
+  '<div class="legacy3-values"><div><b>มูลค่าเวนคืน</b><div>ค่า CV จากตารางอ้างอิง ณ ปีกรมธรรม์ที่เลือก</div></div>'+
+  '<div><b>มูลค่าใช้เงินสำเร็จ</b><div>ทุนคุ้มครองเมื่อเปลี่ยนกรมธรรม์ตาม Factor ในคู่มือ (RPU)</div></div></div>'+
+  '<div class="legacy3-note">'+(policyValues?'ข้อมูลจาก '+esc(policyValues.source)+' · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย · ':'')+'— หมายถึงไม่มีค่าจากตารางอ้างอิง ไม่ใช่ 0 บาท · ปีกรมธรรม์ที่ 1 เริ่มที่อายุแรกเข้า</div>';
  const groups='<div class="legacy3-heading">4 WPCI — 44 โรค/การรักษา</div>'+
   '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+'</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
   '<div class="legacy3-note">รายละเอียดรายชื่อทั้งหมด 44 ข้อดูได้ในหน้า Calculator และเอกสารโบรชัวร์ AIA</div>';
