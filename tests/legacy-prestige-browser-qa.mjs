@@ -35,7 +35,9 @@ await page.route('**/api/legacy-prestige-rpu?**',async route=>{
 });
 const waitForTableB=async expected=>page.waitForFunction(value=>{
  const tr=document.querySelector('#legacy-table-B tbody tr:nth-child(2)');
- return !!tr&&tr.cells[2]?.textContent?.trim()===value;
+ return !!tr&&tr.cells[2]?.textContent?.trim()===value&&
+  !!document.querySelector('#legacy-table-B .legacy-values-reference strong')
+    ?.textContent?.includes('คำนวณ CV/RPU อัตโนมัติจาก');
 },expected,{timeout:15000});
 try {
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
