@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { inflateSync } from "node:zlib";
+import { brotliDecompressSync } from "node:zlib";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 
 // Internal staff QA ONLY. Factors are NOT bundled into public scripts or git.
-// Vercel encrypted Preview environment: LEGACY_RPU_MALE_FACTORS_ZLIB_B64.
+// Vercel encrypted Preview environment: LEGACY_RPU_MALE_FACTORS_BR_B64.
 // Source AIA Legacy Prestige Plus (New) internal 2025 manual sample RPU tables,
 // male 10/15/20 pay. Never use the manual for a client quotation.
 type FactorRows=Record<string,number[][]>;
 let parsedFactors:FactorRows|null=null;
 function getFactors():FactorRows|null{
   if(parsedFactors)return parsedFactors;
-  const encoded=process.env.LEGACY_RPU_MALE_FACTORS_ZLIB_B64;
+  const encoded=process.env.LEGACY_RPU_MALE_FACTORS_BR_B64;
   if(!encoded)return null;
   try{
-    const decoded=inflateSync(Buffer.from(encoded,"base64"),{maxOutputLength:60000});
+    const decoded=brotliDecompressSync(Buffer.from(encoded,"base64"),{maxOutputLength:60000});
     const data=JSON.parse(decoded.toString("utf8")) as FactorRows;
     for(const term of ["10","15","20"]){
       const rows=data[term];
