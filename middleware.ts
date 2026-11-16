@@ -279,6 +279,28 @@ export async function middleware(
   const pathname =
     request.nextUrl.pathname;
 
+  // SECURITY HOLD (AIA Legacy Prestige Plus): agent-only factor tables must
+  // not be served from the public illustrations directory. Deny direct
+  // requests before the general PUBLIC_PATHS bypass and before auth lookup.
+  // This is a temporary fail-closed control, NOT a substitute for removal of
+  // restricted files from deploy artifacts or AIA distribution approval.
+  const legacyRestrictedPath =
+    pathname.startsWith("/illustrations/legacy-prestige-plus-") ||
+    pathname === "/legacy-prestige-plus-phase3-qa.html" ||
+    pathname === "/agent/calculators/legacy-prestige-plus" ||
+    pathname.startsWith("/agent/calculators/legacy-prestige-plus/");
+
+  if (legacyRestrictedPath) {
+    return new NextResponse("Restricted Legacy product data", {
+      status: 403,
+      headers: {
+        "Cache-Control": "private, no-store, max-age=0",
+        "X-Content-Type-Options": "nosniff",
+        "X-Robots-Tag": "noindex, nofollow, noarchive",
+      },
+    });
+  }
+
   // Machine-to-machine endpoint authenticates its Bearer secret in the route.
   // Exact path only: no session lookup and no public dashboard access.
   if (
