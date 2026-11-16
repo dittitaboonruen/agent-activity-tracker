@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 type Unlinked = {
   id: number; first_name: string; last_name: string; skool_profile_url: string;
   active: boolean; last_active_at: string | null; courses: number; started: number;
-  completed: number; lastSyncedAt: string | null;
+  completed: number; lastSyncedAt: string | null; category: string;
 };
 type Agent = { id: number; agentCode: string | null; agentName: string };
 type AuditEntry = {
@@ -13,6 +13,8 @@ type AuditEntry = {
  agent_code_snapshot: string; agent_name_snapshot: string; actor_email: string;
  verification_method: string;
 };
+type ClassificationAudit = {id:number;created_at:string;skool_name_snapshot:string;old_category:string;new_category:string;actor_email:string};
+const categoryLabel: Record<string,string> = {pending:"รอตรวจสอบ",staff:"ทีมงานหลังบ้าน",team_leader:"หัวหน้าทีม"};
 const normal = (s: string) => s.normalize("NFKC").trim().replace(/\s+/g, " ");
 
 export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void }) {
@@ -33,6 +35,12 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   const [auditReady, setAuditReady] = useState(false);
   const [auditNotice, setAuditNotice] = useState("");
   const [auditHistory, setAuditHistory] = useState<AuditEntry[]>([]);
+  const [classificationReady, setClassificationReady] = useState(false);
+  const [classificationAudit, setClassificationAudit] = useState<ClassificationAudit[]>([]);
+  const [filterCategory, setFilterCategory] = useState("pending");
+  const [classifying, setClassifying] = useState<number | null>(null);
+  const [newCategory, setNewCategory] = useState("");
+  const [classNote, setClassNote] = useState("");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -51,6 +59,8 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       setAuditReady(data.auditReady === true);
       setAuditNotice(typeof data.auditNotice === "string" ? data.auditNotice : "");
       setAuditHistory(Array.isArray(data.auditHistory) ? data.auditHistory : []);
+      setClassificationReady(data.classificationReady === true);
+      setClassificationAudit(Array.isArray(data.classificationAudit) ? data.classificationAudit : []);
       setItems(Array.isArray(data.members) ? data.members : []);
       const ar = await fetch("/api/dashboard-agents", { cache: "no-store" });
       if (!ar.ok) throw new Error("ไม่สามารถดึงทะเบียน Agent Master ได้");
@@ -66,8 +76,25 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   const matches = useMemo(() => agents.filter(a => a.agentCode?.trim() === code.trim()), [agents, code]);
   const shown = useMemo(() => items.filter(m => {
     const q = normal(keyword).toLocaleLowerCase("th");
+    if (filterCategory !== "all" && m.category !== filterCategory) return false;
     return !q || [m.first_name,m.last_name,m.skool_profile_url].some(x=>normal(x ?? "").toLocaleLowerCase("th").includes(q));
-  }), [items, keyword]);
+  }), [items, keyword, filterCategory]);
+
+  async function classify() {
+    const m = items.find(x=>x.id===classifying);
+    if (!m || !classificationReady || busy || !newCategory || newCategory === m.category || classNote.trim().length < 8) return;
+    if (!window.confirm(`ยืนยันประเภทสมาชิก ${m.first_name} ${m.last_name} → ${categoryLabel[newCategory]}?`)) return;
+    setBusy(true);setError("");setInfo("");
+    try {
+      const r=await fetch("/api/skool-classification",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({memberId:m.id,expectedCategory:m.category,category:newCategory,note:classNote.trim()})});
+      const result=await r.json();
+      if(!r.ok || result.success!==true) throw new Error(result.error??"บันทึกไม่สำเร็จ");
+      setInfo(`จัดประเภทสำเร็จ · Audit #${result.auditId}`);
+      setClassifying(null);setNewCategory("");setClassNote("");
+      await refresh();
+    } catch(e){setError(e instanceof Error?e.message:"บันทึกไม่สำเร็จ");}
+    finally{setBusy(false);}
+  }
 
   async function link() {
     if (!current || busy || !auditReady || matches.length !== 1
@@ -107,15 +134,39 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       {info ? <p role="status" style={{color:"var(--gold-bright)"}}>{info}</p> : null}
       {allowed && !loading ? <>
         {auditNotice ? <p role="alert" style={{color:"var(--rp-danger)",fontWeight:700}}>{auditNotice}</p> : null}
-        <p style={{fontWeight:700}}>Skool ที่ยังไม่เชื่อม: {items.length} บัญชี</p>
+        <p style={{fontWeight:700}}>ไม่มี Agent Code {items.length} บัญชี · รอตรวจสอบ {items.filter(m=>m.category==="pending").length} · ทีมงาน {items.filter(m=>m.category==="staff").length} · หัวหน้าทีม {items.filter(m=>m.category==="team_leader").length}</p>
+        {!classificationReady ? <p role="alert" style={{color:"var(--rp-danger)"}}>ยังไม่ติดตั้ง Classification SQL ใน Supabase · ไม่สามารถจัดประเภทได้</p> : null}
+        <label style={{display:"block",marginBottom:10}}>ประเภทสมาชิก
+          <select style={field} value={filterCategory} onChange={e=>{setFilterCategory(e.target.value);setSelected(null);setClassifying(null);}}>
+            <option value="pending">รอตรวจสอบ</option><option value="staff">ทีมงานหลังบ้าน</option><option value="team_leader">หัวหน้าทีม</option><option value="all">ทั้งหมด</option>
+          </select>
+        </label>
         <label style={{display:"block",marginBottom:10}}>ค้นหาสมาชิก <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="ชื่อหรือ Skool Profile" style={field}/></label>
         <div style={{maxHeight:300,overflowY:"auto",border:"1px solid var(--hairline)",borderRadius:10}}>
           {shown.map(m=><div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"10px 12px",borderBottom:"1px solid var(--hairline)",flexWrap:"wrap"}}>
-            <div><strong>{m.first_name} {m.last_name}</strong><div style={{fontSize:12,color:"var(--cream-muted)"}}>คอร์ส {m.courses} · เริ่มเรียน {m.started} · จบ {m.completed} · {m.active?"มีสิทธิ์เข้าเรียน":"ไม่มีสิทธิ์เข้าเรียน"} · <a href={m.skool_profile_url} target="_blank" rel="noreferrer">โปรไฟล์ Skool ↗</a></div></div>
-            <button type="button" style={button} onClick={()=>{setSelected(m.id);setCode("");setIdentityConfirmed(false);setVerificationMethod("");setVerificationNote("");setError("");}}>ตรวจจับคู่</button>
+            <div><strong>{m.first_name} {m.last_name}</strong> <span style={{fontSize:12,color:"var(--gold-bright)"}}>· {categoryLabel[m.category] ?? "รอตรวจสอบ"}</span><div style={{fontSize:12,color:"var(--cream-muted)"}}>คอร์ส {m.courses} · เริ่มเรียน {m.started} · จบ {m.completed} · {m.active?"มีสิทธิ์เข้าเรียน":"ไม่มีสิทธิ์เข้าเรียน"} · <a href={m.skool_profile_url} target="_blank" rel="noreferrer">โปรไฟล์ Skool ↗</a></div></div>
+            <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+              <button type="button" style={button} disabled={!classificationReady || busy} onClick={()=>{setClassifying(m.id);setNewCategory("");setClassNote("");setSelected(null);}}>จัดประเภท</button>
+              {m.category==="pending" ? <button type="button" style={button} onClick={()=>{setSelected(m.id);setClassifying(null);setCode("");setIdentityConfirmed(false);setVerificationMethod("");setVerificationNote("");setError("");}}>ตรวจจับคู่</button> : null}
+            </div>
           </div>)}
           {shown.length === 0 ? <p style={{padding:12}}>ไม่มีบัญชีตามตัวกรอง</p>:null}
         </div>
+        {classifying !== null ? <div style={{marginTop:14,padding:15,border:"1px solid var(--gold)",borderRadius:12}}>
+          <h3 style={{marginTop:0}}>จัดประเภท: {items.find(m=>m.id===classifying)?.first_name} {items.find(m=>m.id===classifying)?.last_name}</h3>
+          <p style={{fontSize:12,color:"var(--cream-muted)"}}>ไม่เปลี่ยน Agent Master, PEP หรือ Skool Progress · เปลี่ยนกลับเป็นรอตรวจสอบได้พร้อม Audit Log</p>
+          <label>ประเภทใหม่<select style={field} value={newCategory} onChange={e=>setNewCategory(e.target.value)}>
+            <option value="">เลือกประเภทใหม่</option>
+            {["pending","staff","team_leader"].filter(x=>x!==items.find(m=>m.id===classifying)?.category).map(x=><option key={x} value={x}>{categoryLabel[x]}</option>)}
+          </select></label>
+          <label style={{display:"block",marginTop:10}}>เหตุผลการจัดประเภท (อย่างน้อย 8 ตัวอักษร)
+            <textarea style={{...field,maxWidth:580,minHeight:62}} value={classNote} maxLength={500} onChange={e=>setClassNote(e.target.value)} placeholder="เช่น ยืนยันตำแหน่งจากทะเบียนบุคลากร" />
+          </label>
+          <div style={{display:"flex",gap:8,marginTop:12}}>
+            <button type="button" style={button} disabled={busy || !newCategory || classNote.trim().length<8 || !classificationReady} onClick={()=>void classify()}>บันทึกประเภท + Audit Log</button>
+            <button type="button" style={button} onClick={()=>setClassifying(null)}>ยกเลิก</button>
+          </div>
+        </div> : null}
         {current ? <div style={{marginTop:14,padding:15,border:"1px solid var(--gold)",borderRadius:12}}>
           <h3 style={{marginTop:0}}>จับคู่บัญชี: {fullName}</h3>
           <p style={{fontSize:12,color:"var(--cream-muted)"}}>ต้องตรวจว่าเป็นคนเดียวกับตัวแทนจริง ห้ามจับคู่จากชื่อคล้ายกันอย่างเดียว และไม่สร้าง Agent Code ใหม่</p>
@@ -153,6 +204,12 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
           </button>
           <button type="button" style={{...button,marginLeft:8}} onClick={()=>setSelected(null)}>ยกเลิก</button>
         </div>:null}
+        <details style={{marginTop:20,padding:"12px 0",borderTop:"1px solid var(--hairline)"}}>
+          <summary style={{cursor:"pointer",fontWeight:800}}>ประวัติการจัดประเภท · {classificationAudit.length} รายการ</summary>
+          {classificationAudit.length===0?<p>ยังไม่มีประวัติการจัดประเภทใหม่</p>:classificationAudit.map(a=><p key={a.id} style={{fontSize:12}}>
+            {new Date(a.created_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"})} · {a.skool_name_snapshot} · {categoryLabel[a.old_category]} → {categoryLabel[a.new_category]} · {a.actor_email}
+          </p>)}
+        </details>
         <details style={{marginTop:20,padding:"12px 0",borderTop:"1px solid var(--hairline)"}}>
           <summary style={{cursor:"pointer",fontWeight:800}}>ประวัติการจับคู่ล่าสุด (Audit Log) · {auditHistory.length} รายการ</summary>
           {!auditReady ? <p>ยังไม่ได้ติดตั้ง Audit Log ใน Supabase</p> :
