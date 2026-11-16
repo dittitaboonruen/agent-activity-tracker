@@ -53,3 +53,14 @@ test('male 35/10m unsupported Table B is explicitly flagged, never filled from a
  assert.equal(lookup(35,'ชาย',10000000,15),null);
  assert.equal(lookup(35,'ชาย',10000000,20),null);
 });
+
+test('male CV-only brochure evidence must explicitly warn that RPU and ETI are unavailable',()=>{
+ assert.match(html,/const partialMaleNote=/);
+ assert.match(html,/RPU/);
+ assert.match(html,/ETI/);
+ const evidence=lookup(40,'ชาย',20000000,10);
+ const values=[...evidence.byAge.values()];
+ assert.ok(values.some(row=>Number.isFinite(row.surrender)));
+ assert.equal(values.some(row=>Number.isFinite(row.paidUp)),false);
+ assert.equal(values.some(row=>Number.isFinite(row.extendedYears)&&Number.isFinite(row.extendedDays)),false);
+});
