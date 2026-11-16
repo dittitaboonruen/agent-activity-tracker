@@ -60,6 +60,31 @@ try {
    assert.ok(await page.locator('#app .panel').count()>0,'missing product panel '+product);
    console.log('PASS: non-Legacy product renders '+product);
  }
+ // Simulate independent users sharing the same application simultaneously.
+ // Each page has its own isolated browser context and input state.
+ const parallelCases=[
+   {gender:'ชาย',age:'35',sum:'20000000',term:'20',premium:'460,200'},
+   {gender:'ชาย',age:'40',sum:'20000000',term:'10',premium:'960,800'},
+   {gender:'หญิง',age:'35',sum:'15000000',term:'20',premium:'322,500'},
+   {gender:'หญิง',age:'35',sum:'20000000',term:'20',premium:'387,000'},
+ ];
+ await Promise.all(parallelCases.map(async c=>{
+   const isolated=await browser.newPage({viewport:{width:1100,height:800}});
+   try{
+     await isolated.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
+     await isolated.locator('.tab[data-id="legacy"]').click();
+     await isolated.locator('#in-gender').selectOption(c.gender);
+     await isolated.locator('#in-age').fill(c.age);
+     await isolated.locator('#in-sum').fill(c.sum);
+     await isolated.locator('#legacy-term').selectOption(c.term);
+     const summary=isolated.locator('.summary .stat').filter({
+       has:isolated.locator('.lbl', {hasText:'เบี้ยประกันภัยต่อปี (หลังส่วนลดทุน)'})
+     });
+     assert.equal(await summary.locator('.val').innerText(),c.premium,
+       'isolated concurrent user '+JSON.stringify(c));
+   }finally{await isolated.close();}
+ }));
+ console.log('PASS: 4 concurrent independent browser sessions, male and female premiums');
  assert.deepEqual(errors,[],'uncaught browser errors');
  console.log('QA evidence files: '+qaDir);
  console.log('PASS: all Legacy/browser smoke checks completed');
