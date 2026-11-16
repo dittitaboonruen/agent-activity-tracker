@@ -12,6 +12,31 @@ fs.mkdirSync(qaDir,{recursive:true});
 page.on('pageerror',e=>errors.push(e.message));
 page.on('dialog',async d=>{errors.push('Dialog: '+d.message());await d.dismiss()});
 const base='http://127.0.0.1:8787/illustrations/royal_partners_illustration_tool.html';
+// Internal QA-only HTTP fixture: derived from exact verified 2025 manual cells.
+// Only the selected policy-year-2 values are represented; NO raw factor table.
+await page.route('**/api/legacy-prestige-rpu?**',async route=>{
+ const query=new URL(route.request().url()).searchParams;
+ const age=Number(query.get('age')),term=Number(query.get('term'));
+ const sum=Number(query.get('sum')),gender=query.get('gender');
+ let cv=null,rpu=null;
+ if(gender==='F'&&age===35&&sum===15000000){
+   const expected={10:[165000,990000],15:[120000,720000],20:[105000,630000]}[term];
+   if(expected){[cv,rpu]=expected;}
+ }else if(gender==='M'&&age===40&&term===10&&sum===20000000){
+   cv=320000;rpu=1280000;
+ }else if(gender==='M'&&age===35&&term===20&&sum===10000000){
+   cv=80000;rpu=390000;
+ }
+ const rows=Array.from({length:99-age},(_,i)=>({
+   age:age+i,policyYear:i+1,surrender:i===1?cv:null,paidUp:i===1?rpu:null
+ }));
+ await route.fulfill({status:200,contentType:'application/json',
+   body:JSON.stringify({gender,issueAge:age,sum,term,rows})});
+});
+const waitForTableB=async expected=>page.waitForFunction(value=>{
+ const tr=document.querySelector('#legacy-table-B tbody tr:nth-child(2)');
+ return !!tr&&tr.cells[2]?.textContent?.trim()===value;
+},expected,{timeout:15000});
 try {
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
  await page.locator('.tab[data-id="legacy"]').click();
@@ -25,6 +50,7 @@ try {
    const table=page.locator('#legacy-table-B tbody tr');
    assert.equal(await table.first().locator('td').first().innerText(),'35','table B first age');
    assert.equal(await table.last().locator('td').first().innerText(),'98','table B last age');
+   await waitForTableB(expected[term][1]);
    const cols=await table.nth(1).locator('td').allInnerTexts();
    assert.equal(cols[0],'36','year 2 issue age');
    assert.equal(cols.length,3,'Table B shows ONLY age, CV and RPU');
@@ -63,10 +89,11 @@ try {
  await page.locator('#in-sum').fill('20000000');
  await page.locator('#legacy-term').selectOption('10');
  await page.locator('[data-legacy-table="B"]').click();
+ await waitForTableB('1,280,000');
  let maleCells=await page.locator('#legacy-table-B tbody tr').nth(1).locator('td').allInnerTexts();
  assert.equal(maleCells[0],'41');
  assert.equal(maleCells[1],'320,000','exact brochure CV auto lookup');
- assert.equal(maleCells[2],'—','RPU requires matching authorized factor');
+ assert.equal(maleCells[2],'1,280,000','authorized male RPU updates automatically');
  assert.equal(maleCells.length,3,'Male Table B has only age, CV, RPU');
  assert.equal(await page.locator('#legacy-factor-upload').count(),0,'no file upload required');
  assert.equal(await page.locator('.legacy-local-demo').count(),0,'synthetic demo hidden');
@@ -74,8 +101,10 @@ try {
  await page.locator('#in-sum').fill('10000000');
  await page.locator('#legacy-term').selectOption('20');
  await page.locator('[data-legacy-table="B"]').click();
+ await waitForTableB('390,000');
  maleCells=await page.locator('#legacy-table-B tbody tr').nth(1).locator('td').allInnerTexts();
- assert.equal(maleCells[1],'—','unsupported male 35/10m value must be unavailable, never fake');
+ assert.equal(maleCells[1],'80,000','male age35/20 Pay cash value updates from matching case');
+ assert.equal(maleCells[2],'390,000','male age35/20 Pay RPU updates from matching case');
  console.log('PASS: male table B updates automatically without uploads, no cross-case guessing');
  // Check that all non-Legacy product tabs still render without page errors.
  for(const product of await page.locator('.tab[data-id]').evaluateAll(els=>els.map(e=>e.dataset.id).filter(id=>id!=='legacy'))) {
