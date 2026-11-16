@@ -9,7 +9,7 @@ vm.runInNewContext(read('legacy-prestige-plus-f20-factors.js'),ctx);
 const from=html.indexOf('let LEGACY_MANUAL_F20_INDEX=null;');
 const to=html.indexOf('/* Backward-compatible exact lookup:',from);
 const lookup=new Function('window','lookupLegacyPolicyValueEvidence',
- html.slice(from,to)+'return lookupLegacyPolicyValueIllustration;')(ctx.window,()=>null);
+ "const LEGACY_MALE_RPU_DATA=new Map(); const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':');"+html.slice(from,to)+'return lookupLegacyPolicyValueIllustration;')(ctx.window,()=>null);
 const fixtures={
  10:{cv:165000,rpu:990000,y:9,d:211},
  15:{cv:120000,rpu:720000,y:7,d:91},
