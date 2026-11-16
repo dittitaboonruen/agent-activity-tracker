@@ -1,0 +1,57 @@
+name: Legacy Prestige Plus QA
+
+on:
+  pull_request:
+    paths:
+      - 'public/illustrations/royal_partners_illustration_tool.html'
+      - 'public/illustrations/legacy-prestige-plus-*-factors.js'
+      - 'public/illustrations/legacy-prestige-plus-f20-factors.js'
+      - 'data/legacy-prestige-plus/**'
+      - 'tests/legacy-prestige-plus-*.test.mjs'
+      - 'tests/legacy-prestige-browser-qa.mjs'
+      - 'package.json'
+      - '.github/workflows/legacy-prestige-qa.yml'
+  push:
+    branches:
+      - feature/legacy-prestige-main-only-qa
+    paths:
+      - 'public/illustrations/royal_partners_illustration_tool.html'
+      - 'public/illustrations/legacy-prestige-plus-*-factors.js'
+      - 'public/illustrations/legacy-prestige-plus-f20-factors.js'
+      - 'data/legacy-prestige-plus/**'
+      - 'tests/legacy-prestige-plus-*.test.mjs'
+      - 'tests/legacy-prestige-browser-qa.mjs'
+      - 'package.json'
+      - '.github/workflows/legacy-prestige-qa.yml'
+
+jobs:
+  legacy-factor-tests:
+    name: Legacy Table B automated regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated Legacy QA suite
+        run: npm run test:legacy
+
+  legacy-browser-smoke:
+    name: Browser Legacy report and cross-plan smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium browser QA dependencies
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve standalone calculator
+        run: |
+          python3 -m http.server 8787 --directory public > /tmp/legacy-qa-http.log 2>&1 &
+          sleep 2
+      - name: Check Legacy 10/15/20 Pay, PDF and other plans
+        run: node tests/legacy-prestige-browser-qa.mjs

@@ -54,6 +54,7 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/skool-progress",
   "/api/skool-unlinked",
   "/api/skool-quiz-results",
+  "/api/legacy-prestige-rpu",
 ];
 
 function pathMatches(
@@ -281,6 +282,17 @@ export async function middleware(
   const pathname =
     request.nextUrl.pathname;
 
+  // Legacy internal QA assets may only be accessed through a valid
+  // Supabase session with an active manager/admin profile. Other insurance
+  // calculator assets keep their existing PUBLIC_PATHS behavior unchanged.
+  // IMPORTANT: authenticated access is not authorization to use an AIA
+  // restricted manual for sales. Compliance approval remains mandatory.
+  const legacyRestrictedPath =
+    pathname.startsWith("/illustrations/legacy-prestige-plus-") ||
+    pathname === "/legacy-prestige-plus-phase3-qa.html" ||
+    pathname === "/agent/calculators/legacy-prestige-plus" ||
+    pathname.startsWith("/agent/calculators/legacy-prestige-plus/");
+
   // Machine-to-machine endpoint authenticates its Bearer secret in the route.
   // Exact path only: no session lookup and no public dashboard access.
   if (
@@ -360,9 +372,9 @@ export async function middleware(
   */
 
   if (
-    isPublicPath(
+    (!legacyRestrictedPath && isPublicPath(
       pathname
-    ) ||
+    )) ||
     isPublicApiPath(
       pathname
     )
@@ -461,6 +473,16 @@ export async function middleware(
       response,
       "บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน"
     );
+  }
+
+  // Keep internal preview factors off anonymous public URLs.
+  // Return before the role-specific navigation allowlists only after
+  // successful session AND active authorized profile verification.
+  if (legacyRestrictedPath) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
   }
 
   /*
