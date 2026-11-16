@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const html=fs.readFileSync(path.join(root,'public/illustrations/royal_partners_illustration_tool.html'),'utf8');
-const start=html.indexOf('const LEGACY_BROCHURE_CASH_M40_10_20M =');
+const start=html.indexOf('const LEGACY_IPOS_VALUES_F51_20_15M =');
 const end=html.indexOf('/* AIA Legacy Prestige Plus (New) / female 20 Pay only.',start);
 assert.ok(start>=0&&end>start,'Brochure evidence scope found');
 const body=html.slice(start,end);
