@@ -30,3 +30,11 @@ jobs:
           sleep 2
       - name: Browser QA: Legacy Table A/B, report and other products
         run: node tests/legacy-prestige-browser-qa.mjs
+      - name: Preserve Legacy PDF and preview evidence for manual QA (internal use only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-prestige-internal-visual-qa
+          path: /tmp/legacy-prestige-qa/
+          if-no-files-found: warn
+          retention-days: 3
