@@ -63,20 +63,31 @@ export async function GET() {
         if (!data || data.length < size) break;
       }
     }
-    return respond({ success: true, count: members.length, members: Array.from(byId.values()) });
+    // History is read-only and limited to authorized full-scope Training/Admin.
+    // Missing SQL disables new matching rather than allowing unaudited writes.
+    const history = await supabase.from("skool_member_match_audit")
+      .select("id, created_at, skool_member_id, skool_name, agent_code_snapshot, agent_name_snapshot, actor_email, verification_method")
+      .order("created_at", { ascending: false }).limit(50);
+    const auditReady = !history.error;
+    if (history.error) console.error("[skool-unlinked] audit setup check:", history.error.code);
+    return respond({ success: true, count: members.length, members: Array.from(byId.values()),
+      auditReady, auditHistory: auditReady ? (history.data ?? []) : [],
+      auditNotice: auditReady ? null : "ยังไม่ได้ติดตั้ง Matching Safety + Audit Log ใน Supabase จึงปิดการจับคู่ใหม่ไว้ก่อน" });
   } catch (e) {
     console.error("[skool-unlinked] GET", e);
     return respond({ success: false, error: "โหลดรายชื่อ Skool ที่ยังไม่เชื่อมไม่สำเร็จ" }, 500);
   }
 }
 
-/** Explicit, idempotent admin-controlled identity match. Never change Agent Master. */
+/** Only the atomic, auditable SQL function may link accounts. Fail closed if absent. */
 export async function POST(request: NextRequest) {
-  const denied = await authorize();
-  if (denied) return respond({ success: false, error: denied.message }, denied.status);
+  const access = await getSkoolAccess();
+  if (!access.allowed) return respond({ success: false, error: access.message }, access.status);
+  if (!access.canAuditUnlinked) return respond({ success: false, error: "บัญชีนี้ไม่มีสิทธิ์จับคู่สมาชิก" }, 403);
+
   try {
     const origin = request.headers.get("origin");
-    if (origin && new URL(origin).host !== request.nextUrl.host) {
+    if (!origin || new URL(origin).host !== request.nextUrl.host) {
       return respond({ success: false, error: "Origin ไม่ถูกต้อง" }, 403);
     }
     if (!(request.headers.get("content-type") ?? "").startsWith("application/json")) {
@@ -86,34 +97,46 @@ export async function POST(request: NextRequest) {
     const memberId = Number(body?.memberId);
     const agentCode = typeof body?.agentCode === "string" ? body.agentCode.trim() : "";
     const confirmedName = typeof body?.confirmedName === "string" ? body.confirmedName.trim() : "";
-    if (!Number.isSafeInteger(memberId) || memberId < 1 || !agentCode || agentCode.length > 40 || !confirmedName || confirmedName.length > 200) {
-      return respond({ success: false, error: "โปรดระบุบัญชี Skool, Agent Code และยืนยันชื่อให้ครบ" }, 400);
+    const confirmedAgentName = typeof body?.confirmedAgentName === "string" ? body.confirmedAgentName.trim() : "";
+    const verificationMethod = typeof body?.verificationMethod === "string" ? body.verificationMethod : "";
+    const verificationNote = typeof body?.verificationNote === "string" ? body.verificationNote.trim() : "";
+    if (!Number.isSafeInteger(memberId) || memberId < 1 || agentCode.length < 1 || agentCode.length > 40
+      || !confirmedName || confirmedName.length > 200 || !confirmedAgentName || confirmedAgentName.length > 200
+      || !["company_roster", "skool_owner_confirmation", "other_verified"].includes(verificationMethod)
+      || verificationNote.length < 8 || verificationNote.length > 500 || body?.identityConfirmed !== true) {
+      return respond({ success: false, error: "โปรดยืนยันชื่อทั้งสองฝั่ง วิธีตรวจสอบ และหลักฐานการยืนยันตัวตน" }, 400);
     }
+    // No read-check-update sequence. A single Postgres transaction locks the
+    // Agent Master row and writes both the link and its immutable audit record.
     const supabase = getSupabaseClient();
-    const [memberResult, agentResult] = await Promise.all([
-      supabase.from("skool_members").select("id, agent_id, first_name, last_name").eq("id", memberId).maybeSingle(),
-      supabase.from("agent_master").select("id, agent_code, agent_name, active").eq("agent_code", agentCode).eq("active", true).limit(2),
-    ]);
-    if (memberResult.error || agentResult.error) throw memberResult.error ?? agentResult.error;
-    const member = memberResult.data;
-    const agents = agentResult.data ?? [];
-    if (!member || agents.length !== 1) return respond({ success: false, error: "ไม่พบบัญชี Skool หรือ Agent Code ไม่ตรงกับตัวแทนที่ใช้งานอยู่เพียงคนเดียว" }, 404);
-    if (member.agent_id !== null) return respond({ success: false, error: "บัญชี Skool นี้มีการเชื่อมแล้ว กรุณารีเฟรช" }, 409);
-    const normalize = (s: string) => s.normalize("NFKC").replace(/\s+/g, " ").trim();
-    const fullName = normalize([member.first_name, member.last_name].filter(Boolean).join(" "));
-    if (normalize(confirmedName) !== fullName) return respond({ success: false, error: "ชื่อที่ยืนยันไม่ตรงกับบัญชี Skool" }, 400);
-    const agent = agents[0];
-    const existing = await supabase.from("skool_members").select("id").eq("agent_id", agent.id).limit(1);
-    if (existing.error) throw existing.error;
-    if ((existing.data ?? []).length) return respond({ success: false, error: "Agent Code นี้เชื่อมกับบัญชี Skool อื่นแล้ว ต้องตรวจสอบก่อน" }, 409);
-    const { data, error } = await supabase.from("skool_members").update({ agent_id: agent.id, updated_at: new Date().toISOString() })
-      .eq("id", memberId).is("agent_id", null).select("id, agent_id").maybeSingle();
-    if (error) throw error;
-    if (!data) return respond({ success: false, error: "มีผู้แก้ไขบัญชีนี้แล้ว กรุณารีเฟรช" }, 409);
-    console.info("[skool-unlinked] admin linked member", { memberId, agentId: agent.id });
-    return respond({ success: true, memberId, agentCode: agent.agent_code, agentName: agent.agent_name });
+    const { data, error } = await supabase.rpc("skool_link_member_audited", {
+      p_member_id: memberId,
+      p_agent_code: agentCode,
+      p_expected_skool_name: confirmedName,
+      p_expected_agent_name: confirmedAgentName,
+      p_actor_user_id: access.actorUserId,
+      p_actor_email: access.actorEmail,
+      p_verification_method: verificationMethod,
+      p_verification_note: verificationNote,
+    });
+    if (error) {
+      console.error("[skool-unlinked] atomic audit link failed:", error.code, error.message);
+      if (error.code === "PGRST202" || error.code === "42P01" || error.code === "42883")
+        return respond({ success: false, error: "ยังไม่ได้ติดตั้ง Matching Safety + Audit Log ใน Supabase จึงไม่บันทึกการจับคู่" }, 503);
+      if (error.message?.startsWith("MATCH_"))
+        return respond({ success: false, error: "ข้อมูลสมาชิกหรือ Agent Master เปลี่ยนไป หรือรหัสนี้ถูกจับคู่แล้ว กรุณาตรวจสอบใหม่" }, 409);
+      return respond({ success: false, error: "ไม่สามารถบันทึกการจับคู่พร้อม Audit Log ได้ จึงยกเลิกการเปลี่ยนแปลงทั้งหมด" }, 500);
+    }
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row?.audit_id || Number(row.member_id) !== memberId) {
+      return respond({ success: false, error: "ไม่สามารถยืนยันผล Audit Log ได้ กรุณาติดต่อผู้ดูแลก่อนลองซ้ำ" }, 500);
+    }
+    return respond({
+      success: true, memberId, agentCode: row.matched_agent_code,
+      agentName: row.matched_agent_name, auditId: row.audit_id,
+    });
   } catch (e) {
-    console.error("[skool-unlinked] POST", e);
-    return respond({ success: false, error: "จับคู่บัญชีไม่สำเร็จ ไม่มีการแก้ข้อมูล Production หรือ Quiz" }, 500);
+    console.error("[skool-unlinked] POST unexpected:", e);
+    return respond({ success: false, error: "เกิดข้อผิดพลาด ไม่ได้อนุญาตให้ข้าม Audit Log" }, 500);
   }
 }
