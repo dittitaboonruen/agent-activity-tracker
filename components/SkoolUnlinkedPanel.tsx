@@ -32,7 +32,7 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       const r = await fetch("/api/skool-unlinked", { cache: "no-store" });
       if (r.status === 401 || r.status === 403) {
         setAllowed(false);
-        setAccessNotice(r.status === 401 ? "กรุณาเข้าสู่ระบบ Performance Hub ใหม่" : "บัญชีนี้ดู Skool Dashboard ได้ แต่ยังไม่มีสิทธิ์ตรวจจับคู่สมาชิก: ต้องใช้ role Admin และสิทธิ์ดูทุกหน่วย (can_view_all_data)");
+        setAccessNotice(r.status === 401 ? "กรุณาเข้าสู่ระบบ Performance Hub ใหม่" : "บัญชีนี้ดู Skool Dashboard ได้ แต่ยังไม่มีสิทธิ์ตรวจจับคู่: ต้องเป็น Admin ที่ดูทุกหน่วย หรือบัญชี Training ที่ได้รับอนุญาตและมีสิทธิ์ดูทุกหน่วย");
         return;
       }
       const data = await r.json();
@@ -81,7 +81,7 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}>
         <div>
           <h2 style={{margin:"0 0 5px",fontSize:21}}>ตรวจสมาชิก Skool ที่ยังไม่เชื่อม Agent Master</h2>
-          <p style={{margin:0,fontSize:13,color:"var(--cream-muted)"}}>สำหรับ Admin เท่านั้น · ไม่รวมสมาชิกกลุ่มนี้ใน PEP จนกว่าจะยืนยันตัวตนและจับคู่</p>
+          <p style={{margin:0,fontSize:13,color:"var(--cream-muted)"}}>สำหรับ Admin/Training ที่ได้รับอนุญาต · ยังไม่รวมใน PEP จนกว่าจะยืนยันตัวตนและจับคู่</p>
         </div>
         <button type="button" onClick={()=>void refresh()} disabled={loading || busy} style={button}>↻ ตรวจใหม่</button>
       </div>
