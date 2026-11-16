@@ -17313,7 +17313,14 @@ function viewLegacyPrestige(app){
     button.addEventListener('click',()=>setTableView(button.dataset.legacyTable));
   });
   setTableView(state.legacy.tableView);
-  addExportButton(app,'legacy');
+  if(window.RP_LEGACY_DEMO_ACTIVE===true && state.gender==='ชาย'){
+    const warning=document.createElement('div');
+    warning.className='ledger-wrap legacy-demo-export-warning';
+    warning.textContent='⚠️ ข้อมูลจำลองสำหรับทดสอบเท่านั้น — ปิดการส่งออก PDF ในโหมดทดลอง เพื่อป้องกันการนำตัวเลขสมมติไปใช้กับลูกค้า';
+    panel.appendChild(warning);
+  }else{
+    addExportButton(app,'legacy');
+  }
 }
 
 /* ===================== main render ===================== */
