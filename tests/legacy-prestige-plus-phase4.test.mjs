@@ -23,7 +23,7 @@ const evidence=(age,gender,sum,term)=>{
   ]))};
 };
 const lookup=new Function('window','lookupLegacyPolicyValueEvidence',
-  html.slice(from,to)+'return lookupLegacyPolicyValueIllustration;')(window,evidence);
+  "const LEGACY_MALE_RPU_DATA=new Map(); const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':');"+html.slice(from,to)+'return lookupLegacyPolicyValueIllustration;')(window,evidence);
 const data=window.RP_LEGACY_F20_FACTORS;
 
 test('source datasets and isolation',()=>{
