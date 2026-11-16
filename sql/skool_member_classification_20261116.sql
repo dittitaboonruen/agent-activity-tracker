@@ -116,6 +116,27 @@ revoke all on function public.skool_classify_member_audited(bigint,text,text,tex
   from public, anon, authenticated;
 grant execute on function public.skool_classify_member_audited(bigint,text,text,text,uuid,text)
   to service_role;
+
+-- Prevent a classified staff/leader account being linked as an Agent.
+-- This also closes races between classification and matching.
+create or replace function public.skool_reject_non_agent_link()
+returns trigger language plpgsql set search_path = '' as $
+begin
+  if new.agent_id is not null and old.agent_id is null and exists (
+    select 1 from public.skool_member_classification c
+    where c.skool_member_id = old.id
+      and c.category in ('staff','team_leader')
+  ) then
+    raise exception 'CLASSIFIED_NON_AGENT_CANNOT_LINK' using errcode='P0001';
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.skool_reject_non_agent_link() from public, anon, authenticated;
+drop trigger if exists trg_skool_reject_non_agent_link on public.skool_members;
+create trigger trg_skool_reject_non_agent_link
+  before update of agent_id on public.skool_members
+  for each row execute function public.skool_reject_non_agent_link();
 commit;
 
 -- Read-only verification:
