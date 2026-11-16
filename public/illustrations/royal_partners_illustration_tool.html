@@ -16877,7 +16877,7 @@ function buildLegacyReportHTML(){
  const selectedYears=[...new Set([1,2,3,5,d.term,10,15,20,30,40,99-d.age])].filter(v=>v>=1&&v<=99-d.age).sort((a,b)=>a-b);
  const policyValues=lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term);
  const table='<div class="legacy3-heading">3 ตารางเบี้ยและมูลค่ากรมธรรม์</div>'+
-  '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ ณ ต้นปีกรมธรรม์</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เวนคืน</th><th>ใช้เงินสำเร็จ</th><th>ขยายเวลา ปี / วัน</th></tr></thead><tbody>'+
+  '<table class="legacy3-table"><thead><tr><th>ปีกรมธรรม์</th><th>อายุ ณ ต้นปีกรมธรรม์</th><th>เบี้ย/ปี</th><th>เบี้ยสะสม</th><th>เงินค่าเวนคืนกรมธรรม์ (CV)</th><th>มูลค่าใช้เงินสำเร็จ (RPU)</th></tr></thead><tbody>'+
   selectedYears.map(n=>{
     const a=d.c.rows[n-1];
     // AIA manual year 1 starts at issueAge, year 2 at issueAge+1.
@@ -16885,9 +16885,7 @@ function buildLegacyReportHTML(){
     const policyAge=d.age+n-1;
     const v=policyValues?.byAge.get(policyAge);
     const shown=x=>Number.isFinite(x)?fmt(x):'—';
-    const termText=Number.isFinite(v?.extendedYears)&&Number.isFinite(v?.extendedDays)?
-      v.extendedYears+' ปี '+v.extendedDays+' วัน':'—';
-    return '<tr><td>'+a.year+'</td><td>'+policyAge+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>'+shown(v?.surrender)+'</td><td>'+shown(v?.paidUp)+'</td><td>'+termText+'</td></tr>';
+    return '<tr><td>'+a.year+'</td><td>'+policyAge+'</td><td>'+fmt(a.premium)+'</td><td>'+fmt(a.paid)+'</td><td>'+shown(v?.surrender)+'</td><td>'+shown(v?.paidUp)+'</td></tr>';
   }).join('')+'</tbody></table>'+
   '<div class="legacy3-values"><div><b>มูลค่าเวนคืน</b><div>ค่า CV จากตารางอ้างอิง ณ ปีกรมธรรม์ที่เลือก</div></div>'+
   '<div><b>มูลค่าใช้เงินสำเร็จ</b><div>ทุนคุ้มครองเมื่อเปลี่ยนกรมธรรม์ตาม Factor ในคู่มือ (RPU)</div></div></div>'+
@@ -17129,9 +17127,8 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const available=[...(matches?.values()||[])];
   const cvAvailable=available.some(v=>Number.isFinite(v?.surrender));
   const rpuAvailable=available.some(v=>Number.isFinite(v?.paidUp));
-  const etiAvailable=available.some(v=>Number.isFinite(v?.extendedYears)&&Number.isFinite(v?.extendedDays));
-  const partialMaleNote=inputs.gender==='ชาย'&&evidence&&cvAvailable&&(!rpuAvailable||!etiAvailable)
-    ?' · CV มีข้อมูลยืนยันแล้ว แต่ '+[!rpuAvailable?'RPU':'',!etiAvailable?'ETI':''].filter(Boolean).join(' และ ')+' ยังไม่มีค่าอ้างอิงสำหรับกรณีนี้ จึงไม่แสดงตัวเลขแทน'
+  const partialMaleNote=inputs.gender==='ชาย'&&evidence&&cvAvailable&&!rpuAvailable
+    ?' · CV มีข้อมูลยืนยันแล้ว แต่มูลค่าใช้เงินสำเร็จ (RPU) ยังไม่มีค่าอ้างอิงสำหรับกรณีนี้'
     :'';
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
@@ -17140,14 +17137,14 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   };
   const rows=displayRows.map(r=>{
     const data=matches?.get(r.age);
-    const cols=['surrender','paidUp','paidUpInstant','extendedYears','extendedDays','extendedMaturity','extendedInstant'];
+    const cols=['surrender','paidUp'];
     return '<tr><td class="'+thClass+'">'+r.age+'</td>'+cols.map(k=>renderValue(data?.[k])).join('')+'</tr>';
   }).join('');
   return '<section class="ledger-wrap legacy-values-section">'+
     '<style>'+
     '.legacy-values-section{margin-top:18px}'+
     '.legacy-values-scroll{overflow:auto;max-height:530px;border:1px solid #E1D8C9;border-radius:10px;overscroll-behavior-x:contain}'+
-    '.legacy-values-table{width:100%;min-width:960px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}'+
+    '.legacy-values-table{width:100%;min-width:420px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}'+
     '.legacy-values-table th{background:#142A47;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:11.5px;text-align:center;line-height:1.45;padding:9px 6px;border-right:1px solid rgba(255,255,255,.16)}'+
     '.legacy-values-table thead tr:nth-child(2) th{background:#234263}'+
     '.legacy-values-table td{text-align:right;padding:7px 10px;border-bottom:1px solid #E8E1D6;white-space:nowrap;font-variant-numeric:tabular-nums}'+
@@ -17157,7 +17154,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
-    '@media(max-width:760px){.legacy-values-table{min-width:900px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
+    '@media(max-width:760px){.legacy-values-table{min-width:420px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
@@ -17168,12 +17165,9 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
     '<table class="legacy-values-table"><thead>'+
-    '<tr><th class="legacy-values-age" rowspan="2" scope="col">อายุ</th>'+
-    '<th rowspan="2" scope="col">เงินค่าเวนคืนกรมธรรม์</th>'+
-    '<th colspan="2" scope="colgroup">กรมธรรม์ใช้เงินสำเร็จ</th>'+
-    '<th colspan="4" scope="colgroup">การประกันภัยแบบขยายเวลา</th></tr>'+
-    '<tr><th scope="col">มูลค่าใช้เงินสำเร็จ</th><th scope="col">เงินจ่ายคืนทันที</th>'+
-    '<th scope="col">ปี</th><th scope="col">วัน</th><th scope="col">เงินครบกำหนด</th><th scope="col">เงินจ่ายคืนทันที</th></tr>'+
+    '<tr><th class="legacy-values-age" scope="col">อายุ</th>'+
+    '<th scope="col">เงินค่าเวนคืนกรมธรรม์ (CV)</th>'+
+    '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
     '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีค่าที่แสดงในตารางอ้างอิง ไม่ใช่จำนวน 0 บาท · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
     '</section>';
