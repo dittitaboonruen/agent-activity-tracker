@@ -202,12 +202,15 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
     ctx = context; ctx.scale(scale, scale);
     ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = colors.cream; ctx.fillRect(0, 0, width, page === 1 ? 106 : 69);
+    ctx.fillStyle = colors.ink; ctx.fillRect(0, 0, width, 7);
+    ctx.fillStyle = colors.gold; ctx.fillRect(0, 7, width, 2);
     text("ROYAL PARTNER", margin, 25, 8.5, true, colors.gold);
-    text(page === 1 ? "สรุปผลงานสำหรับคุย PEP" : "สรุป PEP (ต่อ)", margin, 49, page === 1 ? 20 : 16, true);
+    text(page === 1 ? "PEP PERFORMANCE REPORT" : "PEP PERFORMANCE REPORT (CONT.)", margin, 49, page === 1 ? 17 : 14, true);
+    if (page === 1) text("รายงานผลงานและแผนพัฒนาตัวแทน", margin, 62, 8, false, colors.muted);
     if (page === 1) {
-      const nameLines = wrap(`${report.context.agentName} • รหัส ${report.context.agentCode || "ยังไม่มีรหัส"}`, contentWidth, 11, true);
-      nameLines.forEach((line, index) => text(line, margin, 72 + index * 14, 11, true));
-      const nameBottom = 72 + nameLines.length * 14;
+      const nameLines = wrap(`${report.context.agentName} • รหัส ${report.context.agentCode || "ยังไม่มีรหัส"}`, contentWidth, 10, true);
+      nameLines.forEach((line, index) => text(line, margin, 75 + index * 13, 10, true));
+      const nameBottom = 75 + nameLines.length * 13;
       text(`วันที่ PEP: ${report.note ? formatThaiDateLong(report.note.pepDate) : "ไม่แนบคอมเมนต์ PEP"}`, margin, nameBottom + 1, 8, false, colors.muted);
       y = Math.max(123, nameBottom + 25);
     } else {
@@ -308,6 +311,19 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
   paragraph(`ดึงกิจกรรมล่าสุด: ${dataTimestampLabel(report.context.fetchedAt)}`, 7, false, 10, colors.muted);
 
   heading("02  การเรียนและเป้าหมาย");
+  // Visual learning progress uses only the authorized, server-returned Skool percentage.
+  // Missing/error data must never be represented as 0% achievement.
+  if (!report.skoolError && report.skool && report.skool.records > 0 && Number.isFinite(report.skool.averageProgress)) {
+    const pct = Math.max(0, Math.min(100, report.skool.averageProgress));
+    ensure(63);
+    box(margin, y, contentWidth, 55, colors.cream);
+    text("Skool | ความคืบหน้าเฉลี่ยจาก CSV", margin + 13, y + 16, 9, true, colors.ink);
+    text(`${pct.toLocaleString("th-TH", { maximumFractionDigits: 1 })}%`, margin + contentWidth - 65, y + 16, 11, true, colors.green);
+    ctx.fillStyle = "#E2D9C9"; ctx.fillRect(margin + 13, y + 29, contentWidth - 26, 10);
+    if (pct > 0) { ctx.fillStyle = colors.green; ctx.fillRect(margin + 13, y + 29, (contentWidth - 26) * pct / 100, 10); }
+    text("คำนวณจากข้อมูลการเรียนที่จับคู่กับตัวแทนนี้", margin + 13, y + 49, 7, false, colors.muted);
+    y += 63;
+  }
   const learning = reportLearningLines(report);
   const courseRows = selectCourseRows(report.skoolRows ?? [], report.context.agentId);
   const groups = courseProgressGroups(courseRows);
@@ -366,7 +382,7 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
     { title: learning[4][0], columns: [[{ text: learning[4][1] }, { text: "เป้าหมายรายปีของตัวแทนที่เลือก", size: 7.5, color: colors.muted, before: 7 }]] },
   ], [0.64, 0.36]);
 
-  heading("03  คอมเมนต์และแผนทำต่อ");
+  heading("03  PEP NOTES | คอมเมนต์และแผนทำต่อ");
   if (!report.note) fullCard({ title: "บันทึก PEP", columns: [[{ text: "ไม่แนบคอมเมนต์ PEP ในรายงานนี้", color: colors.muted }]] });
   else {
     paragraph(`บันทึกวันที่ ${formatThaiDateLong(report.note.pepDate)} • อัปเดต ${dataTimestampLabel(report.note.updatedAt)}`, 7.2, false, 11, colors.muted);
