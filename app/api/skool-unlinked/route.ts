@@ -63,6 +63,23 @@ export async function GET() {
         if (!data || data.length < size) break;
       }
     }
+    // Classification is independent of Agent Master; unresolved accounts remain
+    // visible while staff/leader accounts are not treated as missing Agent Codes.
+    const classifications = await supabase.from("skool_member_classification")
+      .select("skool_member_id, category");
+    const classReady = !classifications.error;
+    if (classifications.error) console.error("[skool-unlinked] classification not installed", classifications.error.code);
+    const classMap = new Map((classifications.data ?? []).map(x => [x.skool_member_id, x.category]));
+    const typedMembers = Array.from(byId.values()).map(m => ({
+      ...m, category: (classMap.get(m.id) ?? "pending") as string,
+    }));
+    const classHistory = classReady
+      ? await supabase.from("skool_member_classification_audit")
+          .select("id, created_at, skool_member_id, skool_name_snapshot, old_category, new_category, actor_email")
+          .order("created_at", { ascending: false }).limit(50)
+      : null;
+    const classificationReady = classReady && !classHistory?.error;
+    const classificationAudit = classificationReady ? (classHistory?.data ?? []) : [];
     // History is read-only and limited to authorized full-scope Training/Admin.
     // Missing SQL disables new matching rather than allowing unaudited writes.
     const history = await supabase.from("skool_member_match_audit")
@@ -70,7 +87,7 @@ export async function GET() {
       .order("created_at", { ascending: false }).limit(50);
     const auditReady = !history.error;
     if (history.error) console.error("[skool-unlinked] audit setup check:", history.error.code);
-    return respond({ success: true, count: members.length, members: Array.from(byId.values()),
+    return respond({ success: true, count: members.length, members: typedMembers, classificationReady, classificationAudit,
       auditReady, auditHistory: auditReady ? (history.data ?? []) : [],
       auditNotice: auditReady ? null : "ยังไม่ได้ติดตั้ง Matching Safety + Audit Log ใน Supabase จึงปิดการจับคู่ใหม่ไว้ก่อน" });
   } catch (e) {
