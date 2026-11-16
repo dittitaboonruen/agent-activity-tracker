@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {spawnSync} from 'node:child_process';
 
 const html=fs.readFileSync('public/illustrations/royal_partners_illustration_tool.html','utf8');
 const api=fs.readFileSync('app/api/legacy-prestige-rpu/route.ts','utf8');
@@ -31,4 +32,12 @@ test('Male RPU served only by authenticated server-side Preview configuration',(
  const src=html.slice(html.indexOf('const LEGACY_MALE_RPU_DATA='),html.indexOf('function buildLegacyPolicyValuesTableHTML('));
  assert.match(src,/fetch\('\/api\/legacy-prestige-rpu/);
  assert.doesNotMatch(src,/LEGACY_RPU_MALE_FACTORS_BR_B64/);
+});
+
+// Catch TypeScript errors in Legacy's authenticated server API before Vercel build.
+test('Legacy API and integrated project pass TypeScript compiler',()=>{
+ const processResult=spawnSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit'],
+   {encoding:'utf8',timeout:120000,maxBuffer:1024*1024});
+ assert.equal(processResult.status,0,
+   'TypeScript compiler failed: '+(processResult.stdout||'')+'\n'+(processResult.stderr||''));
 });
