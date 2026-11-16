@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import PageTopBar from "@/components/PageTopBar";
+import "./agent-master.css";
 
 type Agent = {
   id: number;
@@ -94,10 +95,11 @@ export default function AgentMasterPage() {
     number | null
   >(null);
 
-  const [
-    search,
-    setSearch,
-  ] = useState("");
+  const [search, setSearch] = useState("");
+  const [unitFilter, setUnitFilter] = useState("all");
+  const [managerFilter, setManagerFilter] = useState("all");
+  const [emailFilter, setEmailFilter] = useState("all");
+  const [showEditor, setShowEditor] = useState(false);
 
   const [
     loading,
@@ -219,12 +221,13 @@ export default function AgentMasterPage() {
             "th-TH"
           );
 
-      if (!keyword) {
-        return agents;
-      }
-
       return agents.filter(
         (agent) => {
+          if (unitFilter !== "all" && String(agent.unit_id ?? "") !== unitFilter) return false;
+          if (managerFilter !== "all" && (agent.manager_user_id ?? "") !== managerFilter) return false;
+          if (emailFilter === "with" && !agent.agent_email?.trim()) return false;
+          if (emailFilter === "without" && agent.agent_email?.trim()) return false;
+          if (!keyword) return true;
           const unit =
             units.find(
               (item) =>
@@ -268,6 +271,9 @@ export default function AgentMasterPage() {
       agents,
       managers,
       search,
+      unitFilter,
+      managerFilter,
+      emailFilter,
       units,
     ]);
 
@@ -481,6 +487,7 @@ export default function AgentMasterPage() {
     setEditingAgentId(
       agent.id
     );
+    setShowEditor(true);
 
     setStatus("");
 
@@ -587,7 +594,37 @@ export default function AgentMasterPage() {
           </p>
         </div>
 
-        {canManage ? (
+
+        <aside className="rp-agent-notice" aria-label="คำแนะนำข้อมูลตัวแทน">
+          <span className="rp-agent-notice-icon" aria-hidden="true">ℹ</span>
+          <div><strong>ตรวจสอบทะเบียนตัวแทน</strong>
+            <p>อีเมลสำหรับ Skool, หน่วยงาน และหัวหน้าที่ดูแล ควรตรงกับข้อมูลจริงก่อนนำเข้าหรือจับคู่</p>
+            <small>มีอีเมล ไม่ได้หมายความว่าเชื่อมบัญชี Skool สำเร็จแล้ว</small>
+          </div>
+        </aside>
+        <section className="rp-agent-stats" aria-label="สรุปทะเบียนตัวแทน">
+          <div className="rp-agent-stat rp-agent-stat-gold">
+            <span className="rp-agent-stat-icon" aria-hidden="true">👥</span>
+            <div><span className="rp-agent-stat-label">ตัวแทนทั้งหมด</span><strong>{agents.length} <small>คน</small></strong></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-green">
+            <span className="rp-agent-stat-icon" aria-hidden="true">✉</span>
+            <div><span className="rp-agent-stat-label">มีอีเมลสำหรับจับคู่</span><strong>{agents.filter(agent => Boolean(agent.agent_email?.trim())).length} <small>คน</small></strong></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-rose">
+            <span className="rp-agent-stat-icon" aria-hidden="true">!</span>
+            <div><span className="rp-agent-stat-label">ยังไม่มีอีเมล</span><strong>{agents.filter(agent => !agent.agent_email?.trim()).length} <small>คน</small></strong></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-purple">
+            <span className="rp-agent-stat-icon" aria-hidden="true">▦</span>
+            <div className="rp-agent-units-summary"><span className="rp-agent-stat-label">จำนวนตามหน่วย</span>
+              {units.map(unit => <div key={unit.id} className="rp-agent-unit-line"><span>{unit.unit_name}</span><strong>{agents.filter(agent => agent.unit_id === unit.id).length} คน</strong></div>)}
+            </div>
+          </div>
+        </section>
+        {canManage && <div className="rp-agent-add-toolbar"><button type="button" className="rp-agent-add" onClick={() => { resetForm(); setShowEditor(true); }}>✚ เพิ่มตัวแทน</button></div>}
+
+        {canManage && showEditor ? (
           <section
             style={
               panelStyle
@@ -871,7 +908,7 @@ export default function AgentMasterPage() {
               </button>
             </div>
           </section>
-        ) : (
+        ) : !canManage ? (
           <section
             style={{
               ...panelStyle,
@@ -908,18 +945,14 @@ export default function AgentMasterPage() {
               "hidden",
           }}
         >
-          <div
-            style={
-              listHeaderStyle
-            }
-          >
+          <div className="rp-agent-list-heading" style={listHeaderStyle}>
             <div>
               <div
                 style={
                   sectionTitleStyle
                 }
               >
-                รายชื่อตัวแทน
+                👥 รายชื่อตัวแทน
               </div>
 
               <div
@@ -958,7 +991,7 @@ export default function AgentMasterPage() {
                   )
                 }
 
-                placeholder="ค้นหาชื่อ รหัส หน่วย หรืออีเมล"
+                placeholder="⌕ ค้นหารหัส ชื่อ อีเมล หรือ Jotform..."
 
                 style={{
                   ...inputStyle,
@@ -968,6 +1001,26 @@ export default function AgentMasterPage() {
                 }}
               />
 
+
+              <label className="rp-agent-filter">หน่วยงาน
+                <select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}>
+                  <option value="all">ทุกหน่วย</option>
+                  {units.map(unit => <option key={unit.id} value={String(unit.id)}>{unit.unit_name}</option>)}
+                </select>
+              </label>
+              <label className="rp-agent-filter">ผู้จัดการ
+                <select value={managerFilter} onChange={event => setManagerFilter(event.target.value)}>
+                  <option value="all">ทุกคน</option>
+                  {managers.map(manager => <option key={manager.user_id} value={manager.user_id}>{manager.full_name || manager.email}</option>)}
+                </select>
+              </label>
+              <label className="rp-agent-filter">อีเมล Skool
+                <select value={emailFilter} onChange={event => setEmailFilter(event.target.value)}>
+                  <option value="all">ทั้งหมด</option>
+                  <option value="with">มีอีเมล</option>
+                  <option value="without">ไม่มีอีเมล</option>
+                </select>
+              </label>
               <button
                 type="button"
 
@@ -1006,7 +1059,7 @@ export default function AgentMasterPage() {
                 "auto",
             }}
           >
-            <table
+            <table className="rp-agent-table"
               style={{
                 width:
                   "100%",
@@ -1029,29 +1082,19 @@ export default function AgentMasterPage() {
                     No.
                   </HeaderCell>
 
-                  <HeaderCell>
-                    Code
-                  </HeaderCell>
+                  <HeaderCell>▥ Code</HeaderCell>
 
-                  <HeaderCell>
-                    Name
-                  </HeaderCell>
+                  <HeaderCell>♟ Name</HeaderCell>
 
                   <HeaderCell>
                     Nick Name
                   </HeaderCell>
 
-                  <HeaderCell>
-                    Unit
-                  </HeaderCell>
+                  <HeaderCell>▦ Unit</HeaderCell>
 
-                  <HeaderCell>
-                    Manager
-                  </HeaderCell>
+                  <HeaderCell>♙ Manager</HeaderCell>
 
-                  <HeaderCell>
-                    Agent Email / Skool
-                  </HeaderCell>
+                  <HeaderCell>✉ Agent Email / Skool</HeaderCell>
 
                   <HeaderCell>
                     Jotform Name
@@ -1131,27 +1174,16 @@ export default function AgentMasterPage() {
                               1}
                           </Cell>
 
-                          <Cell>
-                            {agent.agent_code ||
-                              "-"}
-                          </Cell>
+                          <Cell><span className="rp-agent-code">{agent.agent_code || "—"}</span></Cell>
 
-                          <Cell>
-                            {
-                              agent.agent_name
-                            }
-                          </Cell>
+                          <Cell><span className="rp-agent-name">♟ {agent.agent_name}</span></Cell>
 
                           <Cell>
                             {agent.agent_nickname ||
                               "-"}
                           </Cell>
 
-                          <Cell>
-                            {unit
-                              ? `${unit.unit_code} · ${unit.unit_name}`
-                              : "ยังไม่ได้กำหนด"}
-                          </Cell>
+                          <Cell><span className={"rp-agent-unit-tag " + (unit?.unit_code?.toUpperCase().includes("TEAM_A") ? "rp-agent-unit-a" : unit?.unit_code?.toUpperCase().includes("TEAM_B") ? "rp-agent-unit-b" : unit?.unit_code?.toUpperCase().includes("TEAM_C") ? "rp-agent-unit-c" : "rp-agent-unit-center")}>{unit ? unit.unit_code : "ยังไม่กำหนด"}</span></Cell>
 
                           <Cell>
                             <div>
@@ -1172,20 +1204,7 @@ export default function AgentMasterPage() {
                             )}
                           </Cell>
 
-                          <Cell>
-                            {agent.agent_email ? (
-                              agent.agent_email
-                            ) : (
-                              <span
-                                style={{
-                                  color:
-                                    "var(--rp-danger)",
-                                }}
-                              >
-                                ยังไม่มีอีเมล
-                              </span>
-                            )}
-                          </Cell>
+                          <Cell>{agent.agent_email ? <div className="rp-agent-email-cell"><span className="rp-agent-email" title={agent.agent_email}>{agent.agent_email}</span><span className="rp-agent-status rp-agent-status-email">✓ มีอีเมล</span></div> : <span className="rp-agent-status rp-agent-status-missing">✉ ยังไม่มีอีเมล</span>}</Cell>
 
                           <Cell>
                             {agent.jotform_agent_name ||
