@@ -66,6 +66,15 @@ export async function getSkoolAccess(): Promise<AccessResult> {
   const unitId =
     typeof profile.unit_id === "number" ? profile.unit_id : null;
   const canSeeAll = profile.can_view_all_data === true;
+  // Training users already authorized to import Skool CSV may also review
+  // unresolved Skool identities, but only with full-unit visibility.
+  // Managers outside this narrow allowlist never get cross-unit access.
+  const trainingMatchingEmails = new Set([
+    "training@royalpartner.org",
+    "newagent@royalpartner.org",
+  ]);
+  const authorizedTrainingAccount =
+    trainingMatchingEmails.has((user.email ?? "").trim().toLowerCase());
 
   if (!canSeeAll && unitId === null) {
     return {
@@ -78,7 +87,7 @@ export async function getSkoolAccess(): Promise<AccessResult> {
   return {
     allowed: true,
     canSeeAll,
-    canAuditUnlinked: role === "admin" && canSeeAll,
+    canAuditUnlinked: canSeeAll && (role === "admin" || authorizedTrainingAccount),
     unitId,
   };
 }
