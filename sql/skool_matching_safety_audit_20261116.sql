@@ -49,6 +49,24 @@ create trigger trg_skool_match_audit_immutable
   before update or delete on public.skool_member_match_audit
   for each row execute function public.skool_match_audit_immutable();
 
+-- Prevent stale CSV imports from clearing an existing verified link.
+-- Skool links are intentionally append-only: corrections require an audited
+-- unlink/relink workflow (not implemented in this phase).
+create or replace function public.skool_preserve_verified_agent_id()
+returns trigger language plpgsql set search_path = '' as $
+begin
+  if old.agent_id is not null and new.agent_id is distinct from old.agent_id then
+    raise exception 'MATCH_EXISTING_LINK_IMMUTABLE' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.skool_preserve_verified_agent_id() from public, anon, authenticated;
+drop trigger if exists trg_skool_preserve_verified_agent_id on public.skool_members;
+create trigger trg_skool_preserve_verified_agent_id
+  before update of agent_id on public.skool_members
+  for each row execute function public.skool_preserve_verified_agent_id();
+
 -- Make the link and audit entry one PostgreSQL transaction.
 -- Called ONLY by the server-side Supabase secret client AFTER user authorization.
 -- SECURITY INVOKER avoids unnecessary privilege escalation.
