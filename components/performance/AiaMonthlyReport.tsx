@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PageTopBar from "@/components/PageTopBar";
 import { AIA_METRICS, AiaPayload, AiaRow, AiaScope, aiaMoney, periodLabel, SCOPE_LABEL } from "@/lib/aia-monthly";
-import { csvCell } from "@/lib/aia-monthly-report";
+import { csvCell, sumKnownMetric } from "@/lib/aia-monthly-report";
 import { PeriodPicker, ScopeTabs } from "./PerformanceControls";
 
 type ColumnGroup = "month" | "ytd" | "persist" | "pa" | "all";
@@ -54,9 +54,11 @@ export default function AiaMonthlyReport({ year, month, initialScope, onPeriodCh
   const visibleColumns = columns.filter(c => group === "all" || c.group === group);
   const unitOptions = [...new Map((payload?.rows ?? []).filter(r => r.unit_code).map(r => [r.unit_code!, r.unit_name ?? r.unit_code!])).entries()];
   const title = `${periodLabel(year, month)} · ${SCOPE_LABEL[scope]} · ยอดรายเดือนที่ยืนยัน`;
-  const total = (key: "month_cases" | "month_fyp" | "month_fyc") => reportRows.reduce((s, r) => s + (r[key] ?? 0), 0);
-  const active = scope === "person" ? reportRows.filter(r => (r.month_fyc ?? 0) >= 5000).length : reportRows.every(r => r.active_agents !== null) ? reportRows.reduce((s, r) => s + (r.active_agents ?? 0), 0) : null;
-  const totalPa = (key: "month_pa_fyp" | "month_pa_fyc") => reportRows.every(r => r[key] != null) ? reportRows.reduce((sum, r) => sum + (r[key] ?? 0), 0) : null;
+  const total = (key: "month_cases" | "month_fyp" | "month_fyc") => sumKnownMetric(reportRows, row => row[key]);
+  const active = scope === "person"
+    ? reportRows.length && reportRows.every(r => r.month_fyc != null) ? reportRows.filter(r => r.month_fyc! >= 5000).length : null
+    : sumKnownMetric(reportRows, row => row.active_agents);
+  const totalPa = (key: "month_pa_fyp" | "month_pa_fyc") => sumKnownMetric(reportRows, row => row[key]);
 
   function exportCsv() {
     const head = ["เดือน", "แหล่งข้อมูลหลัก", "ระดับ", "วันที่ AIA", "รหัส", "ชื่อ", "ชื่อเล่น", "หน่วย", ...columns.map(c => c.label), "หมายเหตุ"];
@@ -66,9 +68,13 @@ export default function AiaMonthlyReport({ year, month, initialScope, onPeriodCh
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = `RoyalPartner_Monthly_${scope}_${year}-${String(month).padStart(2, "0")}.csv`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const exportPdf = useCallback(() => {
+    // Printing is handled by the browser. Keep the proposed PDF filename until
+    // the print flow ends; resetting in finally is too early in async browsers.
     const oldTitle = document.title;
+    const restoreTitle = () => { document.title = oldTitle; window.removeEventListener("afterprint", restoreTitle); };
+    window.addEventListener("afterprint", restoreTitle);
     document.title = `RoyalPartner_Monthly_${scope}_${year}-${String(month).padStart(2, "0")}`;
-    try { window.print(); } finally { document.title = oldTitle; }
+    try { window.print(); } catch (error) { restoreTitle(); throw error; }
   }, [scope, year, month]);
 
   function table(list: Column[], print = false) {
@@ -79,7 +85,7 @@ export default function AiaMonthlyReport({ year, month, initialScope, onPeriodCh
     <p className="rp-muted">ยอดรวมทั้งเดือนจากหน้าบันทึกรายเดือน · ไม่มีการรวมจากระบบรายวัน</p>
     <div className="rp-aia-toolbar"><PeriodPicker year={year} month={month} onChange={onPeriodChange} /><ScopeTabs scope={scope} onChange={value => { setScope(value); setSelectedUnit(""); }} />
       {unitOptions.length > 1 && <label>หน่วย<select value={selectedUnit} onChange={e => setSelectedUnit(e.target.value)}><option value="">ทุกหน่วย</option>{unitOptions.map(([code, label]) => <option key={code} value={code}>{label}</option>)}</select></label>}
-      <div className="rp-push rp-performance-segments"><button type="button" onClick={onLegacy}>ดูข้อมูลเดิมก่อนปรับระบบ</button><button type="button" onClick={() => setReload(v => v + 1)} disabled={loading}>รีเฟรช</button><button type="button" aria-pressed={ranked} onClick={() => setRanked(v => !v)}>เรียงอันดับ FYC</button><button type="button" disabled={!confirmed || loading || !reportRows.length} onClick={exportCsv}>Excel (CSV)</button><button type="button" disabled={!confirmed || loading || !reportRows.length} onClick={exportPdf}>Export PDF</button></div>
+      <div className="rp-push rp-performance-segments"><button type="button" onClick={onLegacy}>ดูข้อมูลเดิมก่อนปรับระบบ</button><button type="button" onClick={() => setReload(v => v + 1)} disabled={loading}>รีเฟรช</button><button type="button" aria-pressed={ranked} onClick={() => setRanked(v => !v)}>เรียงอันดับ FYC</button><button type="button" disabled={!confirmed || loading || !reportRows.length} onClick={exportCsv}>Excel (CSV)</button><button type="button" disabled={!confirmed || loading || !reportRows.length} onClick={exportPdf}>บันทึก PDF / พิมพ์</button></div>
     </div>
     <div className="rp-aia-hint">แหล่งข้อมูลหลัก: ยอดรายเดือนที่ยืนยัน · {SCOPE_LABEL[scope]} · {periodLabel(year, month)}{payload?.batch && ` · AIA ณ ${payload.batch.as_of_date}`} · {confirmed ? "ยืนยันแล้ว" : "รอยืนยัน"}</div>
     {error && <p role="alert" className="rp-aia-message rp-aia-error">{error}</p>}
