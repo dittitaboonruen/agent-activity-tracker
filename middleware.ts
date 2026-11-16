@@ -279,27 +279,16 @@ export async function middleware(
   const pathname =
     request.nextUrl.pathname;
 
-  // SECURITY HOLD (AIA Legacy Prestige Plus): agent-only factor tables must
-  // not be served from the public illustrations directory. Deny direct
-  // requests before the general PUBLIC_PATHS bypass and before auth lookup.
-  // This is a temporary fail-closed control, NOT a substitute for removal of
-  // restricted files from deploy artifacts or AIA distribution approval.
+  // Legacy internal QA assets may only be accessed through a valid
+  // Supabase session with an active manager/admin profile. Other insurance
+  // calculator assets keep their existing PUBLIC_PATHS behavior unchanged.
+  // IMPORTANT: authenticated access is not authorization to use an AIA
+  // restricted manual for sales. Compliance approval remains mandatory.
   const legacyRestrictedPath =
     pathname.startsWith("/illustrations/legacy-prestige-plus-") ||
     pathname === "/legacy-prestige-plus-phase3-qa.html" ||
     pathname === "/agent/calculators/legacy-prestige-plus" ||
     pathname.startsWith("/agent/calculators/legacy-prestige-plus/");
-
-  if (legacyRestrictedPath) {
-    return new NextResponse("Restricted Legacy product data", {
-      status: 403,
-      headers: {
-        "Cache-Control": "private, no-store, max-age=0",
-        "X-Content-Type-Options": "nosniff",
-        "X-Robots-Tag": "noindex, nofollow, noarchive",
-      },
-    });
-  }
 
   // Machine-to-machine endpoint authenticates its Bearer secret in the route.
   // Exact path only: no session lookup and no public dashboard access.
@@ -380,9 +369,9 @@ export async function middleware(
   */
 
   if (
-    isPublicPath(
+    (!legacyRestrictedPath && isPublicPath(
       pathname
-    ) ||
+    )) ||
     isPublicApiPath(
       pathname
     )
@@ -481,6 +470,16 @@ export async function middleware(
       response,
       "บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน"
     );
+  }
+
+  // Keep internal preview factors off anonymous public URLs.
+  // Return before the role-specific navigation allowlists only after
+  // successful session AND active authorized profile verification.
+  if (legacyRestrictedPath) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
   }
 
   /*
