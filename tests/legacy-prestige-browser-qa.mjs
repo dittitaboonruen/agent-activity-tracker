@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { chromium } from 'playwright';
 
 const browser=await chromium.launch({headless:true});
@@ -33,6 +36,17 @@ try {
    assert.equal(values[1],'36','report policy age');
    assert.equal(values[4],expected[term][0],'report cash value');
    assert.equal(values[5],expected[term][1],'report paid up');
+   // Exercise the real app PDF button, not Playwright's generic print-to-PDF.
+   if(term===20){
+     const downloading=page.waitForEvent('download',{timeout:120000});
+     await page.locator('.rp-preview-download-pdf').click();
+     const file=await downloading;
+     const target=path.join(os.tmpdir(),'legacy-phase4-browser-qa.pdf');
+     await file.saveAs(target);
+     assert.equal(fs.readFileSync(target).subarray(0,5).toString(),'%PDF-');
+     assert.ok(fs.statSync(target).size>10000,'Legacy PDF should contain rendered pages');
+     console.log('PASS: real Legacy PDF download, '+fs.statSync(target).size+' bytes');
+   }
    await page.locator('.rp-preview-close').first().click();
    console.log('PASS: female '+term+' Pay - Table A/B and report matching');
  }
