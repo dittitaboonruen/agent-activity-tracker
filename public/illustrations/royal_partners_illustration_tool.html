@@ -16638,9 +16638,19 @@ function calcLegacyPrestige(age,gender,sum,term,tax){
     return {ok:false,message:'กรุณากรอกอายุ 0–75 ปี และทุนประกัน 10–1,000 ล้านบาท'};
   }
   const column=({10:0,15:2,20:4})[term]+(gender==='ชาย'?0:1);
-  const rate=LEGACY_PRESTIGE_RATES[age]?.[column];
-  if(!Number.isFinite(rate)||rate<=0)return {ok:false,message:'ไม่มีอัตราเบี้ยประกันสำหรับข้อมูลที่เลือก'};
-  const annual=rate*(sum/1000);
+  const standardRate=LEGACY_PRESTIGE_RATES[age]?.[column];
+  if(!Number.isFinite(standardRate)||standardRate<=0)return {ok:false,message:'ไม่มีอัตราเบี้ยประกันสำหรับข้อมูลที่เลือก'};
+  // Public AIA Legacy Prestige Plus (New) brochure p.10: published
+  // discounted standard rates are rounded PER THB 1,000 of coverage.
+  // Rechecked all 456 male/female 10/15/20 pay brochure entries.
+  // Preferred health underwriting rate is deliberately NOT inferred.
+  const discountPct=sum>=20000000?(term===10?5:10):0;
+  const rate=discountPct
+    ?Math.round((standardRate*(100-discountPct)/100)*100+1e-9)/100
+    :standardRate;
+  const annual=Math.round(rate*(sum/1000)*100)/100;
+  const annualStandard=Math.round(standardRate*(sum/1000)*100)/100;
+  const annualDiscount=Math.round((annualStandard-annual)*100)/100;
   const maxYears=99-age;
   const rows=Array.from({length:maxYears},(_,idx)=>{
     const year=idx+1;
@@ -16648,7 +16658,8 @@ function calcLegacyPrestige(age,gender,sum,term,tax){
     return {year,age:age+year,premium,paid:Math.min(year,term)*annual,coverage:sum,
       taxRelief:year<=term?Math.min(annual,100000)*tax:0};
   });
-  return {ok:true,annual,term,rate,rows,taxRelief:Math.min(annual,100000)*tax,
+  return {ok:true,annual,annualStandard,annualDiscount,discountPct,
+    term,rate,standardRate,rows,taxRelief:Math.min(annual,100000)*tax,
     wpciUntil:Math.min(age+term,80),sum};
 }
 
@@ -17167,7 +17178,9 @@ function viewLegacyPrestige(app){
     return;
   }
   fillSummary(app,[
-    {lbl:'เบี้ยประกันภัยหลักต่อปี (ก่อนส่วนลด)',val:fmt(r.annual)},
+    {lbl:'เบี้ยประกันภัยมาตรฐานต่อปี (ก่อนส่วนลด)',val:fmt(r.annualStandard)},
+    {lbl:'ส่วนลดเบี้ยประกันตามทุน '+r.discountPct+'%',val:fmt(r.annualDiscount)},
+    {lbl:'เบี้ยประกันภัยต่อปี (หลังส่วนลดทุน)',val:fmt(r.annual)},
     {lbl:'ระยะเวลาชำระเบี้ย',val:r.term+' ปี'},
     {lbl:'จำนวนเงินเอาประกันภัย',val:fmt(r.sum)},
     {lbl:'ประมาณการประหยัดภาษีต่อปี (ตามฐานภาษี)',val:fmt(r.taxRelief)}
