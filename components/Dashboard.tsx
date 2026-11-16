@@ -151,6 +151,7 @@ export default function Dashboard({
   const [agentsError, setAgentsError] = useState<string | null>(null);
   const rosterRequestRef = useRef(0);
   const [learningRefreshKey, setLearningRefreshKey] = useState(0);
+  const [activeSection, setActiveSection] = useState<"activities" | "learning" | "goals">("activities");
 
   const fetchAgents = useCallback(async (signal?: AbortSignal) => {
     const requestId = ++rosterRequestRef.current;
@@ -722,10 +723,15 @@ export default function Dashboard({
           FILTERS
       ===================================================== */}
 
-      <nav className="dash-section-nav" aria-label="ข้ามไปส่วนของแดชบอร์ด">
-        <a href="#dashboard-activities">01 กิจกรรมและยอดขาย</a>
-        <a href="#dashboard-learning">02 การเรียนและ Quiz</a>
-        <a href="#dashboard-goals">03 เป้าหมายรายปีและ PEP</a>
+      <div className="dash-view-scope" role="status">
+        <span aria-hidden="true">🔒</span>
+        <span>ข้อมูลและรายงานแสดงตามสิทธิ์บัญชีของคุณ{!agentsLoading && !agentsError ? ` · ตัวแทนที่เข้าถึงได้ ${agents.length} คน` : ""}</span>
+      </div>
+
+      <nav className="dash-section-nav dash-v2-tabs" role="tablist" aria-label="เลือกหมวดรายงาน">
+        <button type="button" role="tab" id="dash-tab-activities" aria-controls="dashboard-activities" aria-selected={activeSection === "activities"} className={activeSection === "activities" ? "is-active" : ""} onClick={() => setActiveSection("activities")}><span aria-hidden="true">▤</span> 01 กิจกรรมและยอดขาย</button>
+        <button type="button" role="tab" id="dash-tab-learning" aria-controls="dashboard-learning" aria-selected={activeSection === "learning"} className={activeSection === "learning" ? "is-active" : ""} onClick={() => setActiveSection("learning")}><span aria-hidden="true">▣</span> 02 การเรียนและ Quiz</button>
+        <button type="button" role="tab" id="dash-tab-goals" aria-controls="dashboard-goals" aria-selected={activeSection === "goals"} className={activeSection === "goals" ? "is-active" : ""} onClick={() => setActiveSection("goals")}><span aria-hidden="true">◎</span> 03 เป้าหมายรายปีและ PEP</button>
       </nav>
 
       <p className="dash-filter-guide">
@@ -760,7 +766,7 @@ export default function Dashboard({
         </div>
       )}
 
-      <section id="dashboard-activities" className="dash-data-section" aria-labelledby="dashboard-activities-title">
+      <section id="dashboard-activities" role="tabpanel" aria-labelledby="dash-tab-activities" hidden={activeSection !== "activities"} className="dash-data-section">
         <header className="dash-data-section-header">
           <div className="dash-data-section-heading">
             <span className="dash-data-section-number" aria-hidden="true">01</span>
@@ -934,7 +940,7 @@ export default function Dashboard({
         )}
       </section>
 
-      <section id="dashboard-learning" className="dash-data-section" aria-labelledby="dashboard-learning-title">
+      <section id="dashboard-learning" role="tabpanel" aria-labelledby="dash-tab-learning" hidden={activeSection !== "learning"} className="dash-data-section">
         <header className="dash-data-section-header">
           <div className="dash-data-section-heading">
             <span className="dash-data-section-number" aria-hidden="true">02</span>
@@ -961,7 +967,7 @@ export default function Dashboard({
 
       </section>
 
-      <section id="dashboard-goals" className="dash-data-section" aria-labelledby="dashboard-goals-title">
+      <section id="dashboard-goals" role="tabpanel" aria-labelledby="dash-tab-goals" hidden={activeSection !== "goals"} className="dash-data-section">
         <header className="dash-data-section-header">
           <div className="dash-data-section-heading">
             <span className="dash-data-section-number" aria-hidden="true">03</span>
@@ -1045,7 +1051,7 @@ export default function Dashboard({
         </div>
       </section>
 
-      <section id="dashboard-agent-performance" className="dash-data-section" aria-labelledby="dashboard-agent-performance-title">
+      <section id="dashboard-agent-performance" hidden={activeSection !== "activities"} className="dash-data-section" aria-labelledby="dashboard-agent-performance-title">
         <h2 id="dashboard-agent-performance-title" className="dash-section-title">เปรียบเทียบผลงานตัวแทน</h2>
         <p className="dash-filter-guide">
           ตารางท้ายหน้าแสดงตัวแทนตามสิทธิ์และเน้นชื่อที่เลือก · ใช้วันที่และช่องทางเดียวกับกิจกรรม
