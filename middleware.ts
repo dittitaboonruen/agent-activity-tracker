@@ -38,6 +38,7 @@ const ADMIN_ALLOWED_PATHS = [
   "/admin/agents",
   "/admin/skool-import",
   "/admin/skool-courses",
+  "/admin/skool-matching",
   "/dashboard/performance",
   "/dashboard/skool",
 ];
