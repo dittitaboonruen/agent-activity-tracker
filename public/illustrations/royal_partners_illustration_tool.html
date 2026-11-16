@@ -17240,11 +17240,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
-      '<strong>'+tableBStatus+'</strong> · '+
-      (evidence?'อ้างอิง '+evidence.source+partialMaleNote+' · ข้อมูลเฉพาะกรณีที่ยืนยันได้เท่านั้น ไม่ใช่ใบเสนอราคาอย่างเป็นทางการของ AIA':
-       (inputs.gender==='ชาย'
-        ?'ยังไม่มีข้อมูล CV / RPU / ETI ที่ได้รับอนุญาตสำหรับผู้ชาย อายุ '+inputs.age+' ปี ชำระ '+inputs.term+' ปี ทุน '+fmt(inputs.sum)+' บาท · ตาราง B จึงยังไม่พร้อมใช้เสนอขาย โปรดตรวจค่ากับ AIA iPOS+'
-        :'ยังไม่มี Factor ที่ได้รับอนุญาตสำหรับเพศและระยะชำระที่เลือก · ไม่คำนวณประมาณค่า'))+
+      '<strong>'+tableBStatus+'</strong> · สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA'+
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
     '<table class="legacy-values-table"><thead>'+
