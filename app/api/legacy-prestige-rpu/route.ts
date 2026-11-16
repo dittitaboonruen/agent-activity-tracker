@@ -20,9 +20,9 @@ function getFactors():FactorRows|null{
     const data=JSON.parse(decoded.toString("utf8")) as FactorRows;
     for(const term of ["10","15","20"]){
       const rows=data[term];
-      if(!Array.isArray(rows)||rows.length!==75)throw Error("missing RPU source rows");
-      for(let age=1;age<=75;age++){
-        const r=rows[age-1];
+      if(!Array.isArray(rows)||rows.length!==76)throw Error("missing RPU source rows");
+      for(let age=0;age<=75;age++){
+        const r=rows[age];
         if(!Array.isArray(r)||r.length!==Number(term)||r[0]!==age||
            r.slice(1).some(v=>!Number.isInteger(v)||v<0||v>1000))
           throw Error("invalid RPU dataset at "+term+"/"+age);
@@ -55,12 +55,12 @@ export async function GET(request:NextRequest){
   const term=Number(request.nextUrl.searchParams.get("term"));
   const issueAge=Number(request.nextUrl.searchParams.get("age"));
   const sum=Number(request.nextUrl.searchParams.get("sum"));
-  if(![10,15,20].includes(term)||!Number.isInteger(issueAge)||issueAge<1||issueAge>75||
+  if(![10,15,20].includes(term)||!Number.isInteger(issueAge)||issueAge<0||issueAge>75||
      !Number.isFinite(sum)||sum<10000000||sum>1000000000)
     return NextResponse.json({error:"invalid_case"},{status:400,headers:noStore});
   const factors=getFactors();
   if(!factors)return NextResponse.json({error:"restricted_factors_not_configured"},{status:503,headers:noStore});
-  const row=factors[String(term)][issueAge-1];
+  const row=factors[String(term)][issueAge];
   const rows=row.slice(1).map((factor,i)=>({
     age:issueAge+i,
     policyYear:i+1,
