@@ -17130,6 +17130,7 @@ function lookupLegacyIPOSValues(issueAge,gender,sum,term){
 }
 function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
+  const demoActive=inputs.gender==='ชาย'&&window.RP_LEGACY_DEMO_ACTIVE===true&&evidence?.id==='local-import';
   const matches=evidence?.byAge||null;
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
@@ -17159,7 +17160,8 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
-      (evidence?'อ้างอิง '+evidence.source+' · ตารางภายในเพื่อทดสอบเท่านั้น ไม่ใช่เอกสารเสนอขายของ AIA':
+      (demoActive?'⚠️ ข้อมูลจำลองเท่านั้น ไม่ใช่ตัวเลข AIA — ห้ามใช้ทำใบเสนอขายหรืออ้างอิงมูลค่ากรมธรรม์':
+       evidence?'อ้างอิง '+evidence.source+' · ตารางภายในเพื่อทดสอบเท่านั้น ไม่ใช่เอกสารเสนอขายของ AIA':
        (inputs.gender==='ชาย'
         ?'ยังไม่มีข้อมูล CV / RPU / ETI ที่ได้รับอนุญาตสำหรับผู้ชาย อายุ '+inputs.age+' ปี ชำระ '+inputs.term+' ปี ทุน '+fmt(inputs.sum)+' บาท · ตาราง B จึงยังไม่พร้อมใช้เสนอขาย โปรดตรวจค่ากับ AIA iPOS+'
         :'ยังไม่มี Factor ที่ได้รับอนุญาตสำหรับเพศและระยะชำระที่เลือก · ไม่คำนวณประมาณค่า'))+
@@ -17195,8 +17197,30 @@ function viewLegacyPrestige(app){
     importer.innerHTML='<label for="legacy-factor-upload" style="font-weight:700;display:block;margin-bottom:7px">ตาราง B ผู้ชาย — นำเข้าข้อมูล Factor ที่ได้รับอนุญาต (เฉพาะเครื่องนี้)</label>'+
       '<input id="legacy-factor-upload" type="file" accept=".json,application/json" style="max-width:100%;display:block;margin-bottom:8px">'+
       '<div class="legacy-local-status" role="status" style="font-size:12px;color:#665A47">ข้อมูลอยู่ในหน่วยความจำของแท็บนี้เท่านั้น ไม่ส่งขึ้นเซิร์ฟเวอร์หรือบันทึกถาวร · นำเข้าเฉพาะตารางที่ได้รับอนุญาตและตรวจสอบแล้ว · ปัจจุบัน '+window.RP_LEGACY_LOCAL_TABLE_B.count()+' แถว</div>'+
+      '<button class="legacy-local-demo" type="button" style="margin-top:7px;margin-right:8px;padding:8px 12px;background:#142A47;color:#fff;border-radius:8px">ทดลองตาราง B ด้วยข้อมูลจำลอง (ไม่ต้องอัปโหลด)</button>'+
       '<button class="legacy-local-clear" type="button" style="margin-top:7px;padding:6px 12px">ล้างข้อมูล Factor ในแท็บนี้</button>';
     panel.appendChild(importer);
+    importer.querySelector('.legacy-local-demo').addEventListener('click',()=>{
+      // Synthetic factors are intentionally not AIA rates, and cover
+      // ONLY male issue-age 35, 20-pay. Never carry to sales output.
+      state.age=35;
+      state.sum=10000000;
+      state.gender='ชาย';
+      state.legacy.term=20;
+      const demo=JSON.stringify({
+        plan:'AIA_LEGACY_PRESTIGE_PLUS_NEW',usage:'authorized-internal-qa',
+        rows:[{gender:'M',premiumTerm:20,issueAge:35,policyYear:2,
+          cvPer1000:17.2,rpuPer1000:40,rpuImmediatePer1000:null,
+          etiYears:6,etiDays:156,etiMaturityPer1000:null,etiImmediatePer1000:null}]
+      });
+      window.RP_LEGACY_LOCAL_TABLE_B.importText(demo);
+      window.RP_LEGACY_DEMO_ACTIVE=true;
+      state.legacy.tableView='B';
+      document.getElementById('in-age').value='35';
+      document.getElementById('in-gender').value='ชาย';
+      document.getElementById('in-sum').value='10000000';
+      render();
+    });
     const input=importer.querySelector('#legacy-factor-upload');
     input.addEventListener('change',async()=>{
       const file=input.files?.[0];
@@ -17204,6 +17228,7 @@ function viewLegacyPrestige(app){
       try{
         if(file.size>3*1024*1024)throw Error('ไฟล์ต้องไม่เกิน 3MB');
         const count=window.RP_LEGACY_LOCAL_TABLE_B.importText(await file.text());
+        window.RP_LEGACY_DEMO_ACTIVE=false;
         state.legacy.tableView='B';
         render();
       }catch(error){
@@ -17213,6 +17238,7 @@ function viewLegacyPrestige(app){
     });
     importer.querySelector('.legacy-local-clear').addEventListener('click',()=>{
       window.RP_LEGACY_LOCAL_TABLE_B.clear();
+      window.RP_LEGACY_DEMO_ACTIVE=false;
       render();
     });
   }
