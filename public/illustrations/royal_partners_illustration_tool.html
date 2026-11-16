@@ -17124,6 +17124,15 @@ function lookupLegacyIPOSValues(issueAge,gender,sum,term){
 function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const matches=evidence?.byAge||null;
+  // An exact-case public brochure may include CV but not RPU or ETI.
+  // Describe that partial coverage explicitly; never infer these benefits.
+  const available=[...(matches?.values()||[])];
+  const cvAvailable=available.some(v=>Number.isFinite(v?.surrender));
+  const rpuAvailable=available.some(v=>Number.isFinite(v?.paidUp));
+  const etiAvailable=available.some(v=>Number.isFinite(v?.extendedYears)&&Number.isFinite(v?.extendedDays));
+  const partialMaleNote=inputs.gender==='ชาย'&&evidence&&cvAvailable&&(!rpuAvailable||!etiAvailable)
+    ?' · CV มีข้อมูลยืนยันแล้ว แต่ '+[!rpuAvailable?'RPU':'',!etiAvailable?'ETI':''].filter(Boolean).join(' และ ')+' ยังไม่มีค่าอ้างอิงสำหรับกรณีนี้ จึงไม่แสดงตัวเลขแทน'
+    :'';
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
@@ -17152,7 +17161,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
-      (evidence?'อ้างอิง '+evidence.source+' · ข้อมูลเฉพาะกรณีที่ยืนยันได้เท่านั้น ไม่ใช่ใบเสนอราคาอย่างเป็นทางการของ AIA':
+      (evidence?'อ้างอิง '+evidence.source+partialMaleNote+' · ข้อมูลเฉพาะกรณีที่ยืนยันได้เท่านั้น ไม่ใช่ใบเสนอราคาอย่างเป็นทางการของ AIA':
        (inputs.gender==='ชาย'
         ?'ยังไม่มีข้อมูล CV / RPU / ETI ที่ได้รับอนุญาตสำหรับผู้ชาย อายุ '+inputs.age+' ปี ชำระ '+inputs.term+' ปี ทุน '+fmt(inputs.sum)+' บาท · ตาราง B จึงยังไม่พร้อมใช้เสนอขาย โปรดตรวจค่ากับ AIA iPOS+'
         :'ยังไม่มี Factor ที่ได้รับอนุญาตสำหรับเพศและระยะชำระที่เลือก · ไม่คำนวณประมาณค่า'))+
