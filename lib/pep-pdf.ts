@@ -344,7 +344,7 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
     for (const group of groups.filter(group => group.rows.length)) {
       const column = group.key === "completed" || group.key === "in_progress" ? courseColumns[0] : courseColumns[1];
       column.push({ text: `${group.label} · ${group.rows.length} คอร์ส`, bold: true, color: group.key === "completed" ? colors.green : colors.ink, before: column.length ? 5 : 0 });
-      group.rows.forEach(row => column.push({ text: `${courseLabel(row.courseName)} · ${row.progressPercent}%` }));
+      group.rows.forEach(row => column.push({ text: `${courseLabel(row.courseName)} · ${row.hasAccess ? `${row.progressPercent}%` : "ยังไม่มีสิทธิ์เข้าเรียน"}` }));
     }
   }
   const actualColumns = courseColumns.filter(column => column.length);
@@ -360,9 +360,9 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
   // Put summary in the left column; align the right column below the summary.
   const columns = actualColumns.length > 1
     ? [[...summaryLines, ...actualColumns[0].map((line, index) => index === 0 ? { ...line, before: 5 } : line)],
-       [{ text: "สถานะตามข้อมูลรายคอร์ส", size: 8.5, color: colors.muted }, { text: "CSV ไม่ระบุการเรียนจบรายบท", size: 7.5, color: colors.muted }, ...actualColumns[1].map((line, index) => index === 0 ? { ...line, before: 5 } : line)]]
+       [{ text: "สถานะตามข้อมูลรายคอร์ส", size: 8.5, color: colors.muted }, { text: "CSV แสดงความคืบหน้ารายคอร์ส ไม่ใช่รายบท", size: 7.5, color: colors.muted }, ...actualColumns[1].map((line, index) => index === 0 ? { ...line, before: 5 } : line)]]
     : [[...summaryLines, ...actualColumns[0].map((line, index) => index === 0 ? { ...line, before: 5 } : line)]];
-  fullCard({ title: "Skool | ความคืบหน้ารายคอร์ส", columns });
+  fullCard({ title: "Skool | หลักสูตร / แผนที่เรียน และความคืบหน้า", columns });
 
   const failed = failedQuizAttempts(report.quizRows ?? [], report.context.agentId);
   const quizLines: Line[] = [
