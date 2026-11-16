@@ -78,6 +78,7 @@ export async function getSkoolAccess(): Promise<AccessResult> {
   return {
     allowed: true,
     canSeeAll,
+    canAuditUnlinked: role === "admin" && canSeeAll,
     unitId,
   };
 }
