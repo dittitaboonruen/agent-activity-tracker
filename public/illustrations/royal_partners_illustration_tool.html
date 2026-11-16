@@ -17091,7 +17091,61 @@ function lookupLegacyManualFemale10Or15(issueAge,gender,sum,term){
   return {id:'manual-female-'+term+'-pay-2025',mode:'manual',sum,byAge,
     source:'AIA Legacy Prestige Plus (New) internal manual 2025 / female '+term+' Pay'};
 }
+// Male RPU values are retrieved from an authenticated server-only endpoint.
+// A cached entry always belongs to one exact issue-age / term / sum case.
+// Never bundle restricted factor tables into this publicly available HTML.
+const LEGACY_MALE_RPU_DATA=new Map();
+const LEGACY_MALE_RPU_PENDING=new Set();
+let LEGACY_MALE_RPU_TIMER=null;
+const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':');
+function loadLegacyMaleRpu(age,gender,sum,term){
+  if(gender!=='ชาย'||!Number.isInteger(age)||age<1||age>75||
+     !Number.isFinite(sum)||sum<10000000||sum>1000000000||
+     ![10,15,20].includes(term))return;
+  const key=legacyMaleRpuKey(age,sum,term);
+  if(LEGACY_MALE_RPU_DATA.has(key)||LEGACY_MALE_RPU_PENDING.has(key))return;
+  clearTimeout(LEGACY_MALE_RPU_TIMER);
+  LEGACY_MALE_RPU_TIMER=setTimeout(async()=>{
+    if(LEGACY_MALE_RPU_DATA.has(key)||LEGACY_MALE_RPU_PENDING.has(key))return;
+    LEGACY_MALE_RPU_PENDING.add(key);
+    try{
+      const params=new URLSearchParams({age:String(age),sum:String(sum),term:String(term)});
+      const res=await fetch('/api/legacy-prestige-rpu?'+params.toString(),
+        {credentials:'same-origin',cache:'no-store'});
+      if(!res.ok)throw Error('RPU staff authorization or factor source unavailable');
+      const result=await res.json();
+      if(result.gender!=='M'||result.issueAge!==age||result.term!==term||result.sum!==sum||
+         !Array.isArray(result.rows))throw Error('RPU response scope mismatch');
+      const byAge=new Map();
+      for(const row of result.rows){
+        if(!Number.isInteger(row.age)||row.age<age||row.age>98||
+           !(row.paidUp===null||(Number.isFinite(row.paidUp)&&row.paidUp>=0)))
+          throw Error('RPU response invalid');
+        byAge.set(row.age,row.paidUp);
+      }
+      LEGACY_MALE_RPU_DATA.set(key,byAge);
+      if(state.tab==='legacy'&&state.age===age&&state.gender==='ชาย'&&
+         state.sum===sum&&state.legacy.term===term)render();
+    }catch{
+      // Fail closed: never substitute estimated RPU, never break other plans.
+    }finally{
+      LEGACY_MALE_RPU_PENDING.delete(key);
+    }
+  },250);
+}
 function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
+  if(gender==='ชาย'){
+    const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+    const loaded=LEGACY_MALE_RPU_DATA.get(legacyMaleRpuKey(issueAge,sum,term));
+    if(!loaded)return exact;
+    const byAge=new Map(exact?.byAge||[]);
+    for(const [age,paidUp] of loaded){
+      byAge.set(age,{...(byAge.get(age)||{age}),paidUp});
+    }
+    return {id:'authorized-internal-male-rpu',mode:'internal-qa',
+      source:(exact?exact.source+' + ':'')+'ตาราง RPU ภายใน AIA (เฉพาะบัญชีพนักงานที่ได้รับอนุญาต)',
+      sum,byAge};
+  }
   const manual=term===20?lookupLegacyManualF20(issueAge,gender,sum,term):
     lookupLegacyManualFemale10Or15(issueAge,gender,sum,term);
   const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
@@ -17176,6 +17230,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
 function viewLegacyPrestige(app){
   const term=state.legacy.term;
   const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
+  if(r.ok)loadLegacyMaleRpu(state.age,state.gender,state.sum,term);
   app.innerHTML=panelShell('life','AIA Legacy Prestige Plus',
     'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • ข้อมูลเบี้ยมาตรฐานก่อนส่วนลดสุขภาพ');
   const panel=app.querySelector('.panel');
