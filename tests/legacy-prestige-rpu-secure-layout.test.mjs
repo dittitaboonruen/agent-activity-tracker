@@ -25,7 +25,7 @@ test('Male RPU served only by authenticated server-side Preview configuration',(
  assert.match(api,/LEGACY_RPU_MALE_FACTORS_BR_B64/);
  assert.match(api,/sb\.auth\.getUser\(\)/);
  assert.match(api,/profile\.active!==true/);
- assert.match(api,/\["admin","manager"\]/);
+ assert.match(api,/\["admin","manager","training"\]/);
  assert.match(api,/no-store/);
  assert.match(middleware,/\/api\/legacy-prestige-rpu/);
  const src=html.slice(html.indexOf('const LEGACY_MALE_RPU_DATA='),html.indexOf('function buildLegacyPolicyValuesTableHTML('));
