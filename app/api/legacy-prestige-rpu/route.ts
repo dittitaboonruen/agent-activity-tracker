@@ -18,10 +18,51 @@ let factorCache: Factors | null = null;
 function getVerifiedFactors(): Factors | null {
   if (factorCache) return factorCache;
   const encoded = process.env.LEGACY_TABLE_B_FACTORS_BR_B64;
-  if (!encoded) return null;
   try {
-    const decoded = brotliDecompressSync(Buffer.from(encoded, "base64"), {maxOutputLength:150000});
-    const tables = JSON.parse(decoded.toString("utf8")) as Factors;
+    let tables: Factors;
+    if (encoded) {
+      const decoded = brotliDecompressSync(Buffer.from(encoded,"base64"),{maxOutputLength:150000});
+      tables = JSON.parse(decoded.toString("utf8")) as Factors;
+    } else {
+      // Small private datasets; NEVER read the old public female scripts.
+      const maleCvEncoded=process.env.LEGACY_TABLE_B_MALE_CV_BR_B64;
+      const maleRpuEncoded=process.env.LEGACY_RPU_MALE_FACTORS_BR_B64;
+      const femaleEncoded=process.env.LEGACY_TABLE_B_FEMALE_U16_B64;
+      if(!maleCvEncoded||!maleRpuEncoded||!femaleEncoded)return null;
+      const maleCv=JSON.parse(brotliDecompressSync(Buffer.from(maleCvEncoded,"base64"),
+        {maxOutputLength:60000}).toString("utf8")) as Record<string,number[][]>;
+      const maleRpu=JSON.parse(brotliDecompressSync(Buffer.from(maleRpuEncoded,"base64"),
+        {maxOutputLength:60000}).toString("utf8")) as Record<string,number[][]>;
+      const binary=Buffer.from(femaleEncoded,"base64");
+      if(binary.length!==21948)return null;
+      let position=0;
+      const take=(length:number)=>{
+        const row:number[]=[];
+        for(let i=0;i<length;i++){
+          if(position+2>binary.length)throw Error("female factor data truncated");
+          row.push(binary.readUInt16LE(position));position+=2;
+        }
+        return row;
+      };
+      tables={};
+      for(const term of [10,15,20]){
+        const female={cv:[] as number[][],rpu:[] as number[][]};
+        for(const kind of ["cv","rpu"] as const){
+          for(let age=0;age<=75;age++)
+            female[kind].push(take(kind==="cv"?Math.min(35,99-age):term-1));
+        }
+        const mRpu=maleRpu[String(term)];
+        if(!Array.isArray(mRpu)||mRpu.length!==76)return null;
+        tables[String(term)]={
+          M:{cv:maleCv[String(term)],rpu:mRpu.map((r,age)=>{
+            if(!Array.isArray(r)||r[0]!==age||r.length!==term)throw Error("male RPU row mismatch");
+            return r.slice(1);
+          })},
+          F:female,
+        };
+      }
+      if(position!==binary.length)throw Error("female factor data overflow");
+    }
     for (const term of [10,15,20]) for (const gender of ["M","F"] as Gender[]) {
       const data = tables[String(term)]?.[gender];
       if (!data || data.cv?.length !== 76 || data.rpu?.length !== 76)
