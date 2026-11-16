@@ -4,6 +4,7 @@ type AccessResult =
   | {
       allowed: true;
       canSeeAll: boolean;
+      canAuditUnlinked: boolean;
       unitId: number | null;
     }
   | {
