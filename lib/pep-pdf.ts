@@ -344,7 +344,13 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
     for (const group of groups.filter(group => group.rows.length)) {
       const column = group.key === "completed" || group.key === "in_progress" ? courseColumns[0] : courseColumns[1];
       column.push({ text: `${group.label} · ${group.rows.length} คอร์ส`, bold: true, color: group.key === "completed" ? colors.green : colors.ink, before: column.length ? 5 : 0 });
-      group.rows.forEach(row => column.push({ text: `${courseLabel(row.courseName)} · ${row.hasAccess ? `${row.progressPercent}%` : "ยังไม่มีสิทธิ์เข้าเรียน"}` }));
+      group.rows.forEach(row => column.push({
+        // Not-started courses are a name-only checklist; percentages do not help PEP coaching.
+        // The Skool CSV has no lesson-level completion data, so never claim specific unstudied lessons.
+        text: group.key === "not_started" ? courseLabel(row.courseName)
+          : group.key === "no_access" ? `${courseLabel(row.courseName)} · ยังไม่มีสิทธิ์เข้าเรียน`
+          : `${courseLabel(row.courseName)} · ${row.progressPercent}%`,
+      }));
     }
   }
   const actualColumns = courseColumns.filter(column => column.length);
@@ -363,6 +369,10 @@ export async function createPepPdf(report: PepPdfReport, onPreview?: (imageUrl: 
        [{ text: "สถานะตามข้อมูลรายคอร์ส", size: 8.5, color: colors.muted }, { text: "CSV แสดงความคืบหน้ารายคอร์ส ไม่ใช่รายบท", size: 7.5, color: colors.muted }, ...actualColumns[1].map((line, index) => index === 0 ? { ...line, before: 5 } : line)]]
     : [[...summaryLines, ...actualColumns[0].map((line, index) => index === 0 ? { ...line, before: 5 } : line)]];
   fullCard({ title: "Skool | หลักสูตร / แผนที่เรียน และความคืบหน้า", columns });
+  // The course-level CSV cannot determine which individual lesson has not been viewed.
+  if (!report.skoolError && courseRows.length) {
+    paragraph("หมายเหตุ: รายชื่อที่ยังไม่เริ่มเรียนเป็นระดับคอร์สเท่านั้น • ข้อมูล CSV ยังไม่ระบุบทเรียนย่อยที่ยังไม่ได้เรียน", 7, false, 11, colors.muted);
+  }
 
   const failed = failedQuizAttempts(report.quizRows ?? [], report.context.agentId);
   const quizLines: Line[] = [
