@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     const agents = agentResult.data ?? [];
     if (!member || agents.length !== 1) return respond({ success: false, error: "ไม่พบบัญชี Skool หรือ Agent Code ไม่ตรงกับตัวแทนที่ใช้งานอยู่เพียงคนเดียว" }, 404);
     if (member.agent_id !== null) return respond({ success: false, error: "บัญชี Skool นี้มีการเชื่อมแล้ว กรุณารีเฟรช" }, 409);
-    const normalize = (s: string) => s.normalize("NFKC").replace(/\\s+/g, " ").trim();
+    const normalize = (s: string) => s.normalize("NFKC").replace(/\s+/g, " ").trim();
     const fullName = normalize([member.first_name, member.last_name].filter(Boolean).join(" "));
     if (normalize(confirmedName) !== fullName) return respond({ success: false, error: "ชื่อที่ยืนยันไม่ตรงกับบัญชี Skool" }, 400);
     const agent = agents[0];
