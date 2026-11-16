@@ -46,3 +46,10 @@ test('isolated cases are deterministic across 2500 concurrent asynchronous reads
   assert.equal(reads[i].byAge.get(inputs[i][0]===35?45:41).surrender,inputs[i][0]===35?3440000:320000);
  }
 });
+
+test('male 35/10m unsupported Table B is explicitly flagged, never filled from another case',()=>{
+ assert.match(html,/ยังไม่มีข้อมูล CV \/ RPU \/ ETI ที่ได้รับอนุญาตสำหรับผู้ชาย/);
+ assert.equal(lookup(35,'ชาย',10000000,10),null);
+ assert.equal(lookup(35,'ชาย',10000000,15),null);
+ assert.equal(lookup(35,'ชาย',10000000,20),null);
+});
