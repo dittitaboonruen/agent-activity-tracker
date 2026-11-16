@@ -110,7 +110,7 @@ export async function GET(request:NextRequest) {
   const source=factors[String(term)][gender];
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
-    const amount=(value:number|undefined)=>Number.isInteger(value)&&value>0
+    const amount=(value:number|undefined)=>typeof value==="number"&&Number.isInteger(value)&&value>0
       ?Math.round(value*sum/1000):null;
     return {age:age+i,policyYear:i+1,surrender:amount(cv),paidUp:amount(rpu)};
   });
