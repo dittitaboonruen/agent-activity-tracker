@@ -14,6 +14,7 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   const [items, setItems] = useState<Unlinked[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [allowed, setAllowed] = useState(false);
+  const [accessNotice, setAccessNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -26,9 +27,14 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   const refresh = useCallback(async () => {
     setLoading(true);
     setError("");
+    setAccessNotice("");
     try {
       const r = await fetch("/api/skool-unlinked", { cache: "no-store" });
-      if (r.status === 401 || r.status === 403) { setAllowed(false); return; }
+      if (r.status === 401 || r.status === 403) {
+        setAllowed(false);
+        setAccessNotice(r.status === 401 ? "กรุณาเข้าสู่ระบบ Performance Hub ใหม่" : "บัญชีนี้ดู Skool Dashboard ได้ แต่ยังไม่มีสิทธิ์ตรวจจับคู่สมาชิก: ต้องใช้ role Admin และสิทธิ์ดูทุกหน่วย (can_view_all_data)");
+        return;
+      }
       const data = await r.json();
       if (!r.ok || data.success !== true) throw new Error(data.error ?? "ไม่สามารถโหลดรายชื่อได้");
       setAllowed(true);
@@ -70,7 +76,6 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
     finally { setBusy(false); }
   }
 
-  if (!loading && !allowed && !error) return null;
   return (
     <section aria-label="Skool Agent Matching" style={{padding:20,marginBottom:22,border:"1px solid var(--hairline)",borderRadius:16,background:"var(--surface)"}}>
       <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}>
@@ -81,6 +86,7 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
         <button type="button" onClick={()=>void refresh()} disabled={loading || busy} style={button}>↻ ตรวจใหม่</button>
       </div>
       {loading ? <p role="status">กำลังตรวจสอบข้อมูล...</p> : null}
+      {accessNotice ? <p role="status" style={{padding:12,border:"1px solid var(--hairline)",borderRadius:10,color:"var(--cream-muted)"}}>{accessNotice}</p> : null}
       {error ? <p role="alert" style={{color:"var(--rp-danger)"}}>{error}</p> : null}
       {info ? <p role="status" style={{color:"var(--gold-bright)"}}>{info}</p> : null}
       {allowed && !loading ? <>
