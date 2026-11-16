@@ -5,6 +5,8 @@ type AccessResult =
       allowed: true;
       canSeeAll: boolean;
       canAuditUnlinked: boolean;
+      actorUserId: string;
+      actorEmail: string;
       unitId: number | null;
     }
   | {
@@ -88,6 +90,8 @@ export async function getSkoolAccess(): Promise<AccessResult> {
     allowed: true,
     canSeeAll,
     canAuditUnlinked: canSeeAll && (role === "admin" || authorizedTrainingAccount),
+    actorUserId: user.id,
+    actorEmail: (user.email ?? "").trim().toLowerCase(),
     unitId,
   };
 }
