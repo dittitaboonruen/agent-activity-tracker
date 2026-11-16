@@ -66,6 +66,7 @@ export default function SkoolCoursesAdminPage() {
   const [editingCourseId, setEditingCourseId] = useState<number | null>(null);
   const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const [courseSearch, setCourseSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -287,19 +288,51 @@ export default function SkoolCoursesAdminPage() {
   }
 
   return (
-    <main style={pageStyle}>
+    <main className="rp-course-v2" style={pageStyle}>
+      <style>{`
+        .rp-course-v2 .rp-c-panel {border:1px solid var(--hairline);border-radius:18px;background:var(--surface);overflow:hidden}
+        .rp-course-v2 .rp-c-panel.gold {box-shadow:0 7px 22px rgba(156,115,44,.07)}
+        .rp-course-v2 .rp-c-eyebrow {letter-spacing:1.7px;font-size:11px;font-weight:850;color:var(--gold)}
+        .rp-course-v2 .rp-c-hero {position:relative;overflow:hidden;background:linear-gradient(115deg,var(--rp-soft-gold),var(--surface) 72%)}
+        .rp-course-v2 .rp-c-hero:after {content:"";position:absolute;right:-55px;top:-65px;width:260px;height:180px;border:3px solid rgba(196,149,55,.12);border-radius:50%;pointer-events:none}
+        .rp-course-v2 .rp-c-form-header {display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--hairline);font-weight:850}
+        .rp-course-v2 .rp-c-icon {width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:20px;flex-shrink:0}
+        .rp-course-v2 .rp-c-course-list {max-height:540px;overflow:auto;padding:10px}
+        .rp-course-v2 .rp-c-course-btn {width:100%;border:1px solid transparent;border-radius:11px;background:transparent;text-align:left;padding:12px;cursor:pointer;color:var(--cream);display:flex;align-items:center;gap:10px}
+        .rp-course-v2 .rp-c-course-btn[data-selected="true"] {background:var(--rp-soft-gold);border-color:var(--gold);font-weight:800}
+        .rp-course-v2 .rp-c-course-btn:hover {border-color:var(--gold)}
+        .rp-course-v2 .rp-c-chip {font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+        .rp-course-v2 .rp-c-action {display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--hairline);border-radius:10px;padding:9px 12px;background:var(--surface);color:var(--gold-bright);font-weight:750;text-decoration:none;cursor:pointer}
+        .rp-course-v2 .rp-c-action:hover {border-color:var(--gold)}
+        .rp-course-v2 .rp-c-bottom {display:grid;grid-template-columns:minmax(230px,.85fr) minmax(0,2fr);gap:16px;margin-top:17px;align-items:start}
+        .rp-course-v2 .rp-c-stat-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+        .rp-course-v2 .rp-c-stat {padding:14px;border-radius:14px;border:1px solid var(--hairline);background:var(--surface)}
+        .rp-course-v2 .rp-c-lesson-table {width:100%;min-width:690px;border-collapse:collapse;font-size:13px}
+        .rp-course-v2 .rp-c-lesson-table th {padding:12px;background:var(--surface-alt);color:var(--cream-muted);font-size:11px;text-align:left}
+        .rp-course-v2 .rp-c-lesson-table td {padding:13px 12px;border-top:1px solid var(--hairline-soft)}
+        .rp-course-v2 .rp-c-lesson-table tr:hover td {background:var(--rp-soft-gold)}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"]{border:1px solid rgba(199,137,83,.38);background:linear-gradient(110deg,rgba(213,135,74,.09),var(--surface) 55%);border-radius:17px}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] h2{display:flex;align-items:center;gap:11px;font-size:19px!important}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] h2:before{content:"☁";display:inline-flex;align-items:center;justify-content:center;width:43px;height:43px;border-radius:13px;background:rgba(205,128,73,.14);color:#c17b4b;font-size:24px;flex-shrink:0}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] button[type="submit"]{box-shadow:0 4px 10px rgba(170,120,40,.14)}
+        .rp-course-v2 .rp-c-form.gold > header {background:linear-gradient(90deg,rgba(183,147,57,.11),transparent)}
+        .rp-course-v2 .rp-c-form.blue > header {background:linear-gradient(90deg,rgba(88,147,205,.12),transparent)}
+        .rp-course-v2 .rp-c-form.gold {border-top:4px solid #b8892d}
+        .rp-course-v2 .rp-c-form.blue {border-top:4px solid #5c91c5}
+        @media(max-width:760px){.rp-course-v2 .rp-c-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rp-course-v2 .rp-c-bottom{grid-template-columns:1fr}.rp-course-v2 .rp-c-course-list{max-height:330px}}
+      `}</style>
       <div style={{ width: "100%", maxWidth: 1180, margin: "0 auto" }}>
         <nav style={navStyle}>
           <Link href="/" style={outlineLinkStyle}>← หน้าหลัก</Link>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Link href="/admin/skool-import" style={outlineLinkStyle}>Import CSV</Link>
-            <Link href="/dashboard/skool" style={outlineLinkStyle}>ดู Dashboard</Link>
+            <Link href="/admin/skool-import" style={outlineLinkStyle}>⇧ Import CSV</Link>
+            <Link href="/dashboard/skool" style={outlineLinkStyle}>▦ Dashboard</Link>
           </div>
         </nav>
 
-        <header style={headerStyle}>
+        <header className="rp-c-hero" style={headerStyle}>
           <div style={eyebrowStyle}>ROYAL PARTNER · LEARNING ADMIN</div>
-          <h1 style={titleStyle}>Skool Course & Lesson Manager</h1>
+          <h1 style={titleStyle}>📚 Skool Course & Lesson Manager</h1>
           <p style={subtitleStyle}>
             นำเข้า CSV ให้คอร์สและความคืบหน้าแสดงทันที แล้วค่อยเพิ่มบทเรียนและแก้รายละเอียด
           </p>
@@ -313,9 +346,9 @@ export default function SkoolCoursesAdminPage() {
         {warning && <p role="alert" style={noteStyle}>{warning}</p>}
 
         <div style={formGridStyle}>
-          <form onSubmit={saveCourse} style={panelStyle}>
+          <form onSubmit={saveCourse} className="rp-c-form gold" style={panelStyle}>
             <PanelHeader
-              title={editingCourseId ? "แก้ไขคอร์ส" : "เพิ่มคอร์ส"}
+              title={editingCourseId ? "📚 แก้ไขคอร์ส" : "📚 เพิ่มคอร์ส"}
               caption="ชื่อคอร์สต้องตรงกับช่อง Classroom ทุกตัวอักษร"
             />
             <div style={panelBodyStyle}>
@@ -368,9 +401,9 @@ export default function SkoolCoursesAdminPage() {
             </div>
           </form>
 
-          <form onSubmit={saveLesson} style={panelStyle}>
+          <form onSubmit={saveLesson} className="rp-c-form blue" style={panelStyle}>
             <PanelHeader
-              title={editingLessonId ? "แก้ไขบทเรียน" : "เพิ่มบทเรียนทีละบท"}
+              title={editingLessonId ? "▶️ แก้ไขบทเรียน" : "▶️ เพิ่มบทเรียนทีละบท"}
               caption="กดบันทึกครั้งเดียว · INFO ไม่มีแบบทดสอบ · QUIZ ใส่ Google Form"
             />
             <div style={panelBodyStyle}>
@@ -473,123 +506,98 @@ export default function SkoolCoursesAdminPage() {
           </form>
         </div>
 
-        <section style={{ ...panelStyle, marginTop: 18 }}>
-          <div style={{ padding: "12px 18px" }}>
-            <button type="button" style={secondaryButtonStyle} disabled={saving || loading || courses.length === 0}
-              onClick={() => void reorder(recommendedCourseIds(courses))}>จัดลำดับเส้นทางเรียน · About เป็น 2</button>
-          </div>
-          <PanelHeader
-            title={`คอร์สทั้งหมด (${courses.length})`}
-            caption="เลือกคอร์สเพื่อดูและจัดการบทเรียน"
-          />
-          {loading ? (
-            <div style={emptyStyle}>กำลังโหลดข้อมูล...</div>
-          ) : courses.length === 0 ? (
-            <div style={emptyStyle}>ยังไม่มีคอร์ส นำเข้า CSV ด้านบนเพื่อสร้างคอร์สอัตโนมัติได้เลย</div>
-          ) : (
-            <div style={courseGridStyle}>
-              {courses.map((course, index) => {
-                const count = lessons.filter((lesson) => lesson.course_id === course.id).length;
-                const selected = selectedCourseId === course.id;
-                const stats = importStats[String(course.id)];
 
-                return (
-                  <article
-                    key={course.id}
-                    style={{ ...courseCardStyle, ...(selected ? selectedCardStyle : {}) }}
-                    onClick={() => {
-                      if (saving) return;
-                      setSelectedCourseId(course.id);
-                      resetLessonForm(course.id);
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 11, color: "var(--gold)", fontWeight: 800 }}>
-                          #{course.sort_order} · {course.course_code || "NO CODE"}
-                        </div>
-                        <h3 style={{ margin: "7px 0 0", fontSize: 16 }}>{course.course_name}</h3>
-                      </div>
-                      <Status active={course.active} />
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 12 }} onClick={event => event.stopPropagation()}>
-                      <button type="button" disabled={saving || loading || index === 0} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ขึ้น`} onClick={() => moveCourse(index, -1)}>↑ ขึ้น</button>
-                      <button type="button" disabled={saving || loading || index === courses.length - 1} style={textButtonStyle} aria-label={`เลื่อน ${course.course_name} ลง`} onClick={() => moveCourse(index, 1)}>↓ ลง</button>
-                    </div>
-                    <p style={cardDescriptionStyle}>{course.description || "ไม่มีคำอธิบาย"}</p>
-                    {stats && (
-                      <div style={{ ...noteStyle, margin: "10px 0", padding: 10 }}>
-                        <strong>มีข้อมูลจาก CSV แล้ว</strong><br />
-                        สมาชิกที่นำเข้า {stats.members} คน · เรียนจบ {stats.completed} คน<br />
-                        ความคืบหน้าเฉลี่ย {stats.averageProgress}%<br />
-                        <span>รวมสมาชิก Skool ที่นำเข้าทั้งหมด</span>
-                      </div>
-                    )}
-                    <div style={cardFooterStyle}>
-                      <span>{count > 0 ? `${count} บทเรียน` : "ยังไม่เพิ่มบทเรียน · เพิ่มภายหลังได้"}</span>
-                      <div style={{ display: "flex", gap: 10 }}>
-                        <button type="button" style={textButtonStyle} onClick={(event) => { event.stopPropagation(); editCourse(course); }}>แก้ไข</button>
-                        {course.active && (
-                          <button type="button" style={dangerButtonStyle} onClick={(event) => { event.stopPropagation(); void deactivate("course", course.id, course.course_name); }}>ปิดใช้</button>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+        <section className="rp-c-stat-grid" aria-label="สรุปคอร์สและบทเรียน">
+          {[
+            {label:"คอร์สทั้งหมด",value:courses.length,icon:"📚",unit:"คอร์ส",tint:"rgba(200,156,72,.12)",color:"var(--gold-bright)"},
+            {label:"บทเรียนทั้งหมด",value:lessons.length,icon:"▶️",unit:"บทเรียน",tint:"rgba(77,139,205,.12)",color:"#5c91c5"},
+            {label:"บทเรียนที่ใช้งาน",value:lessons.filter(x=>x.active).length,icon:"✅",unit:"บทเรียน",tint:"rgba(40,145,94,.12)",color:"#318f64"},
+            {label:"บทเรียนแบบ QUIZ",value:lessons.filter(x=>x.lesson_type==="QUIZ").length,icon:"📝",unit:"บทเรียน",tint:"rgba(213,133,55,.11)",color:"#c58132"}
+          ].map(k=><div key={k.label} className="rp-c-stat">
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span className="rp-c-icon" style={{background:k.tint,color:k.color}} aria-hidden="true">{k.icon}</span>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:12,color:"var(--cream-muted)"}}>{k.label}</div>
+                <div style={{fontSize:24,fontWeight:900,color:"var(--cream)"}}>{loading?"…":k.value}<span style={{fontSize:11,color:"var(--cream-muted)",fontWeight:600,marginLeft:5}}>{k.unit}</span></div>
+              </div>
             </div>
-          )}
+          </div>)}
         </section>
 
-        <section style={{ ...panelStyle, marginTop: 18 }}>
-          <PanelHeader
-            title={selectedCourse ? `บทเรียน: ${selectedCourse.course_name}` : "บทเรียน"}
-            caption={`${selectedLessons.length} บท · เรียงตามลำดับที่กำหนด`}
-          />
-          {selectedCourse && <details key={selectedCourse.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
-            <summary style={{ padding: "16px 18px", cursor: "pointer", color: "var(--gold-bright)", fontWeight: 700 }}>เพิ่มหลายบทพร้อมกัน</summary>
-            <p style={{ ...noteStyle, margin: "0 18px 12px" }}>เลือกใช้เมื่อมีหลายบท บทที่เพิ่มจากฟอร์มด้านบนแล้วไม่ต้องเพิ่มซ้ำในช่องนี้</p>
-            <SkoolLessonOutline courseId={selectedCourse.id} courseName={selectedCourse.course_name} disabled={saving || loading}
-              onBusyChange={setSaving} onSaved={() => loadData(selectedCourse.id)} />
-          </details>}
-          {!selectedCourse ? (
-            <div style={emptyStyle}>เลือกคอร์สเพื่อดูบทเรียน</div>
-          ) : selectedLessons.length === 0 ? (
-            <div style={emptyStyle}>
-              {importStats[String(selectedCourse.id)]
-                ? "นำเข้าความคืบหน้าระดับคอร์สแล้ว — CSV นี้ไม่มีรายชื่อบทเรียน เพิ่มจากฟอร์มด้านบน หรือเปิด “เพิ่มหลายบทพร้อมกัน” เพื่อวางรายชื่อทั้งชุด"
-                : "ยังไม่มีบทเรียน — นำเข้า CSV เพื่อแสดงความคืบหน้าระดับคอร์สก่อนได้ แล้วค่อยเพิ่มบทเรียนภายหลัง"}
+        <div className="rp-c-bottom">
+          <section className="rp-c-panel gold">
+            <div style={{padding:"17px 16px",borderBottom:"1px solid var(--hairline)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:9}}>
+                <span className="rp-c-icon" style={{background:"rgba(201,156,72,.14)",color:"var(--gold-bright)"}} aria-hidden="true">▤</span>
+                <div><h2 style={{fontSize:17,margin:0}}>คอร์สทั้งหมด ({courses.length})</h2><p style={{margin:"3px 0 0",fontSize:11,color:"var(--cream-muted)"}}>เลือกคอร์สเพื่อดูและแก้ไขบทเรียน</p></div>
+              </div>
+              <label style={{display:"block",marginTop:12}}>
+                <span style={{fontSize:11,color:"var(--cream-muted)"}}>ค้นหาคอร์ส</span>
+                <input type="search" style={{...inputStyle,marginTop:5}} placeholder="ค้นหาชื่อหรือรหัสคอร์ส" value={courseSearch} onChange={e=>setCourseSearch(e.target.value)}/>
+              </label>
             </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>{["ลำดับ", "บทเรียน", "ประเภท", "แบบทดสอบ", "สถานะ", "จัดการ"].map((heading) => <th key={heading} style={thStyle}>{heading}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {treeRows.map(({ lesson, number, depth }) => (
-                    <tr key={lesson.id} style={trStyle}>
-                      <td style={tdStyle}>{number}</td>
-                      <td style={{ ...tdStyle, paddingLeft: 14 + depth * 20, color: "var(--cream)", fontWeight: depth ? 500 : 700 }}>{lesson.lesson_name}</td>
-                      <td style={tdStyle}><TypeBadge type={lesson.lesson_type} /></td>
-                      <td style={tdStyle}>
-                        {lesson.quiz_url ? <a href={lesson.quiz_url} target="_blank" rel="noreferrer" style={textLinkStyle}>เปิด Form ↗</a> : "—"}
-                      </td>
-                      <td style={tdStyle}><Status active={lesson.active} /></td>
-                      <td style={tdStyle}>
-                        <div style={{ display: "flex", gap: 12 }}>
-                          <button type="button" style={textButtonStyle} onClick={() => editLesson(lesson)}>แก้ไข</button>
-                          {lesson.active && <button type="button" style={dangerButtonStyle} onClick={() => void deactivate("lesson", lesson.id, lesson.lesson_name)}>ปิดใช้</button>}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {loading?<div style={emptyStyle}>กำลังโหลดคอร์ส...</div>:courses.length===0?<div style={emptyStyle}>ยังไม่มีคอร์ส · นำเข้า CSV เพื่อเริ่มต้น</div>:
+              <div className="rp-c-course-list">
+                {courses.filter(c=>(c.course_name+" "+(c.course_code??"")).toLocaleLowerCase("th").includes(courseSearch.trim().toLocaleLowerCase("th"))).map((c,index)=><div key={c.id} style={{borderBottom:"1px solid var(--hairline-soft)"}}>
+                  <button type="button" className="rp-c-course-btn" data-selected={selectedCourseId===c.id} onClick={()=>{if(saving)return;setSelectedCourseId(c.id);resetLessonForm(c.id);}}>
+                    <span style={{width:29,height:29,borderRadius:9,background:"var(--rp-soft-gold)",color:"var(--gold-bright)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,flexShrink:0}}>{c.sort_order}</span>
+                    <span style={{flex:1,minWidth:0,overflowWrap:"anywhere",lineHeight:1.45}}>
+                      <strong style={{fontSize:13}}>{c.course_name}</strong>
+                      <span style={{display:"block",fontSize:11,color:"var(--cream-muted)",marginTop:3}}>{lessons.filter(l=>l.course_id===c.id).length} บทเรียน · {c.course_code??"ไม่มีรหัส"}</span>
+                    </span>
+                    <span style={{fontWeight:800,color:"var(--gold-bright)"}} aria-hidden="true">›</span>
+                  </button>
+                  {selectedCourseId===c.id && <div style={{padding:"0 12px 12px",display:"flex",alignItems:"center",gap:9,flexWrap:"wrap"}}>
+                    <Status active={c.active}/>
+                    <button style={textButtonStyle} type="button" disabled={saving} onClick={()=>editCourse(c)}>✎ แก้ไข</button>
+                    <button style={textButtonStyle} type="button" disabled={saving || courses.findIndex(v=>v.id===c.id)===0} onClick={()=>moveCourse(courses.findIndex(v=>v.id===c.id),-1)}>↑</button>
+                    <button style={textButtonStyle} type="button" disabled={saving || courses.findIndex(v=>v.id===c.id)===courses.length-1} onClick={()=>moveCourse(courses.findIndex(v=>v.id===c.id),1)}>↓</button>
+                    {c.active && <button style={dangerButtonStyle} type="button" disabled={saving} onClick={()=>void deactivate("course",c.id,c.course_name)}>ปิดใช้</button>}
+                  </div>}
+                </div>)}
+                {courses.filter(c=>(c.course_name+" "+(c.course_code??"")).toLocaleLowerCase("th").includes(courseSearch.trim().toLocaleLowerCase("th"))).length===0 && <p style={{padding:14,fontSize:12,color:"var(--cream-muted)"}}>ไม่พบคอร์สตามคำค้นหา</p>}
+              </div>}
+            <div style={{padding:12,borderTop:"1px solid var(--hairline)"}}>
+              <button type="button" className="rp-c-action" style={{width:"100%",fontSize:12}} disabled={saving||loading||courses.length===0} onClick={()=>void reorder(recommendedCourseIds(courses))}>⇅ จัดเส้นทางเรียน · About เป็นลำดับ 2</button>
             </div>
-          )}
-        </section>
+          </section>
 
+          <section className="rp-c-panel gold">
+            <div style={{padding:"16px 18px",borderBottom:"1px solid var(--hairline)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+              <div>
+                <h2 style={{fontSize:18,margin:0}}>🎓 {selectedCourse?"บทเรียน: "+selectedCourse.course_name:"เลือกคอร์สเพื่อดูบทเรียน"}</h2>
+                <p style={{fontSize:12,color:"var(--cream-muted)",margin:"5px 0 0"}}>{selectedLessons.length} บทเรียน · เรียงตามลำดับที่กำหนด</p>
+              </div>
+              {selectedCourse && <span className="rp-c-chip" style={{background:"rgba(40,145,94,.12)",color:"#318f64"}}><Status active={selectedCourse.active}/></span>}
+            </div>
+            {selectedCourse && <details key={selectedCourse.id} style={{padding:"12px 18px",borderBottom:"1px solid var(--hairline)"}}>
+              <summary style={{color:"var(--gold-bright)",cursor:"pointer",fontWeight:800,fontSize:13}}>＋ เพิ่มหลายบทพร้อมกัน</summary>
+              <p style={{...noteStyle,margin:"12px 0"}}>ใช้เมื่อต้องเพิ่มบทเรียนหลายบทในครั้งเดียว · ไม่จำเป็นต้องเพิ่มซ้ำ</p>
+              <SkoolLessonOutline courseId={selectedCourse.id} courseName={selectedCourse.course_name} disabled={saving||loading} onBusyChange={setSaving} onSaved={()=>loadData(selectedCourse.id)}/>
+            </details>}
+            {!selectedCourse?<div style={emptyStyle}>เลือกคอร์สทางซ้ายก่อน</div>:selectedLessons.length===0?
+              <div style={emptyStyle}>{importStats[String(selectedCourse.id)]?"นำเข้าข้อมูลระดับคอร์สแล้ว · เพิ่มบทเรียนเมื่อพร้อมได้เลย":"คอร์สนี้ยังไม่มีบทเรียน · เพิ่มจากฟอร์มด้านบนได้เลย"}</div>:
+              <div style={{overflowX:"auto"}}>
+                <table className="rp-c-lesson-table">
+                  <thead><tr>{["ลำดับ","บทเรียน","ประเภท","แบบทดสอบ","สถานะ","จัดการ"].map(h=><th key={h}>{h}</th>)}</tr></thead>
+                  <tbody>{treeRows.map(({lesson,number,depth})=><tr key={lesson.id}>
+                    <td style={{fontWeight:800,color:"var(--gold-bright)"}}>{number}</td>
+                    <td style={{paddingLeft:12+depth*14,fontWeight:depth?500:750,color:"var(--cream)"}}>{lesson.lesson_type==="QUIZ"?"📝 ":"▶ "}{lesson.lesson_name}</td>
+                    <td><TypeBadge type={lesson.lesson_type}/></td>
+                    <td>{lesson.quiz_url?<a href={lesson.quiz_url} target="_blank" rel="noreferrer" style={textLinkStyle}>เปิด Form ↗</a>:"—"}</td>
+                    <td><Status active={lesson.active}/></td>
+                    <td><div style={{display:"flex",gap:11,flexWrap:"wrap"}}>
+                      <button style={textButtonStyle} type="button" onClick={()=>editLesson(lesson)}>✎ แก้ไข</button>
+                      {lesson.active&&<button style={dangerButtonStyle} type="button" onClick={()=>void deactivate("lesson",lesson.id,lesson.lesson_name)}>⊘ ปิดใช้</button>}
+                    </div></td>
+                  </tr>)}</tbody>
+                </table>
+              </div>}
+            {selectedCourse && importStats[String(selectedCourse.id)] && <div style={{padding:"12px 18px",background:"var(--rp-soft-gold)",color:"var(--cream-muted)",fontSize:12}}>
+              📊 CSV · สมาชิก {importStats[String(selectedCourse.id)].members} · เรียนจบ {importStats[String(selectedCourse.id)].completed} · Progress เฉลี่ย {importStats[String(selectedCourse.id)].averageProgress}%
+            </div>}
+          </section>
+        </div>
         <aside style={noteStyle}>
           <strong>ลำดับการทำงาน:</strong> Export CSV จาก Skool → Import ที่หน้านี้ → คอร์สและความคืบหน้าแสดงทันที → แก้รายละเอียดและเพิ่มบทเรียน/Google Forms ภายหลัง โดยคงชื่อ Classroom ให้ตรงกับ CSV เพื่อให้นำเข้าครั้งต่อไปเข้าคอร์สเดิม
         </aside>
