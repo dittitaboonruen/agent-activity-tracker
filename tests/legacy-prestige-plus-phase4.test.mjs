@@ -31,8 +31,10 @@ test('source datasets and isolation',()=>{
   assert.equal(data.rpu.length,1444);
   assert.equal(data.eti.length,1444);
   assert.equal(lookup(35,'ชาย',15000000,20),null);
-  assert.equal(lookup(35,'หญิง',15000000,10),null);
-  assert.equal(lookup(35,'หญิง',15000000,15),null);
+  // 10/15 Pay were introduced after this test; their positive coverage
+  // is validated by legacy-prestige-plus-female-10-15.test.mjs.
+  assert.equal(lookup(35,'ชาย',15000000,10),null);
+  assert.equal(lookup(35,'ชาย',15000000,15),null);
 });
 test('manual factors: female age 35, 20 pay',()=>{
   const a=lookup(35,'หญิง',15000000,20).byAge;
