@@ -16809,6 +16809,11 @@ const LEGACY_BROCHURE_FIXED={
  version:'Official AIA · 17/07/2021',active:true
 };
 function buildLegacyReportHTML(){
+ const caseKey=legacyTableBKey(state.age,state.gender,state.sum,state.legacy.term);
+ if(!LEGACY_TABLE_B_DATA.has(caseKey)){
+   loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
+   throw Error(LEGACY_TABLE_B_ERRORS.get(caseKey)||'กรุณารอให้ตาราง B คำนวณเสร็จก่อนสร้าง PDF');
+ }
  const d=buildLegacyReportData(),valid=validateLegacyReportData(d);
  if(!valid.ok)throw Error(valid.errors.join('; '));
  const esc=escapeResourceHtml,fmtB=n=>fmt(n)+' บาท';
@@ -17094,46 +17099,65 @@ function lookupLegacyManualFemale10Or15(issueAge,gender,sum,term){
 // Male RPU values are retrieved from an authenticated server-only endpoint.
 // A cached entry always belongs to one exact issue-age / term / sum case.
 // Never bundle restricted factor tables into this publicly available HTML.
-const LEGACY_MALE_RPU_DATA=new Map();
-const LEGACY_MALE_RPU_PENDING=new Set();
-let LEGACY_MALE_RPU_TIMER=null;
-const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':');
-function loadLegacyMaleRpu(age,gender,sum,term){
-  if(gender!=='ชาย'||!Number.isInteger(age)||age<0||age>75||
+const LEGACY_TABLE_B_DATA=new Map();
+const LEGACY_TABLE_B_PENDING=new Set();
+const LEGACY_TABLE_B_ERRORS=new Map();
+const LEGACY_MALE_RPU_DATA=LEGACY_TABLE_B_DATA; // previous QA-only alias
+let LEGACY_TABLE_B_TIMER=null;
+const legacyTableBKey=(age,gender,sum,term)=>[age,gender,sum,term].join(':');
+function loadLegacyTableB(age,gender,sum,term){
+  if(!['ชาย','หญิง'].includes(gender)||!Number.isInteger(age)||age<0||age>75||
      !Number.isFinite(sum)||sum<10000000||sum>1000000000||
      ![10,15,20].includes(term))return;
-  const key=legacyMaleRpuKey(age,sum,term);
-  if(LEGACY_MALE_RPU_DATA.has(key)||LEGACY_MALE_RPU_PENDING.has(key))return;
-  clearTimeout(LEGACY_MALE_RPU_TIMER);
-  LEGACY_MALE_RPU_TIMER=setTimeout(async()=>{
-    if(LEGACY_MALE_RPU_DATA.has(key)||LEGACY_MALE_RPU_PENDING.has(key))return;
-    LEGACY_MALE_RPU_PENDING.add(key);
+  const key=legacyTableBKey(age,gender,sum,term);
+  if(LEGACY_TABLE_B_DATA.has(key)||LEGACY_TABLE_B_PENDING.has(key)||
+     LEGACY_TABLE_B_ERRORS.has(key))return;
+  clearTimeout(LEGACY_TABLE_B_TIMER);
+  LEGACY_TABLE_B_TIMER=setTimeout(async()=>{
+    if(LEGACY_TABLE_B_DATA.has(key)||LEGACY_TABLE_B_PENDING.has(key))return;
+    LEGACY_TABLE_B_PENDING.add(key);
     try{
-      const params=new URLSearchParams({age:String(age),sum:String(sum),term:String(term)});
+      const sex=gender==='ชาย'?'M':'F';
+      const params=new URLSearchParams({age:String(age),gender:sex,
+        sum:String(sum),term:String(term)});
       const res=await fetch('/api/legacy-prestige-rpu?'+params.toString(),
         {credentials:'same-origin',cache:'no-store'});
-      if(!res.ok)throw Error('RPU staff authorization or factor source unavailable');
+      if(!res.ok)throw Error(res.status===401?'กรุณาเข้าสู่ระบบก่อนใช้ตาราง B':
+        res.status===403?'บัญชีนี้ยังไม่มีสิทธิ์ดูตาราง B':
+        'ไม่สามารถโหลดข้อมูล CV/RPU ที่ตรวจสอบได้');
       const result=await res.json();
-      if(result.gender!=='M'||result.issueAge!==age||result.term!==term||result.sum!==sum||
-         !Array.isArray(result.rows))throw Error('RPU response scope mismatch');
+      if(result.gender!==sex||result.issueAge!==age||result.sum!==sum||
+         result.term!==term||!Array.isArray(result.rows)||
+         result.rows.length!==99-age)throw Error('ผลการคำนวณไม่ตรงกับข้อมูลที่กรอก');
       const byAge=new Map();
-      for(const row of result.rows){
-        if(!Number.isInteger(row.age)||row.age<age||row.age>98||
-           !(row.paidUp===null||(Number.isFinite(row.paidUp)&&row.paidUp>=0)))
-          throw Error('RPU response invalid');
-        byAge.set(row.age,row.paidUp);
+      for(let i=0;i<result.rows.length;i++){
+        const v=result.rows[i];
+        if(v.age!==age+i||v.policyYear!==i+1||
+           !['surrender','paidUp'].every(k=>v[k]===null||
+             (Number.isSafeInteger(v[k])&&v[k]>=0)))
+          throw Error('ข้อมูล CV/RPU ไม่ตรงปีกรมธรรม์');
+        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp});
       }
-      LEGACY_MALE_RPU_DATA.set(key,byAge);
-      if(state.tab==='legacy'&&state.age===age&&state.gender==='ชาย'&&
-         state.sum===sum&&state.legacy.term===term)render();
-    }catch{
-      // Fail closed: never substitute estimated RPU, never break other plans.
+      LEGACY_TABLE_B_DATA.set(key,byAge);
+      LEGACY_TABLE_B_ERRORS.delete(key);
+    }catch(err){
+      LEGACY_TABLE_B_ERRORS.set(key,err?.message||'ไม่สามารถโหลดข้อมูล CV/RPU');
     }finally{
-      LEGACY_MALE_RPU_PENDING.delete(key);
+      LEGACY_TABLE_B_PENDING.delete(key);
+      if(state.tab==='legacy'&&state.age===age&&state.gender===gender&&
+         state.sum===sum&&state.legacy.term===term)render();
     }
-  },250);
+  },160);
+}
+// Preserve entry point used by existing Legacy-only QA scripts.
+function loadLegacyMaleRpu(age,gender,sum,term){
+  return loadLegacyTableB(age,gender,sum,term);
 }
 function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
+  // Prefer a server-computed exact input case. Never reuse another user's case.
+  const verified=LEGACY_TABLE_B_DATA.get(legacyTableBKey(issueAge,gender,sum,term));
+  if(verified)return {id:'legacy-table-b-server',mode:'internal-qa',sum,
+    byAge:verified,source:'ตารางอ้างอิง AIA 2025 ที่คำนวณในระบบภายใน'};
   if(gender==='ชาย'){
     const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
     const loaded=LEGACY_MALE_RPU_DATA.get(legacyMaleRpuKey(issueAge,sum,term));
@@ -17184,6 +17208,11 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const partialMaleNote=inputs.gender==='ชาย'&&evidence&&cvAvailable&&!rpuAvailable
     ?' · CV มีข้อมูลยืนยันแล้ว แต่มูลค่าใช้เงินสำเร็จ (RPU) ยังไม่มีค่าอ้างอิงสำหรับกรณีนี้'
     :'';
+  const caseKey=legacyTableBKey(inputs.age,inputs.gender,inputs.sum,inputs.term);
+  const tableBError=LEGACY_TABLE_B_ERRORS.get(caseKey);
+  const tableBServerReady=LEGACY_TABLE_B_DATA.has(caseKey);
+  const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
+    (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
@@ -17212,6 +17241,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
+      '<strong>'+tableBStatus+'</strong> · '+
       (evidence?'อ้างอิง '+evidence.source+partialMaleNote+' · ข้อมูลเฉพาะกรณีที่ยืนยันได้เท่านั้น ไม่ใช่ใบเสนอราคาอย่างเป็นทางการของ AIA':
        (inputs.gender==='ชาย'
         ?'ยังไม่มีข้อมูล CV / RPU / ETI ที่ได้รับอนุญาตสำหรับผู้ชาย อายุ '+inputs.age+' ปี ชำระ '+inputs.term+' ปี ทุน '+fmt(inputs.sum)+' บาท · ตาราง B จึงยังไม่พร้อมใช้เสนอขาย โปรดตรวจค่ากับ AIA iPOS+'
@@ -17230,7 +17260,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
 function viewLegacyPrestige(app){
   const term=state.legacy.term;
   const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
-  if(r.ok)loadLegacyMaleRpu(state.age,state.gender,state.sum,term);
+  if(r.ok)loadLegacyTableB(state.age,state.gender,state.sum,term);
   app.innerHTML=panelShell('life','AIA Legacy Prestige Plus',
     'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • ข้อมูลเบี้ยมาตรฐานก่อนส่วนลดสุขภาพ');
   const panel=app.querySelector('.panel');
