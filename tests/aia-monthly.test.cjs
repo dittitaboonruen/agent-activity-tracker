@@ -76,3 +76,12 @@ test('month ends and Thai years are correct across leap years', () => {
   assert.equal(aia.monthEnd(2024, 2), '2024-02-29'); assert.equal(aia.monthEnd(2026, 2), '2026-02-28');
   assert.match(aia.periodLabel(2026, 8), /2569/);
 });
+
+test('monthly report summaries distinguish missing data from actual zero', () => {
+  const rows = [{ fyc: 0 }, { fyc: 200 }];
+  assert.equal(report.sumKnownMetric(rows, row => row.fyc), 200);
+  assert.equal(report.sumKnownMetric([{ fyc: 0 }], row => row.fyc), 0);
+  assert.equal(report.sumKnownMetric([{ fyc: null }], row => row.fyc), null);
+  assert.equal(report.sumKnownMetric([{ fyc: 0 }, { fyc: undefined }], row => row.fyc), null);
+  assert.equal(report.sumKnownMetric([], row => row.fyc), null);
+});
