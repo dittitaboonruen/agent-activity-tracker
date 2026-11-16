@@ -8,6 +8,11 @@ type Unlinked = {
   completed: number; lastSyncedAt: string | null;
 };
 type Agent = { id: number; agentCode: string | null; agentName: string };
+type AuditEntry = {
+ id: number; created_at: string; skool_member_id: number; skool_name: string;
+ agent_code_snapshot: string; agent_name_snapshot: string; actor_email: string;
+ verification_method: string;
+};
 const normal = (s: string) => s.normalize("NFKC").trim().replace(/\s+/g, " ");
 
 export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void }) {
@@ -22,7 +27,12 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   const [keyword, setKeyword] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const [code, setCode] = useState("");
-  const [confirmName, setConfirmName] = useState("");
+  const [identityConfirmed, setIdentityConfirmed] = useState(false);
+  const [verificationMethod, setVerificationMethod] = useState("");
+  const [verificationNote, setVerificationNote] = useState("");
+  const [auditReady, setAuditReady] = useState(false);
+  const [auditNotice, setAuditNotice] = useState("");
+  const [auditHistory, setAuditHistory] = useState<AuditEntry[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -38,6 +48,9 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       const data = await r.json();
       if (!r.ok || data.success !== true) throw new Error(data.error ?? "ไม่สามารถโหลดรายชื่อได้");
       setAllowed(true);
+      setAuditReady(data.auditReady === true);
+      setAuditNotice(typeof data.auditNotice === "string" ? data.auditNotice : "");
+      setAuditHistory(Array.isArray(data.auditHistory) ? data.auditHistory : []);
       setItems(Array.isArray(data.members) ? data.members : []);
       const ar = await fetch("/api/dashboard-agents", { cache: "no-store" });
       if (!ar.ok) throw new Error("ไม่สามารถดึงทะเบียน Agent Master ได้");
@@ -57,19 +70,22 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
   }), [items, keyword]);
 
   async function link() {
-    if (!current || busy || matches.length !== 1 || normal(confirmName) !== fullName) return;
+    if (!current || busy || !auditReady || matches.length !== 1
+      || !identityConfirmed || !verificationMethod || verificationNote.trim().length < 8) return;
     const agent = matches[0];
     if (!window.confirm(`ยืนยันการเชื่อม?\nSkool: ${fullName}\nAgent Master: ${agent.agentName} (${agent.agentCode})\n\nข้อมูล Skool จะแสดงใน PEP ของตัวแทนรหัสนี้`)) return;
     setBusy(true); setError(""); setInfo("");
     try {
       const r = await fetch("/api/skool-unlinked", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memberId: current.id, agentCode: agent.agentCode, confirmedName: confirmName }),
+        body: JSON.stringify({ memberId: current.id, agentCode: agent.agentCode,
+        confirmedName: fullName, confirmedAgentName: agent.agentName,
+        verificationMethod, verificationNote: verificationNote.trim(), identityConfirmed }),
       });
       const result = await r.json();
       if (!r.ok || result.success !== true) throw new Error(result.error ?? "จับคู่ไม่สำเร็จ");
-      setInfo(`จับคู่สำเร็จ: ${fullName} → ${result.agentName} (${result.agentCode})`);
-      setSelected(null); setCode(""); setConfirmName("");
+      setInfo(`จับคู่สำเร็จ: ${fullName} → ${result.agentName} (${result.agentCode}) · Audit #${result.auditId}`);
+      setSelected(null); setCode(""); setIdentityConfirmed(false); setVerificationMethod(""); setVerificationNote("");
       await refresh();
       onLinked?.();
     } catch (e) { setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด"); }
@@ -90,12 +106,13 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
       {error ? <p role="alert" style={{color:"var(--rp-danger)"}}>{error}</p> : null}
       {info ? <p role="status" style={{color:"var(--gold-bright)"}}>{info}</p> : null}
       {allowed && !loading ? <>
+        {auditNotice ? <p role="alert" style={{color:"var(--rp-danger)",fontWeight:700}}>{auditNotice}</p> : null}
         <p style={{fontWeight:700}}>Skool ที่ยังไม่เชื่อม: {items.length} บัญชี</p>
         <label style={{display:"block",marginBottom:10}}>ค้นหาสมาชิก <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="ชื่อหรือ Skool Profile" style={field}/></label>
         <div style={{maxHeight:300,overflowY:"auto",border:"1px solid var(--hairline)",borderRadius:10}}>
           {shown.map(m=><div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"10px 12px",borderBottom:"1px solid var(--hairline)",flexWrap:"wrap"}}>
             <div><strong>{m.first_name} {m.last_name}</strong><div style={{fontSize:12,color:"var(--cream-muted)"}}>คอร์ส {m.courses} · เริ่มเรียน {m.started} · จบ {m.completed} · {m.active?"มีสิทธิ์เข้าเรียน":"ไม่มีสิทธิ์เข้าเรียน"} · <a href={m.skool_profile_url} target="_blank" rel="noreferrer">โปรไฟล์ Skool ↗</a></div></div>
-            <button type="button" style={button} onClick={()=>{setSelected(m.id);setCode("");setConfirmName("");setError("");}}>ตรวจจับคู่</button>
+            <button type="button" style={button} onClick={()=>{setSelected(m.id);setCode("");setIdentityConfirmed(false);setVerificationMethod("");setVerificationNote("");setError("");}}>ตรวจจับคู่</button>
           </div>)}
           {shown.length === 0 ? <p style={{padding:12}}>ไม่มีบัญชีตามตัวกรอง</p>:null}
         </div>
@@ -104,10 +121,51 @@ export default function SkoolUnlinkedPanel({ onLinked }: { onLinked?: () => void
           <p style={{fontSize:12,color:"var(--cream-muted)"}}>ต้องตรวจว่าเป็นคนเดียวกับตัวแทนจริง ห้ามจับคู่จากชื่อคล้ายกันอย่างเดียว และไม่สร้าง Agent Code ใหม่</p>
           <label style={{display:"block",marginBottom:10}}>กรอก Agent Code จาก Agent Master<input style={field} value={code} onChange={e=>setCode(e.target.value)} autoComplete="off" /></label>
           {code.trim() ? <p style={{fontSize:13}}>{matches.length===1?`พบตัวแทน: ${matches[0].agentName} (${matches[0].agentCode})`:"ไม่พบ Agent Code ที่ตรงเพียงหนึ่งรายการ"}</p>:null}
-          <label style={{display:"block",marginBottom:10}}>พิมพ์ชื่อสมาชิก Skool ตามที่แสดง เพื่อยืนยัน<input style={field} value={confirmName} onChange={e=>setConfirmName(e.target.value)} placeholder={fullName} autoComplete="off" /></label>
-          <button type="button" style={button} onClick={()=>void link()} disabled={busy || matches.length!==1 || normal(confirmName)!==fullName}>{busy?"กำลังบันทึก...":"ยืนยันจับคู่กับ Agent Master"}</button>
+          {matches.length === 1 ? <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:10,marginBottom:12}}>
+            <div style={{padding:12,border:"1px solid var(--hairline)",borderRadius:9}}>
+              <small>Skool Member</small><p style={{fontWeight:800,margin:"6px 0"}}>{fullName}</p>
+              <a href={current.skool_profile_url} target="_blank" rel="noreferrer">ตรวจโปรไฟล์ Skool ↗</a>
+            </div>
+            <div style={{padding:12,border:"1px solid var(--hairline)",borderRadius:9}}>
+              <small>Agent Master</small><p style={{fontWeight:800,margin:"6px 0"}}>{matches[0].agentName}</p>
+              <small>Agent Code: {matches[0].agentCode}</small>
+            </div>
+          </div> : null}
+          <label style={{display:"block",marginBottom:10}}>วิธียืนยันว่าเป็นบุคคลเดียวกัน
+            <select style={field} value={verificationMethod} onChange={e=>setVerificationMethod(e.target.value)}>
+              <option value="">เลือกหลักฐานที่ตรวจสอบแล้ว</option>
+              <option value="company_roster">ตรวจทะเบียนบริษัท/เอกสารภายในที่ยืนยันตัวตน</option>
+              <option value="skool_owner_confirmation">ยืนยันโดยเจ้าของบัญชี Skool โดยตรง</option>
+              <option value="other_verified">หลักฐานอื่นที่ตรวจสอบได้</option>
+            </select>
+          </label>
+          <label style={{display:"block",marginBottom:10}}>หมายเหตุการตรวจสอบ (อย่างน้อย 8 ตัวอักษร ไม่ใส่ข้อมูลบัตรประชาชน/ข้อมูลลับ)
+            <textarea style={{...field,maxWidth:600,minHeight:64}} maxLength={500} value={verificationNote}
+              onChange={e=>setVerificationNote(e.target.value)} placeholder="เช่น ยืนยันบัญชีโดยเจ้าของผ่านช่องทางบริษัท วันที่..." />
+          </label>
+          <label style={{display:"flex",gap:9,alignItems:"flex-start",marginBottom:14,lineHeight:1.6,fontWeight:700}}>
+            <input type="checkbox" checked={identityConfirmed} onChange={e=>setIdentityConfirmed(e.target.checked)} />
+            ฉันตรวจหลักฐานแล้วว่า Skool และ Agent Code นี้เป็นบุคคลเดียวกัน และเข้าใจว่าข้อมูลจะปรากฏใน PEP ของตัวแทนนี้
+          </label>
+          <button type="button" style={{...button,opacity:(!auditReady || busy || matches.length!==1 || !identityConfirmed || !verificationMethod || verificationNote.trim().length<8)?0.5:1}}
+            onClick={()=>void link()} disabled={!auditReady || busy || matches.length!==1 || !identityConfirmed || !verificationMethod || verificationNote.trim().length<8}>
+            {busy?"กำลังบันทึกพร้อม Audit Log...":"ยืนยันจับคู่และบันทึก Audit Log"}
+          </button>
           <button type="button" style={{...button,marginLeft:8}} onClick={()=>setSelected(null)}>ยกเลิก</button>
         </div>:null}
+        <details style={{marginTop:20,padding:"12px 0",borderTop:"1px solid var(--hairline)"}}>
+          <summary style={{cursor:"pointer",fontWeight:800}}>ประวัติการจับคู่ล่าสุด (Audit Log) · {auditHistory.length} รายการ</summary>
+          {!auditReady ? <p>ยังไม่ได้ติดตั้ง Audit Log ใน Supabase</p> :
+            auditHistory.length === 0 ? <p>ยังไม่มีประวัติการจับคู่หลังเริ่มใช้ Audit Log</p> :
+            <div style={{overflowX:"auto",marginTop:12}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+              <thead><tr><th>วันเวลา</th><th>Skool</th><th>Agent Master</th><th>ผู้ดำเนินการ</th></tr></thead>
+              <tbody>{auditHistory.map(a=><tr key={a.id}>
+                <td style={{padding:8}}>{new Date(a.created_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"})}</td>
+                <td style={{padding:8}}>{a.skool_name}</td>
+                <td style={{padding:8}}>{a.agent_name_snapshot} ({a.agent_code_snapshot})</td>
+                <td style={{padding:8}}>{a.actor_email}</td>
+              </tr>)}</tbody></table></div>}
+        </details>
       </>:null}
     </section>
   );
