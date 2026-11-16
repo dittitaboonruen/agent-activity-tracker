@@ -52,6 +52,7 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/monthly-performance",
   "/api/skool-progress",
   "/api/skool-quiz-results",
+  "/api/legacy-prestige-rpu",
 ];
 
 function pathMatches(
