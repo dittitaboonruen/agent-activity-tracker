@@ -1,5 +1,5 @@
 /* Legacy Prestige Plus (New) — local-only authorized factor importer.
- * No network IO, no localStorage, no persistence. Never bundle AIA manual data.
+ * No network calls or persistent client storage. Never bundle AIA manual data.
  * Only the user's current browser tab holds the imported factors.
  */
 (function(global){
