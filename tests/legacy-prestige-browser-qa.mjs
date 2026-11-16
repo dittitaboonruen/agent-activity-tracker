@@ -18,7 +18,7 @@ try {
  await page.locator('#in-gender').selectOption('หญิง');
  await page.locator('#in-age').fill('35');
  await page.locator('#in-sum').fill('15000000');
- const expected={10:['165,000','990,000','9','211'],15:['120,000','720,000','7','91'],20:['105,000','630,000','6','156']};
+ const expected={10:['165,000','990,000'],15:['120,000','720,000'],20:['105,000','630,000']};
  for (const term of [10,15,20]) {
    await page.locator('#legacy-term').selectOption(String(term));
    await page.locator('[data-legacy-table="B"]').click();
@@ -27,7 +27,8 @@ try {
    assert.equal(await table.last().locator('td').first().innerText(),'98','table B last age');
    const cols=await table.nth(1).locator('td').allInnerTexts();
    assert.equal(cols[0],'36','year 2 issue age');
-   assert.deepEqual([cols[1],cols[2],cols[4],cols[5]],expected[term],term+' Pay factor values');
+   assert.equal(cols.length,3,'Table B shows ONLY age, CV and RPU');
+   assert.deepEqual([cols[1],cols[2]],expected[term],term+' Pay CV/RPU values');
    await page.locator('[data-legacy-table="A"]').click();
    const a=page.locator('#legacy-table-A tbody tr');
    assert.equal(await a.last().locator('td').first().innerText(),'98','table A last age');
@@ -38,6 +39,7 @@ try {
    assert.equal(values[1],'36','report policy age');
    assert.equal(values[4],expected[term][0],'report cash value');
    assert.equal(values[5],expected[term][1],'report paid up');
+   assert.equal(values.length,6,'report removed ETI');
    // Capture the exact Legacy preview for a manual typography/pagination review.
    await page.locator('.legacy-report-page').first().screenshot({path:path.join(qaDir,`female-${term}-pay-report-page1.png`)});
    // Exercise the real app PDF button, not Playwright's generic print-to-PDF.
@@ -64,7 +66,8 @@ try {
  let maleCells=await page.locator('#legacy-table-B tbody tr').nth(1).locator('td').allInnerTexts();
  assert.equal(maleCells[0],'41');
  assert.equal(maleCells[1],'320,000','exact brochure CV auto lookup');
- assert.equal(maleCells[2],'—','never invent RPU');
+ assert.equal(maleCells[2],'—','RPU requires matching authorized factor');
+ assert.equal(maleCells.length,3,'Male Table B has only age, CV, RPU');
  assert.equal(await page.locator('#legacy-factor-upload').count(),0,'no file upload required');
  assert.equal(await page.locator('.legacy-local-demo').count(),0,'synthetic demo hidden');
  await page.locator('#in-age').fill('35');
