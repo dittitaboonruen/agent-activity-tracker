@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { dataTimestampLabel, latestDataTimestamp } from "@/lib/date-utils";
 import SkoolQuizResults from "@/components/SkoolQuizResults";
+import SkoolUnlinkedPanel from "@/components/SkoolUnlinkedPanel";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { learningApiUrl, readLearningAgentId, type LearningAgentSelection } from "@/lib/learning-filter";
@@ -387,6 +388,7 @@ function SkoolDashboardContent({ agentSelection }: { agentSelection: LearningAge
         )}
 
         <SkoolQuizResults refreshKey={quizRefreshKey} agentSelection={agentSelection} />
+        {agentSelection === "all" ? <SkoolUnlinkedPanel onLinked={() => { setQuizRefreshKey(k=>k+1); void loadData(); }} /> : null}
 
         {error && (
           <div
