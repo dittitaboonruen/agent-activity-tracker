@@ -38,6 +38,7 @@ const ADMIN_ALLOWED_PATHS = [
   "/admin/agents",
   "/admin/skool-import",
   "/admin/skool-courses",
+  "/admin/skool-matching",
   "/dashboard/performance",
   "/dashboard/skool",
 ];
@@ -51,6 +52,7 @@ const ADMIN_ALLOWED_API_PATHS = [
   "/api/admin/skool-courses",
   "/api/monthly-performance",
   "/api/skool-progress",
+  "/api/skool-unlinked",
   "/api/skool-quiz-results",
 ];
 

@@ -4,6 +4,7 @@ type AccessResult =
   | {
       allowed: true;
       canSeeAll: boolean;
+      canAuditUnlinked: boolean;
       unitId: number | null;
     }
   | {
@@ -77,6 +78,7 @@ export async function getSkoolAccess(): Promise<AccessResult> {
   return {
     allowed: true,
     canSeeAll,
+    canAuditUnlinked: role === "admin" && canSeeAll,
     unitId,
   };
 }
