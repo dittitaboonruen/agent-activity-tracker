@@ -54,21 +54,26 @@ try {
    await page.locator('.rp-preview-close').first().click();
    console.log('PASS: female '+term+' Pay - Table A/B and report matching');
  }
- // No-file demo: user clicks one button, sees synthetic test values, cannot export.
+ // Male Table B must update automatically on changes without any upload.
+ // Only exact publicly documented cases have published cash values.
  await page.locator('#in-gender').selectOption('ชาย');
+ await page.locator('#in-age').fill('40');
+ await page.locator('#in-sum').fill('20000000');
+ await page.locator('#legacy-term').selectOption('10');
+ await page.locator('[data-legacy-table="B"]').click();
+ let maleCells=await page.locator('#legacy-table-B tbody tr').nth(1).locator('td').allInnerTexts();
+ assert.equal(maleCells[0],'41');
+ assert.equal(maleCells[1],'320,000','exact brochure CV auto lookup');
+ assert.equal(maleCells[2],'—','never invent RPU');
+ assert.equal(await page.locator('#legacy-factor-upload').count(),0,'no file upload required');
+ assert.equal(await page.locator('.legacy-local-demo').count(),0,'synthetic demo hidden');
  await page.locator('#in-age').fill('35');
  await page.locator('#in-sum').fill('10000000');
  await page.locator('#legacy-term').selectOption('20');
- await page.locator('.legacy-local-demo').click();
- const demoRow=page.locator('#legacy-table-B tbody tr').nth(1);
- const demoCells=await demoRow.locator('td').allInnerTexts();
- assert.deepEqual(demoCells.slice(0,3),['36','172,000','400,000'],'one-click synthetic demo table B');
- assert.match(await page.locator('.legacy-values-reference').innerText(),/ข้อมูลจำลองเท่านั้น/);
- assert.equal(await page.locator('#app .btn-export').count(),0,'PDF export disabled in synthetic mode');
- await page.locator('.legacy-local-clear').click();
- assert.equal(await page.locator('.legacy-local-status').innerText().then(x=>x.includes('ปัจจุบัน 0 แถว')),true);
- assert.equal(await page.locator('#app .btn-export').count(),1,'export restored after clearing demo');
- console.log('PASS: one-click synthetic demo no file picker, table B and export protection');
+ await page.locator('[data-legacy-table="B"]').click();
+ maleCells=await page.locator('#legacy-table-B tbody tr').nth(1).locator('td').allInnerTexts();
+ assert.equal(maleCells[1],'—','unsupported male 35/10m value must be unavailable, never fake');
+ console.log('PASS: male table B updates automatically without uploads, no cross-case guessing');
  // Check that all non-Legacy product tabs still render without page errors.
  for(const product of await page.locator('.tab[data-id]').evaluateAll(els=>els.map(e=>e.dataset.id).filter(id=>id!=='legacy'))) {
    await page.locator('.tab[data-id="'+product+'"]').click();
