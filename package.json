@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:legacy": "node --test tests/legacy-prestige-plus-phase4.test.mjs tests/legacy-prestige-plus-female-10-15.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
