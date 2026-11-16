@@ -311,6 +311,12 @@ export default function SkoolCoursesAdminPage() {
         .rp-course-v2 .rp-c-lesson-table th {padding:12px;background:var(--surface-alt);color:var(--cream-muted);font-size:11px;text-align:left}
         .rp-course-v2 .rp-c-lesson-table td {padding:13px 12px;border-top:1px solid var(--hairline-soft)}
         .rp-course-v2 .rp-c-lesson-table tr:hover td {background:var(--rp-soft-gold)}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"]{border:1px solid rgba(199,137,83,.38);background:linear-gradient(110deg,rgba(213,135,74,.09),var(--surface) 55%);border-radius:17px}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] h2{display:flex;align-items:center;gap:11px;font-size:19px!important}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] h2:before{content:"☁";display:inline-flex;align-items:center;justify-content:center;width:43px;height:43px;border-radius:13px;background:rgba(205,128,73,.14);color:#c17b4b;font-size:24px;flex-shrink:0}
+        .rp-course-v2 section[aria-label="นำเข้า CSV"] button[type="submit"]{box-shadow:0 4px 10px rgba(170,120,40,.14)}
+        .rp-course-v2 .rp-c-form.gold > header {background:linear-gradient(90deg,rgba(183,147,57,.11),transparent)}
+        .rp-course-v2 .rp-c-form.blue > header {background:linear-gradient(90deg,rgba(88,147,205,.12),transparent)}
         .rp-course-v2 .rp-c-form.gold {border-top:4px solid #b8892d}
         .rp-course-v2 .rp-c-form.blue {border-top:4px solid #5c91c5}
         @media(max-width:760px){.rp-course-v2 .rp-c-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rp-course-v2 .rp-c-bottom{grid-template-columns:1fr}.rp-course-v2 .rp-c-course-list{max-height:330px}}
