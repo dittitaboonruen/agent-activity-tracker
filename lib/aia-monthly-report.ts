@@ -33,3 +33,15 @@ export function csvCell(value: string | number | null | undefined) {
   if (typeof value === "string" && /^[\s]*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
+
+/** Do not report incomplete monthly snapshots as zero-value production. */
+export function sumKnownMetric<T>(rows: T[], get: (row: T) => number | null | undefined): number | null {
+  if (!rows.length) return null;
+  let total = 0;
+  for (const row of rows) {
+    const value = get(row);
+    if (value == null || !Number.isFinite(value)) return null;
+    total += value;
+  }
+  return total;
+}
