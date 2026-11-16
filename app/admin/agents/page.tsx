@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import PageTopBar from "@/components/PageTopBar";
+import "./agent-master.css";
 
 type Agent = {
   id: number;
@@ -94,10 +95,11 @@ export default function AgentMasterPage() {
     number | null
   >(null);
 
-  const [
-    search,
-    setSearch,
-  ] = useState("");
+  const [search, setSearch] = useState("");
+  const [unitFilter, setUnitFilter] = useState("all");
+  const [managerFilter, setManagerFilter] = useState("all");
+  const [emailFilter, setEmailFilter] = useState("all");
+  const [showEditor, setShowEditor] = useState(false);
 
   const [
     loading,
@@ -210,66 +212,37 @@ export default function AgentMasterPage() {
       form.unitId,
     ]);
 
-  const filteredAgents =
-    useMemo(() => {
-      const keyword =
-        search
-          .trim()
-          .toLocaleLowerCase(
-            "th-TH"
-          );
+  const filteredAgents = useMemo(() => {
+    const keyword = search.trim().toLocaleLowerCase("th-TH");
+    return agents.filter((agent) => {
+      if (unitFilter !== "all" && String(agent.unit_id ?? "") !== unitFilter) return false;
+      if (managerFilter !== "all" && (agent.manager_user_id ?? "") !== managerFilter) return false;
+      if (emailFilter === "with" && !agent.agent_email?.trim()) return false;
+      if (emailFilter === "without" && agent.agent_email?.trim()) return false;
+      if (!keyword) return true;
+      const unit = units.find(item => item.id === agent.unit_id);
+      const manager = managers.find(item => item.user_id === agent.manager_user_id);
+      return [
+        agent.agent_code, agent.agent_name, agent.agent_nickname,
+        agent.agent_email, agent.jotform_agent_name,
+        unit?.unit_code, unit?.unit_name, manager?.full_name, manager?.email,
+      ].filter(Boolean).join(" ").toLocaleLowerCase("th-TH").includes(keyword);
+    });
+  }, [agents, units, managers, search, unitFilter, managerFilter, emailFilter]);
 
-      if (!keyword) {
-        return agents;
-      }
+  const emailCount = agents.filter(agent => Boolean(agent.agent_email?.trim())).length;
+  const missingEmailCount = agents.length - emailCount;
+  const unitCounts = units.map(unit => ({
+    ...unit,
+    count: agents.filter(agent => agent.unit_id === unit.id).length,
+  })).filter(unit => unit.count > 0);
+  const unknownUnitCount = agents.filter(agent => !units.some(unit => unit.id === agent.unit_id)).length;
 
-      return agents.filter(
-        (agent) => {
-          const unit =
-            units.find(
-              (item) =>
-                item.id ===
-                agent.unit_id
-            );
-
-          const manager =
-            managers.find(
-              (item) =>
-                item.user_id ===
-                agent.manager_user_id
-            );
-
-          const searchableText =
-            [
-              agent.agent_code,
-              agent.agent_name,
-              agent.agent_nickname,
-              agent.agent_email,
-              agent.jotform_agent_name,
-              unit?.unit_code,
-              unit?.unit_name,
-              manager?.full_name,
-              manager?.email,
-            ]
-              .filter(
-                Boolean
-              )
-              .join(" ")
-              .toLocaleLowerCase(
-                "th-TH"
-              );
-
-          return searchableText.includes(
-            keyword
-          );
-        }
-      );
-    }, [
-      agents,
-      managers,
-      search,
-      units,
-    ]);
+  function startAdd() {
+    resetForm();
+    setShowEditor(true);
+    window.setTimeout(() => document.getElementById("agent-master-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
 
   function updateForm(
     field:
@@ -481,6 +454,7 @@ export default function AgentMasterPage() {
     setEditingAgentId(
       agent.id
     );
+    setShowEditor(true);
 
     setStatus("");
 
@@ -511,88 +485,132 @@ export default function AgentMasterPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight:
-          "100vh",
-
-        background:
-          "var(--rp-page-gradient), var(--bg)",
-
-        color:
-          "var(--cream)",
-
-        padding:
-          "24px 18px 60px",
-
-        transition:
-          "background .2s ease, color .2s ease",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1500,
-          margin: "0 auto",
-        }}
-      >
+    <main className="rp-agent-page">
+      <div className="rp-agent-container">
         <PageTopBar />
 
-        <div
-          style={{
-            marginBottom: 26,
-          }}
-        >
-          <div
-            style={{
-              color:
-                "var(--gold)",
+        <header className="rp-agent-heading">
+          <div className="rp-agent-eyebrow">ROYAL PARTNER · AGENT MASTER</div>
+          <div className="rp-agent-heading-line">
+            <span className="rp-agent-heading-icon" aria-hidden="true">👥</span>
+            <div>
+              <h1>Agent Master</h1>
+              <p>ทะเบียนกลางของตัวแทน หน่วย หัวหน้าที่ดูแล และข้อมูลสำหรับเชื่อมระบบ Skool</p>
+            </div>
+          </div>
+        </header>
 
-              fontSize: 12,
+        <aside className="rp-agent-notice">
+          <span aria-hidden="true" className="rp-agent-notice-icon">ℹ</span>
+          <div>
+            <strong>ข้อมูลทะเบียนตัวแทน</strong>
+            <p>ตรวจสอบรหัส ชื่อ อีเมล หน่วย และผู้ดูแลให้ถูกต้องก่อนนำเข้าข้อมูลจาก Skool หรือ Jotform</p>
+            <small>การมีอีเมลใน Agent Master ยังไม่ใช่การยืนยันว่าจับคู่บัญชี Skool สำเร็จ</small>
+          </div>
+        </aside>
 
-              fontWeight: 800,
+        <section className="rp-agent-stats" aria-label="สรุปทะเบียนตัวแทน">
+          <div className="rp-agent-stat rp-agent-stat-gold">
+            <span className="rp-agent-stat-icon" aria-hidden="true">👥</span>
+            <div><span className="rp-agent-stat-label">ตัวแทนทั้งหมด</span><strong>{agents.length.toLocaleString("th-TH")} <small>คน</small></strong></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-green">
+            <span className="rp-agent-stat-icon" aria-hidden="true">✉</span>
+            <div><span className="rp-agent-stat-label">มีอีเมลสำหรับจับคู่</span><strong>{emailCount.toLocaleString("th-TH")} <small>คน</small></strong><span className="rp-agent-stat-detail">{agents.length ? Math.round(emailCount / agents.length * 100) : 0}% ของทะเบียน</span></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-rose">
+            <span className="rp-agent-stat-icon" aria-hidden="true">!</span>
+            <div><span className="rp-agent-stat-label">ยังไม่มีอีเมล</span><strong>{missingEmailCount.toLocaleString("th-TH")} <small>คน</small></strong><span className="rp-agent-stat-detail">ควรตรวจสอบข้อมูล</span></div>
+          </div>
+          <div className="rp-agent-stat rp-agent-stat-purple">
+            <span className="rp-agent-stat-icon" aria-hidden="true">▦</span>
+            <div className="rp-agent-units-summary">
+              <span className="rp-agent-stat-label">จำนวนตามหน่วย (Unit)</span>
+              {unitCounts.map(unit => <div key={unit.id} className="rp-agent-unit-line"><span>{unit.unit_name || unit.unit_code}</span><strong>{unit.count} คน</strong></div>)}
+              {unknownUnitCount > 0 && <div className="rp-agent-unit-line"><span>ยังไม่ได้กำหนด</span><strong>{unknownUnitCount} คน</strong></div>}
+            </div>
+          </div>
+        </section>
 
-              letterSpacing: 2,
-
-              marginBottom: 8,
-            }}
-          >
-            ROYAL PARTNER · AGENT MASTER
+        <section className="rp-agent-list" aria-label="รายชื่อตัวแทน">
+          <div className="rp-agent-filters">
+            <label className="rp-agent-search">
+              <span className="rp-agent-filter-icon" aria-hidden="true">⌕</span>
+              <span className="rp-agent-sr-only">ค้นหาตัวแทน</span>
+              <input value={search} onChange={event => setSearch(event.target.value)}
+                placeholder="ค้นหารหัส ชื่อ ชื่อเล่น อีเมล หรือ Jotform..." />
+            </label>
+            <label className="rp-agent-filter"><span>▦ หน่วยงาน</span>
+              <select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}>
+                <option value="all">ทุกหน่วย</option>
+                {units.map(unit => <option key={unit.id} value={String(unit.id)}>{unit.unit_name || unit.unit_code}</option>)}
+              </select>
+            </label>
+            <label className="rp-agent-filter"><span>♙ ผู้จัดการ</span>
+              <select value={managerFilter} onChange={event => setManagerFilter(event.target.value)}>
+                <option value="all">ทุกคน</option>
+                {managers.map(manager => <option key={manager.user_id} value={manager.user_id}>{manager.full_name || manager.email}</option>)}
+              </select>
+            </label>
+            <label className="rp-agent-filter"><span>✉ สถานะอีเมล</span>
+              <select value={emailFilter} onChange={event => setEmailFilter(event.target.value)}>
+                <option value="all">ทั้งหมด</option>
+                <option value="with">มีอีเมล</option>
+                <option value="without">ไม่มีอีเมล</option>
+              </select>
+            </label>
+            {canManage && <button type="button" className="rp-agent-add" onClick={startAdd}>✚ เพิ่มตัวแทน</button>}
+            <button type="button" className="rp-agent-refresh" onClick={() => void loadAgentMaster()} disabled={loadingAgents}>
+              ↻ {loadingAgents ? "กำลังโหลด" : "รีเฟรช"}
+            </button>
           </div>
 
-          <h1
-            style={{
-              margin: 0,
+          <div className="rp-agent-list-heading">
+            <div><h2>👥 รายชื่อตัวแทน</h2><p>แสดง {filteredAgents.length} จากทั้งหมด {agents.length} คน</p></div>
+            {(search || unitFilter !== "all" || managerFilter !== "all" || emailFilter !== "all") && (
+              <button type="button" className="rp-agent-reset" onClick={() => { setSearch(""); setUnitFilter("all"); setManagerFilter("all"); setEmailFilter("all"); }}>ล้างตัวกรอง ✕</button>
+            )}
+          </div>
 
-              fontSize: 34,
+          <div className="rp-agent-table-wrap">
+            <table className="rp-agent-table">
+              <thead><tr>
+                <th>No.</th><th>▥ รหัส (Code)</th><th>♟ ชื่อ-นามสกุล (Name)</th><th>◇ ชื่อเล่น</th>
+                <th>▦ หน่วยงาน (Unit)</th><th>♙ ผู้จัดการ (Manager)</th>
+                <th>✉ อีเมล / สำหรับ Skool</th><th>▤ ชื่อใน Jotform</th>
+                {canManage && <th>จัดการ</th>}
+              </tr></thead>
+              <tbody>
+                {loadingAgents ? (
+                  <tr><td className="rp-agent-empty" colSpan={canManage ? 9 : 8}>กำลังโหลดทะเบียนตัวแทน…</td></tr>
+                ) : filteredAgents.length === 0 ? (
+                  <tr><td className="rp-agent-empty" colSpan={canManage ? 9 : 8}>ไม่พบตัวแทนตามตัวกรองที่เลือก</td></tr>
+                ) : filteredAgents.map((agent, index) => {
+                  const unit = getUnit(agent);
+                  const manager = getManager(agent);
+                  const unitCode = (unit?.unit_code || "").toUpperCase();
+                  const unitClass = unitCode.includes("A") && !unitCode.includes("CENTRAL") && !unitCode.includes("TEAM_B") && !unitCode.includes("TEAM_C") ? "a" : unitCode.includes("B") && !unitCode.includes("CENTRAL") ? "b" : unitCode.includes("C") && !unitCode.includes("CENTRAL") ? "c" : "center";
+                  return <tr key={agent.id}>
+                    <td className="rp-agent-row-no">{index + 1}</td>
+                    <td><span className="rp-agent-code">{agent.agent_code || "—"}</span></td>
+                    <td><span className="rp-agent-name"><span aria-hidden="true">♟</span>{agent.agent_name}</span></td>
+                    <td>{agent.agent_nickname || <span className="rp-agent-muted">—</span>}</td>
+                    <td><span className={"rp-agent-unit-tag rp-agent-unit-" + unitClass}>{unit ? (unit.unit_code || unit.unit_name) : "ยังไม่กำหนด"}</span></td>
+                    <td><span className="rp-agent-manager-name">{manager?.full_name || "—"}</span>{manager?.email && <small className="rp-agent-secondary">{manager.email}</small>}</td>
+                    <td>{agent.agent_email?.trim() ? (
+                      <div className="rp-agent-email-cell"><span className="rp-agent-email" title={agent.agent_email}>{agent.agent_email}</span><span className="rp-agent-status rp-agent-status-email">✓ มีอีเมล</span></div>
+                    ) : <span className="rp-agent-status rp-agent-status-missing">✉ ยังไม่มีอีเมล</span>}</td>
+                    <td>{agent.jotform_agent_name || <span className="rp-agent-muted">—</span>}</td>
+                    {canManage && <td><button type="button" className="rp-agent-edit" onClick={() => editAgent(agent)}>✎ แก้ไข</button></td>}
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-              color:
-                "var(--cream)",
-            }}
-          >
-            Agent Master
-          </h1>
-
-          <p
-            style={{
-              marginTop: 10,
-
-              color:
-                "var(--cream-muted)",
-
-              lineHeight: 1.6,
-            }}
-          >
-            ทะเบียนกลางของตัวแทน หน่วย
-            หัวหน้าที่ดูแล และข้อมูลสำหรับเชื่อมระบบ Skool
-          </p>
-        </div>
-
-        {canManage ? (
-          <section
-            style={
-              panelStyle
-            }
-          >
+        {canManage && showEditor ? (
+          <section id="agent-master-editor" className="rp-agent-editor" style={panelStyle}>
             <div
               style={{
                 display:
@@ -871,7 +889,7 @@ export default function AgentMasterPage() {
               </button>
             </div>
           </section>
-        ) : (
+        ) : !canManage ? (
           <section
             style={{
               ...panelStyle,
@@ -888,351 +906,13 @@ export default function AgentMasterPage() {
           </section>
         )}
 
-        {status && (
-          <div
-            style={
-              statusStyle
-            }
-          >
-            {status}
-          </div>
-        )}
 
-        <section
-          style={{
-            ...panelStyle,
-
-            padding: 0,
-
-            overflow:
-              "hidden",
-          }}
-        >
-          <div
-            style={
-              listHeaderStyle
-            }
-          >
-            <div>
-              <div
-                style={
-                  sectionTitleStyle
-                }
-              >
-                รายชื่อตัวแทน
-              </div>
-
-              <div
-                style={
-                  sectionDescriptionStyle
-                }
-              >
-                แสดง {filteredAgents.length} จากทั้งหมด {agents.length} คน
-              </div>
-            </div>
-
-            <div
-              style={{
-                display:
-                  "flex",
-
-                gap: 10,
-
-                alignItems:
-                  "center",
-
-                flexWrap:
-                  "wrap",
-              }}
-            >
-              <input
-                value={
-                  search
-                }
-
-                onChange={(
-                  event
-                ) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-
-                placeholder="ค้นหาชื่อ รหัส หน่วย หรืออีเมล"
-
-                style={{
-                  ...inputStyle,
-
-                  width:
-                    "min(320px, 78vw)",
-                }}
-              />
-
-              <button
-                type="button"
-
-                onClick={
-                  loadAgentMaster
-                }
-
-                disabled={
-                  loadingAgents
-                }
-
-                style={{
-                  ...secondaryButtonStyle,
-
-                  cursor:
-                    loadingAgents
-                      ? "default"
-                      : "pointer",
-
-                  opacity:
-                    loadingAgents
-                      ? 0.6
-                      : 1,
-                }}
-              >
-                {loadingAgents
-                  ? "กำลังโหลด..."
-                  : "รีเฟรช"}
-              </button>
-            </div>
-          </div>
-
-          <div
-            style={{
-              overflowX:
-                "auto",
-            }}
-          >
-            <table
-              style={{
-                width:
-                  "100%",
-
-                minWidth:
-                  1380,
-
-                borderCollapse:
-                  "collapse",
-              }}
-            >
-              <thead>
-                <tr
-                  style={{
-                    background:
-                      "var(--rp-soft-gold)",
-                  }}
-                >
-                  <HeaderCell>
-                    No.
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Code
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Name
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Nick Name
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Unit
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Manager
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Agent Email / Skool
-                  </HeaderCell>
-
-                  <HeaderCell>
-                    Jotform Name
-                  </HeaderCell>
-
-                  {canManage && (
-                    <HeaderCell>
-                      จัดการ
-                    </HeaderCell>
-                  )}
-                </tr>
-              </thead>
-
-              <tbody>
-                {loadingAgents ? (
-                  <tr>
-                    <td
-                      colSpan={
-                        canManage
-                          ? 9
-                          : 8
-                      }
-
-                      style={
-                        emptyCellStyle
-                      }
-                    >
-                      กำลังโหลด...
-                    </td>
-                  </tr>
-                ) : filteredAgents.length ===
-                  0 ? (
-                  <tr>
-                    <td
-                      colSpan={
-                        canManage
-                          ? 9
-                          : 8
-                      }
-
-                      style={
-                        emptyCellStyle
-                      }
-                    >
-                      ไม่พบรายชื่อตัวแทน
-                    </td>
-                  </tr>
-                ) : (
-                  filteredAgents.map(
-                    (
-                      agent,
-                      index
-                    ) => {
-                      const unit =
-                        getUnit(
-                          agent
-                        );
-
-                      const manager =
-                        getManager(
-                          agent
-                        );
-
-                      return (
-                        <tr
-                          key={
-                            agent.id
-                          }
-
-                          style={{
-                            borderTop:
-                              "1px solid var(--hairline-soft)",
-                          }}
-                        >
-                          <Cell>
-                            {index +
-                              1}
-                          </Cell>
-
-                          <Cell>
-                            {agent.agent_code ||
-                              "-"}
-                          </Cell>
-
-                          <Cell>
-                            {
-                              agent.agent_name
-                            }
-                          </Cell>
-
-                          <Cell>
-                            {agent.agent_nickname ||
-                              "-"}
-                          </Cell>
-
-                          <Cell>
-                            {unit
-                              ? `${unit.unit_code} · ${unit.unit_name}`
-                              : "ยังไม่ได้กำหนด"}
-                          </Cell>
-
-                          <Cell>
-                            <div>
-                              {manager?.full_name ||
-                                "-"}
-                            </div>
-
-                            {manager?.email && (
-                              <div
-                                style={
-                                  subTextStyle
-                                }
-                              >
-                                {
-                                  manager.email
-                                }
-                              </div>
-                            )}
-                          </Cell>
-
-                          <Cell>
-                            {agent.agent_email ? (
-                              agent.agent_email
-                            ) : (
-                              <span
-                                style={{
-                                  color:
-                                    "var(--rp-danger)",
-                                }}
-                              >
-                                ยังไม่มีอีเมล
-                              </span>
-                            )}
-                          </Cell>
-
-                          <Cell>
-                            {agent.jotform_agent_name ||
-                              "-"}
-                          </Cell>
-
-                          {canManage && (
-                            <Cell>
-                              <button
-                                type="button"
-
-                                onClick={() =>
-                                  editAgent(
-                                    agent
-                                  )
-                                }
-
-                                style={
-                                  editButtonStyle
-                                }
-                              >
-                                แก้ไข
-                              </button>
-                            </Cell>
-                          )}
-                        </tr>
-                      );
-                    }
-                  )
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <div
-          style={
-            footerStyle
-          }
-        >
-          Agent Email เป็น Key
-          สำหรับเชื่อมข้อมูล Skool ส่วน Jotform Name
-          ใช้จับคู่ข้อมูล Activity
-        </div>
+        {status && <div className="rp-agent-status-message" role="status">{status}</div>}
+        <p className="rp-agent-footnote">ℹ Agent Email เป็นข้อมูลสำหรับจับคู่กับ Skool ส่วน Jotform Name ใช้จับคู่ Activity • สถานะเชื่อมบัญชี Skool จริงต้องตรวจจากระบบ Skool</p>
       </div>
     </main>
   );
+
 }
 
 function Field({
