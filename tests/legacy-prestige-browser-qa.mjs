@@ -7,6 +7,8 @@ import { chromium } from 'playwright';
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1365,height:850},acceptDownloads:true});
 const errors=[];
+const qaDir=path.join(os.tmpdir(),'legacy-prestige-qa');
+fs.mkdirSync(qaDir,{recursive:true});
 page.on('pageerror',e=>errors.push(e.message));
 page.on('dialog',async d=>{errors.push('Dialog: '+d.message());await d.dismiss()});
 const base='http://127.0.0.1:8787/illustrations/royal_partners_illustration_tool.html';
@@ -36,12 +38,14 @@ try {
    assert.equal(values[1],'36','report policy age');
    assert.equal(values[4],expected[term][0],'report cash value');
    assert.equal(values[5],expected[term][1],'report paid up');
+   // Capture the exact Legacy preview for a manual typography/pagination review.
+   await page.locator('.legacy-report-page').first().screenshot({path:path.join(qaDir,`female-${term}-pay-report-page1.png`)});
    // Exercise the real app PDF button, not Playwright's generic print-to-PDF.
    if(term===20){
      const downloading=page.waitForEvent('download',{timeout:120000});
      await page.locator('.rp-preview-download-pdf').click();
      const file=await downloading;
-     const target=path.join(os.tmpdir(),'legacy-phase4-browser-qa.pdf');
+     const target=path.join(qaDir,'legacy-female-20-pay-actual-export.pdf');
      await file.saveAs(target);
      assert.equal(fs.readFileSync(target).subarray(0,5).toString(),'%PDF-');
      assert.ok(fs.statSync(target).size>10000,'Legacy PDF should contain rendered pages');
@@ -57,5 +61,6 @@ try {
    console.log('PASS: non-Legacy product renders '+product);
  }
  assert.deepEqual(errors,[],'uncaught browser errors');
+ console.log('QA evidence files: '+qaDir);
  console.log('PASS: all Legacy/browser smoke checks completed');
 } finally {await browser.close()}
