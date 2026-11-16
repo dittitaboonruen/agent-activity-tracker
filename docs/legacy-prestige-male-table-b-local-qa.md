@@ -13,35 +13,13 @@ Select by issue gender, payment term, issue age, and policy year. Monetary colum
 
 **Important:** these are *sample* tables and may not specify all policy years, case variations or contract-specific values. Do not interpolate, extrapolate, apply a different gender's factors, or show missing numbers as official AIA values.
 
-## Local-only import protocol (never check data into Git)
+## Automatic user workflow
 
-The Legacy test page accepts a local JSON file selected explicitly by the operator. The browser reads that file **in-memory only** without network upload, localStorage or cookies. Clear the tab to remove the data.
+User selects gender, issue age, sum assured and payment term; the calculator automatically looks up Table B using the exact matching source values. No manual uploads, demo data, or extra steps.
 
-Example below is **synthetic TEST DATA**, not an AIA rate. Never use it for customer quotations.
+**Current source coverage:** The public brochure includes certain exact male examples, not every issue-age/payment-term/year combination. The insurer's example manual is subject to restrictions. Until authorized and independently validated factors are available, unknown CV/RPU/ETI cells must display an unavailable dash rather than invented amounts.
 
-```json
-{
-  "plan": "AIA_LEGACY_PRESTIGE_PLUS_NEW",
-  "usage": "authorized-internal-qa",
-  "rows": [
-    {
-      "gender": "M",
-      "premiumTerm": 20,
-      "issueAge": 35,
-      "policyYear": 2,
-      "cvPer1000": 17.2,
-      "rpuPer1000": 40,
-      "rpuImmediatePer1000": null,
-      "etiYears": 6,
-      "etiDays": 156,
-      "etiMaturityPer1000": null,
-      "etiImmediatePer1000": null
-    }
-  ]
-}
-```
-
-One source row per unique (gender, premiumTerm, issueAge, policyYear). Only male factor imports are accepted in this phase, so existing female results remain unchanged. The upload file must be under 3 MB and contain 1–18,000 rows. Values are validated and loaded atomically; a malformed file cannot overwrite the prior validated data.
+**Implementation gate for full automatic coverage:** supply a licensed, approved source of all required male Table B factors through a restricted internal server-side dataset and authenticated endpoint. Public JavaScript bundles, public static assets, and browser-provided factor files must not be the storage layer. Verify every source row against approved illustrations. Existing female figures and all other insurance plan formulas remain unchanged.
 
 ## QA / production gates
 
