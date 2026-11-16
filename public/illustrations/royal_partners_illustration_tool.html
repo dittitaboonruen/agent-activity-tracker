@@ -16986,6 +16986,20 @@ const LEGACY_POLICY_VALUE_EVIDENCE = Object.freeze([
     }))
   },
   {
+    // AIA publicly distributed brochure, p.6 and p.8: exact, isolated
+    // male 35 / 20-pay / THB 20m cash-value spot checks.
+    // All other ages and RPU/ETI are unavailable; NEVER interpolate.
+    id:'brochure-m35-20-20m',source:'AIA Legacy Prestige Plus (New) public brochure pp.6,8',
+    issueAge:35,gender:'ชาย',term:20,sum:20000000,
+    status:'reference_only',
+    records:[
+      {age:45,surrender:3440000,paidUp:null,extendedYears:null,extendedDays:null,
+       paidUpInstant:null,extendedMaturity:null,extendedInstant:null},
+      {age:55,surrender:8120000,paidUp:null,extendedYears:null,extendedDays:null,
+       paidUpInstant:null,extendedMaturity:null,extendedInstant:null}
+    ]
+  },
+  {
     id:'brochure-m40-10-20m',source:'AIA Legacy Prestige Plus brochure page 5 (preferred-rate example)',
     issueAge:40,gender:'ชาย',term:10,sum:20000000,
     status:'reference_only',
