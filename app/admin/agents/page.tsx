@@ -923,7 +923,7 @@ export default function AgentMasterPage() {
             บัญชีนี้ดูทะเบียนตัวแทนได้
             แต่การเพิ่มหรือแก้ไขข้อมูลทำได้เฉพาะ NewAgent
           </section>
-        )}
+        ) : null}
 
         {status && (
           <div

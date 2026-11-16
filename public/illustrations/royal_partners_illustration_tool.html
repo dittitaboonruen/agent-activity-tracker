@@ -9924,6 +9924,7 @@ function renderLedger(el, rows, cols){
 
 /* ===================== state & UI wiring ===================== */
 const SUM_INSURED_MIN = 100000;
+const SELECTED_PLAN_MIN_SUM_INSURED = 200000; // CI ProCare, CI SuperCare and Annuity Fix only
 const SUM_INSURED_MAX = 50000000;
 
 const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20',
@@ -14001,8 +14002,8 @@ function validateCISuperCareReportData(data){
 
   if(!isFiniteNumber(data.customer.sumInsured)){
     errors.push('จำนวนเงินเอาประกันภัยไม่ถูกต้อง');
-  }else if(data.customer.sumInsured < SUM_INSURED_MIN){
-    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 100,000 บาท');
+  }else if(data.customer.sumInsured < SELECTED_PLAN_MIN_SUM_INSURED){
+    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 200,000 บาท');
   }else if(data.customer.sumInsured > SUM_INSURED_MAX){
     errors.push('จำนวนเงินเอาประกันภัยเกินสูงสุด 50,000,000 บาท');
   }
@@ -14300,8 +14301,8 @@ function validateCIProCareReportData(data){
 
   if(!isFiniteNumber(data.customer.sumInsured)){
     errors.push('จำนวนเงินเอาประกันภัยไม่ถูกต้อง');
-  }else if(data.customer.sumInsured < SUM_INSURED_MIN){
-    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 100,000 บาท');
+  }else if(data.customer.sumInsured < SELECTED_PLAN_MIN_SUM_INSURED){
+    errors.push('จำนวนเงินเอาประกันภัยต่ำกว่าขั้นต่ำ 200,000 บาท');
   }else if(data.customer.sumInsured > SUM_INSURED_MAX){
     errors.push('จำนวนเงินเอาประกันภัยเกินสูงสุด 50,000,000 บาท');
   }
@@ -16609,6 +16610,7 @@ async function download20HealthComboPDF(key,btn){
 
 /* ===================== main render ===================== */
 function render(){
+  syncSelectedPlanSumMinimum();
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
@@ -16617,15 +16619,35 @@ function render(){
 }
 
 
+function minSumInsuredForPlan(plan=state.tab){
+  return (plan==='ciprocare' || plan==='cisupercare' || plan==='annuityfix')
+    ? SELECTED_PLAN_MIN_SUM_INSURED : SUM_INSURED_MIN;
+}
+
+// Shared input: only the three selected tabs (SuperCare includes both pay terms) get 200,000.
+function syncSelectedPlanSumMinimum(){
+  const min=minSumInsuredForPlan();
+  const help=document.getElementById('sum-help');
+  if(help) help.textContent='ขั้นต่ำ '+min.toLocaleString('en-US')+' • สูงสุด 50,000,000 บาท';
+
+  if(state.sum < min){
+    state.sum=min;
+    const input=document.getElementById('in-sum');
+    if(input) input.value=formatInsuredAmount(state.sum);
+    setSumValidationUI({ok:true, message:''});
+  }
+}
+
 function validateSumInsured(value){
   const numericValue = Number(value);
+  const min=minSumInsuredForPlan();
 
   if(!Number.isFinite(numericValue)){
     return {ok:false, message:'กรุณากรอกทุนประกันเป็นตัวเลข'};
   }
 
-  if(numericValue < SUM_INSURED_MIN){
-    return {ok:false, message:'ทุนประกันขั้นต่ำ 100,000 บาท'};
+  if(numericValue < min){
+    return {ok:false, message:'ทุนประกันขั้นต่ำ '+min.toLocaleString('en-US')+' บาท'};
   }
 
   if(numericValue > SUM_INSURED_MAX){
@@ -16690,6 +16712,12 @@ function wireInputs(){
     if(validation.ok){
       state.sum=numericValue;
       input.value=formatInsuredAmount(numericValue);
+      render();
+    }else if(Number.isFinite(numericValue) && numericValue < minSumInsuredForPlan()){
+      // On blur, clamp an entered amount below the selected plan's minimum.
+      state.sum=minSumInsuredForPlan();
+      input.value=formatInsuredAmount(state.sum);
+      setSumValidationUI({ok:true, message:''});
       render();
     }else{
       input.value=formatInsuredAmount(state.sum);
