@@ -622,7 +622,7 @@ export default function AgentPortalPage() {
             lineHeight: 1.6,
           }}
         >
-          Royal Partner · Agent Portal
+          Royal Partner · เครื่องมือการทำงานสำหรับตัวแทน
         </footer>
       </div>
     </main>
