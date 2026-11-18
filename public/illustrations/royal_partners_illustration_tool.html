@@ -10068,7 +10068,8 @@ const SUM_INSURED_MAX = 50000000;
 const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20',
   customer: { firstName:'', lastName:'' },
   agent: { name:'', phone:'', line:'', date:'' },
-  healthCombo:{happyPlan:0,saverPlan:0},
+  healthCombo:{happyPlan:0,saverPlan:0,happyMode:'base'},
+ healthComboRiders:null,
   paylife20: {
     mode:'full',
     riders: {
@@ -16268,8 +16269,21 @@ function pl20ParseMoneyInput(value){
   return Number.isFinite(n) ? n : 0;
 }
 
-function riderControlsHTML(){
-  const rs=state.paylife20.riders, op=state.paylife20.opts;
+function ensureHealthHappyRiders(){
+ if(!state.healthComboRiders){
+  state.healthComboRiders=JSON.parse(JSON.stringify(state.paylife20));
+  for(const k in state.healthComboRiders.riders)state.healthComboRiders.riders[k]=false;
+ }
+ return state.healthComboRiders;
+}
+function healthHappyExtraRiders(){
+ if(state.healthCombo.happyMode!=='full')return [];
+ ensureHealthHappyRiders();
+ return get20PayLifeSelectedRiders('healthComboRiders');
+}
+function riderControlsHTML(context='paylife20'){
+ if(context==='healthComboRiders')ensureHealthHappyRiders();
+  const rs=state[context].riders, op=state[context].opts;
   const on=k=>rs[k]?'on':'';
   const selected=(a,b)=>a===b?'selected':'';
   const toggle=(key,name)=>`<div class="pl20-rider-main"><div class="pl20-rider-name">${name}</div><button type="button" class="pl20-toggle ${on(key)}" data-rider-btn="${key}">${rs[key]?' เลือกแล้ว':' ยังไม่เลือก'}</button></div>`;
@@ -16395,20 +16409,21 @@ function riderControlsHTML(){
   `;
 }
 
-function wireRiderControls(box){
+function wireRiderControls(box,context='paylife20'){
+ if(context==='healthComboRiders')ensureHealthHappyRiders();
   const riderForOption={"healthhappyPlan":"healthhappy","hhkidsPlan":"hhkids","hhkidsTier":"hhkids","hsPlan":"healthsaver","icPlan":"infinitecare","icTerritory":"infinitecare","mpSi":"multipayci","tpdSi":"tpd","ciplusSi":"ciplus","ctuSi":"citopup","hcUnits":"healthcancer","hcSmoker":"healthcancer","cfcUnits":"cfc","lcPlan":"ladycare","lcSi":"ladycare","aiSi":"ai","aiClass":"ai","aiRcc":"ai","addSi":"add","addClass":"add","addRcc":"add","adbSi":"adb","adbClass":"adb","adbRcc":"adb","hbDaily":"hb","hbClass":"hb","hbExtraDaily":"hbextra","hbExtraClass":"hbextra"};
   const autoSelect=(key,value)=>{
     const rider=riderForOption[key];
     if(!rider)return;
     const amounts=['mpSi','tpdSi','ciplusSi','ctuSi','lcSi','aiSi','addSi','adbSi','hbDaily','hbExtraDaily','hcUnits','cfcUnits'];
-    if(amounts.includes(key))state.paylife20.riders[rider]=Number(value)>0;
-    else state.paylife20.riders[rider]=true;
-    if(rider==='citopup'&&state.paylife20.riders.citopup)state.paylife20.riders.ciplus=true;
+    if(amounts.includes(key))state[context].riders[rider]=Number(value)>0;
+    else state[context].riders[rider]=true;
+    if(rider==='citopup'&&state[context].riders.citopup)state[context].riders.ciplus=true;
   };
   box.querySelectorAll('[data-rider-btn]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const key=btn.dataset.riderBtn;
-      state.paylife20.riders[key]=!state.paylife20.riders[key];
+      state[context].riders[key]=!state[context].riders[key];
       render();
     });
   });
@@ -16422,7 +16437,7 @@ function wireRiderControls(box){
       const parsed=pl20ParseMoneyInput(el.value);
       // TPD minimum is enforced at the input boundary; the premium formula is untouched.
       const v=['tpdSi','aiSi','addSi','adbSi'].includes(key)&&parsed>0&&parsed<100000?100000:parsed;
-      state.paylife20.opts[key]=v;
+      state[context].opts[key]=v;
       autoSelect(key,v);
       el.value=pl20FormatMoneyInput(v);
       render();
@@ -16437,15 +16452,15 @@ function wireRiderControls(box){
       const key=el.dataset.riderOpt;
       let v=el.type==='checkbox' ? el.checked : el.value;
       if(['healthhappyPlan','hcSmoker','hcUnits','cfcUnits','aiClass','addClass','adbClass','hhkidsPlan','hsPlan','hbClass','hbExtraClass'].includes(key)) v=parseFloat(v);
-      state.paylife20.opts[key]=v;
+      state[context].opts[key]=v;
       autoSelect(key,v);
       render();
     });
   });
 }
 
-function get20PayLifeSelectedRiders(){
-  const rs=state.paylife20.riders, op=state.paylife20.opts;
+function get20PayLifeSelectedRiders(context='paylife20'){
+  const rs=state[context].riders, op=state[context].opts;
   const age=state.age, gender=state.gender;
   const rows=[];
 
@@ -16573,9 +16588,11 @@ function healthComboModel(type){
   ?riderHealthHappy(age,gender,i)
   :riderHealthSaver(age,gender,info.limits[i])):null);
  const selected=state.healthCombo[type+'Plan'];
- return {info,age,gender,isEligible,main,premiums,selected,
-   premium:isEligible?premiums[selected]:null,
-   total:isEligible?main.net+premiums[selected]:null};
+ const riders=type==='happy'?healthHappyExtraRiders():[];
+ const riderTotal=riders.reduce((n,r)=>n+r.premium,0);
+ return {info,age,gender,isEligible,main,premiums,selected,riders,riderTotal,
+  premium:isEligible?premiums[selected]:null,
+  total:isEligible?main.net+premiums[selected]+riderTotal:null};
 }
 function comboDisplay(v){
  return typeof v==='number'?fmt(v):String(v??'—');
@@ -16634,13 +16651,14 @@ function healthComboTable(model,showSaverPlanLimits=true){
  }))).join('')+
  tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
  tr('เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
- tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main?x+main.net:'ไม่รับประกัน'))+
+ (model.riders?.length?tr('เบี้ย Rider อื่นที่เลือก / ปี',Array(4).fill(model.riderTotal)):'')+
+ tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main&&x!==null?x+main.net+(model.riderTotal||0):'ไม่รับประกัน'))+
  '</tbody></table></div>';
 }
 function healthComboAnalysis(model){
  const {info,premiums,main,isEligible}=model;
  const base=premiums[0];
- const total=premiums.map(p=>p===null||!main?null:main.net+p);
+ const total=premiums.map(p=>p===null||!main?null:main.net+p+(model.riderTotal||0));
  const unitCost=premiums.map((p,i)=>p===null?null:p*100000/info.limits[i]);
  const best=isEligible?unitCost.reduce((best,v,i)=>v!==null&&(best===-1||v<unitCost[best])?i:best,-1):-1;
  return {base,total,unitCost,best};
@@ -16679,7 +16697,7 @@ function healthComboComparisonCards(model,type){
  const cheapest=healthComboAnalysis(model).best;
  return '<div class="hc-cards">'+info.limits.map((limit,i)=>{
  const p=premiums[i];
- const total=p!==null&&main?main.net+p:null;
+ const total=p!==null&&main?main.net+p+(model.riderTotal||0):null;
  return '<button type="button" class="hc-card'+(i===selected?' hc-selected':'')+
  '" data-plan="'+i+'" aria-pressed="'+(i===selected)+'">'+
  '<small>แผน '+(i+1)+' · '+fmt(limit)+' บาท'+(i===cheapest?' · เบี้ยต่อวงเงินต่ำสุด':'')+'</small>'+
@@ -16693,27 +16711,63 @@ function view20HealthCombo(app,type){
  const model=healthComboModel(type);
  app.innerHTML=panelShell('life',model.info.title,'สัญญาหลัก 20PL พร้อมเปรียบเทียบสัญญาเพิ่มเติม 4 แผน (สูตรและตารางอ้างอิงจาก Excel)');
  const panel=app.querySelector('.panel');
+ if(type==='happy'){
+  const modes=document.createElement('div');modes.className='pl20-mode-tabs';
+  const mode=state.healthCombo.happyMode;
+  modes.innerHTML='<button class="pl20-mode-btn '+(mode==='base'?'active':'')+'" data-hh-mode="base">20PL + Health Happy</button>'+
+   '<button class="pl20-mode-btn '+(mode==='full'?'active':'')+'" data-hh-mode="full">20PL + Health Happy + สัญญาเพิ่มเติม</button>';
+  panel.appendChild(modes);
+  modes.querySelectorAll('[data-hh-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.healthCombo.happyMode=btn.dataset.hhMode;render();}));
+ }
  if(!model.isEligible){
-   const warning=document.createElement('div');warning.className='notewrap';
-   warning.textContent='สูตรจากไฟล์ต้นฉบับ: อายุที่ทำข้อเสนอร่วมกันได้ 11–70 ปี และทุนสัญญาหลักขั้นต่ำ 100,000 บาท';
-   panel.appendChild(warning);
+  const warning=document.createElement('div');warning.className='notewrap';
+  warning.textContent='สูตรจากไฟล์ต้นฉบับ: อายุที่ทำข้อเสนอร่วมกันได้ 11–70 ปี และทุนสัญญาหลักขั้นต่ำ 100,000 บาท';
+  panel.appendChild(warning);
  }
  fillSummary(app,[
  {lbl:'เบี้ยสัญญาหลัก / ปี',val:model.main?fmt(model.main.net):'ไม่รับประกัน'},
  {lbl:'เบี้ยสุขภาพแผนที่เลือก / ปี',val:model.premium===null?'ไม่รับประกัน':fmt(model.premium)},
+ ...(type==='happy'&&state.healthCombo.happyMode==='full'?[{lbl:'เบี้ย Rider อื่นที่เลือก / ปี',val:fmt(model.riderTotal)}]:[]),
  {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)}
  ]);
- const compare=document.createElement('div');
- compare.className='hc-comparison';
+ const compare=document.createElement('div');compare.className='hc-comparison';
  compare.innerHTML=healthComboComparisonCards(model,type)+
  '<div class="hc-view hc-only-comparison"><div class="hc-heading">เปรียบเทียบความคุ้มครอง 4 แผน — '+(type==='happy'?'Health Happy':'Health Saver')+
- ' · '+model.gender+' อายุ '+model.age+' ปี</div>'+
- healthComboTable(model,type==='saver')+'</div>';
+ ' · '+model.gender+' อายุ '+model.age+' ปี</div>'+healthComboTable(model,type==='saver')+'</div>';
  panel.appendChild(compare);
- compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{
-  state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();
- }));
- if(model.isEligible) addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
+ compare.querySelectorAll('.hc-card').forEach(card=>card.addEventListener('click',()=>{state.healthCombo[type+'Plan']=Number(card.dataset.plan);render();}));
+ if(type==='happy'&&state.healthCombo.happyMode==='full'){
+  ensureHealthHappyRiders();
+  const box=document.createElement('div');box.className='pl20-rider-wrap';
+  box.innerHTML=riderControlsHTML('healthComboRiders');
+  const heading=box.querySelector('.pl20-rider-cat');
+  if(heading){const grid=heading.nextElementSibling;if(grid?.classList.contains('pl20-rider-grid'))grid.remove();heading.remove();}
+  panel.appendChild(box);wireRiderControls(box,'healthComboRiders');
+  if(model.riders.length){
+   const sum=document.createElement('div');sum.className='ledger-wrap health-combo-ledger';
+   sum.innerHTML='<h3>สรุปสัญญาเพิ่มเติมที่เลือก</h3><table class="ledger hc-plan-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
+    model.riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('')+
+    '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(model.riderTotal)+' บาท</td></tr></tbody></table>';
+   panel.appendChild(sum);
+  }
+ }
+ if(model.isEligible)addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
+}
+function healthHappyRiderReportPage(model){
+ if(state.healthCombo.happyMode!=='full'||!model.riders.length)return '';
+ const rows=model.riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('');
+ return '<section class="ex-report-page health-combo-report-page"><div class="ex-report-inner">'+
+ '<div class="rp-report-head"><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div></div>'+
+ '<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
+ '<div class="cell"><div class="l">ทุนสัญญาหลัก</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
+ '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนหน้าแรก</div></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติมที่เลือก</div>'+
+ '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+rows+
+ '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(model.riderTotal)+' บาท</td></tr></tbody></table></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">ยอดรวมทั้ง 4 แผน</div>'+healthComboTable(model,false)+'</div>'+
+ '<div class="hc-report-disclaimer rp-red-remark-before-payment">เบี้ย Rider เป็นเบี้ยปีปัจจุบันและอาจเปลี่ยนตามอายุ โปรดตรวจเงื่อนไขกับบริษัท</div>'+
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 2/2</div>'+
+ '</div></section>';
 }
 function build20HealthComboReportHTML(type){
  const m=healthComboModel(type);
@@ -16737,21 +16791,24 @@ function build20HealthComboReportHTML(type){
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="AIA ผ่อน 0% นาน 4 เดือน" loading="eager" decoding="sync"></div>'+
- '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/1</div>'+
- '</div></section></div></div>';
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(isHappy&&m.riders.length?'1/2':'1/1')+'</div>'+
+ '</div></section>'+(isHappy?healthHappyRiderReportPage(m):'')+'</div></div>';
 }
 async function download20HealthComboPDF(key,btn){
  if(!window.jspdf?.jsPDF){alert('ไม่พบ jsPDF');return;}
  if(btn.dataset.busy==='1')return;
- const page=document.querySelector('.rp-preview-pdf-source .health-combo-report-page');
- if(!page){alert('ไม่พบรายงานสำหรับสร้าง PDF');return;}
+ const pages=[...document.querySelectorAll('.rp-preview-pdf-source .health-combo-report-page')];
+ if(!pages.length){alert('ไม่พบรายงานสำหรับสร้าง PDF');return;}
  const text=btn.textContent;
  btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
  try{
    const {jsPDF}=window.jspdf;
    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-   const canvas=await renderReportPageToCanvas(page);
-   pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+   for(let i=0;i<pages.length;i++){
+    if(i)pdf.addPage();
+    const canvas=await renderReportPageToCanvas(pages[i]);
+    pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+   }
    await savePdfCrossDevice(pdf,'royal-partner-'+key+'-'+Date.now()+'.pdf');
  }catch(error){console.error(error);alert(error?.message||'สร้าง PDF ไม่สำเร็จ');}
  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=text;}
