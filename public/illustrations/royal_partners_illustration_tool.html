@@ -6244,6 +6244,41 @@
 
 /* UI cleanup: decorative icons hidden, functional controls preserved */
 .rp-detail-icon,.pl20-ci-heading-icon,.rp-section-icon{display:none!important}
+
+/* Royal Partner UI Cleanup V2 — decorative icons removed together with their layout boxes.
+   No changes to product data, premium calculations, chart math or PDF generation. */
+.rp-sales-shell .rp-detail-head { gap:0; }
+.rp-sales-shell .rp-product-card .tabgroup-label { gap:0; }
+.rp-sales-shell .rp-product-group { grid-template-columns:minmax(170px, 190px) minmax(0, 1fr); gap:14px; }
+#app .summary.smart-summary-grid .stat { display:flex; flex-direction:column; justify-content:center; }
+#app .summary.smart-summary-grid .stat .lbl { margin:0 0 6px; }
+#app .summary.smart-summary-grid .stat .val { margin-top:0; }
+#app .stat-icon,
+.rp-report .stat-icon,
+.rp-report-page .stat-icon,
+#app .pl20-ci-heading-icon,
+#app .pl20-ci-item-icon,
+.rp-report-page .pl20-ci-heading-icon,
+.rp-report-page .pl20-ci-item-icon,
+.ex-report-page .pl20-ci-heading-icon,
+.ex-report-page .pl20-ci-item-icon,
+.sc-report-page .pl20-ci-heading-icon,
+.sc-report-page .pl20-ci-item-icon { display:none !important; }
+#app .pl20-ci-heading,
+#app .pl20-ci-item,
+.rp-report-page .pl20-ci-heading,
+.rp-report-page .pl20-ci-item { gap:0 !important; }
+/* Show selection check only on the active insurance product; never a blank circle. */
+.rp-sales-shell .rp-product-group .tab .rp-selected-check {
+  display:inline-grid;place-items:center;flex:0 0 18px;
+  width:18px;height:18px;border-radius:50%;font-weight:900;
+  color:#fff;background:rgba(255,255,255,.22);
+  border:1px solid rgba(255,255,255,.70);
+}
+@media(max-width:700px){
+  .rp-sales-shell .rp-product-group { grid-template-columns:1fr; gap:8px; }
+}
+
 </style>
 <style>
 /* =========================================================
@@ -9148,8 +9183,8 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
   <div class="rp-hero">
     <div class="rp-hero-copy">
-      <div class="rp-eyebrow">ROYAL PARTNER · เครื่องมือวางแผนประกัน</div>
-      <h1>วางแผนประกันง่าย ๆ ในที่เดียว</h1>
+      
+      <h1>การวางแผนแบบประกันง่าย ๆ ในที่เดียว</h1>
       <p>เลือกแผน · กรอกข้อมูล · ดูผลประโยชน์</p>
       <div class="rp-phase-steps" aria-label="ขั้นตอนการวางแผน"><span>① ข้อมูลลูกค้า</span><span>② เลือกแบบ</span><span>③ สรุปผล</span></div>
     </div>
@@ -9209,7 +9244,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
   <div class="rp-details-grid">
     <div class="customerbar rp-detail-card">
       <div class="rp-detail-head">
-        <span class="rp-detail-icon"></span>
+        
         <div>
           <div class="rp-section-kicker">ข้อมูลผู้เอาประกัน</div>
           <h3>ข้อมูลลูกค้า</h3>
@@ -9224,7 +9259,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
     <div class="agentbar rp-detail-card">
       <div class="rp-detail-head">
-        <span class="rp-detail-icon"></span>
+        
         <div>
           <div class="rp-section-kicker">ข้อมูลตัวแทน</div>
           <h3>ข้อมูลตัวแทน</h3>
@@ -9250,27 +9285,27 @@ body > .rp-sales-shell .plus-ledger table thead th *{
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>1. กลุ่มตลอดชีพ</span></div>
+      <div class="tabgroup-label"><span>1. กลุ่มตลอดชีพ</span></div>
       <div class="tabs" id="tabs-life"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>2. กลุ่มออมทรัพย์</span></div>
+      <div class="tabgroup-label"><span>2. กลุ่มออมทรัพย์</span></div>
       <div class="tabs" id="tabs-savings"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>3. กลุ่มโรคร้ายแรง</span></div>
+      <div class="tabgroup-label"><span>3. กลุ่มโรคร้ายแรง</span></div>
       <div class="tabs" id="tabs-ci"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>4. กลุ่มบำนาญ</span></div>
+      <div class="tabgroup-label"><span>4. กลุ่มบำนาญ</span></div>
       <div class="tabs" id="tabs-retirement"></div>
     </div>
 
     <div class="rp-product-group rp-high-net-worth-group">
-      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
+      <div class="tabgroup-label"><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
       <div class="tabs" id="tabs-high-net-worth">
         <button type="button" class="tab rp-legacy-coming-soon" disabled aria-disabled="true" title="AIA Legacy Prestige Plus อยู่ระหว่างตรวจสอบสูตรและข้อมูลผลประโยชน์">AIA Legacy Prestige Plus</button>
         <span class="rp-legacy-coming-soon-note">กำลังพัฒนาระบบคำนวณ</span>
@@ -10030,7 +10065,7 @@ function syncTabActive(){
     if(selected && !tick){
       tick=document.createElement('span');
       tick.className='rp-selected-check';
-      tick.textContent='';
+      tick.textContent='✓';
       tick.setAttribute('aria-hidden','true');
       b.appendChild(tick);
     }else if(!selected && tick){
@@ -11396,7 +11431,7 @@ function panelShell(group, title, desc, ci){
   return `<div class="panel ${ci?'ci-panel':''}">
     <div class="panel-head rp-selected-plan-head">
       <div>
-        <div class="rp-section-kicker">SELECTED PLAN</div>
+        
         <h2>${title}</h2>
         <p>${desc}</p>
       </div>
@@ -11409,7 +11444,7 @@ function fillSummary(app, stats, variant=''){
   head.className='smart-summary-head';
   head.innerHTML=`
     <div>
-      <div class="rp-section-kicker">YOUR PLAN AT A GLANCE</div>
+      
       <h3>สรุปแผนที่เลือก</h3>
     </div>
     <span class="smart-summary-chip">อัปเดตอัตโนมัติ</span>
@@ -11420,7 +11455,6 @@ function fillSummary(app, stats, variant=''){
   wrap.className='summary smart-summary-grid' + (variant ? ' ' + variant : '');
   wrap.innerHTML = stats.map((s,index)=>`
     <div class="stat ${s.group || (index===stats.length-1?'smart-highlight':'')}">
-      <div class="stat-icon">${s.icon || (index===0?'฿':index===1?'':index===2?'Σ':'')}</div>
       <div class="lbl">${s.lbl}</div>
       <div class="val ${s.oxblood?'oxblood':''}">${s.val}</div>
     </div>
