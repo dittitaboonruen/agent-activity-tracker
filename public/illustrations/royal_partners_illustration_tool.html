@@ -10113,7 +10113,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   plusHappy:{term:20,plan:1,deduct:10000},
   plusSaver:{term:20,plan:1},
   cisupercare: { payPeriod:20 },
-  excellent: { subtab:'planA', planBTerm:7 },
+  excellent: { subtab:'planA', planBTerm:7, mode:'base' },
+  excellentRiders:null,
   pay25: { subtab:'planA', planBTerm:7 },
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
   annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' }
@@ -10176,6 +10177,20 @@ function syncTabActive(){
 }
 
 /* ---------- per-tab views ---------- */
+function ensureExcellentRiders(){
+ if(!state.excellentRiders){
+  state.excellentRiders=JSON.parse(JSON.stringify(state.paylife20));
+  Object.keys(state.excellentRiders.riders).forEach(k=>state.excellentRiders.riders[k]=false);
+  state.excellentRiders.mode='full';
+ }
+ return state.excellentRiders;
+}
+function getExcellentRiderModel(){
+ const riders=state.excellent.mode==='full'?get20PayLifeSelectedRiders('excellentRiders'):[];
+ const riderTotal=riders.reduce((total,r)=>total+r.premium,0);
+ const excellentPremium=calcExcellent(state.age,state.gender,state.sum,state.tax).net;
+ return {riders,riderTotal,excellentPremium,totalCurrent:excellentPremium+riderTotal,age:state.age,gender:state.gender};
+}
 function viewExcellent(app){
   const r = calcExcellent(state.age, state.gender, state.sum, state.tax);
 
@@ -10185,6 +10200,7 @@ function viewExcellent(app){
     'ชำระเบี้ย 20 ปี คุ้มครอง 20 ปี พร้อมเงินคืนตามช่วงเวลาและความคุ้มครองชีวิตที่เพิ่มขึ้น'
   );
 
+  const excellentRiderMode=state.excellent.mode==='full';
   // Excellent premium input uses the same approved premium table, in reverse.
   // No change to the original calcExcellent rate or benefit formulas.
   const panel = app.querySelector('.panel');
@@ -10217,8 +10233,20 @@ function viewExcellent(app){
     render();
   });
 
+  const modeButtons=document.createElement('div');
+  modeButtons.className='pl20-mode-tabs';
+  modeButtons.innerHTML='<button class="pl20-mode-btn '+(!excellentRiderMode?'active':'')+'" data-ex-mode="base">Excellent อย่างเดียว</button>'+
+    '<button class="pl20-mode-btn '+(excellentRiderMode?'active':'')+'" data-ex-mode="full">Excellent + เลือกความคุ้มครองเอง</button>';
+  panel.insertBefore(modeButtons,premiumEditor);
+  modeButtons.querySelectorAll('[data-ex-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+   state.excellent.mode=btn.dataset.exMode;
+   if(state.excellent.mode==='full')ensureExcellentRiders();
+   render();
+  }));
+  const riderData=excellentRiderMode?getExcellentRiderModel():null;
   fillSummary(app, [
-    {lbl:'เบี้ยประกันภัยต่อปี', val:fmt(r.net)},
+    {lbl:excellentRiderMode?'เบี้ยสัญญาหลัก Excellent / ปี':'เบี้ยประกันภัยต่อปี', val:fmt(r.net)},
+    ...(excellentRiderMode?[{lbl:'เบี้ย Rider อื่นที่เลือก / ปี',val:fmt(riderData.riderTotal)},{lbl:'เบี้ยรวมปีแรก / ปี',val:fmt(riderData.totalCurrent)}]:[]),
     {lbl:'เงินคืนรวมระหว่างสัญญา', val:fmt(state.sum*0.4)+' (40%)'},
     {lbl:'เงินคืน + เงินครบกำหนดสัญญา', val:fmt(state.sum*3.4)+' (340%)'},
   ]);
@@ -10237,7 +10265,7 @@ function viewExcellent(app){
       Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ)
     </button>
   `;
-  panel.appendChild(tabs);
+  if(!excellentRiderMode)panel.appendChild(tabs);
 
   tabs.querySelectorAll('[data-ex-tab]').forEach(btn=>{
     btn.onclick = ()=>{
@@ -10250,7 +10278,7 @@ function viewExcellent(app){
   body.className = 'ex-ui-body';
   panel.appendChild(body);
 
-  if(state.excellent.subtab === 'planA'){
+  if(excellentRiderMode || state.excellent.subtab === 'planA'){
     const cols = [
       {key:'year',label:'ปีที่'},
       {key:'age',label:'อายุ'},
@@ -10322,6 +10350,23 @@ function viewExcellent(app){
         render();
       };
     }
+  }
+  if(excellentRiderMode){
+   ensureExcellentRiders();
+   const riderBox=document.createElement('div');riderBox.className='pl20-rider-wrap';
+   riderBox.innerHTML=riderControlsHTML('excellentRiders');
+   panel.appendChild(riderBox);wireRiderControls(riderBox,'excellentRiders');
+   const selected=getExcellentRiderModel();
+   if(selected.riders.length){
+    const summary=document.createElement('div');summary.className='ledger-wrap';
+    summary.innerHTML='<h3>สรุปสัญญาเพิ่มเติมที่เลือก</h3><table class="ledger"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
+     selected.riders.map(row=>'<tr><td>'+escapeResourceHtml(row.name)+'</td><td>'+escapeResourceHtml(row.note||'—')+'</td><td>'+fmt(row.premium)+' บาท</td></tr>').join('')+
+     '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(selected.riderTotal)+' บาท</td></tr></tbody></table>';
+    panel.appendChild(summary);
+   }
+   const note=document.createElement('div');note.className='notewrap';
+   note.textContent='เบี้ย Rider เป็นเบี้ยปีปัจจุบัน โปรดตรวจข้อกำหนดการแนบ Rider กับ Excellent จากเอกสารผลิตภัณฑ์ก่อนใช้เสนอขายจริง';
+   panel.appendChild(note);
   }
   addExportButton(app, 'excellent');
 }
@@ -12460,6 +12505,8 @@ function buildExcellentReportHTML(){
     </div>`;
   }
 
+  const selectedPlan=state.excellent.mode==='full'?'planA':state.excellent.subtab;
+  const extra=state.excellent.mode==='full'?excellentRiderBenefitPages(getExcellentRiderModel()):[];
   return `<div class="rp-report" data-report-version="${data.reportVersion}">
     <div class="rp-report-pages">
       <section class="ex-report-page" id="excellent-report-page-1">
@@ -12505,16 +12552,16 @@ function buildExcellentReportHTML(){
           ${buildExcellentChartHTML(data.customer.sumInsured)}
 
           <div class="rp-section">
-            <div class="rp-section-title">${state.excellent.subtab==='planA'?'1 ผลประโยชน์แบบ Plan A':'1 ผลประโยชน์แบบ Plan A และ Plan B'}</div>
+            <div class="rp-section-title">${selectedPlan==='planA'?'1 ผลประโยชน์แบบ Plan A':'1 ผลประโยชน์แบบ Plan A และ Plan B'}</div>
           </div>
 
-          <div class="ex-plan-grid-report ${state.excellent.subtab==='planA'?'ex-plan-a-only':state.excellent.subtab==='planB'?'rp-selected-year-layout':''}">
+          <div class="ex-plan-grid-report ${selectedPlan==='planA'?'ex-plan-a-only':selectedPlan==='planB'?'rp-selected-year-layout':''}">
             <div class="ex-plan-card">
               <div class="ex-plan-title">Plan A — ชำระเบี้ยเต็มสัญญา 20 ปี</div>
               ${buildExcellentPlanATable(data)}
             </div>
 
-            ${state.excellent.subtab==='planB' ? `<div class="ex-plan-card">
+            ${selectedPlan==='planB' ? `<div class="ex-plan-card">
               <div class="ex-plan-title">Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ)</div>
               ${buildExcellentPlanBTable(data)}
             </div>` : ''}
@@ -12525,9 +12572,10 @@ function buildExcellentReportHTML(){
           <div class="ex-footer-spacer"></div>
 
 
-          <div class="rp-page-number">หน้า 1 / 1 • Report v${data.reportVersion}</div>
+          <div class="rp-page-number">หน้า 1 / ${1+extra.length} • Report v${data.reportVersion}</div>
         </div>
       </section>
+      ${extra.join('')}
     </div>
   </div>`;
 }
@@ -15358,8 +15406,8 @@ async function downloadExcellentPDF(btn){
     return;
   }
 
-  const page = document.getElementById('excellent-report-page-1');
-  if(!page){
+  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #excellent-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  if(!pages.length){
     alert('ไม่พบใบสรุป Excellent');
     return;
   }
@@ -15378,10 +15426,11 @@ async function downloadExcellentPDF(btn){
       compress:true
     });
 
-    const canvas = await renderReportPageToCanvas(page);
-    const imgData = canvas.toDataURL('image/png');
-
-    pdf.addImage(imgData,'PNG',0,0,210,297,undefined,'FAST');
+    for(let i=0;i<pages.length;i++){
+     if(i)pdf.addPage();
+     const canvas=await renderReportPageToCanvas(pages[i]);
+     pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
 
     const customerName = (state.customer.firstName || state.customer.lastName)
       ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
@@ -16122,7 +16171,7 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
@@ -16284,6 +16333,7 @@ function healthHappyExtraRiders(){
 }
 function riderControlsHTML(context='paylife20'){
  if(context==='healthComboRiders')ensureHealthHappyRiders();
+ if(context==='excellentRiders')ensureExcellentRiders();
   const rs=state[context].riders, op=state[context].opts;
   const on=k=>rs[k]?'on':'';
   const selected=(a,b)=>a===b?'selected':'';
@@ -16412,6 +16462,7 @@ function riderControlsHTML(context='paylife20'){
 
 function wireRiderControls(box,context='paylife20'){
  if(context==='healthComboRiders')ensureHealthHappyRiders();
+ if(context==='excellentRiders')ensureExcellentRiders();
   const riderForOption={"healthhappyPlan":"healthhappy","hhkidsPlan":"hhkids","hhkidsTier":"hhkids","hsPlan":"healthsaver","icPlan":"infinitecare","icTerritory":"infinitecare","mpSi":"multipayci","tpdSi":"tpd","ciplusSi":"ciplus","ctuSi":"citopup","hcUnits":"healthcancer","hcSmoker":"healthcancer","cfcUnits":"cfc","lcPlan":"ladycare","lcSi":"ladycare","aiSi":"ai","aiClass":"ai","aiRcc":"ai","addSi":"add","addClass":"add","addRcc":"add","adbSi":"adb","adbClass":"adb","adbRcc":"adb","hbDaily":"hb","hbClass":"hb","hbExtraDaily":"hbextra","hbExtraClass":"hbextra"};
   const autoSelect=(key,value)=>{
     const rider=riderForOption[key];
@@ -16837,6 +16888,96 @@ function healthHappyRiderBenefitPages(model){
  });
  if(fallbackMarkup&&detailPages.length){
   pages.push('<section class="ex-report-page health-combo-report-page health-happy-rider-page"><div class="ex-report-inner">'+styles+head+
+   '<div class="rp-section"><div class="rp-section-title">รายละเอียด Rider เพิ่มเติม</div></div>'+fallbackMarkup+disclaimer+
+   '<div class="rp-page-number" data-hh-page-number="later"></div></div></section>');
+ }
+ const total=pages.length+1;
+ return pages.map((html,index)=>html.replace(/<div class="rp-page-number" data-hh-page-number="(?:2|later)"><\/div>/,
+  '<div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(index+2)+'/'+total+'</div>'));
+}
+function excellentRiderBenefitPages(model){
+ if(state.excellent.mode!=='full')return [];
+ const riders=ensureExcellentRiders();
+ const previous=state.paylife20;
+ let detailPages=[];
+ let fallback=[];
+ // The original 20PL report builders are the single source for full coverage,
+ // payouts and tables. Swap the selected rider context only during synchronous rendering.
+ try {
+  state.paylife20=riders;
+  const rs=riders.riders;
+  const other=['tpd','healthcancer','cfc'].filter(k=>rs[k]);
+  const shortOther=other.filter(k=>k==='tpd'||k==='healthcancer');
+  const accidents=['ai','add','adb'].filter(k=>rs[k]);
+  // Keep concise rider details first: they can accompany the summary on page 2.
+  if(shortOther.length){
+   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther),inline:shortOther.length===1&&shortOther[0]==='tpd'});
+  }
+  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0),inline:false});
+  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0),inline:false});
+  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc']),inline:false});
+  const firstAccidents=accidents.filter(k=>k==='ai'||k==='add');
+  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents),inline:false});
+  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb']),inline:false});
+  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0),inline:false});
+  // Medical add-ons are available through the existing 20PL source when selected.
+  if(['healthhappy','hhkids','healthsaver','infinitecare'].some(k=>rs[k]))
+   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0),inline:false});
+  // For riders without a standalone full-detail page in the original 20PL report,
+  // display their original benefit lines instead of inventing new policy language.
+  const fullyCovered=new Set(['healthhappy','hhkids','healthsaver','infinitecare','multipayci','tpd','ciplus','citopup','healthcancer','cfc','ai','add','adb','hb','hbextra']);
+  if(rs.ladycare){
+   fallback=build20PayLifeRiderDetailRows().filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
+  }
+ } finally {
+  state.paylife20=previous;
+ }
+ const styles='<style>'+
+  '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
+  '.health-happy-rider-page .hh-rider-table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}'+
+  '.health-happy-rider-page .hh-rider-table th,.health-happy-rider-page .hh-rider-table td{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;padding:7px 8px!important;vertical-align:top!important}'+
+  '.health-happy-rider-page .hh-rider-table th:nth-child(1){width:32%}.health-happy-rider-page .hh-rider-table th:nth-child(2){width:43%}.health-happy-rider-page .hh-rider-table th:nth-child(3){width:25%}'+
+  '.health-happy-rider-page .hh-fallback-benefit{padding:12px 16px;margin:10px 18px;border:1px solid #ded5c4;border-radius:7px;font-size:11px}'+
+  '.health-happy-rider-page .hh-fallback-benefit h3{color:#142a47;font-size:13px;margin:0 0 7px}'+
+  '.health-happy-rider-page .hh-fallback-benefit li{margin:5px 0}'+
+  '</style>';
+ const rows=model.riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('')||
+  '<tr><td colspan="3">ยังไม่ได้เลือกสัญญาเพิ่มเติมอื่น</td></tr>';
+ const summary='<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติมที่เลือก</div>'+
+  '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
+  '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
+ const head='<div class="rp-report-head"><div><div class="rp-report-title">Excellent + เลือกความคุ้มครองเอง</div>'+
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+ const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
+  '<div class="cell"><div class="l">ทุนสัญญาหลัก Excellent</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
+  '<div class="cell"><div class="l">Excellent</div><div class="v">Plan A ในหน้า 1</div></div></div>';
+ const disclaimer='<div class="hc-report-disclaimer rp-red-remark-before-payment">การจ่ายผลประโยชน์จริงขึ้นอยู่กับนิยาม เงื่อนไข ข้อยกเว้น และเอกสารสัญญาเพิ่มเติมของ AIA เบี้ย Rider อาจเปลี่ยนตามอายุ</div>';
+ const fallbackMarkup=fallback.map(row=>'<div class="hh-fallback-benefit"><h3>'+escapeResourceHtml(row.name)+'</h3><div>'+escapeResourceHtml([row.part1,row.part2].filter(Boolean).join(' • '))+'</div><ul>'+
+  (row.benefits||[]).map(line=>'<li>'+escapeResourceHtml(line)+'</li>').join('')+'</ul></div>').join('');
+ // Extract only the exact benefit body from an existing 20PL detail page.
+ const benefitBody=html=>{
+  const template=document.createElement('template');template.innerHTML=html;
+  return template.content.querySelector('.pl20-ci-wrap')?.outerHTML||'';
+ };
+ const inlineFirst=detailPages.length&&detailPages[0].inline&&model.riders.length<=2;
+ const firstBody=inlineFirst?benefitBody(detailPages[0].html):'';
+ if(inlineFirst&&firstBody)detailPages.shift();
+ const pages=[];
+ const summaryPage='<section class="ex-report-page health-combo-report-page health-happy-rider-page excellent-rider-report-page"><div class="ex-report-inner">'+styles+head+meta+summary+
+  firstBody+(detailPages.length===0?fallbackMarkup:'')+disclaimer+
+  '<div class="ex-footer-spacer"></div><div class="rp-page-number" data-hh-page-number="2"></div></div></section>';
+ pages.push(summaryPage);
+ // Preserve the original full 20PL detail HTML content byte-for-byte except
+ // for its report heading, page number, and A4 selector hook.
+ detailPages.forEach(item=>{
+  if(!item.html)return;
+  let html=item.html.replace('class="ex-report-page"','class="ex-report-page health-combo-report-page health-happy-rider-page excellent-rider-report-page"');
+  html=html.replaceAll('20PL + เลือกความคุ้มครองเอง','Excellent + เลือกความคุ้มครองเอง');
+  html=html.replace(/<div class="rp-page-number">[\s\S]*?<\/div>/,'<div class="rp-page-number" data-hh-page-number="later"></div>');
+  pages.push(html);
+ });
+ if(fallbackMarkup&&detailPages.length){
+  pages.push('<section class="ex-report-page health-combo-report-page health-happy-rider-page excellent-rider-report-page"><div class="ex-report-inner">'+styles+head+
    '<div class="rp-section"><div class="rp-section-title">รายละเอียด Rider เพิ่มเติม</div></div>'+fallbackMarkup+disclaimer+
    '<div class="rp-page-number" data-hh-page-number="later"></div></div></section>');
  }
