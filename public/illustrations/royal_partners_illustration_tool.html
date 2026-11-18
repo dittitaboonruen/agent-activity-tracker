@@ -16649,8 +16649,8 @@ function healthComboTable(model,showSaverPlanLimits=true){
   if(showSaverPlanLimits)return 'เหมาจ่ายภายใต้วงเงินรวม '+fmt(info.limits[i])+' บาท';
   return v;
  }))).join('')+
- tr('เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
- tr('เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
+ tr(typeIsHappy?'เบี้ยสัญญาหลัก 20PL / ปี':'เบี้ยสัญญาหลัก / ปี',Array(4).fill(main?.net??'ไม่รับประกัน'))+
+ tr(typeIsHappy?'เบี้ย AIA Health Happy / ปี':'เบี้ยสัญญาเพิ่มเติม / ปี',premiums.map(x=>x??'ไม่รับประกัน'))+
  (model.riders?.length?tr('เบี้ย Rider อื่นที่เลือก / ปี',Array(4).fill(model.riderTotal)):'')+
  tr('รวมเบี้ยปีแรก / ปี',premiums.map(x=>main&&x!==null?x+main.net+(model.riderTotal||0):'ไม่รับประกัน'))+
  '</tbody></table></div>';
@@ -16725,8 +16725,8 @@ function view20HealthCombo(app,type){
   panel.appendChild(warning);
  }
  fillSummary(app,[
- {lbl:'เบี้ยสัญญาหลัก / ปี',val:model.main?fmt(model.main.net):'ไม่รับประกัน'},
- {lbl:'เบี้ยสุขภาพแผนที่เลือก / ปี',val:model.premium===null?'ไม่รับประกัน':fmt(model.premium)},
+ {lbl:type==='happy'?'เบี้ยสัญญาหลัก 20PL / ปี':'เบี้ยสัญญาหลัก / ปี',val:model.main?fmt(model.main.net):'ไม่รับประกัน'},
+ {lbl:type==='happy'?'เบี้ย AIA Health Happy / ปี':'เบี้ยสุขภาพแผนที่เลือก / ปี',val:model.premium===null?'ไม่รับประกัน':fmt(model.premium)},
  ...(type==='happy'&&state.healthCombo.happyMode==='full'?[{lbl:'เบี้ย Rider อื่นที่เลือก / ปี',val:fmt(model.riderTotal)}]:[]),
  {lbl:'เบี้ยรวมปีแรก / ปี',val:model.total===null?'ไม่รับประกัน':fmt(model.total)}
  ]);
@@ -16754,18 +16754,29 @@ function view20HealthCombo(app,type){
  if(model.isEligible)addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
 }
 function healthHappyRiderReportPage(model){
- if(state.healthCombo.happyMode!=='full'||!model.riders.length)return '';
+ // The extra rider PDF page is used only in the optional Health Happy + riders mode.
+ if(state.healthCombo.happyMode!=='full')return '';
  const rows=model.riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('');
- return '<section class="ex-report-page health-combo-report-page"><div class="ex-report-inner">'+
- '<div class="rp-report-head"><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div></div>'+
+ const content=rows||'<tr><td colspan="3" class="hh-rider-empty">ยังไม่ได้เลือกสัญญาเพิ่มเติมอื่น</td></tr>';
+ return '<section class="ex-report-page health-combo-report-page health-happy-rider-page"><div class="ex-report-inner">'+
+ '<style>'+
+ '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
+ '.health-happy-rider-page .hh-rider-table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}'+
+ '.health-happy-rider-page .hh-rider-table th,.health-happy-rider-page .hh-rider-table td{overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important;vertical-align:top!important;box-sizing:border-box!important;padding:7px 8px!important;line-height:1.45!important}'+
+ '.health-happy-rider-page .hh-rider-table th:nth-child(1),.health-happy-rider-page .hh-rider-table td:nth-child(1){width:32%}'+
+ '.health-happy-rider-page .hh-rider-table th:nth-child(2),.health-happy-rider-page .hh-rider-table td:nth-child(2){width:43%}'+
+ '.health-happy-rider-page .hh-rider-table th:nth-child(3),.health-happy-rider-page .hh-rider-table td:nth-child(3){width:25%}'+
+ '.health-happy-rider-page .hh-rider-empty{text-align:center!important;color:#857a66!important}'+
+ '</style>'+
+ '<div class="rp-report-head"><div><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div>'+
+ '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดสัญญาเพิ่มเติมที่เลือก</div></div></div>'+
  '<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
- '<div class="cell"><div class="l">ทุนสัญญาหลัก</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
- '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนหน้าแรก</div></div></div>'+
- '<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติมที่เลือก</div>'+
- '<div class="ledger-wrap health-combo-ledger"><table class="ledger hc-plan-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+rows+
- '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(model.riderTotal)+' บาท</td></tr></tbody></table></div></div>'+
- '<div class="rp-section"><div class="rp-section-title">ยอดรวมทั้ง 4 แผน</div>'+healthComboTable(model,false)+'</div>'+
- '<div class="hc-report-disclaimer rp-red-remark-before-payment">เบี้ย Rider เป็นเบี้ยปีปัจจุบันและอาจเปลี่ยนตามอายุ โปรดตรวจเงื่อนไขกับบริษัท</div>'+
+ '<div class="cell"><div class="l">ทุนสัญญาหลัก 20PL</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
+ '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนในหน้า 1</div></div></div>'+
+ '<div class="rp-section"><div class="rp-section-title">รายการ Rider ที่เลือก</div>'+
+ '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+content+
+ '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>'+
+ '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ย Rider เป็นเบี้ยปีปัจจุบันและอาจเปลี่ยนตามอายุ ผลประโยชน์และการรับประกันขึ้นอยู่กับเงื่อนไขของบริษัท</div>'+
  '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 2/2</div>'+
  '</div></section>';
 }
@@ -16791,7 +16802,7 @@ function build20HealthComboReportHTML(type){
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="AIA ผ่อน 0% นาน 4 เดือน" loading="eager" decoding="sync"></div>'+
- '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(isHappy&&m.riders.length?'1/2':'1/1')+'</div>'+
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(isHappy&&state.healthCombo.happyMode==='full'?'1/2':'1/1')+'</div>'+
  '</div></section>'+(isHappy?healthHappyRiderReportPage(m):'')+'</div></div>';
 }
 async function download20HealthComboPDF(key,btn){
