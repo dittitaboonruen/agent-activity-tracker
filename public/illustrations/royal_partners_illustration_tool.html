@@ -9986,13 +9986,13 @@ function calcPay25RPU(age, gender, sum, annualPremium){
 function renderPlanB(container, rpuRows, planALedgerHTML){
   container.innerHTML = `<div class="plan-grid">
     <div class="ledger-wrap"><h3>Plan A — ชำระเบี้ยเต็มสัญญา</h3><div class="planA-el"></div></div>
-    <div class="ledger-wrap"><h3>Plan B — หยุดชำระก่อนกำหนด (มูลค่าเงินสำเร็จ / RPU)</h3><div class="planB-el"></div></div>
+    <div class="ledger-wrap"><h3>Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ)</h3><div class="planB-el"></div></div>
   </div>`;
   container.querySelector('.planA-el').innerHTML = planALedgerHTML;
   const cols = [
     {key:'stopYear', label:'หยุดชำระปีที่'},
     {key:'totalPaid', label:'เบี้ยรวมที่จ่ายไป'},
-    {key:'rpuValue', label:'มูลค่าเงินสำเร็จ (RPU)'},
+    {key:'rpuValue', label:'เงินสำเร็จ'},
     {key:'diff', label:'ส่วนต่าง'},
   ];
   renderLedger(container.querySelector('.planB-el'), rpuRows, cols);
@@ -10185,7 +10185,7 @@ function viewExcellent(app){
       Plan A — ชำระเบี้ยเต็มสัญญา
     </button>
     <button class="ex-ui-tab ${state.excellent.subtab==='planB'?'active':''}" data-ex-tab="planB">
-      Plan B — หยุดชำระก่อนกำหนด (RPU)
+      Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ)
     </button>
   `;
   panel.appendChild(tabs);
@@ -10250,7 +10250,7 @@ function viewExcellent(app){
       </div>
 
       <div class="ex-planb-summary">
-        <div class="ex-planb-line"><span>1. มูลค่าใช้เงินสำเร็จ (RPU)</span><b>${fmt(planB.rpu)} บาท</b></div>
+        <div class="ex-planb-line"><span>1. เงินสำเร็จ</span><b>${fmt(planB.rpu)} บาท</b></div>
         <div class="ex-planb-line"><span>2. เงินคืนระหว่างทางที่ได้รับแล้ว</span><b>${fmt(planB.cashback)} บาท</b></div>
         <div class="ex-planb-line"><span>3. เงินจ่ายคืนทันที</span><b>${fmt(planB.immediateCash)} บาท</b></div>
         <div class="ex-planb-line total"><span>4. รวมเงินคืนที่ได้รับ</span><b>${fmt(planB.totalReceived)} บาท</b></div>
@@ -10306,7 +10306,7 @@ function viewPay25(app){
       Plan A — ชำระ 15 ปี คุ้มครองถึงปีที่ 25
     </button>
     <button class="ex-ui-tab ${state.pay25.subtab==='planB'?'active':''}" data-p25-tab="planB">
-      Plan B — หยุดชำระเบี้ยก่อนกำหนด (RPU)
+      Plan B — หยุดชำระเบี้ยก่อนกำหนด (เงินสำเร็จ)
     </button>
   `;
   panel.appendChild(tabs);
@@ -10353,7 +10353,7 @@ function viewPay25(app){
       </div>
 
       <div class="ex-planb-summary">
-        <div class="ex-planb-line"><span>1. มูลค่าใช้เงินสำเร็จ (RPU)</span><b>${fmt(selected.rpuValue)} บาท</b></div>
+        <div class="ex-planb-line"><span>1. เงินสำเร็จ</span><b>${fmt(selected.rpuValue)} บาท</b></div>
         <div class="ex-planb-line"><span>2. เงินคืนรายปีที่นับรวม</span><b>${fmt(selected.cashback)} บาท</b></div>
         <div class="ex-planb-line total"><span>3. รวมเงินคืนที่ได้รับ</span><b>${fmt(selected.totalReceived)} บาท</b></div>
         <div class="ex-planb-line"><span>4. เบี้ยรวมที่จ่ายไป</span><b>${fmt(selected.totalPaid)} บาท</b></div>
@@ -12301,7 +12301,7 @@ function buildExcellentPlanBTable(data){
       <thead>
         <tr>
           <th>ส่งเบี้ย/ปี</th>
-          <th>RPU</th>
+          <th>เงินสำเร็จ</th>
           <th>เงินคืน</th>
           <th>เงินจ่ายคืนทันที</th>
           <th>เบี้ยรวมที่ส่งมา</th>
@@ -12466,7 +12466,7 @@ function buildExcellentReportHTML(){
             </div>
 
             ${state.excellent.subtab==='planB' ? `<div class="ex-plan-card">
-              <div class="ex-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU)</div>
+              <div class="ex-plan-title">Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ)</div>
               ${buildExcellentPlanBTable(data)}
             </div>` : ''}
           </div>
@@ -13841,7 +13841,7 @@ function buildPay25PlanBTable(data){
     <thead>
       <tr>
         <th>ส่งเบี้ย/ปี</th>
-        <th>RPU</th>
+        <th>เงินสำเร็จ</th>
         <th>เงินคืน</th>
         <th>เบี้ยรวมที่ส่งมา</th>
         <th>ส่วนต่าง</th>
@@ -13973,7 +13973,7 @@ function buildPay25ReportHTML(){
             </div>
 
             ${state.pay25.subtab==='planB'?`            <div class="p25-plan-card">
-              <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (RPU ${state.pay25.subtab==='planB'?'ปีที่ '+state.pay25.planBTerm:'ปีที่ 6–10'})</div>
+              <div class="p25-plan-title">Plan B — หยุดชำระก่อนกำหนด (เงินสำเร็จ ${state.pay25.subtab==='planB'?'ปีที่ '+state.pay25.planBTerm:'ปีที่ 6–10'})</div>
               ${buildPay25PlanBTable(data)}
             </div>`:''}
           </div>
@@ -15908,6 +15908,7 @@ function fitReportA4Contents(root){
     // Promotional banners can extend below wrappers with overflow:hidden.
     inner.style.transform = 'none';
     inner.style.removeProperty('width');
+    inner.style.removeProperty('max-width');
     inner.style.transformOrigin = 'top left';
     const pageBox = page.getBoundingClientRect();
     const contentBox = inner.getBoundingClientRect();
@@ -15951,6 +15952,7 @@ function fitReportA4Contents(root){
         // Keep the height safety fit but reclaim the unused horizontal A4 area.
         // Resize the inner layout before scaling so its visible width is the paper width.
         const fullWidth = (page.clientWidth - 2) / safeScale;
+        inner.style.setProperty('max-width', 'none', 'important');
         inner.style.setProperty('width', fullWidth.toFixed(2) + 'px', 'important');
         inner.style.transform = 'scale(' + safeScale.toFixed(5) + ')';
       }else{
