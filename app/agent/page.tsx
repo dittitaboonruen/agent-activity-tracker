@@ -86,26 +86,6 @@ export default function AgentPortalPage() {
 
   const cards: CardItem[] = [
     {
-      icon: "🔒",
-      title: "Annual Target 2569",
-      description:
-        "ตั้งเป้าหมาย FYP / FYC / CASE ประจำปี",
-      href: "/annual-target",
-      external: false,
-      locked: true,
-    },
-
-    {
-      icon: "📝",
-      title: "Activity Form",
-      description:
-        "บันทึกกิจกรรมตัวแทนประจำวัน",
-      href: ACTIVITY_FORM_URL,
-      external: true,
-      locked: false,
-    },
-
-    {
       icon: "🧮",
       title: "ข้อเสนอแบบประกัน",
       description:
@@ -124,8 +104,27 @@ export default function AgentPortalPage() {
       external: false,
       locked: false,
     },
-  ];
 
+    {
+      icon: "📝",
+      title: "แบบฟอร์ม 1,800 คะแนน",
+      description:
+        "บันทึกกิจกรรมตัวแทนประจำวัน",
+      href: ACTIVITY_FORM_URL,
+      external: true,
+      locked: false,
+    },
+
+    {
+      icon: "🔒",
+      title: "ตั้งเป้าหมาย 2027",
+      description:
+        "ตั้งเป้าหมาย FYP / FYC / CASE ประจำปี",
+      href: "/annual-target",
+      external: false,
+      locked: true,
+    },
+  ];
   return (
     <main
       style={{
@@ -181,8 +180,21 @@ export default function AgentPortalPage() {
                 letterSpacing: "-1px",
               }}
             >
-              เครื่องมือการทำงานสำหรับตัวแทน Royal Partner
+              เครื่องมือการทำงาน
             </h1>
+
+            <p
+              style={{
+                marginTop: 12,
+                marginBottom: 0,
+                color: colors.muted,
+                fontSize: 16,
+                fontWeight: 400,
+                lineHeight: 1.6,
+              }}
+            >
+              สำหรับตัวแทน Royal Partner
+            </p>
 
           </div>
 
