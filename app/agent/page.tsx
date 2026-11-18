@@ -181,21 +181,9 @@ export default function AgentPortalPage() {
                 letterSpacing: "-1px",
               }}
             >
-              Agent Portal
+              เครื่องมือการทำงานสำหรับตัวแทน Royal Partner
             </h1>
 
-            <p
-              style={{
-                marginTop: 12,
-                marginBottom: 0,
-                color: colors.muted,
-                fontSize: 16,
-                lineHeight: 1.6,
-              }}
-            >
-              เครื่องมือสำหรับตัวแทน
-              Royal Partner
-            </p>
           </div>
 
           {/* =========================
@@ -275,17 +263,6 @@ export default function AgentPortalPage() {
             marginBottom: 26,
           }}
         >
-          <div
-            style={{
-              color: colors.gold,
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 1.6,
-              marginBottom: 7,
-            }}
-          >
-            AGENT TOOLS
-          </div>
 
           <div
             style={{
