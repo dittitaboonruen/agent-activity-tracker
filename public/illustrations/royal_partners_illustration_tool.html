@@ -6242,6 +6242,8 @@
   .ann-report-page .rp-page-number{font-size:6px;padding:3px 12px 5px;}
   @media(max-width:760px){.ann-benefit-row{grid-template-columns:1fr;}}
 
+/* UI cleanup: decorative icons hidden, functional controls preserved */
+.rp-detail-icon,.pl20-ci-heading-icon,.rp-section-icon{display:none!important}
 </style>
 <style>
 /* =========================================================
@@ -9146,7 +9148,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
   <div class="rp-hero">
     <div class="rp-hero-copy">
-      <div class="rp-eyebrow">ROYAL PARTNER · SMART PLANNER ✦</div>
+      <div class="rp-eyebrow">ROYAL PARTNER · เครื่องมือวางแผนประกัน</div>
       <h1>วางแผนประกันง่าย ๆ ในที่เดียว</h1>
       <p>เลือกแผน · กรอกข้อมูล · ดูผลประโยชน์</p>
       <div class="rp-phase-steps" aria-label="ขั้นตอนการวางแผน"><span>① ข้อมูลลูกค้า</span><span>② เลือกแบบ</span><span>③ สรุปผล</span></div>
@@ -9154,14 +9156,14 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
     <div class="rp-hero-badge">
       <span class="dot"></span>
-      Live Calculation
+      คำนวณผลแบบทันที
     </div>
   </div>
 
   <div class="topbar rp-plan-card">
     <div class="rp-section-heading">
       <div>
-        <div class="rp-section-kicker">✦ START YOUR PLAN</div>
+        <div class="rp-section-kicker">เริ่มวางแผนประกัน</div>
         <h2>ข้อมูลสำหรับคำนวณ</h2>
       </div>
       <div class="rp-section-note">กรอกข้อมูลหลักเพื่อดูผลลัพธ์แบบเรียลไทม์</div>
@@ -9207,9 +9209,9 @@ body > .rp-sales-shell .plus-ledger table thead th *{
   <div class="rp-details-grid">
     <div class="customerbar rp-detail-card">
       <div class="rp-detail-head">
-        <span class="rp-detail-icon">👤</span>
+        <span class="rp-detail-icon"></span>
         <div>
-          <div class="rp-section-kicker">CLIENT</div>
+          <div class="rp-section-kicker">ข้อมูลผู้เอาประกัน</div>
           <h3>ข้อมูลลูกค้า</h3>
         </div>
       </div>
@@ -9222,9 +9224,9 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
     <div class="agentbar rp-detail-card">
       <div class="rp-detail-head">
-        <span class="rp-detail-icon">✦</span>
+        <span class="rp-detail-icon"></span>
         <div>
-          <div class="rp-section-kicker">AGENT</div>
+          <div class="rp-section-kicker">ข้อมูลตัวแทน</div>
           <h3>ข้อมูลตัวแทน</h3>
         </div>
       </div>
@@ -9232,7 +9234,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
       <div class="agentbar-inner">
         <span><label>ชื่อตัวแทน</label><input id="ag-name" type="text" placeholder="ชื่อ-นามสกุล"></span>
         <span><label>เบอร์โทร</label><input id="ag-phone" type="text" placeholder="08x-xxx-xxxx"></span>
-        <span><label>LINE</label><input id="ag-line" type="text" placeholder="LINE ID"></span>
+        <span><label>ไลน์</label><input id="ag-line" type="text" placeholder="LINE ID"></span>
         <span><label>วันที่</label><input id="ag-date" type="date"></span>
       </div>
     </div>
@@ -9241,34 +9243,34 @@ body > .rp-sales-shell .plus-ledger table thead th *{
   <div class="tabgroup-wrap rp-product-card">
     <div class="rp-section-heading">
       <div>
-        <div class="rp-section-kicker">✦ CHOOSE YOUR PLAN</div>
+        <div class="rp-section-kicker">เลือกแผนประกัน</div>
         <h2>เลือกเป้าหมายความคุ้มครอง</h2>
       </div>
       <div class="rp-section-note">เลือกกลุ่มและแบบประกันที่ต้องการนำเสนอ</div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">♧</span><span>1. กลุ่มตลอดชีพ</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>1. กลุ่มตลอดชีพ</span></div>
       <div class="tabs" id="tabs-life"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">♢</span><span>2. กลุ่มออมทรัพย์</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>2. กลุ่มออมทรัพย์</span></div>
       <div class="tabs" id="tabs-savings"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">♡</span><span>3. กลุ่มโรคร้ายแรง</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>3. กลุ่มโรคร้ายแรง</span></div>
       <div class="tabs" id="tabs-ci"></div>
     </div>
 
     <div class="rp-product-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">☀</span><span>4. กลุ่มบำนาญ</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>4. กลุ่มบำนาญ</span></div>
       <div class="tabs" id="tabs-retirement"></div>
     </div>
 
     <div class="rp-product-group rp-high-net-worth-group">
-      <div class="tabgroup-label"><span class="rp-group-icon">◆</span><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
+      <div class="tabgroup-label"><span class="rp-group-icon"></span><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
       <div class="tabs" id="tabs-high-net-worth">
         <button type="button" class="tab rp-legacy-coming-soon" disabled aria-disabled="true" title="AIA Legacy Prestige Plus อยู่ระหว่างตรวจสอบสูตรและข้อมูลผลประโยชน์">AIA Legacy Prestige Plus</button>
         <span class="rp-legacy-coming-soon-note">กำลังพัฒนาระบบคำนวณ</span>
@@ -10028,7 +10030,7 @@ function syncTabActive(){
     if(selected && !tick){
       tick=document.createElement('span');
       tick.className='rp-selected-check';
-      tick.textContent='✓';
+      tick.textContent='';
       tick.setAttribute('aria-hidden','true');
       b.appendChild(tick);
     }else if(!selected && tick){
@@ -10321,7 +10323,7 @@ function buildPayLifePlusBenefitChartHTML(r,compact=false){
   const term=r.term,entry=Number(state.age),end=r.wpciUntil;
   const slots=Array.from({length:20},(_,i)=>i+1);
   const ageEnd=Math.min(99,entry+term);
-  const maxMarker=Array.from({length:term},(_,i)=>'<span>▲</span>').join('');
+  const maxMarker=Array.from({length:term},(_,i)=>'<span>ปี</span>').join('');
   return '<div class="plus-visual '+(compact?'plus-visual-pdf':'')+'">'+
     '  <style>.plus-visual{background:#eeecec;border-radius:10px;padding:16px;margin:12px 0;color:#454545;font-size:12px;display:grid;gap:9px}.plus-visual-line{display:grid;grid-template-columns:24% 1fr;align-items:center;gap:10px}.plus-visual-line>b{font-size:12px}.plus-visual-arrow{background:#e43c68;color:white;border-radius:5px;padding:9px;display:flex;justify-content:space-between;gap:10px;align-items:center}.plus-visual-arrow span{flex:1;text-align:center;font-size:10px}.plus-visual-life{display:flex;align-items:center;gap:8px;padding:12px;background:#e5004e;color:#fff;border-radius:6px}.plus-visual-life strong{flex:1;font-size:10px}.plus-visual-life em{font-style:normal;background:#777;border-radius:50%;padding:5px}.plus-visual-life span{flex:2;font-size:10px}.plus-visual-years{display:flex;justify-content:space-between;background:#626262;color:#fff;padding:8px;border-radius:5px}.plus-visual-marks{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));text-align:center}.plus-visual-marks>span{color:#aaa}.plus-visual-marks>span.pay{color:#e5004e}.plus-visual-marks small{display:block;font-size:8px;color:#555}.plus-visual-end{font-weight:bold}.plus-visual-pdf{padding:8px;gap:4px;font-size:8px}.plus-visual-pdf .plus-visual-line>b{font-size:8px}.plus-visual-pdf .plus-visual-arrow{padding:5px}.plus-visual-pdf .plus-visual-arrow span{font-size:7px}.plus-visual-pdf .plus-visual-life{padding:5px}.plus-visual-pdf .plus-visual-life strong,.plus-visual-pdf .plus-visual-life span{font-size:7px}.plus-visual-pdf .plus-visual-marks small{font-size:6px}@media(max-width:640px){.plus-visual:not(.plus-visual-pdf) .plus-visual-line{grid-template-columns:1fr}}</style>'+
     '<div class="plus-visual-line"><b>WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค</b><div class="plus-visual-arrow"><strong>ฟรี</strong><span>คุ้มครองตามระยะชำระเบี้ย หรือถึงอายุ 80 ปี แล้วแต่อย่างใดถึงก่อน</span><strong>ถึงอายุ '+end+' ปี</strong></div></div>'+
@@ -10700,8 +10702,8 @@ function build20PayLifeBenefitHTML(r){
         <div class="pl20-native-label">ความคุ้มครองชีวิต</div>
         <div class="pl20-life-track">
           <div class="pl20-life-line"></div>
-          <div class="pl20-life-arrow left">◀</div>
-          <div class="pl20-life-arrow right">▶</div>
+          <div class="pl20-life-arrow left"></div>
+          <div class="pl20-life-arrow right"></div>
           <div class="pl20-life-badge">100%</div>
         </div>
       </div>
@@ -10749,7 +10751,7 @@ function viewCIProCare(app){
 }
 
 function renderCIProCareBenefitMap(app){
-  const premiumIcons = Array.from({length:20}, ()=>'<span>▲</span>').join('');
+  const premiumIcons = Array.from({length:20}, ()=>'<span>ปี</span>').join('');
   const ccbMonthly = state.sum * 0.015;
   const ciMax10x = state.sum * 10;
   const mib = state.sum;
@@ -11176,9 +11178,9 @@ function buildAnnuityMapHTML(type,data){
           <div class="ann-fix-row ann-fix-ref-pension">
             <span>รับเงินบำนาญจาก AIA Annuity Fix</span>
             <div class="ann-fix-ref-pension-grid">
-              <span class="ann-fix-pension-start">□</span>
+              <span class="ann-fix-pension-start"></span>
               <strong>รับเงินบำนาญปีละ ${fmt(data.annualPension)} บาท ตั้งแต่อายุ 60–85 ปี รวม 26 งวด</strong>
-              <span class="ann-fix-pension-end">□</span>
+              <span class="ann-fix-pension-end"></span>
             </div>
           </div>
         </div>
@@ -11268,8 +11270,8 @@ function viewAnnuityFix(app){
   });
 
   fillSummary(app,[
-    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:Number(r.annualPremium).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),group:'ann-primary',icon:'＋'},
-    {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension),group:'ann-primary',icon:'✦'},
+    {lbl:'เบี้ยประกันภัยรวมต่อปี',val:Number(r.annualPremium).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),group:'ann-primary',icon:''},
+    {lbl:'เงินบำนาญต่อปี',val:fmt(r.annualPension),group:'ann-primary',icon:''},
     {lbl:'เงินภาษีที่ได้คืน (ตามฐานภาษี %)',val:fmt(r.rows[0]?.taxRelief ?? 0),group:'ann-secondary',icon:'Σ'},
     {lbl:'มูลค่าบำนาญตั้งต้น',val:Number(r.initialAnnuity).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),group:'ann-secondary',icon:'฿'}
   ],'ann-fix-summary');
@@ -11418,7 +11420,7 @@ function fillSummary(app, stats, variant=''){
   wrap.className='summary smart-summary-grid' + (variant ? ' ' + variant : '');
   wrap.innerHTML = stats.map((s,index)=>`
     <div class="stat ${s.group || (index===stats.length-1?'smart-highlight':'')}">
-      <div class="stat-icon">${s.icon || (index===0?'฿':index===1?'＋':index===2?'Σ':'✦')}</div>
+      <div class="stat-icon">${s.icon || (index===0?'฿':index===1?'':index===2?'Σ':'')}</div>
       <div class="lbl">${s.lbl}</div>
       <div class="val ${s.oxblood?'oxblood':''}">${s.val}</div>
     </div>
@@ -11530,7 +11532,7 @@ function productCardData(key){
 
 function buildCISuperCareChartHTML(payYears, sumInsured){
   const years = Array.from({length:payYears},(_,i)=>`<span>${i+1}</span>`).join('');
-  const payIcons = Array.from({length:payYears},()=>'<span>▲</span>').join('');
+  const payIcons = Array.from({length:payYears},()=>'<span>ปี</span>').join('');
 
   const early = sumInsured * 0.20;
   const full = sumInsured;
@@ -11963,7 +11965,7 @@ const EXCELLENT_REPORT_VERSION = "2.4.1";
 
 function buildExcellentChartHTML(sumInsured){
   const years = Array.from({length:20},(_,i)=>`<span>${i+1}</span>`).join('');
-  const payIcons = Array.from({length:20},()=>'<span>▲</span>').join('');
+  const payIcons = Array.from({length:20},()=>'<span>ปี</span>').join('');
   const ten = sumInsured * 0.10;
   const maturity = sumInsured * 3;
 
@@ -13076,22 +13078,22 @@ function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages){
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const multipay=section('AIA MULTI-PAY CI (UNDER AIA MULTI-PAY CI PLUS)',[
-    item('🎗️','1. โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>40%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 5 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายในกลุ่มโรคเดียวกันตามเงื่อนไข'),
-    item('❤️','2. โรคร้ายแรงระดับรุนแรง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>100%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 6 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายซ้ำในกลุ่มโรคเดียวกัน'),
-    item('🔁','3. การกลับมาเป็นซ้ำของโรคร้ายแรงระดับรุนแรง (Relapsed CI)','ครอบคลุมการกลับมาเป็นซ้ำตามเงื่อนไข เช่น มะเร็งระยะลุกลามที่ยังคงอยู่ แพร่กระจาย กลับมาเป็นซ้ำ หรือเกิดชนิดใหม่ รวมถึงภาวะหัวใจและหลอดเลือดบางรายการที่กำหนด โดยมีเกณฑ์และข้อยกเว้นเฉพาะ'),
-    item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ โดยพิจารณาปัจจัย เช่น อายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหมของบริษัท ภายใต้ข้อกำหนดและการเห็นชอบที่เกี่ยวข้อง')
+    item('','1. โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>40%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 5 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายในกลุ่มโรคเดียวกันตามเงื่อนไข'),
+    item('','2. โรคร้ายแรงระดับรุนแรง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกตามนิยามของสัญญาเพิ่มเติม จ่าย <strong>100%</strong> ของจำนวนเงินเอาประกันภัยต่อครั้ง <strong>สูงสุด 6 ครั้ง</strong> โดยมีข้อจำกัดการจ่ายซ้ำในกลุ่มโรคเดียวกัน'),
+    item('','3. การกลับมาเป็นซ้ำของโรคร้ายแรงระดับรุนแรง (Relapsed CI)','ครอบคลุมการกลับมาเป็นซ้ำตามเงื่อนไข เช่น มะเร็งระยะลุกลามที่ยังคงอยู่ แพร่กระจาย กลับมาเป็นซ้ำ หรือเกิดชนิดใหม่ รวมถึงภาวะหัวใจและหลอดเลือดบางรายการที่กำหนด โดยมีเกณฑ์และข้อยกเว้นเฉพาะ'),
+    item('','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ โดยพิจารณาปัจจัย เช่น อายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหมของบริษัท ภายใต้ข้อกำหนดและการเห็นชอบที่เกี่ยวข้อง')
   ]);
   const totalCare=section('AIA TOTAL CARE (UNDER AIA MULTI-PAY CI PLUS)',[
-    item('🏥','1. ผลประโยชน์ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต','กรณีเจ็บป่วยหรือบาดเจ็บที่เข้าเงื่อนไข เช่น การพักรักษาในห้องผู้ป่วยวิกฤตต่อเนื่องตามระยะเวลาที่กำหนด ร่วมกับภาวะที่กำหนด เช่น การผ่าตัดใหญ่ การใช้เครื่องช่วยพยุงระบบหายใจหรือไหลเวียนโลหิต หรือภาวะล้มเหลวของอวัยวะสำคัญ'),
-    item('💗','2. ผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง','สำหรับโรคร้ายแรงที่เข้าเงื่อนไข เช่น อัลไซเมอร์ พาร์กินสัน โรคของเซลล์ประสาทควบคุมการเคลื่อนไหว กล้ามเนื้อเสื่อม ข้ออักเสบรูมาตอยด์ชนิดรุนแรง การบาดเจ็บศีรษะอย่างรุนแรง การสูญเสียการดำรงชีพอย่างอิสระ และทุพพลภาพถาวรสิ้นเชิง'),
-    item('🛡️','3. ผลประโยชน์ยกเว้นเบี้ยประกันภัย','เมื่อผู้เอาประกันภัยได้รับการวินิจฉัยตามเกณฑ์และได้รับผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง อาจได้รับการยกเว้นเบี้ยของสัญญาเพิ่มเติมนี้นับแต่วันครบรอบที่กำหนดตามเงื่อนไข')
+    item('','1. ผลประโยชน์ภาวะวิกฤตที่มีผลต่อการดำรงชีวิต','กรณีเจ็บป่วยหรือบาดเจ็บที่เข้าเงื่อนไข เช่น การพักรักษาในห้องผู้ป่วยวิกฤตต่อเนื่องตามระยะเวลาที่กำหนด ร่วมกับภาวะที่กำหนด เช่น การผ่าตัดใหญ่ การใช้เครื่องช่วยพยุงระบบหายใจหรือไหลเวียนโลหิต หรือภาวะล้มเหลวของอวัยวะสำคัญ'),
+    item('','2. ผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง','สำหรับโรคร้ายแรงที่เข้าเงื่อนไข เช่น อัลไซเมอร์ พาร์กินสัน โรคของเซลล์ประสาทควบคุมการเคลื่อนไหว กล้ามเนื้อเสื่อม ข้ออักเสบรูมาตอยด์ชนิดรุนแรง การบาดเจ็บศีรษะอย่างรุนแรง การสูญเสียการดำรงชีพอย่างอิสระ และทุพพลภาพถาวรสิ้นเชิง'),
+    item('','3. ผลประโยชน์ยกเว้นเบี้ยประกันภัย','เมื่อผู้เอาประกันภัยได้รับการวินิจฉัยตามเกณฑ์และได้รับผลประโยชน์การดูแลต่อเนื่องจากโรคร้ายแรง อาจได้รับการยกเว้นเบี้ยของสัญญาเพิ่มเติมนี้นับแต่วันครบรอบที่กำหนดตามเงื่อนไข')
   ]);
   return `
     <section class="ex-report-page" id="pay20life-report-page-ci">
       <div class="ex-report-inner">
         <div class="rp-report-head"><div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div></div>
         <div class="pl20-ci-wrap">
-          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true">📋</span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>รายละเอียดสัญญาเพิ่มเติมที่เลือก • วงเงินและเบี้ยแสดงในหน้าสรุปแล้ว</p></div></div>
+          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true"></span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>รายละเอียดสัญญาเพิ่มเติมที่เลือก • วงเงินและเบี้ยแสดงในหน้าสรุปแล้ว</p></div></div>
           ${multipay}
           ${totalCare}
           <div class="pl20-ci-footnote">สรุปเพื่อประกอบการนำเสนอเท่านั้น รายละเอียดนิยามโรค ระยะเวลารอคอย ระยะเวลาห้ามเคลม การจ่ายซ้ำ ข้อยกเว้น และการจ่ายผลประโยชน์จริง ให้ยึดกรมธรรม์และเอกสารสัญญาเพิ่มเติมของ AIA เป็นหลัก</div>
@@ -13107,16 +13109,16 @@ function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
   const hasTopUp=!!state.paylife20.riders.citopup;
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
-  const renewal=item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัยรายปีอาจมีการปรับเบี้ยในรอบปีกรมธรรม์ ตามอายุ ชั้นอาชีพ ประสบการณ์การจ่ายสินไหม และข้อกำหนดที่เกี่ยวข้อง ทั้งนี้เป็นไปตามเงื่อนไขของบริษัทและความเห็นชอบของนายทะเบียน');
+  const renewal=item('','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัยรายปีอาจมีการปรับเบี้ยในรอบปีกรมธรรม์ ตามอายุ ชั้นอาชีพ ประสบการณ์การจ่ายสินไหม และข้อกำหนดที่เกี่ยวข้อง ทั้งนี้เป็นไปตามเงื่อนไขของบริษัทและความเห็นชอบของนายทะเบียน');
   const ciPlus=section('AIA CI PLUS',[
-    item('🩺','ผลประโยชน์เมื่อได้รับการวินิจฉัยโรคร้ายแรง','คุ้มครองโรคร้ายแรงระดับรุนแรงตามนิยามของสัญญาเพิ่มเติม เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ โดยจ่ายผลประโยชน์เพียงโรคเดียวและครั้งเดียวตลอดอายุสัญญาเพิ่มเติม'),
-    item('🛡️','กรณีเสียชีวิตและข้อจำกัดการจ่าย','มีผลประโยชน์กรณีเสียชีวิตตามที่กำหนดในสัญญาเพิ่มเติม โดยผลประโยชน์โรคร้ายแรงและกรณีเสียชีวิตจะจ่ายเพียงอย่างใดอย่างหนึ่ง ไม่ใช่วงเงินที่จ่ายเพิ่มแยกจากกัน'),
-    item('📋','เงื่อนไขความคุ้มครอง','การจ่ายผลประโยชน์ขึ้นอยู่กับคำนิยามโรคร้ายแรง ระยะเวลารอคอย และข้อยกเว้นของสัญญาเพิ่มเติม รวมถึงเงื่อนไขการยืนยันการวินิจฉัย'),
+    item('','ผลประโยชน์เมื่อได้รับการวินิจฉัยโรคร้ายแรง','คุ้มครองโรคร้ายแรงระดับรุนแรงตามนิยามของสัญญาเพิ่มเติม เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ โดยจ่ายผลประโยชน์เพียงโรคเดียวและครั้งเดียวตลอดอายุสัญญาเพิ่มเติม'),
+    item('','กรณีเสียชีวิตและข้อจำกัดการจ่าย','มีผลประโยชน์กรณีเสียชีวิตตามที่กำหนดในสัญญาเพิ่มเติม โดยผลประโยชน์โรคร้ายแรงและกรณีเสียชีวิตจะจ่ายเพียงอย่างใดอย่างหนึ่ง ไม่ใช่วงเงินที่จ่ายเพิ่มแยกจากกัน'),
+    item('','เงื่อนไขความคุ้มครอง','การจ่ายผลประโยชน์ขึ้นอยู่กับคำนิยามโรคร้ายแรง ระยะเวลารอคอย และข้อยกเว้นของสัญญาเพิ่มเติม รวมถึงเงื่อนไขการยืนยันการวินิจฉัย'),
     renewal
   ]);
   const topUp=hasTopUp?section('AIA CI TOP UP – CI PLUS',[
-    item('💗','โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ ว่าเป็นโรคร้ายแรงระดับต้นถึงระดับปานกลางที่กำหนดไว้ภายใต้สัญญาเพิ่มเติม AIA CI Top Up จะจ่ายผลประโยชน์ตามเงื่อนไข และบันทึกสลักหลังสิ้นผลบังคับหลังจ่ายตามที่กำหนด'),
-    item('🔗','เงื่อนไขการแนบสัญญา','สัญญาเพิ่มเติมนี้ต้องแนบกับ AIA CI Plus และเป็นความคุ้มครองส่วนเพิ่มสำหรับโรคร้ายแรงระดับต้นถึงระดับปานกลาง ไม่ใช่การเปลี่ยนแปลงวงเงินหรือเงื่อนไขของ AIA CI Plus'),
+    item('','โรคร้ายแรงระดับต้นถึงระดับปานกลาง','เมื่อได้รับการวินิจฉัยหรือยืนยันจากแพทย์เป็นครั้งแรกในขณะที่ยังมีชีวิตอยู่ ว่าเป็นโรคร้ายแรงระดับต้นถึงระดับปานกลางที่กำหนดไว้ภายใต้สัญญาเพิ่มเติม AIA CI Top Up จะจ่ายผลประโยชน์ตามเงื่อนไข และบันทึกสลักหลังสิ้นผลบังคับหลังจ่ายตามที่กำหนด'),
+    item('','เงื่อนไขการแนบสัญญา','สัญญาเพิ่มเติมนี้ต้องแนบกับ AIA CI Plus และเป็นความคุ้มครองส่วนเพิ่มสำหรับโรคร้ายแรงระดับต้นถึงระดับปานกลาง ไม่ใช่การเปลี่ยนแปลงวงเงินหรือเงื่อนไขของ AIA CI Plus'),
     renewal
   ]):'';
   return `
@@ -13124,7 +13126,7 @@ function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
       <div class="ex-report-inner">
         <div class="rp-report-head"><div><div class="rp-report-title">20PL + เลือกความคุ้มครองเอง</div></div></div>
         <div class="pl20-ci-wrap">
-          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true">📋</span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>สัญญาเพิ่มเติมที่เลือก • ข้อมูลทุนและเบี้ยอยู่ในหน้าสรุป</p></div></div>
+          <div class="pl20-ci-heading"><span class="pl20-ci-heading-icon" aria-hidden="true"></span><div><h2>รายละเอียดผลประโยชน์โรคร้ายแรง</h2><p>สัญญาเพิ่มเติมที่เลือก • ข้อมูลทุนและเบี้ยอยู่ในหน้าสรุป</p></div></div>
           ${ciPlus}
           ${topUp}
           <div class="pl20-ci-footnote">เอกสารนี้เป็นสรุปเพื่อประกอบการนำเสนอเท่านั้น มิใช่กรมธรรม์หรือเอกสารรับรองผลประโยชน์ รายละเอียดโรคที่คุ้มครอง เงื่อนไข การจ่ายผลประโยชน์ ระยะเวลารอคอย และข้อยกเว้น ให้ยึดเอกสารสัญญาเพิ่มเติมฉบับที่ใช้จริง</div>
@@ -13142,24 +13144,24 @@ function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kinds){
   const careUnits=Math.max(0,Number(state.paylife20.opts.cfcUnits)||0);
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
-  const renewal=item('📅','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ตามอายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหม โดยเป็นไปตามเงื่อนไขและความเห็นชอบของนายทะเบียน');
+  const renewal=item('','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ตามอายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหม โดยเป็นไปตามเงื่อนไขและความเห็นชอบของนายทะเบียน');
   const tpd=kinds.includes('tpd')?section('AIA TPD RIDER — ทุพพลภาพถาวรสิ้นเชิง',[
-    item('🛡️','เหตุทุพพลภาพที่ได้รับความคุ้มครอง','คุ้มครองกรณีบาดเจ็บจากอุบัติเหตุหรือเจ็บป่วยจนเป็นเหตุให้ทุพพลภาพถาวรสิ้นเชิงตามนิยามของสัญญาเพิ่มเติม'),
-    item('♿','ไม่สามารถดำรงกิจวัตรหรือทำงานได้','รวมกรณีไม่สามารถปฏิบัติกิจวัตรประจำวันด้วยตนเองอย่างน้อย 3 อย่าง หรือไม่สามารถทำงานหรือประกอบอาชีพเพื่อรับค่าตอบแทน โดยต่อเนื่องอย่างน้อย <strong>180 วัน</strong> ตามเงื่อนไขสัญญา'),
-    item('👁️','การสูญเสียอวัยวะหรือประสาทสัมผัส','รวมถึงการสูญเสียสายตาทั้งสองข้าง หรือการสูญเสียมือและ/หรือเท้าตามลักษณะที่กำหนดไว้ในสัญญาเพิ่มเติม'),
+    item('','เหตุทุพพลภาพที่ได้รับความคุ้มครอง','คุ้มครองกรณีบาดเจ็บจากอุบัติเหตุหรือเจ็บป่วยจนเป็นเหตุให้ทุพพลภาพถาวรสิ้นเชิงตามนิยามของสัญญาเพิ่มเติม'),
+    item('','ไม่สามารถดำรงกิจวัตรหรือทำงานได้','รวมกรณีไม่สามารถปฏิบัติกิจวัตรประจำวันด้วยตนเองอย่างน้อย 3 อย่าง หรือไม่สามารถทำงานหรือประกอบอาชีพเพื่อรับค่าตอบแทน โดยต่อเนื่องอย่างน้อย <strong>180 วัน</strong> ตามเงื่อนไขสัญญา'),
+    item('','การสูญเสียอวัยวะหรือประสาทสัมผัส','รวมถึงการสูญเสียสายตาทั้งสองข้าง หรือการสูญเสียมือและ/หรือเท้าตามลักษณะที่กำหนดไว้ในสัญญาเพิ่มเติม'),
     renewal
   ]):'';
   const hc=kinds.includes('healthcancer')?section('AIA HEALTH CANCER',[
-    item('🎗️','ผลประโยชน์เมื่อเสียชีวิตเนื่องจากโรคร้ายแรง','คุ้มครองกรณีเสียชีวิตจากโรคร้ายแรงตามนิยามที่กำหนด เช่น มะเร็งบางระยะ โรคโปลิโอ ปอดอุดกั้นเรื้อรังชนิดถุงลมโป่งพอง กล้ามเนื้อเสื่อม โรคระบบประสาทมัลติเพิลสเคลอโรสิส และโรคตับแข็ง'),
-    item('🏥','ค่าชดเชยรายวันกรณีผู้ป่วยใน','กรณีเข้าพักรักษาตัวในโรงพยาบาลเนื่องจากโรคร้ายแรงที่คุ้มครอง จ่ายค่าชดเชยรายวัน <strong>'+fmt20(cancerUnits*1000)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก โดยคุ้มครองไม่เกิน <strong>500 วันตลอดอายุสัญญา</strong>'),
+    item('','ผลประโยชน์เมื่อเสียชีวิตเนื่องจากโรคร้ายแรง','คุ้มครองกรณีเสียชีวิตจากโรคร้ายแรงตามนิยามที่กำหนด เช่น มะเร็งบางระยะ โรคโปลิโอ ปอดอุดกั้นเรื้อรังชนิดถุงลมโป่งพอง กล้ามเนื้อเสื่อม โรคระบบประสาทมัลติเพิลสเคลอโรสิส และโรคตับแข็ง'),
+    item('','ค่าชดเชยรายวันกรณีผู้ป่วยใน','กรณีเข้าพักรักษาตัวในโรงพยาบาลเนื่องจากโรคร้ายแรงที่คุ้มครอง จ่ายค่าชดเชยรายวัน <strong>'+fmt20(cancerUnits*1000)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก โดยคุ้มครองไม่เกิน <strong>500 วันตลอดอายุสัญญา</strong>'),
     renewal
   ]):'';
   const cfc=kinds.includes('cfc')?section('AIA CARE FOR CANCER',[
-    item('💗','ค่าชดเชยรายวันเนื่องจากโรคมะเร็ง','เมื่อได้รับการวินิจฉัยว่าเป็นโรคมะเร็งที่คุ้มครองและได้รับการรักษาตามเงื่อนไข ให้ค่าชดเชยผู้ป่วยใน <strong>'+fmt20(careUnits*2000)+' บาท/วัน</strong> และค่าชดเชยผู้ป่วยนอกที่เข้าเงื่อนไข <strong>'+fmt20(careUnits*500)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก'),
-    item('💉','การรักษาโรคมะเร็งแบบผู้ป่วยนอก','ครอบคลุมตามข้อกำหนดสำหรับเคมีบำบัด ยาออกฤทธิ์จำเพาะต่อเซลล์มะเร็ง ภูมิคุ้มกันบำบัด ฮอร์โมนบำบัด และการรักษาด้วยรังสี รวมทั้งวิธีให้ยาตามเกณฑ์ที่กำหนด'),
-    item('🩻','การตรวจติดตามด้วยภาพวินิจฉัย','การตรวจ MRI, CT หรือ PET ที่เกี่ยวข้องโดยตรงกับการรักษาโรคมะเร็ง และเกิดขึ้นภายใน <strong>60 วัน</strong> ก่อนหรือหลังการวินิจฉัยหรือการรักษาที่เข้าเงื่อนไข โดยมีข้อจำกัดจำนวนครั้งและประเภทผลประโยชน์'),
-    item('📆','ข้อจำกัดค่าชดเชยรายวัน','กรณีที่เข้าเงื่อนไขหลายรายการในวันเดียวกัน บริษัทจ่ายตามผลประโยชน์ที่สูงที่สุดเพียงรายการเดียว รวมค่าชดเชยตามที่กำหนดไม่เกิน <strong>1,000 วัน</strong> ตลอดระยะเวลาคุ้มครอง'),
-    item('🎗️','ผลประโยชน์กรณีเสียชีวิตเนื่องจากโรคมะเร็ง','คุ้มครองการเสียชีวิตจากโรคมะเร็งที่กำหนด โดยครอบคลุมตามนิยามของสัญญาเพิ่มเติม ทั้งมะเร็งระยะไม่ลุกลามและมะเร็งระยะลุกลาม ภายใต้ข้อยกเว้นของกรมธรรม์'),
+    item('','ค่าชดเชยรายวันเนื่องจากโรคมะเร็ง','เมื่อได้รับการวินิจฉัยว่าเป็นโรคมะเร็งที่คุ้มครองและได้รับการรักษาตามเงื่อนไข ให้ค่าชดเชยผู้ป่วยใน <strong>'+fmt20(careUnits*2000)+' บาท/วัน</strong> และค่าชดเชยผู้ป่วยนอกที่เข้าเงื่อนไข <strong>'+fmt20(careUnits*500)+' บาท/วัน</strong> ตามจำนวนหน่วยที่เลือก'),
+    item('','การรักษาโรคมะเร็งแบบผู้ป่วยนอก','ครอบคลุมตามข้อกำหนดสำหรับเคมีบำบัด ยาออกฤทธิ์จำเพาะต่อเซลล์มะเร็ง ภูมิคุ้มกันบำบัด ฮอร์โมนบำบัด และการรักษาด้วยรังสี รวมทั้งวิธีให้ยาตามเกณฑ์ที่กำหนด'),
+    item('','การตรวจติดตามด้วยภาพวินิจฉัย','การตรวจ MRI, CT หรือ PET ที่เกี่ยวข้องโดยตรงกับการรักษาโรคมะเร็ง และเกิดขึ้นภายใน <strong>60 วัน</strong> ก่อนหรือหลังการวินิจฉัยหรือการรักษาที่เข้าเงื่อนไข โดยมีข้อจำกัดจำนวนครั้งและประเภทผลประโยชน์'),
+    item('','ข้อจำกัดค่าชดเชยรายวัน','กรณีที่เข้าเงื่อนไขหลายรายการในวันเดียวกัน บริษัทจ่ายตามผลประโยชน์ที่สูงที่สุดเพียงรายการเดียว รวมค่าชดเชยตามที่กำหนดไม่เกิน <strong>1,000 วัน</strong> ตลอดระยะเวลาคุ้มครอง'),
+    item('','ผลประโยชน์กรณีเสียชีวิตเนื่องจากโรคมะเร็ง','คุ้มครองการเสียชีวิตจากโรคมะเร็งที่กำหนด โดยครอบคลุมตามนิยามของสัญญาเพิ่มเติม ทั้งมะเร็งระยะไม่ลุกลามและมะเร็งระยะลุกลาม ภายใต้ข้อยกเว้นของกรมธรรม์'),
     renewal
   ]):'';
   return `
@@ -14422,7 +14424,7 @@ function buildCIProCareReportData(){
 }
 
 function buildCIProCareTimelineHTML(data){
-  const premiumIcons = Array.from({length:data.product.payYears}, ()=>'<span>▲</span>').join('');
+  const premiumIcons = Array.from({length:data.product.payYears}, ()=>'<span>ปี</span>').join('');
   const ciMax10x = data.customer.sumInsured * 10;
 
   return `
@@ -16124,7 +16126,7 @@ function riderControlsHTML(){
   const rs=state.paylife20.riders, op=state.paylife20.opts;
   const on=k=>rs[k]?'on':'';
   const selected=(a,b)=>a===b?'selected':'';
-  const toggle=(key,name)=>`<div class="pl20-rider-main"><div class="pl20-rider-name">${name}</div><button type="button" class="pl20-toggle ${on(key)}" data-rider-btn="${key}">${rs[key]?'✓ เลือกแล้ว':'○ ยังไม่เลือก'}</button></div>`;
+  const toggle=(key,name)=>`<div class="pl20-rider-main"><div class="pl20-rider-name">${name}</div><button type="button" class="pl20-toggle ${on(key)}" data-rider-btn="${key}">${rs[key]?' เลือกแล้ว':' ยังไม่เลือก'}</button></div>`;
   const moneyInput=(key,value,label='ทุนประกัน')=>`<label class="pl20-num-field"><span>${label}</span><input type="text" inputmode="numeric" data-money-input="1" data-rider-opt="${key}" value="${pl20FormatMoneyInput(value)}"></label>`;
 
   return `
