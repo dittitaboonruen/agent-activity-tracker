@@ -32,17 +32,6 @@ export default function CalculatorPage() {
           เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย
         </h1>
 
-        <p
-          style={{
-            fontSize: 14,
-            lineHeight: 1.7,
-            marginBottom: 20,
-            color: "#6B6455",
-          }}
-        >
-          เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย
-          สำหรับตัวแทน Royal Partner
-        </p>
 
         <iframe
           title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
