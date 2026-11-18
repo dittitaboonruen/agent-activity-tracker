@@ -9226,6 +9226,54 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 #pay25-report-page-1 .p25-plan-total-box .t{font-size:8px !important;}
 #pay25-report-page-1 .p25-plan-total-box .v{font-size:12.5px !important;}
 
+
+/* ---------- CI ProCare A4 horizontal balance: scoped to this report ---------- */
+#ci-procare-report-page-1 > .rp-page-inner{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  min-height:1123px !important;
+  transform:none !important;
+  transform-origin:top left !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+#ci-procare-report-page-1 .rp-report-head,
+#ci-procare-report-page-1 .rp-report-meta,
+#ci-procare-report-page-1 .rp-report-kpis,
+#ci-procare-report-page-1 .rp-ci-map,
+#ci-procare-report-page-1 .rp-section,
+#ci-procare-report-page-1 .rp-resource-section{
+  box-sizing:border-box !important;
+  max-width:calc(100% - 28px) !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+#ci-procare-report-page-1 .rp-report-head{
+  width:100% !important;
+  max-width:100% !important;
+  padding-left:18px !important;
+  padding-right:18px !important;
+}
+#ci-procare-report-page-1 .rp-report-meta{
+  width:calc(100% - 28px) !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+#ci-procare-report-page-1 .rp-report-kpis{
+  width:calc(100% - 28px) !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+#ci-procare-report-page-1 .rp-ci-map,
+#ci-procare-report-page-1 .rp-section,
+#ci-procare-report-page-1 .rp-resource-section{
+  width:calc(100% - 28px) !important;
+}
+#ci-procare-report-page-1 .rp-benefit-main > *,
+#ci-procare-report-page-1 .rp-benefit-subrow > *{
+  min-width:0 !important;
+}
+
 </style>
 
 </head>
@@ -15906,9 +15954,15 @@ function fitReportA4Contents(root){
 
     // Measure the *visible contents*, not only the 1123px fixed-height wrapper.
     // Promotional banners can extend below wrappers with overflow:hidden.
-    inner.style.transform = 'none';
-    inner.style.removeProperty('width');
-    inner.style.removeProperty('max-width');
+    if(page.id === 'ci-procare-report-page-1'){
+      inner.style.setProperty('transform', 'none', 'important');
+      inner.style.setProperty('width', '100%', 'important');
+      inner.style.setProperty('max-width', '100%', 'important');
+    }else{
+      inner.style.transform = 'none';
+      inner.style.removeProperty('width');
+      inner.style.removeProperty('max-width');
+    }
     inner.style.transformOrigin = 'top left';
     const pageBox = page.getBoundingClientRect();
     const contentBox = inner.getBoundingClientRect();
@@ -15954,7 +16008,11 @@ function fitReportA4Contents(root){
         const fullWidth = (page.clientWidth - 2) / safeScale;
         inner.style.setProperty('max-width', 'none', 'important');
         inner.style.setProperty('width', fullWidth.toFixed(2) + 'px', 'important');
-        inner.style.transform = 'scale(' + safeScale.toFixed(5) + ')';
+        if(page.id === 'ci-procare-report-page-1'){
+          inner.style.setProperty('transform', 'scale(' + safeScale.toFixed(5) + ')', 'important');
+        }else{
+          inner.style.transform = 'scale(' + safeScale.toFixed(5) + ')';
+        }
       }else{
         const remainingWidth = Math.max(0, availableWidth - inner.offsetWidth * safeScale);
         inner.style.transform = 'translateX(' + (remainingWidth / 2).toFixed(2) +
