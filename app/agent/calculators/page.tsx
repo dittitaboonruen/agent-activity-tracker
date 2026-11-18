@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Insurance Calculator | Royal Partner",
+  title: "เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย | Royal Partner",
 };
 
 export default function CalculatorPage() {
@@ -25,27 +25,16 @@ export default function CalculatorPage() {
             fontSize: 14,
           }}
         >
-          ← กลับ Agent Portal
+          ← กลับหน้าตัวแทน
         </Link>
 
         <h1 style={{ fontSize: 26, marginBottom: 8 }}>
-          Insurance Calculator
+          เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย
         </h1>
 
-        <p
-          style={{
-            fontSize: 14,
-            lineHeight: 1.7,
-            marginBottom: 20,
-            color: "#6B6455",
-          }}
-        >
-          เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย
-          สำหรับตัวแทน Royal Partner
-        </p>
 
         <iframe
-          title="Royal Partner Insurance Calculator"
+          title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
           src="/illustrations/royal_partners_illustration_tool.html"
           sandbox="allow-scripts allow-downloads allow-same-origin allow-modals"
           referrerPolicy="no-referrer"
