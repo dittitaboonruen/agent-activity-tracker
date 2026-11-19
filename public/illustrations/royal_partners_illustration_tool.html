@@ -9276,6 +9276,16 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 
 </style>
 
+<style id="excellent-rider-a4-fixes">
+.excellent-rider-report-page .excellent-premium-total-section{margin-top:4px}
+.excellent-rider-report-page .excellent-premium-grand-total{background:#142a47;color:#fff}
+.excellent-rider-report-page .excellent-premium-grand-total td{color:#fff!important;font-weight:800!important}
+.excellent-rider-report-page .excellent-premium-note{font-size:9px;color:#7a6250;padding:7px 18px 3px;line-height:1.45}
+.excellent-rider-report-page .pl20-ci-wrap{max-width:calc(100% - 36px);min-width:0}
+.excellent-rider-report-page .pl20-ci-item,.excellent-rider-report-page .pl20-ci-panel{max-width:100%;min-width:0;box-sizing:border-box}
+.excellent-rider-report-page table{max-width:100%;table-layout:fixed}
+.excellent-rider-report-page td,.excellent-rider-report-page th{overflow-wrap:anywhere;white-space:normal}
+</style>
 </head>
 <body>
 
@@ -16959,11 +16969,20 @@ function excellentRiderBenefitPages(model){
   const template=document.createElement('template');template.innerHTML=html;
   return template.content.querySelector('.pl20-ci-wrap')?.outerHTML||'';
  };
- const inlineFirst=detailPages.length&&detailPages[0].inline&&model.riders.length<=2;
- const firstBody=inlineFirst?benefitBody(detailPages[0].html):'';
- if(inlineFirst&&firstBody)detailPages.shift();
+ // Never inline an unmeasured full Rider detail below the summary.
+ // The browser-side A4 paginator will only move content into remaining space if it fits.
+ const firstBody='';
+ const premiumTotal='<div class="rp-section excellent-premium-total-section">'+
+  '<div class="rp-section-title">สรุปเบี้ยประกันภัยรวม</div>'+
+  '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><tbody>'+
+  '<tr><td colspan="2">เบี้ยสัญญาหลัก Excellent / ปี</td><td>'+fmt(model.excellentPremium)+' บาท</td></tr>'+
+  '<tr><td colspan="2">เบี้ย Rider ที่เลือก / ปี</td><td>'+fmt(model.riderTotal)+' บาท</td></tr>'+
+  '<tr class="excellent-premium-grand-total"><td colspan="2"><strong>เบี้ยประกันภัยรวมปีแรก</strong></td><td><strong>'+fmt(model.totalCurrent)+' บาท</strong></td></tr>'+
+  '</tbody></table></div>'+
+  '<div class="excellent-premium-note">เบี้ยสัญญาเพิ่มเติมเป็นเบี้ยปีปัจจุบันและอาจเปลี่ยนตามอายุหรือเงื่อนไขการต่ออายุ โดยเงินคืนและผลประโยชน์ครบกำหนดของ Excellent อ้างอิงสัญญาหลักเท่านั้น</div>'+
+  '</div>';
  const pages=[];
- const summaryPage='<section class="ex-report-page health-combo-report-page health-happy-rider-page excellent-rider-report-page"><div class="ex-report-inner">'+styles+head+meta+summary+
+ const summaryPage='<section class="ex-report-page health-combo-report-page health-happy-rider-page excellent-rider-report-page"><div class="ex-report-inner">'+styles+head+meta+summary+premiumTotal+
   firstBody+(detailPages.length===0?fallbackMarkup:'')+disclaimer+
   '<div class="ex-footer-spacer"></div><div class="rp-page-number" data-hh-page-number="2"></div></div></section>';
  pages.push(summaryPage);
