@@ -15575,7 +15575,8 @@ async function downloadExcellentPDF(btn){
     return;
   }
 
-  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #excellent-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  const reportPages=document.querySelector('.rp-preview-pdf-source #excellent-report-page-1')?.closest('.rp-report-pages');
+  const pages=reportPages?[...reportPages.querySelectorAll(':scope > .ex-report-page')]:[];
   if(!pages.length){
     alert('ไม่พบใบสรุป Excellent');
     return;
@@ -15626,7 +15627,8 @@ async function downloadPay25PDF(btn){
     return;
   }
 
-  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #pay25-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  const reportPages=document.querySelector('.rp-preview-pdf-source #pay25-report-page-1')?.closest('.rp-report-pages');
+  const pages=reportPages?[...reportPages.querySelectorAll(':scope > .ex-report-page')]:[];
   if(!pages.length){
     alert('ไม่พบใบสรุป 15 Pay 25');
     return;
