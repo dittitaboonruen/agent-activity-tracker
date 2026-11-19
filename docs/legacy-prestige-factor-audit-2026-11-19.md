@@ -59,3 +59,29 @@
 **Runtime inspection:** Branch-scoped encrypted Preview factor configuration contains three named variables (male CV, male RPU, female binary). This only establishes names and scope, not values, digest integrity, or success through the protected API. Unauthenticated access to the Preview deployment remains blocked; secure authenticated live Table B calculation is **NOT VERIFIED**.
 
 **Release gate:** Do not merge the heavily divergent PR directly into main or deploy proprietary/manual data in public assets. Keep changes isolated until factor runtime parity, authenticated integration QA, and branch reconciliation are complete.
+
+
+## Actual encrypted Vercel build-time integrity finding — 19 Nov 2026
+
+### Test method
+A private, branch-only Vercel build preflight was added at `scripts/legacy-factor-build-qa.mjs` and invoked in the feature branch `npm run build` before Next.js compilation. It decodes the **existing encrypted Preview environment variables on the Vercel build machine**, validates data dimensions and every audited SHA-256 digest using the same source manifest as the server API, and emits only group-level PASS/BLOCKED results. No factors, payloads, or hashes were printed or committed.
+
+### Observed runtime-source results
+| Payment term | Gender | Cash value (CV) | Reduced paid-up (RPU) | Group |
+|---|---|---|---|---|
+| 10 Pay | Male | PASS | PASS | PASS |
+| 10 Pay | Female | PASS | PASS | PASS |
+| 15 Pay | Male | PASS | PASS | PASS |
+| 15 Pay | Female | PASS | PASS | PASS |
+| 20 Pay | Male | **PASS** | **BLOCKED** | **BLOCKED** |
+| 20 Pay | Female | PASS | PASS | PASS |
+
+Evidence: Vercel build of commit `1ee1d2dce27b15bf438040adf521dd063f25c5c7` (`dpl_Hku2B62SRPUWKQdLLrwuk6RbQXrN`) returned `[Legacy Factor Runtime] 20 Pay / M: BLOCKED (CV PASS / RPU BLOCKED)` and intentionally failed the build with `factor_integrity_mismatch`. A prior build of `e4e1eec` also blocked 20 Pay Male at group level.
+
+### Root cause / next fix
+The deployed `LEGACY_RPU_MALE_FACTORS_BR_B64` preview configuration does **not** match the audited 20 Pay male RPU primary-factor array, or its structure does not meet the required format. Other groups from the same configuration match. The output does not prove *which exact source cells* are different. **Do not weaken the expected hash, silently override a value, or reuse another term's factors.**
+
+Obtain the previously audited 20 Pay male RPU values from the private source/manual audit and regenerate **only the affected confidential Preview environment input**; verify with this build gate. Keep values off public assets and Git. Do not deploy or merge until 6/6 groups PASS and subsequent authenticated Table B/PDF QA completes.
+
+### Release state
+**BLOCKED BY VERIFIED CONFIGURATION MISMATCH (20 Pay Male RPU)** — stronger evidence than the previous "runtime not verified" status. Production unaffected.
