@@ -41,9 +41,12 @@ const LEGACY_RPU_UNRESOLVED_SEGMENT_BITS: Record<string,Record<number,number>> =
   "20:F":{63:262144,64:262144,65:393216,66:393216,67:458752,68:491520,69:507904,70:507904,71:516096,72:516096,73:520192,74:522240,75:522240},
 };
 let factorCache: Factors | null = null;
+// Keep diagnostic information coarse: never serialize factors, hash values or secrets.
+let factorHealthCode: "not_checked" | "missing_configuration" | "validation_failed" | "verified" = "not_checked";
 
 function getVerifiedFactors(): Factors | null {
-  if (factorCache) return factorCache;
+  if (factorCache) { factorHealthCode = "verified"; return factorCache; }
+  factorHealthCode = "validation_failed";
   const encoded = process.env.LEGACY_TABLE_B_FACTORS_BR_B64;
   try {
     let tables: Factors;
@@ -55,7 +58,10 @@ function getVerifiedFactors(): Factors | null {
       const maleCvEncoded=process.env.LEGACY_TABLE_B_MALE_CV_BR_B64;
       const maleRpuEncoded=process.env.LEGACY_RPU_MALE_FACTORS_BR_B64;
       const femaleEncoded=process.env.LEGACY_TABLE_B_FEMALE_U16_B64;
-      if(!maleCvEncoded||!maleRpuEncoded||!femaleEncoded)return null;
+      if(!maleCvEncoded||!maleRpuEncoded||!femaleEncoded){
+        factorHealthCode = "missing_configuration";
+        return null;
+      }
       const maleCv=JSON.parse(brotliDecompressSync(Buffer.from(maleCvEncoded,"base64"),
         {maxOutputLength:60000}).toString("utf8")) as Record<string,number[][]>;
       const maleRpu=JSON.parse(brotliDecompressSync(Buffer.from(maleRpuEncoded,"base64"),
@@ -116,6 +122,7 @@ function getVerifiedFactors(): Factors | null {
       }
     }
     factorCache = tables;
+    factorHealthCode = "verified";
     return tables;
   } catch {
     return null; // fail closed: no estimates, no cross-case substitution
@@ -137,6 +144,25 @@ export async function GET(request:NextRequest) {
      !["admin","manager","training"].includes(profile.role))
     return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
   const query=request.nextUrl.searchParams;
+  if(query.get("selfTest")==="1"){
+    // Internal QA only: additionally restrict diagnostic access to admin/training.
+    // No values, secrets, hashes, or table rows leave the server.
+    if(!["admin","training"].includes(profile.role))
+      return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
+    const verified=!!getVerifiedFactors();
+    const groups=([10,15,20] as const).flatMap(term=>
+      (["M","F"] as const).map(gender=>({
+        term,gender,status:verified?"PASS":"BLOCKED"
+      }))
+    );
+    return NextResponse.json({
+      check:"legacy_table_b_integrity",
+      result:verified?"PASS":"BLOCKED",
+      reason:verified?"verified":factorHealthCode,
+      groups,
+      note:"Internal factor integrity only; not a product approval or insurer quotation."
+    },{status:verified?200:503,headers:noStore});
+  }
   const gender=query.get("gender");
   const age=Number(query.get("age"));
   const sum=Number(query.get("sum"));
