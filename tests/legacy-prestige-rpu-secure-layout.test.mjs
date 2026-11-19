@@ -115,3 +115,50 @@ test('Legacy Preview login restores guarded Table B without public Factor bypass
  assert.match(api,/profile\.active!==true/);
  assert.match(api,/restricted_factors_not_configured/);
 });
+
+
+test('Legacy Table B automatically recovers after a temporary 503 without another input upload',async()=>{
+ const begin=html.indexOf('const LEGACY_TABLE_B_DATA=new Map();');
+ const end=html.indexOf('function lookupLegacyPolicyValueIllustration(',begin);
+ assert.ok(begin>=0&&end>begin);
+ const timers=[];let now=100000,fetchCalls=0,renderCalls=0;
+ const state={tab:'legacy',age:35,gender:'หญิง',sum:15000000,legacy:{term:20}};
+ const expected={
+   gender:'F',issueAge:35,sum:15000000,term:20,
+   rows:Array.from({length:64},(_,i)=>({age:35+i,policyYear:i+1,
+      surrender:i===1?105000:null,paidUp:i===1?630000:null}))
+ };
+ const sandbox={
+   state,Map,Set,Number,String,Error,
+   Date:{now:()=>now},
+   URLSearchParams:class{constructor(data){this.data=data}toString(){
+     return Object.entries(this.data).map(([k,v])=>k+'='+v).join('&');
+   }},
+   setTimeout:cb=>(timers.push(cb),timers.length),clearTimeout:()=>{},
+   fetch:async()=>{
+     fetchCalls++;
+     return fetchCalls===1?{ok:false,status:503}:
+       {ok:true,status:200,json:async()=>expected};
+   },
+   render:()=>{renderCalls++;}
+ };
+ vm.runInNewContext(html.slice(begin,end)+
+   '\\nglobalThis.legacyQA={loadLegacyTableB,'+
+   'error:()=>LEGACY_TABLE_B_ERRORS.get(\"35:หญิง:15000000:20\"),'+
+   'row:()=>LEGACY_TABLE_B_DATA.get(\"35:หญิง:15000000:20\")?.get(36)};',sandbox);
+ const qa=sandbox.legacyQA;
+ qa.loadLegacyTableB(35,'หญิง',15000000,20);
+ await timers.shift()();
+ assert.match(qa.error(),/503/);
+ assert.equal(fetchCalls,1);
+ qa.loadLegacyTableB(35,'หญิง',15000000,20);
+ assert.equal(timers.length,0,'cooldown prevents repeated requests on re-render');
+ now+=16000;
+ qa.loadLegacyTableB(35,'หญิง',15000000,20);
+ await timers.shift()();
+ assert.equal(fetchCalls,2);
+ assert.equal(qa.error(),undefined);
+ assert.equal(qa.row().surrender,105000);
+ assert.equal(qa.row().paidUp,630000);
+ assert.ok(renderCalls>=2,'table refreshes after each completed request');
+});
