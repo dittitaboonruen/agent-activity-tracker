@@ -10146,7 +10146,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7, mode:'base' },
   excellentRiders:null,
-  pay25: { subtab:'planA', planBTerm:7 },
+  pay25: { subtab:'planA', planBTerm:7, mode:'base' },
+  pay25Riders:null,
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
   annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' }
 };
@@ -10402,9 +10403,24 @@ function viewExcellent(app){
   addExportButton(app, 'excellent');
 }
 
+function ensurePay25Riders(){
+ if(!state.pay25Riders){
+  state.pay25Riders=JSON.parse(JSON.stringify(state.paylife20));
+  Object.keys(state.pay25Riders.riders).forEach(k=>state.pay25Riders.riders[k]=false);
+  state.pay25Riders.mode='full';
+ }
+ return state.pay25Riders;
+}
+function getPay25RiderModel(){
+ const riders=state.pay25.mode==='full'?get20PayLifeSelectedRiders('pay25Riders'):[];
+ const riderTotal=riders.reduce((n,r)=>n+r.premium,0);
+ const mainPremium=calcPay25(state.age,state.sum,state.tax).premium;
+ return {riders,riderTotal,excellentPremium:mainPremium,totalCurrent:mainPremium+riderTotal,age:state.age,gender:state.gender};
+}
 function viewPay25(app){
   const r = calcPay25(state.age, state.sum, state.tax);
   const planBRows = calcPay25RPU(state.age, state.gender, state.sum, r.premium);
+  const pay25RiderMode=state.pay25.mode==='full';
 
   app.innerHTML = panelShell(
     'savings',
@@ -10412,13 +10428,25 @@ function viewPay25(app){
     'ชำระเบี้ย 15 ปี คุ้มครอง 25 ปี พร้อมเงินคืนรายปีและความคุ้มครองชีวิตที่เพิ่มขึ้นตามช่วงปี'
   );
 
+  const riderModel=pay25RiderMode?getPay25RiderModel():null;
   fillSummary(app, [
-    {lbl:'เบี้ยประกันภัยต่อปี', val:fmt(r.premium)},
+    {lbl:pay25RiderMode?'เบี้ยสัญญาหลัก 15 Pay 25 / ปี':'เบี้ยประกันภัยต่อปี', val:fmt(r.premium)},
+    ...(pay25RiderMode?[{lbl:'เบี้ย Rider ที่เลือก / ปี',val:fmt(riderModel.riderTotal)},{lbl:'เบี้ยรวมปีแรก',val:fmt(riderModel.totalCurrent)}]:[]),
     {lbl:'เงินคืนรายปีรวม ปีที่ 2–24', val:fmt(state.sum*0.23)+' (23%)'},
     {lbl:'เงินครบกำหนดสัญญา ปีที่ 25', val:fmt(state.sum*1.21)+' (121%)'},
   ]);
 
   const panel = app.querySelector('.panel');
+  const modes=document.createElement('div');
+  modes.className='pl20-mode-tabs';
+  modes.innerHTML='<button type="button" class="pl20-mode-btn '+(!pay25RiderMode?'active':'')+'" data-pay25-mode="base">15 Pay 25 อย่างเดียว</button>'+
+    '<button type="button" class="pl20-mode-btn '+(pay25RiderMode?'active':'')+'" data-pay25-mode="full">15 Pay 25 + เลือกความคุ้มครองเอง</button>';
+  panel.appendChild(modes);
+  modes.querySelectorAll('[data-pay25-mode]').forEach(button=>button.addEventListener('click',()=>{
+    state.pay25.mode=button.dataset.pay25Mode;
+    if(state.pay25.mode==='full')ensurePay25Riders();
+    render();
+  }));
 
   const chartWrap = document.createElement('div');
   chartWrap.innerHTML = buildPay25ChartHTML();
@@ -10434,7 +10462,7 @@ function viewPay25(app){
       Plan B — หยุดชำระเบี้ยก่อนกำหนด (เงินสำเร็จ)
     </button>
   `;
-  panel.appendChild(tabs);
+  if(!pay25RiderMode)panel.appendChild(tabs);
 
   tabs.querySelectorAll('[data-p25-tab]').forEach(btn=>{
     btn.onclick = ()=>{
@@ -10447,7 +10475,7 @@ function viewPay25(app){
   body.className = 'ex-ui-body';
   panel.appendChild(body);
 
-  if(state.pay25.subtab === 'planA'){
+  if(pay25RiderMode || state.pay25.subtab === 'planA'){
     const ledger = document.createElement('div');
     ledger.className = 'ledger-wrap ex-ui-ledger';
     ledger.innerHTML = '<h3>Plan A — ตารางชำระเบี้ยและผลประโยชน์</h3><div class="ledger-el"></div>';
@@ -10499,6 +10527,25 @@ function viewPay25(app){
     }
   }
 
+  if(pay25RiderMode){
+    ensurePay25Riders();
+    const riderBox=document.createElement('div');
+    riderBox.className='pl20-rider-wrap';
+    riderBox.innerHTML=riderControlsHTML('pay25Riders');
+    panel.appendChild(riderBox);
+    wireRiderControls(riderBox,'pay25Riders');
+    const selected=getPay25RiderModel();
+    if(selected.riders.length){
+      const list=document.createElement('div');list.className='ledger-wrap';
+      list.innerHTML='<h3>สรุปสัญญาเพิ่มเติมที่เลือก</h3><table class="ledger"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
+       selected.riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('')+
+       '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(selected.riderTotal)+' บาท</td></tr></tbody></table>';
+      panel.appendChild(list);
+    }
+    const note=document.createElement('div');note.className='notewrap';
+    note.textContent='เบี้ย Rider เป็นเบี้ยปีปัจจุบัน โปรดตรวจสอบเงื่อนไขการแนบ Rider กับ 15 Pay 25 ก่อนใช้เสนอขายจริง';
+    panel.appendChild(note);
+  }
   addExportButton(app, 'pay25');
 }
 
@@ -16542,6 +16589,7 @@ function healthHappyExtraRiders(){
 function riderControlsHTML(context='paylife20'){
  if(context==='healthComboRiders')ensureHealthHappyRiders();
  if(context==='excellentRiders')ensureExcellentRiders();
+ if(context==='pay25Riders')ensurePay25Riders();
   const rs=state[context].riders, op=state[context].opts;
   const on=k=>rs[k]?'on':'';
   const selected=(a,b)=>a===b?'selected':'';
@@ -16671,6 +16719,7 @@ function riderControlsHTML(context='paylife20'){
 function wireRiderControls(box,context='paylife20'){
  if(context==='healthComboRiders')ensureHealthHappyRiders();
  if(context==='excellentRiders')ensureExcellentRiders();
+ if(context==='pay25Riders')ensurePay25Riders();
   const riderForOption={"healthhappyPlan":"healthhappy","hhkidsPlan":"hhkids","hhkidsTier":"hhkids","hsPlan":"healthsaver","icPlan":"infinitecare","icTerritory":"infinitecare","mpSi":"multipayci","tpdSi":"tpd","ciplusSi":"ciplus","ctuSi":"citopup","hcUnits":"healthcancer","hcSmoker":"healthcancer","cfcUnits":"cfc","lcPlan":"ladycare","lcSi":"ladycare","aiSi":"ai","aiClass":"ai","aiRcc":"ai","addSi":"add","addClass":"add","addRcc":"add","adbSi":"adb","adbClass":"adb","adbRcc":"adb","hbDaily":"hb","hbClass":"hb","hbExtraDaily":"hbextra","hbExtraClass":"hbextra"};
   const autoSelect=(key,value)=>{
     const rider=riderForOption[key];
