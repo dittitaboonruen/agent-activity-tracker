@@ -7,6 +7,7 @@
 - CV: 10 Pay male p7 / female p8; 15 Pay male p11 / female p12; 20 Pay male p17 / female p18.
 - RPU: 10 Pay male/female p10 (left/right); 15 Pay male p15 / female p16; 20 Pay male p21 / female p22.
 - Two independent native-text engines (PyMuPDF and pdfplumber/pdfminer) agreed across **22,344 source table cells** (21,948 populated primary numeric factor cells, 396 blank CV cells). No OCR, extrapolation, or guessed values were used.
+- There are **854 literal zero primary-factor cells** (427 CV and 427 RPU). These must display as 0, not as an unavailable dash; the server calculation preserves `>=0` while absent year factor remains null.
 - Every table has 76 issue-age rows. CV 35 columns (trailing blanks after attained age limits); RPU 9/14/19 columns for 10/15/20 Pay.
 - A second numerical segment occurs in each RPU display cell; **206 cells have a nonzero second segment** (male/female: 10 Pay 10/5, 15 Pay 33/23, 20 Pay 77/58). This segment was preserved in the offline audit but is NOT represented by the current RPU server factor rows. Its contractual interpretation MUST be confirmed with AIA prior to CV/RPU sign-off.
 - The branch API compares SHA-256 of `JSON.stringify` of 12 decoded primary-factor arrays against this manual-derived manifest and fails closed on mismatches; hashes only are in source control, NOT proprietary raw factors.
