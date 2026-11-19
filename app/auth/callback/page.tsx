@@ -11,6 +11,12 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function finishLogin() {
       try {
+        // Return only to the known Legacy QA page; never follow external URLs.
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("next") ===
+          "/illustrations/royal_partners_illustration_tool.html?plan=legacy"
+          ? "/illustrations/royal_partners_illustration_tool.html?plan=legacy"
+          : "/";
         const supabase = createClient();
 
         // 1) กรณี Magic Link ส่ง token มากับ URL hash
@@ -38,18 +44,15 @@ export default function AuthCallbackPage() {
             "/auth/callback"
           );
 
-          window.location.replace("/");
+          window.location.replace(next);
           return;
         }
 
         // 2) กรณี Supabase ส่ง auth code กลับมา
-        const params = new URLSearchParams(
-          window.location.search
-        );
-
         const code = params.get("code");
 
         if (code) {
+          window.history.replaceState({}, document.title, "/auth/callback");
           const { error } =
             await supabase.auth.exchangeCodeForSession(code);
 
@@ -58,7 +61,7 @@ export default function AuthCallbackPage() {
             return;
           }
 
-          window.location.replace("/");
+          window.location.replace(next);
           return;
         }
 
@@ -74,7 +77,7 @@ export default function AuthCallbackPage() {
         }
 
         if (session) {
-          window.location.replace("/");
+          window.location.replace(next);
           return;
         }
 
