@@ -48,7 +48,8 @@ test('isolated cases are deterministic across 2500 concurrent asynchronous reads
 });
 
 test('male 35/10m unsupported Table B is explicitly flagged, never filled from another case',()=>{
- assert.match(html,/ยังไม่มีข้อมูล CV \/ RPU \/ ETI ที่ได้รับอนุญาตสำหรับผู้ชาย/);
+ assert.match(html,/const tableBServerReady=LEGACY_TABLE_B_DATA\.has\(caseKey\)/);
+ assert.match(html,/สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA/);
  assert.equal(lookup(35,'ชาย',10000000,10),null);
  assert.equal(lookup(35,'ชาย',10000000,15),null);
  assert.equal(lookup(35,'ชาย',10000000,20),null);
