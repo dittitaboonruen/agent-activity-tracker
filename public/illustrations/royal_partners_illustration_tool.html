@@ -16037,7 +16037,8 @@ function paginateExcellentRiderReport(root){
  };
  const createPage=template=>{
   const page=template.cloneNode(true);
-  page.removeAttribute('id');
+  // Keep original report-page ID for the existing 20PL detail CSS selectors.
+  // Each new A4 sheet is isolated by page class for export and pagination.
   const holder=page.querySelector(contentSelector);
   if(!holder)throw new Error('Excellent Rider PDF: ไม่พบพื้นที่รายละเอียดผลประโยชน์');
   holder.innerHTML='';
@@ -16124,6 +16125,7 @@ function paginateExcellentRiderReport(root){
    if(!fits(currentPage))overflowItems++;
   }
  };
+ let previousContainerType='';
  for(const source of riderPages.slice(1)){
   const template=source.cloneNode(true);
   const sourceContent=source.querySelector(contentSelector);
@@ -16132,6 +16134,9 @@ function paginateExcellentRiderReport(root){
   const note=source.querySelector(':scope > .ex-report-inner > .pl20-medical-note');
   if(note)blocks.push(note.cloneNode(true));
   source.remove();
+  const containerType=sourceContent.classList.contains('pl20-health-table-list')?'medical':'standard';
+  if(currentPage!==summary && containerType!==previousContainerType)createPage(template);
+  previousContainerType=containerType;
   for(const block of blocks){
    place(block,template);
   }
