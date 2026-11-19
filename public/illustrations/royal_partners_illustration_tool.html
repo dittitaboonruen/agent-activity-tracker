@@ -16325,6 +16325,38 @@ function paginateExcellentRiderReport(root){
    place(block,template);
   }
  }
+ // Excellent only: avoid exporting a nearly empty medical-note-only A4 sheet.
+ // Keep the original note, rider benefit blocks, typography and A4 dimensions intact.
+ if(report.querySelector(':scope > #excellent-report-page-1')){
+  const sheets=[...report.querySelectorAll(':scope > .ex-report-page')];
+  for(let i=1;i<sheets.length;i++){
+   const tail=sheets[i], prior=sheets[i-1];
+   const tailBody=tail.querySelector('.pl20-health-table-list');
+   const priorBody=prior.querySelector('.pl20-health-table-list');
+   if(!tailBody || !priorBody || tailBody.children.length!==1 ||
+      !tailBody.firstElementChild.classList.contains('pl20-medical-note'))continue;
+   const note=tailBody.firstElementChild;
+   // First try to keep the note with its preceding medical benefits.
+   priorBody.appendChild(note);
+   if(fits(prior)){
+    tail.remove();
+    continue;
+   }
+   tailBody.appendChild(note);
+   // If the note does not fit, carry the last complete medical benefit blocks
+   // forward with it, so the last sheet contains useful detail, not only a note.
+   // Preserve the original order and reject any move that would overflow A4.
+   for(let moved=0;moved<4 && priorBody.children.length>1;moved++){
+    const benefit=priorBody.lastElementChild;
+    tailBody.insertBefore(benefit,tailBody.firstElementChild);
+    if(!fits(tail)){
+     priorBody.appendChild(benefit);
+     break;
+    }
+    if(tailBody.getBoundingClientRect().height>=tail.clientHeight*0.28)break;
+   }
+  }
+ }
  const all=[...report.querySelectorAll(':scope > .ex-report-page')];
  all.forEach((page,i)=>{
   const footer=page.querySelector(':scope > .ex-report-inner > .rp-page-number');
