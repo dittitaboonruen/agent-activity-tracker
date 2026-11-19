@@ -16021,7 +16021,7 @@ function paginateExcellentRiderReport(root){
  if(!summaryInner || !summaryFooter)return;
  // Reapply the original 20PL detail styles to benefit blocks moved into
  // the summary page. Their original CSS is scoped to the 20PL page IDs.
- const riderIds=/#pay20life-report-page-(?:ci(?:-other|-plus)?|accident|hb|2)\\b/g;
+ const riderIds=/#pay20life-report-page-(?:ci(?:-other|-plus)?|accident|hb|2)\b/g;
  const copied=[];
  const collectRules=rules=>{
   for(const rule of rules){
@@ -16037,7 +16037,7 @@ function paginateExcellentRiderReport(root){
  }
  if(copied.length){
   const scoped=document.createElement('style');
-  scoped.textContent=copied.join('\\n');
+  scoped.textContent=copied.join('\n');
   summaryInner.appendChild(scoped);
  }
  const inline=document.createElement('div');
