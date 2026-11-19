@@ -64,7 +64,13 @@ try {
         F: female
       };
     }
-    if (cursor !== binary.length) fail("female_payload_overflow");
+    if (cursor !== binary.length) fail("female_payload_overflow");    // Secure correction overlay; leaves independently verified 10/15 Pay untouched.
+    const male20=process.env.LEGACY_RPU_MALE_20_CORRECTED_BR_B64;
+    if(male20){
+      const rows=decode(male20,30000);
+      tables["20"].M.rpu=rows;
+    }
+
   }
 
   let allPassed = true;
