@@ -17155,8 +17155,27 @@ function loadLegacyMaleRpu(age,gender,sum,term){
 function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
   // Prefer a server-computed exact input case. Never reuse another user's case.
   const verified=LEGACY_TABLE_B_DATA.get(legacyTableBKey(issueAge,gender,sum,term));
-  if(verified)return {id:'legacy-table-b-server',mode:'internal-qa',sum,
-    byAge:verified,source:'ตารางอ้างอิง AIA 2025 ที่คำนวณในระบบภายใน'};
+  if(verified){
+    // Only an exact issue-age/gender/sum/pay-term AIA reference can complete a
+    // missing server cell (e.g. iPOS+ years beyond the manual CV table).
+    // A known zero is never replaced, and no other contract's values are used.
+    const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+    if(!exact)return {id:'legacy-table-b-server',mode:'internal-qa',sum,
+      byAge:verified,source:'ตารางอ้างอิง AIA 2025 ที่คำนวณในระบบภายใน'};
+    const byAge=new Map(verified);
+    for(const [rowAge,reference] of exact.byAge){
+      const current=byAge.get(rowAge);
+      if(!current)continue;
+      const merged={...current};
+      for(const key of ['surrender','paidUp']){
+        if((merged[key]===null||merged[key]===undefined)&&
+           Number.isFinite(reference?.[key]))merged[key]=reference[key];
+      }
+      byAge.set(rowAge,merged);
+    }
+    return {id:'legacy-table-b-server-plus-exact-case-reference',mode:'internal-qa',sum,
+      byAge,source:'ข้อมูลภายใน AIA 2025 + iPOS+/Brochure เฉพาะกรณีตรงกัน'};
+  }
   if(gender==='ชาย'){
     const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
     const loaded=LEGACY_MALE_RPU_DATA.get(legacyMaleRpuKey(issueAge,sum,term));
