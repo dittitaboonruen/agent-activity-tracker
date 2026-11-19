@@ -81,11 +81,13 @@ try {
         )
       );
       const sourceHashes = expected.get(term + ":" + gender);
-      const matched = validRows &&
-        digest(group.cv) === sourceHashes?.cv &&
-        digest(group.rpu) === sourceHashes?.rpu;
+      const cvMatched = Boolean(validRows && digest(group.cv) === sourceHashes?.cv);
+      const rpuMatched = Boolean(validRows && digest(group.rpu) === sourceHashes?.rpu);
+      const matched = cvMatched && rpuMatched;
       console.log("[Legacy Factor Runtime] " + term + " Pay / " + gender +
-        ": " + (matched ? "PASS" : "BLOCKED"));
+        ": " + (matched ? "PASS" : "BLOCKED") +
+        (matched ? "" : " (CV " + (cvMatched ? "PASS" : "BLOCKED") +
+          " / RPU " + (rpuMatched ? "PASS" : "BLOCKED") + ")"));
       if (!matched) allPassed = false;
     }
   }
