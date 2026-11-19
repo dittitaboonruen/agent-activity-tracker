@@ -25,6 +25,7 @@ const PUBLIC_PATHS = [
   "/vendor",
   "/forms",
   "/auth/confirm",
+  "/auth/callback",
 ];
 
 const PUBLIC_API_PATHS = [
@@ -461,6 +462,17 @@ export async function middleware(
 
   const role =
     profile.role as Role;
+
+  // QA-only Factor API: accept active Training staff for this one route;
+  // the API repeats its own getUser + profile checks before any Factor read.
+  // All other middleware role restrictions remain unchanged.
+  if (
+    pathname === "/api/legacy-prestige-rpu" &&
+    role === "training"
+  ) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    return response;
+  }
 
   if (
     role !== "manager" &&
