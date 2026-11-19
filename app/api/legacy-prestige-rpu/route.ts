@@ -28,6 +28,18 @@ const LEGACY_MANUAL_FACTOR_SHA256: Record<string,{cv:string;rpu:string}> = {
   "20:M":{cv:"d5ef25d85f1fdd00e96234e7d583a135e5c2ce87fdc494fb3ce07ec34ce6d72f",rpu:"a217c391778de7084fc4d7cbef8309e835f54fd820d496028b8cc6c0d3ab2ae0"},
   "20:F":{cv:"2543e7adacd5023b29b0b6b614ddd5883ecc5e2f5eaf37b6aad0281a585dbbea",rpu:"8410df92606f5ca7c6898bcd00381ebab32a7a3a027b033d7a64fda5bfa897aa"},
 };
+// Manual RPU display cells with a nonzero *second* numeric segment.
+// Until AIA confirms its meaning, do NOT present the first segment as a
+// complete paid-up sum for these 206 age/policy-year positions.
+// Only position bitmasks are committed, never raw proprietary factors.
+const LEGACY_RPU_UNRESOLVED_SEGMENT_BITS: Record<string,Record<number,number>> = {
+  "10:M":{69:256,70:256,71:256,72:256,73:384,74:384,75:384},
+  "10:F":{72:256,73:256,74:256,75:384},
+  "15:M":{66:8192,67:8192,68:12288,69:14336,70:14336,71:15360,72:15360,73:15872,74:15872,75:15872},
+  "15:F":{68:8192,69:12288,70:12288,71:12288,72:14336,73:15360,74:15360,75:15872},
+  "20:M":{60:262144,61:262144,62:262144,63:393216,64:393216,65:393216,66:458752,67:491520,68:491520,69:516096,70:520192,71:522240,72:522240,73:523264,74:523264,75:523776},
+  "20:F":{63:262144,64:262144,65:393216,66:393216,67:458752,68:491520,69:507904,70:507904,71:516096,72:516096,73:520192,74:522240,75:522240},
+};
 let factorCache: Factors | null = null;
 
 function getVerifiedFactors(): Factors | null {
@@ -135,11 +147,13 @@ export async function GET(request:NextRequest) {
   const factors=getVerifiedFactors();
   if(!factors) return NextResponse.json({error:"restricted_factors_not_configured"},{status:503,headers:noStore});
   const source=factors[String(term)][gender];
+  const unresolvedRpuBits=LEGACY_RPU_UNRESOLVED_SEGMENT_BITS[`${term}:${gender}`]?.[age]||0;
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
     const amount=(value:number|undefined)=>typeof value==="number"&&Number.isInteger(value)&&value>0
       ?Math.round(value*sum/1000):null;
-    return {age:age+i,policyYear:i+1,surrender:amount(cv),paidUp:amount(rpu)};
+    const unresolvedRpu=i<term-1 && Boolean(unresolvedRpuBits & (1<<i));
+    return {age:age+i,policyYear:i+1,surrender:amount(cv),paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
     source:"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
