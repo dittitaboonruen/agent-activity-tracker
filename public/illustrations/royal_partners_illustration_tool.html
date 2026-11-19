@@ -10677,10 +10677,7 @@ function buildPayLifePlusFullReportHTML(){
   const main=calcPayLifePlus(state.age,state.gender,state.sum,state.paylifeplus.term,state.tax,PAYLIFE_PLUS_MIN_SUM_INSURED);
   if(!main.ok)throw Error('กรุณาตรวจสอบอายุและทุนประกันของ 20 Pay Life Plus');
   const riderState=ensurePayLifePlusRiders();
-  const previous=state.paylife20;
-  try{
-    // Share the original 20PL rider-benefit builders without changing their formulas.
-    state.paylife20=riderState;
+  // Render the selected Plus Rider context directly, without mutating 20PL state.
     const riders=get20PayLifeSelectedRiders('paylifeplusRiders');
     const riderTotal=riders.reduce((sum,row)=>sum+row.premium,0);
     const data={
@@ -10697,15 +10694,13 @@ function buildPayLifePlusFullReportHTML(){
       .replace('เสียชีวิตหรือครบกำหนดสัญญา รับ 100% ของทุนประกัน','เสียชีวิตหรือครบกำหนดสัญญา รับ 100% ของทุนประกัน • TI และ WPCI ตามสัญญาหลัก');
     return build20PayLifeReportHTML({
       data,
+      riderContext:riderState,
       title:'20 Pay Life Plus + เลือกความคุ้มครองเอง',
       payYears:main.term,
       benefitVisual:buildPayLifePlusBenefitChartHTML(main,true),
       sectionTwo,
       appendixHTML:buildWPCIAppendixHTML()
     });
-  }finally{
-    state.paylife20=previous;
-  }
 }
 
 function viewPayLifePlus(app){
@@ -13154,9 +13149,9 @@ function getHealthSaverRoomLabel(limit){
   return room ? `ค่าห้อง ${fmt20(room)} บาท/วัน` : `แผน ${fmt20(limit)}`;
 }
 
-function build20PayLifeMedicalSummaryData(){
-  const rs=state.paylife20.riders;
-  const op=state.paylife20.opts;
+function build20PayLifeMedicalSummaryData(riderContext=state.paylife20){
+  const rs=riderContext.riders;
+  const op=riderContext.opts;
   const cards=[];
 
   const addCard=(key,name,premium,item,extraMeta='')=>{
@@ -13274,8 +13269,8 @@ function build20PayLifeMedicalInlineHTML(){
   '</div></div>';
 }
 
-function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2){
-  const cards=build20PayLifeMedicalSummaryData();
+function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2,riderContext=state.paylife20){
+  const cards=build20PayLifeMedicalSummaryData(riderContext);
   if(!cards.length) return '';
   const normalize=v=>String(v||'—').replace(/เหมาจ่ายตามจริง/g,'เหมาจ่ายตามแผนที่เลือก');
   const bulletList=items=>items?.length?'<ul>'+items.map(x=>'<li>'+normalize(x)+'</li>').join('')+'</ul>':'<span>—</span>';
@@ -13291,7 +13286,7 @@ function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2){
       // Use the same plan-benefit source as the Health Saver comparison table.
       // Benefits are plan-based, while premium remains age/sex-dependent.
       const saverPlan=HEALTH_COMBO_BENEFITS.saver;
-      const saverIndex=saverPlan.limits.indexOf(Number(state.paylife20.opts.hsPlan));
+      const saverIndex=saverPlan.limits.indexOf(Number(riderContext.opts.hsPlan));
       const benefit=(rowIndex)=>saverIndex>=0?saverPlan.rows[rowIndex][1][saverIndex]:null;
       const formatBenefit=v=>typeof v==='number'?fmt20(v)+' บาท':String(v||'ตามแผนและเงื่อนไข');
       const diagnostic=String(card.diagnosticCap||'ตามแผนและเงื่อนไข');
@@ -13405,7 +13400,7 @@ function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2){
               ${group('ผู้ป่วยใน (IPD) / ไม่ต้องนอนโรงพยาบาล',card.ipd)}
               ${group('ผู้ป่วยนอก / การรักษาต่อเนื่อง',card.outpatient)}
               ${group('ผลประโยชน์เพิ่มเติม / เงื่อนไขสำคัญ',card.other)}
-              ${['healthhappy','healthsaver'].includes(card.key)&&state.paylife20.mode==='full'
+              ${['healthhappy','healthsaver'].includes(card.key)&&riderContext.mode==='full'
                 ?'<div class="pl20-health-table-extra pl20-health-table-critical"><div class="h">ผลประโยชน์เพิ่มเติมกรณีโรคร้ายแรง</div>'+healthComboCriticalIllnessNoticeHTML()+'</div>':''}
             </div>`).join('')}
         </div>
@@ -13416,10 +13411,10 @@ function build20PayLifeMedicalPageHTML(pageNumber=2,totalPages=2){
 }
 
 
-function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages){
+function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages,riderContext=state.paylife20){
   // The reference provided for this detail page covers Multi-Pay CI Plus
   // and its Total Care benefits. Other riders remain unchanged.
-  if(state.paylife20.mode!=='full'||!state.paylife20.riders.multipayci) return '';
+  if(riderContext.mode!=='full'||!riderContext.riders.multipayci) return '';
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const multipay=section('AIA MULTI-PAY CI (UNDER AIA MULTI-PAY CI PLUS)',[
@@ -13448,10 +13443,10 @@ function build20PayLifeCriticalIllnessPageHTML(pageNumber,totalPages){
     </section>`;
 }
 
-function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
-  const selected=state.paylife20.mode==='full'&&state.paylife20.riders.ciplus;
+function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages,riderContext=state.paylife20){
+  const selected=riderContext.mode==='full'&&riderContext.riders.ciplus;
   if(!selected) return '';
-  const hasTopUp=!!state.paylife20.riders.citopup;
+  const hasTopUp=!!riderContext.riders.citopup;
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const renewal=item('','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัยรายปีอาจมีการปรับเบี้ยในรอบปีกรมธรรม์ ตามอายุ ชั้นอาชีพ ประสบการณ์การจ่ายสินไหม และข้อกำหนดที่เกี่ยวข้อง ทั้งนี้เป็นไปตามเงื่อนไขของบริษัทและความเห็นชอบของนายทะเบียน');
@@ -13481,12 +13476,12 @@ function build20PayLifeCIPlusDetailPageHTML(pageNumber,totalPages){
     </section>`;
 }
 
-function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kinds){
-  if(state.paylife20.mode!=='full') return '';
-  const rs=state.paylife20.riders;
+function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kinds,riderContext=state.paylife20){
+  if(riderContext.mode!=='full') return '';
+  const rs=riderContext.riders;
   if(!kinds.some(key=>rs[key])) return '';
-  const cancerUnits=Math.max(0,Number(state.paylife20.opts.hcUnits)||0);
-  const careUnits=Math.max(0,Number(state.paylife20.opts.cfcUnits)||0);
+  const cancerUnits=Math.max(0,Number(riderContext.opts.hcUnits)||0);
+  const careUnits=Math.max(0,Number(riderContext.opts.cfcUnits)||0);
   const item=(symbol,heading,description)=>'<div class="pl20-ci-item"><span class="pl20-ci-item-icon" aria-hidden="true">'+symbol+'</span><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+description+'</p></div></div>';
   const section=(heading,items)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+heading+'</div>'+items.join('')+'</section>';
   const renewal=item('','การปรับเบี้ยประกันภัยในปีต่ออายุ','สัญญาเพิ่มเติมที่มีระยะเวลาเอาประกันภัย 1 ปี อาจมีการปรับเบี้ยในรอบปีกรมธรรม์ตามอายุ ชั้นอาชีพ และประสบการณ์การจ่ายสินไหม โดยเป็นไปตามเงื่อนไขและความเห็นชอบของนายทะเบียน');
@@ -13524,9 +13519,9 @@ function build20PayLifeTPDCancerDetailsPageHTML(pageNumber,totalPages,kinds){
   </section>`;
 }
 
-function build20PayLifeAccidentDetailPageHTML(pageNumber,totalPages,kinds){
-  if(state.paylife20.mode!=='full'||!kinds.length)return '';
-  const op=state.paylife20.opts;
+function build20PayLifeAccidentDetailPageHTML(pageNumber,totalPages,kinds,riderContext=state.paylife20){
+  if(riderContext.mode!=='full'||!kinds.length)return '';
+  const op=riderContext.opts;
   const box=(title,contents)=>'<section class="pl20-ci-panel"><div class="pl20-ci-panel-title">'+title+'</div>'+contents+'</section>';
   const item=(heading,body)=>'<div class="pl20-ci-item"><div class="pl20-ci-item-body"><h3>'+heading+'</h3><p>'+body+'</p></div></div>';
   const fmtAmount=n=>'<strong>'+fmt20(n)+' บาท</strong>';
@@ -13548,9 +13543,9 @@ function build20PayLifeAccidentDetailPageHTML(pageNumber,totalPages,kinds){
   </div></section>`;
 }
 
-function build20PayLifeHBDetailsPageHTML(pageNumber,totalPages){
-  if(state.paylife20.mode!=='full')return '';
-  const rs=state.paylife20.riders,op=state.paylife20.opts;
+function build20PayLifeHBDetailsPageHTML(pageNumber,totalPages,riderContext=state.paylife20){
+  if(riderContext.mode!=='full')return '';
+  const rs=riderContext.riders,op=riderContext.opts;
   if(!rs.hb&&!rs.hbextra)return '';
   const fmtAmount=v=>'<strong>'+fmt20(v)+' บาท</strong>';
   const row=(title,details,value)=>'<div class="pl20-hb-benefit-row"><div><b>'+title+'</b><p>'+details+'</p></div><div class="pl20-hb-benefit-value">'+fmtAmount(value)+'</div></div>';
@@ -13931,25 +13926,26 @@ function build20PayLifeReportHTML(config=null){
   const validation=config?{ok:true,errors:[]}:validate20PayLifeReportData(data);
   if(!validation.ok) return `<div class="rp-report"><div class="rp-report-error">${validation.errors.join('<br>')}</div></div>`;
 
-  const hasMedical=build20PayLifeMedicalSummaryData().length>0;
-  const hasCriticalIllness=state.paylife20.mode==='full'&&!!state.paylife20.riders.multipayci;
-  const hasCIPlusDetails=state.paylife20.mode==='full'&&!!state.paylife20.riders.ciplus;
-  const otherCriticalKeys=state.paylife20.mode==='full'?['tpd','healthcancer','cfc'].filter(key=>!!state.paylife20.riders[key]):[];
+  const riderContext=config?.riderContext||state.paylife20;
+  const hasMedical=build20PayLifeMedicalSummaryData(riderContext).length>0;
+  const hasCriticalIllness=riderContext.mode==='full'&&!!riderContext.riders.multipayci;
+  const hasCIPlusDetails=riderContext.mode==='full'&&!!riderContext.riders.ciplus;
+  const otherCriticalKeys=riderContext.mode==='full'?['tpd','healthcancer','cfc'].filter(key=>!!riderContext.riders[key]):[];
   // Short TPD and Health Cancer sections fit together; the longer Care for Cancer keeps its own A4 page.
   const otherCriticalGroups=[
     otherCriticalKeys.filter(key=>key==='tpd'||key==='healthcancer'),
     otherCriticalKeys.filter(key=>key==='cfc')
   ].filter(group=>group.length>0);
-  const accidentKeys=state.paylife20.mode==='full'?['ai','add','adb'].filter(k=>!!state.paylife20.riders[k]):[];
+  const accidentKeys=riderContext.mode==='full'?['ai','add','adb'].filter(k=>!!riderContext.riders[k]):[];
   const accidentGroups=[accidentKeys.filter(k=>k==='ai'||k==='add'),accidentKeys.filter(k=>k==='adb')].filter(g=>g.length);
-  const hasHBDetails=state.paylife20.mode==='full'&&!!(state.paylife20.riders.hb||state.paylife20.riders.hbextra);
+  const hasHBDetails=riderContext.mode==='full'&&!!(riderContext.riders.hb||riderContext.riders.hbextra);
   const totalPages=1+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length+accidentGroups.length+Number(hasHBDetails)+Number(!!config?.appendixHTML);
-  const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages):'';
-  const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(2+Number(hasMedical),totalPages):'';
-  const ciPlusDetailPageHTML=hasCIPlusDetails?build20PayLifeCIPlusDetailPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness),totalPages):'';
-  const otherCriticalDetailPageHTML=otherCriticalGroups.map((kinds,i)=>build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+i,totalPages,kinds)).join('');
-  const accidentDetailPageHTML=accidentGroups.map((kinds,i)=>build20PayLifeAccidentDetailPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length+i,totalPages,kinds)).join('');
-  const hbDetailsPageHTML=hasHBDetails?build20PayLifeHBDetailsPageHTML(2+Number(hasMedical)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length+accidentGroups.length,totalPages):'';
+  const medicalPageHTML=hasMedical?build20PayLifeMedicalPageHTML(2,totalPages,riderContext):'';
+  const criticalIllnessPageHTML=hasCriticalIllness?build20PayLifeCriticalIllnessPageHTML(2+Number(hasMedical,riderContext),totalPages):'';
+  const ciPlusDetailPageHTML=hasCIPlusDetails?build20PayLifeCIPlusDetailPageHTML(2+Number(hasMedical,riderContext)+Number(hasCriticalIllness),totalPages):'';
+  const otherCriticalDetailPageHTML=otherCriticalGroups.map((kinds,i)=>build20PayLifeTPDCancerDetailsPageHTML(2+Number(hasMedical,riderContext)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+i,totalPages,kinds)).join('');
+  const accidentDetailPageHTML=accidentGroups.map((kinds,i)=>build20PayLifeAccidentDetailPageHTML(2+Number(hasMedical,riderContext)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length+i,totalPages,kinds)).join('');
+  const hbDetailsPageHTML=hasHBDetails?build20PayLifeHBDetailsPageHTML(2+Number(hasMedical,riderContext)+Number(hasCriticalIllness)+Number(hasCIPlusDetails)+otherCriticalGroups.length+accidentGroups.length,totalPages):'';
 
   const reportTitle=config?.title||'20PL + เลือกความคุ้มครองเอง';
   const extraAppendix=config?.appendixHTML?config.appendixHTML.replace('· 2/2','· '+totalPages+'/'+totalPages):'';
@@ -17192,40 +17188,33 @@ function view20HealthCombo(app,type){
 function healthHappyRiderBenefitPages(model){
  if(state.healthCombo.happyMode!=='full')return [];
  const riders=ensureHealthHappyRiders();
- const previous=state.paylife20;
  let detailPages=[];
  let fallback=[];
- // The original 20PL report builders are the single source for full coverage,
- // payouts and tables. Swap the selected rider context only during synchronous rendering.
- try {
-  state.paylife20=riders;
+ // Use existing 20PL benefit templates with this product's Rider context directly.
   const rs=riders.riders;
   const other=['tpd','healthcancer','cfc'].filter(k=>rs[k]);
   const shortOther=other.filter(k=>k==='tpd'||k==='healthcancer');
   const accidents=['ai','add','adb'].filter(k=>rs[k]);
   // Keep concise rider details first: they can accompany the summary on page 2.
   if(shortOther.length){
-   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther),inline:shortOther.length===1&&shortOther[0]==='tpd'});
+   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther,riders),inline:shortOther.length===1&&shortOther[0]==='tpd'});
   }
-  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0),inline:false});
-  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0),inline:false});
-  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc']),inline:false});
+  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0,riders),inline:false});
+  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0,riders),inline:false});
+  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc'],riders),inline:false});
   const firstAccidents=accidents.filter(k=>k==='ai'||k==='add');
-  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents),inline:false});
-  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb']),inline:false});
-  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0),inline:false});
+  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents,riders),inline:false});
+  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb'],riders),inline:false});
+  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0,riders),inline:false});
   // Medical add-ons are available through the existing 20PL source when selected.
   if(['healthhappy','hhkids','healthsaver','infinitecare'].some(k=>rs[k]))
-   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0),inline:false});
+   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0,riders),inline:false});
   // For riders without a standalone full-detail page in the original 20PL report,
   // display their original benefit lines instead of inventing new policy language.
   const fullyCovered=new Set(['healthhappy','hhkids','healthsaver','infinitecare','multipayci','tpd','ciplus','citopup','healthcancer','cfc','ai','add','adb','hb','hbextra']);
   if(rs.ladycare){
-   fallback=build20PayLifeRiderDetailRows().filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
+   fallback=build20PayLifeRiderDetailRows('healthComboRiders').filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
   }
- } finally {
-  state.paylife20=previous;
- }
  const styles='<style>'+
   '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
   '.health-happy-rider-page .hh-rider-table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}'+
@@ -17282,40 +17271,33 @@ function healthHappyRiderBenefitPages(model){
 function excellentRiderBenefitPages(model){
  if(state.excellent.mode!=='full')return [];
  const riders=ensureExcellentRiders();
- const previous=state.paylife20;
  let detailPages=[];
  let fallback=[];
- // The original 20PL report builders are the single source for full coverage,
- // payouts and tables. Swap the selected rider context only during synchronous rendering.
- try {
-  state.paylife20=riders;
+ // Use existing 20PL benefit templates with this product's Rider context directly.
   const rs=riders.riders;
   const other=['tpd','healthcancer','cfc'].filter(k=>rs[k]);
   const shortOther=other.filter(k=>k==='tpd'||k==='healthcancer');
   const accidents=['ai','add','adb'].filter(k=>rs[k]);
   // Keep concise rider details first: they can accompany the summary on page 2.
   if(shortOther.length){
-   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther),inline:shortOther.length===1&&shortOther[0]==='tpd'});
+   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther,riders),inline:shortOther.length===1&&shortOther[0]==='tpd'});
   }
-  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0),inline:false});
-  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0),inline:false});
-  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc']),inline:false});
+  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0,riders),inline:false});
+  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0,riders),inline:false});
+  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc'],riders),inline:false});
   const firstAccidents=accidents.filter(k=>k==='ai'||k==='add');
-  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents),inline:false});
-  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb']),inline:false});
-  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0),inline:false});
+  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents,riders),inline:false});
+  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb'],riders),inline:false});
+  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0,riders),inline:false});
   // Medical add-ons are available through the existing 20PL source when selected.
   if(['healthhappy','hhkids','healthsaver','infinitecare'].some(k=>rs[k]))
-   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0),inline:false});
+   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0,riders),inline:false});
   // For riders without a standalone full-detail page in the original 20PL report,
   // display their original benefit lines instead of inventing new policy language.
   const fullyCovered=new Set(['healthhappy','hhkids','healthsaver','infinitecare','multipayci','tpd','ciplus','citopup','healthcancer','cfc','ai','add','adb','hb','hbextra']);
   if(rs.ladycare){
-   fallback=build20PayLifeRiderDetailRows().filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
+   fallback=build20PayLifeRiderDetailRows('excellentRiders').filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
   }
- } finally {
-  state.paylife20=previous;
- }
  const styles='<style>'+
   '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
   '.health-happy-rider-page .hh-rider-table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}'+
@@ -17381,40 +17363,33 @@ function excellentRiderBenefitPages(model){
 function pay25RiderBenefitPages(model){
  if(state.pay25.mode!=='full')return [];
  const riders=ensurePay25Riders();
- const previous=state.paylife20;
  let detailPages=[];
  let fallback=[];
- // The original 20PL report builders are the single source for full coverage,
- // payouts and tables. Swap the selected rider context only during synchronous rendering.
- try {
-  state.paylife20=riders;
+ // Use existing 20PL benefit templates with this product's Rider context directly.
   const rs=riders.riders;
   const other=['tpd','healthcancer','cfc'].filter(k=>rs[k]);
   const shortOther=other.filter(k=>k==='tpd'||k==='healthcancer');
   const accidents=['ai','add','adb'].filter(k=>rs[k]);
   // Keep concise rider details first: they can accompany the summary on page 2.
   if(shortOther.length){
-   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther),inline:shortOther.length===1&&shortOther[0]==='tpd'});
+   detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,shortOther,riders),inline:shortOther.length===1&&shortOther[0]==='tpd'});
   }
-  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0),inline:false});
-  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0),inline:false});
-  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc']),inline:false});
+  if(rs.multipayci)detailPages.push({html:build20PayLifeCriticalIllnessPageHTML(0,0,riders),inline:false});
+  if(rs.ciplus)detailPages.push({html:build20PayLifeCIPlusDetailPageHTML(0,0,riders),inline:false});
+  if(other.includes('cfc'))detailPages.push({html:build20PayLifeTPDCancerDetailsPageHTML(0,0,['cfc'],riders),inline:false});
   const firstAccidents=accidents.filter(k=>k==='ai'||k==='add');
-  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents),inline:false});
-  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb']),inline:false});
-  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0),inline:false});
+  if(firstAccidents.length)detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,firstAccidents,riders),inline:false});
+  if(accidents.includes('adb'))detailPages.push({html:build20PayLifeAccidentDetailPageHTML(0,0,['adb'],riders),inline:false});
+  if(rs.hb||rs.hbextra)detailPages.push({html:build20PayLifeHBDetailsPageHTML(0,0,riders),inline:false});
   // Medical add-ons are available through the existing 20PL source when selected.
   if(['healthhappy','hhkids','healthsaver','infinitecare'].some(k=>rs[k]))
-   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0),inline:false});
+   detailPages.push({html:build20PayLifeMedicalPageHTML(0,0,riders),inline:false});
   // For riders without a standalone full-detail page in the original 20PL report,
   // display their original benefit lines instead of inventing new policy language.
   const fullyCovered=new Set(['healthhappy','hhkids','healthsaver','infinitecare','multipayci','tpd','ciplus','citopup','healthcancer','cfc','ai','add','adb','hb','hbextra']);
   if(rs.ladycare){
-   fallback=build20PayLifeRiderDetailRows().filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
+   fallback=build20PayLifeRiderDetailRows('pay25Riders').filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
   }
- } finally {
-  state.paylife20=previous;
- }
  const styles='<style>'+
   '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
   '.health-happy-rider-page .hh-rider-table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}'+
