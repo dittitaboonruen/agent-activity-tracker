@@ -7,6 +7,8 @@ import vm from 'node:vm';
 const html=fs.readFileSync('public/illustrations/royal_partners_illustration_tool.html','utf8');
 const api=fs.readFileSync('app/api/legacy-prestige-rpu/route.ts','utf8');
 const middleware=fs.readFileSync('middleware.ts','utf8');
+const magicLink=fs.readFileSync('app/api/auth/magic-link/route.ts','utf8');
+const callback=fs.readFileSync('app/auth/callback/page.tsx','utf8');
 
 test('Legacy Table B shows only age, CV and RPU; report drops ETI',()=>{
  const from=html.indexOf('function buildLegacyPolicyValuesTableHTML(');
@@ -94,4 +96,22 @@ test('server missing years use only exact-case iPOS+ values; never overwrite kno
  }
  const male=sandbox.lookup(60,'ชาย',15000000,20).byAge;
  assert.equal(male.get(95).surrender,null,'no leakage across gender');
+});
+
+test('Legacy Preview login restores guarded Table B without public Factor bypass',()=>{
+ assert.match(html,/เข้าสู่ระบบบน Preview นี้/);
+ assert.match(html,/function retryLegacyTableB\(\)/);
+ assert.match(html,/LEGACY_TABLE_B_ERRORS\.delete\(key\)/);
+ assert.match(html,/new URLSearchParams\(location\.search\)\.get\('plan'\)==='legacy'/);
+ assert.match(magicLink,/process\.env\.VERCEL_ENV === "preview"/);
+ assert.match(magicLink,/process\.env\.VERCEL_URL/);
+ assert.doesNotMatch(magicLink,/request\.headers\.get\("host"\)/);
+ assert.match(magicLink,/emailRedirectTo:.*auth\/callback/);
+ assert.match(callback,/const next = params\.get\("next"\)/);
+ assert.match(callback,/window\.location\.replace\(next\)/);
+ assert.match(middleware,/"\/auth\/callback"/);
+ assert.match(middleware,/pathname === "\/api\/legacy-prestige-rpu"/);
+ assert.match(api,/sb\.auth\.getUser\(\)/);
+ assert.match(api,/profile\.active!==true/);
+ assert.match(api,/restricted_factors_not_configured/);
 });
