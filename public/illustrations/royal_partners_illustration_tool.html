@@ -10928,7 +10928,7 @@ function buildPlusHealthReportHTML(kind){
  '<div class="cell"><div class="l">อายุ</div><div class="v">'+state.age+' ปี</div></div>'+
  '<div class="cell"><div class="l">ระยะชำระเบี้ยสัญญาหลัก</div><div class="v">'+m.cfg.term+' ปี</div></div></div>'+
  '<div class="rp-section hc-report-comparison"><div class="rp-section-title">เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' · '+state.gender+' อายุ '+state.age+' ปี</div>'+
- healthComboTable(model,kind==='saver')+'</div>'+
+ healthComboTable(model,kind==='saver').replace('เบี้ยสัญญาหลัก 20PL / ปี','เบี้ยสัญญาหลัก 20 Pay Life Plus / ปี')+'</div>'+
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
@@ -13996,7 +13996,7 @@ function build20PayLifeReportHTML(config=null){
       ${extraAppendix}
     </div>
   </div>`;
-  return config?.title?reportHTML.replaceAll('20PL + เลือกความคุ้มครองเอง',reportTitle):reportHTML;
+  return config?.title?reportHTML.replaceAll('20PL + เลือกความคุ้มครองเอง',reportTitle).replaceAll('Report v'+PAY20LIFE_REPORT_VERSION,'Report v'+data.reportVersion):reportHTML;
 }
 
 
@@ -15575,7 +15575,8 @@ async function downloadExcellentPDF(btn){
     return;
   }
 
-  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #excellent-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  const reportPages=document.querySelector('.rp-preview-pdf-source #excellent-report-page-1')?.closest('.rp-report-pages');
+  const pages=reportPages?[...reportPages.querySelectorAll(':scope > .ex-report-page')]:[];
   if(!pages.length){
     alert('ไม่พบใบสรุป Excellent');
     return;
@@ -15626,7 +15627,8 @@ async function downloadPay25PDF(btn){
     return;
   }
 
-  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #pay25-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  const reportPages=document.querySelector('.rp-preview-pdf-source #pay25-report-page-1')?.closest('.rp-report-pages');
+  const pages=reportPages?[...reportPages.querySelectorAll(':scope > .ex-report-page')]:[];
   if(!pages.length){
     alert('ไม่พบใบสรุป 15 Pay 25');
     return;
@@ -16321,6 +16323,38 @@ function paginateExcellentRiderReport(root){
   previousContainerType=containerType;
   for(const block of blocks){
    place(block,template);
+  }
+ }
+ // Excellent only: avoid exporting a nearly empty medical-note-only A4 sheet.
+ // Keep the original note, rider benefit blocks, typography and A4 dimensions intact.
+ if(report.querySelector(':scope > #excellent-report-page-1')){
+  const sheets=[...report.querySelectorAll(':scope > .ex-report-page')];
+  for(let i=1;i<sheets.length;i++){
+   const tail=sheets[i], prior=sheets[i-1];
+   const tailBody=tail.querySelector('.pl20-health-table-list');
+   const priorBody=prior.querySelector('.pl20-health-table-list');
+   if(!tailBody || !priorBody || tailBody.children.length!==1 ||
+      !tailBody.firstElementChild.classList.contains('pl20-medical-note'))continue;
+   const note=tailBody.firstElementChild;
+   // First try to keep the note with its preceding medical benefits.
+   priorBody.appendChild(note);
+   if(fits(prior)){
+    tail.remove();
+    continue;
+   }
+   tailBody.appendChild(note);
+   // If the note does not fit, carry the last complete medical benefit blocks
+   // forward with it, so the last sheet contains useful detail, not only a note.
+   // Preserve the original order and reject any move that would overflow A4.
+   for(let moved=0;moved<4 && priorBody.children.length>1;moved++){
+    const benefit=priorBody.lastElementChild;
+    tailBody.insertBefore(benefit,tailBody.firstElementChild);
+    if(!fits(tail)){
+     priorBody.appendChild(benefit);
+     break;
+    }
+    if(tailBody.getBoundingClientRect().height>=tail.clientHeight*0.28)break;
+   }
   }
  }
  const all=[...report.querySelectorAll(':scope > .ex-report-page')];
@@ -17207,7 +17241,7 @@ function healthHappyRiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก 20PL</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนในหน้า 1</div></div></div>';
@@ -17297,7 +17331,7 @@ function excellentRiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">Excellent + เลือกความคุ้มครองเอง</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก Excellent</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">Excellent</div><div class="v">Plan A ในหน้า 1</div></div></div>';
@@ -17396,7 +17430,7 @@ function pay25RiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">15 Pay 25 + เลือกความคุ้มครองเอง</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก 15 Pay 25</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">15 Pay 25</div><div class="v">Plan A ในหน้า 1</div></div></div>';
