@@ -17101,6 +17101,8 @@ const LEGACY_TABLE_B_DATA=new Map();
 const LEGACY_TABLE_B_PENDING=new Set();
 const LEGACY_TABLE_B_ERRORS=new Map();
 const LEGACY_TABLE_B_ERROR_TIME=new Map();
+const LEGACY_TABLE_B_RETRY_COUNTS=new Map();
+const LEGACY_TABLE_B_RETRY_TIMERS=new Map();
 const LEGACY_MALE_RPU_DATA=LEGACY_TABLE_B_DATA; // previous QA-only alias
 let LEGACY_TABLE_B_TIMER=null;
 const legacyTableBKey=(age,gender,sum,term)=>[age,gender,sum,term].join(':');
@@ -17156,9 +17158,26 @@ function loadLegacyTableB(age,gender,sum,term){
       LEGACY_TABLE_B_DATA.set(key,byAge);
       LEGACY_TABLE_B_ERRORS.delete(key);
       LEGACY_TABLE_B_ERROR_TIME.delete(key);
+      LEGACY_TABLE_B_RETRY_COUNTS.delete(key);
     }catch(err){
       LEGACY_TABLE_B_ERRORS.set(key,err?.message||'ไม่สามารถโหลดข้อมูล CV/RPU');
       LEGACY_TABLE_B_ERROR_TIME.set(key,Date.now());
+      // One bounded automatic retry after a transient 503/network issue.
+      // Auth errors (401/403) require a valid login/role; never bypass them.
+      const retriable=/\(503\)|ไม่สามารถโหลดข้อมูล CV\/RPU/.test(String(err?.message||''));
+      const retries=LEGACY_TABLE_B_RETRY_COUNTS.get(key)||0;
+      if(retriable&&retries<1&&!LEGACY_TABLE_B_RETRY_TIMERS.has(key)){
+        LEGACY_TABLE_B_RETRY_COUNTS.set(key,retries+1);
+        const timer=setTimeout(()=>{
+          LEGACY_TABLE_B_RETRY_TIMERS.delete(key);
+          if(state.tab!=='legacy'||state.age!==age||state.gender!==gender||
+             state.sum!==sum||state.legacy.term!==term)return;
+          LEGACY_TABLE_B_ERRORS.delete(key);
+          LEGACY_TABLE_B_ERROR_TIME.delete(key);
+          loadLegacyTableB(age,gender,sum,term);
+        },15000);
+        LEGACY_TABLE_B_RETRY_TIMERS.set(key,timer);
+      }
     }finally{
       LEGACY_TABLE_B_PENDING.delete(key);
       if(state.tab==='legacy'&&state.age===age&&state.gender===gender&&
