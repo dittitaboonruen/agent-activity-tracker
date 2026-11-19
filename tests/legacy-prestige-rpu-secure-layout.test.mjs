@@ -42,7 +42,7 @@ test('Male RPU served only by authenticated server-side Preview configuration',(
 
 // Guard the exact optional-value narrowing that broke Vercel's TS build.
 test('Legacy CV/RPU factor parsing is explicitly narrowed before arithmetic',()=>{
- assert.match(api,/typeof value==="number"&&Number\.isInteger\(value\)&&value>0/);
+ assert.match(api,/typeof value==="number"&&Number\.isInteger\(value\)&&value>=0/);
  // Run a full compiler check when dependencies are available in the QA runner.
  if(fs.existsSync('node_modules/typescript/bin/tsc')){
    const result=spawnSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit'],
