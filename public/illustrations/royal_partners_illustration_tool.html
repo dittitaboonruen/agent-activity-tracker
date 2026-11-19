@@ -10154,7 +10154,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   },
   paylifeplus: { term:20, mode:'mainOnly' },
   paylifeplusRiders:null,
-  plusHappy:{term:20,plan:1,deduct:10000},
+  plusHappy:{term:20,plan:1,deduct:10000,mode:'healthOnly'},plusHappyRiders:null,
   plusSaver:{term:20,plan:1},
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7, mode:'base' },
@@ -10832,6 +10832,19 @@ function viewPayLifePlus(app){
 
 
 const PLUS_HEALTH_DATA={"happy":[[11,16400,20200,25500,33400,14400,18200,21600,27900],[16,13500,16500,20100,26200,15200,19100,23100,30300],[21,13700,16900,21600,28000,17200,21500,27000,35300],[26,14700,18300,26100,33800,17500,21800,30600,38000],[31,15100,18900,29400,37800,18400,22700,34200,42300],[36,17000,20800,31800,40900,20400,25100,37200,46000],[41,19200,23800,36000,47300,22300,27800,42900,53600],[46,21600,26700,40200,52400,24500,30400,46500,60700],[51,28300,35000,50100,65300,28500,35200,50700,65500],[56,34100,42300,63900,83000,34400,42500,65100,84600],[60,40900,50600,72300,94100,41500,50800,73500,95700],[66,59400,72100,105000,136700,60800,74000,107100,139300],[71,85400,104000,152100,197800,88200,107500,155700,202000]],"saver":[[11,10100,12300,16400,20200,8500,10500,14400,18200],[16,7300,8700,10600,13700,7400,9700,12000,15000],[21,6900,8400,10400,13400,8600,10600,14400,18100],[26,7400,8900,13500,16600,9100,11300,17100,21000],[31,7500,9300,14700,18900,9200,11700,18000,22700],[36,8500,10200,15200,20100,10400,11900,18500,25100],[41,10000,11400,17100,21600,12100,13800,21700,26500],[46,11800,13000,18000,24700,14300,16000,23200,29200],[51,15400,17200,24300,30900,15500,17200,25600,34100],[56,20600,24200,30700,40500,20800,24400,31000,40900],[61,27300,31000,47000,56600,27600,31300,47500,57200],[66,37500,47100,65900,81000,37900,47600,66600,81800],[71,53700,67400,94400,115800,54200,68100,95300,117000]],"child":{"10":[[53500,47600,73900,64400,88500,104700,143000,123000],[28600,24600,39400,34500,47700,58500,82500,67900]],"30":[[33500,27600,53900,44400,68400,84600,123000,103000],[14500,11000,22400,17500,29700,40500,64500,49900]]}};
+function ensurePlusHappyRiders(){
+  if(!state.plusHappyRiders){
+    state.plusHappyRiders=JSON.parse(JSON.stringify(state.paylife20));
+    Object.keys(state.plusHappyRiders.riders).forEach(k=>{state.plusHappyRiders.riders[k]=false;});
+    state.plusHappyRiders.mode='full';
+  }
+  for(const k of ['healthhappy','hhkids','healthsaver'])state.plusHappyRiders.riders[k]=false;
+  return state.plusHappyRiders;
+}
+function plusHappyExtraRiders(){
+  ensurePlusHappyRiders();
+  return get20PayLifeSelectedRiders('plusHappyRiders').filter(r=>!['AIA Health Happy','AIA Health Happy Kids','AIA Health Saver'].includes(r.name));
+}
 function plusHealthModel(kind){
  const cfg=state[kind==='happy'?'plusHappy':'plusSaver'];
  const age=Number(state.age), female=state.gender==='หญิง';
@@ -10847,7 +10860,9 @@ function plusHealthModel(kind){
       fees=fees.map((_,i)=>row[1+i+(female?4:0)]);
    }
  }
- return {cfg,age,main,eligible,fees,kind};
+ const extraRiders=kind==='happy'&&cfg.mode==='full'?plusHappyExtraRiders():[];
+  const riderTotal=extraRiders.reduce((n,r)=>n+r.premium,0);
+  return {cfg,age,main,eligible,fees,kind,extraRiders,riderTotal};
 }
 function viewPlusHealth(app,kind){
  const m=plusHealthModel(kind);
@@ -10860,7 +10875,14 @@ function viewPlusHealth(app,kind){
    '<div class="plus-health-term-options">'+[10,15,20].map(y=>'<button type="button" data-plus-term-health="'+y+'" class="'+(m.cfg.term===y?'active':'')+'">'+y+' ปี</button>').join('')+'</div>'+
    (kind==='happy'&&m.age<11?'<div style="padding-top:12px"><label>Health Happy Kids — ความรับผิดส่วนแรก <select id="plus-health-deduct"><option value="10000" '+(m.cfg.deduct===10000?'selected':'')+'>10,000 บาท</option><option value="30000" '+(m.cfg.deduct===30000?'selected':'')+'>30,000 บาท</option></select></label></div>':'');
  panel.appendChild(control);
- const style=document.createElement('style');
+  if(kind==='happy'){
+    const tabs=document.createElement('div');tabs.className='pl20-mode-tabs';
+    tabs.innerHTML='<button type="button" class="pl20-mode-btn '+(m.cfg.mode!=='full'?'active':'')+'" data-plus-happy-mode="healthOnly">Health Happy อย่างเดียว</button>'+
+      '<button type="button" class="pl20-mode-btn '+(m.cfg.mode==='full'?'active':'')+'" data-plus-happy-mode="full">Health Happy + เลือกความคุ้มครองเอง</button>';
+    panel.appendChild(tabs);
+    tabs.querySelectorAll('[data-plus-happy-mode]').forEach(b=>b.addEventListener('click',()=>{m.cfg.mode=b.dataset.plusHappyMode;render();}));
+  }
+  const style=document.createElement('style');
  style.textContent='.plus-health-term-options{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.plus-health-term-options button{flex:1;min-width:90px;max-width:170px;padding:11px 20px;background:#fff;color:#10243f;border:1px solid #d8c9ae;border-radius:10px;font-weight:800;cursor:pointer}.plus-health-term-options button.active{background:#10243f;color:white;border-color:#10243f}.plus-health-card-comparison{padding:0!important;min-width:0;width:100%;max-width:100%;box-sizing:border-box}.plus-health-card-comparison .hc-cards{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin:14px 0 18px!important}.plus-health-card-comparison .hc-card{display:flex!important;flex-direction:column!important;align-items:flex-start!important;white-space:normal!important;min-width:0!important;border-radius:16px!important;padding:14px!important}.plus-health-card-comparison .hc-card>small,.plus-health-card-comparison .hc-card>.hc-card-caption,.plus-health-card-comparison .hc-card>strong,.plus-health-card-comparison .hc-card>b{display:block!important;width:100%;white-space:normal!important}.plus-health-card-comparison .hc-card>strong{color:#438a35!important;font-size:22px!important}.plus-health-card-comparison .hc-card>b{color:#10243f!important;font-size:22px!important}.plus-health-card-comparison .hc-card.hc-selected{border:2px solid #4d8f3f!important;padding:13px!important;background:#fbfdf9!important}@media(max-width:1100px){.plus-health-card-comparison .hc-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media(max-width:650px){.plus-health-card-comparison .hc-cards{grid-template-columns:1fr!important}}.plus-health-comparison .hc-plan-table{min-width:760px}.plus-health-comparison .hc-plan-table thead th{color:#fff}.plus-health-comparison{overflow-x:auto}.plus-health-report-actions{display:flex;justify-content:flex-end;margin:14px 0 4px}.plus-health-report-actions button{border:0;background:#c59425;color:#fff;border-radius:999px;padding:11px 22px;font-weight:800;cursor:pointer}';
  panel.appendChild(style);
  control.querySelectorAll('[data-plus-term-health]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.term=Number(btn.dataset.plusTermHealth);render();}));
@@ -10871,13 +10893,22 @@ function viewPlusHealth(app,kind){
   warn.textContent='อายุหรือทุนไม่เข้าเงื่อนไข: '+(kind==='happy'?'Health Happy รับตั้งแต่ 15 วัน':'Health Saver รับตั้งแต่อายุ 11 ปี')+' ถึงอายุ 75 ปี และทุนสัญญาหลักต้องผ่านเกณฑ์';
   panel.appendChild(warn);return;
  }
- const p=m.cfg.plan-1,fee=m.fees[p],total=m.main.annual+fee;
- fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(m.main.tiBenefit)+' บาท'},{lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:fmt(m.main.sum)+' บาท'}]);
+ const p=m.cfg.plan-1,fee=m.fees[p],total=m.main.annual+fee+m.riderTotal;
+ fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},...(kind==='happy'&&m.cfg.mode==='full'?[{lbl:'เบี้ย Rider อื่นที่เลือก / ปี',val:fmt(m.riderTotal)+' บาท'}]:[]),{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(m.main.tiBenefit)+' บาท'},{lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:fmt(m.main.sum)+' บาท'}]);
  const cards=document.createElement('div');cards.className='hc-comparison plus-health-card-comparison';
- cards.innerHTML='<div class="hc-cards">'+m.fees.map((premium,i)=>'<button type="button" class="hc-card'+(p===i?' hc-selected':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><small>แผน '+(i+1)+' · '+fmt(info.limits[i])+' บาท</small><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><strong>'+fmt(premium)+'</strong><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><b>'+fmt(m.main.annual+premium)+'</b></button>').join('')+'</div>';
+ cards.innerHTML='<div class="hc-cards">'+m.fees.map((premium,i)=>'<button type="button" class="hc-card'+(p===i?' hc-selected':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><small>แผน '+(i+1)+' · '+fmt(info.limits[i])+' บาท</small><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><strong>'+fmt(premium)+'</strong><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><b>'+fmt(m.main.annual+premium+m.riderTotal)+'</b></button>').join('')+'</div>';
  panel.appendChild(cards);
  cards.querySelectorAll('[data-plus-health-plan]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.plan=Number(btn.dataset.plusHealthPlan);render();}));
- const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p};
+ if(kind==='happy'&&m.cfg.mode==='full'){
+    ensurePlusHappyRiders();
+    const box=document.createElement('div');box.className='pl20-rider-wrap';
+    box.innerHTML=riderControlsHTML('plusHappyRiders');
+    box.querySelectorAll('[data-rider-btn="healthhappy"],[data-rider-btn="hhkids"],[data-rider-btn="healthsaver"]')
+      .forEach(btn=>btn.closest('.pl20-rider-card')?.remove());
+    panel.appendChild(box);
+    wireRiderControls(box,'plusHappyRiders');
+  }
+  const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p,riders:m.extraRiders,riderTotal:m.riderTotal};
  const section=document.createElement('div');section.className='ledger-wrap';
  section.innerHTML='<h3>เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' • '+state.gender+' อายุ '+state.age+' ปี</h3>';
  panel.appendChild(section);
@@ -10909,10 +10940,10 @@ function buildPlusHealthReportHTML(kind){
  if(!m.eligible)throw Error('อายุหรือทุนประกันไม่เข้าเงื่อนไข');
  const info=HEALTH_COMBO_BENEFITS[kind],index=m.cfg.plan-1;
  const fullName=escapeResourceHtml([state.customer.firstName,state.customer.lastName].filter(Boolean).join(' ')||'—');
- const fee=m.fees[index],total=m.main.annual+fee;
+ const fee=m.fees[index],total=m.main.annual+fee+m.riderTotal;
  // Reuse the established four-plan report table; premiums remain those from plusHealthModel.
- const model={info,premiums:m.fees,main:{net:m.main.annual},selected:index};
- return '<div class="rp-report" data-report-version="PLUS-HEALTH-COMBO-1.2"><div class="rp-report-pages">'+
+ const model={info,premiums:m.fees,main:{net:m.main.annual},selected:index,riders:m.extraRiders,riderTotal:m.riderTotal};
+ const baseHTML='<div class="rp-report" data-report-version="PLUS-HEALTH-COMBO-1.2"><div class="rp-report-pages">'+
  '<section class="ex-report-page health-combo-report-page plus-health-report-page" id="plus-health-report-page-1"><div class="ex-report-inner">'+
  '<div class="rp-report-head"><div><div class="rp-report-title">20Pay Life Plus + AIA '+title+'</div>'+
  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">ใบสรุปข้อเสนอการประกันชีวิตพร้อมสัญญาเพิ่มเติมสุขภาพ</div></div>'+
@@ -10928,14 +10959,47 @@ function buildPlusHealthReportHTML(kind){
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
  '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/2</div>'+
- '</div></section>'+buildWPCIAppendixHTML()+'</div></div>';
+ '</div></section>'+(kind==='happy'?'':buildWPCIAppendixHTML())+'</div></div>';
+
+  if(kind!=='happy')return baseHTML;
+  // Page 1 = four-plan comparison. Subsequent pages = only selected rider benefits.
+  // Omit the duplicate generic rider-summary page and full WPCI appendix for this product.
+  const context=ensurePlusHappyRiders(),rs=context.riders;
+  const selected=m.cfg.mode==='full'&&m.extraRiders.length>0;
+  const details=[];
+  if(selected){
+    if(build20PayLifeMedicalSummaryData(context).length)details.push(build20PayLifeMedicalPageHTML(2,2,context));
+    if(rs.multipayci)details.push(build20PayLifeCriticalIllnessPageHTML(2,2,context));
+    if(rs.ciplus)details.push(build20PayLifeCIPlusDetailPageHTML(2,2,context));
+    if(rs.tpd||rs.healthcancer)details.push(build20PayLifeTPDCancerDetailsPageHTML(2,2,['tpd','healthcancer'].filter(k=>rs[k]),context));
+    if(rs.cfc)details.push(build20PayLifeTPDCancerDetailsPageHTML(2,2,['cfc'],context));
+    const accident=['ai','add','adb'].filter(k=>rs[k]);
+    const aiAdd=accident.filter(k=>k==='ai'||k==='add');
+    if(aiAdd.length)details.push(build20PayLifeAccidentDetailPageHTML(2,2,aiAdd,context));
+    if(rs.adb)details.push(build20PayLifeAccidentDetailPageHTML(2,2,['adb'],context));
+    if(rs.hb||rs.hbextra)details.push(build20PayLifeHBDetailsPageHTML(2,2,context));
+  }
+  const root=document.createElement('div');root.innerHTML=baseHTML;
+  const pagesRoot=root.querySelector('.rp-report-pages');
+  for(const html of details.filter(Boolean)){
+    const temporary=document.createElement('div');
+    temporary.innerHTML=html.replaceAll('20PL + เลือกความคุ้มครองเอง','20Pay Life Plus + Health Happy');
+    const page=temporary.querySelector('.ex-report-page');
+    if(page)pagesRoot.appendChild(page);
+  }
+  const pages=Array.from(pagesRoot.querySelectorAll(':scope > .ex-report-page'));
+  pages.forEach((page,index)=>{
+    const label=page.querySelector('.rp-page-number');
+    if(label)label.textContent='ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(index+1)+'/'+pages.length;
+  });
+  return root.innerHTML;
 }
 async function downloadPlusHealthPDF(btn){
  if(btn.dataset.busy==='1')return;
  const page=document.getElementById('plus-health-report-page-1');
  if(!page||!window.jspdf?.jsPDF){alert('ไม่พบเอกสาร PDF');return;}
  const old=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
- try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const pages=[page,page.closest('.rp-report-pages')?.querySelector('.rp-wpci-appendix')].filter(Boolean);
+ try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const pages=Array.from(page.closest('.rp-report-pages')?.querySelectorAll(':scope > .ex-report-page')||[]);
    for(let i=0;i<pages.length;i++){
      if(i>0)pdf.addPage();
      const canvas=await renderReportPageToCanvas(pages[i]);pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
