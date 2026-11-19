@@ -17484,7 +17484,15 @@ buildTabs();
 wireInputs();
 initReportDate();
 setSumValidationUI(validateSumInsured(state.sum));
-render();
+// Return from the QA sign-in callback directly to the Legacy Table B preview.
+if(new URLSearchParams(location.search).get('plan')==='legacy'){
+  state.legacy.tableView='B';
+  const legacyTab=document.querySelector('.tab[data-id="legacy"]');
+  if(legacyTab)legacyTab.click();
+  else render();
+}else{
+  render();
+}
 </script>
 </body>
 </html>
