@@ -44,3 +44,18 @@
 - [ ] Rebase/reconcile the heavily diverged Legacy feature branch with latest main and run cross-product regression.
 
 **Status: SOURCE TEXT EXTRACTION PASS; STORED FACTOR PARITY NOT YET CONFIRMED; PRODUCT/COMPLIANCE APPROVAL BLOCKED. NO PRODUCTION RELEASE.**
+
+
+## Table B automatic calculation / recovery — QA checkpoint (19 Nov 2026)
+
+**User requirement:** Automatically calculate CV/RPU on input change from the previously extracted source, without manual factor uploads and without relying on the protected Preview UI.
+
+**Verified code path:** `viewLegacyPrestige()` calls `loadLegacyTableB(age,gender,sum,term)` when the base contract is valid. The client calls `GET /api/legacy-prestige-rpu` for an exact four-part case; the server requires an authenticated, active `admin/manager/training` user, validates the factor integrity manifest, and refuses to manufacture missing values.
+
+**Identified usability bug:** Previous failed cases were retained indefinitely in `LEGACY_TABLE_B_ERRORS`, blocking further requests after an initial 401/403/503. The client now records error age, permits a cooled-down retry, and automatically performs **one bounded delayed retry** after a transient 503/network error. Reopening Table B also triggers a fresh exact-case request after the cooldown. Permanent authorization failures remain blocked; no security rules are bypassed.
+
+**Evidence:** Commit `26e6fab` fixes bounded automatic retry; commit `882302d` updates the regression. Isolated behavior QA simulated 503 followed by a valid 200 response for female age 35 / sum 15m / 20 Pay, returning policy-year-2 CV 105,000 and RPU 630,000, with **exactly two network attempts** and no manual click. Values in this test are fixtures, **not independent evidence of the deployed insurer factor arrays**.
+
+**Runtime inspection:** Branch-scoped encrypted Preview factor configuration contains three named variables (male CV, male RPU, female binary). This only establishes names and scope, not values, digest integrity, or success through the protected API. Unauthenticated access to the Preview deployment remains blocked; secure authenticated live Table B calculation is **NOT VERIFIED**.
+
+**Release gate:** Do not merge the heavily divergent PR directly into main or deploy proprietary/manual data in public assets. Keep changes isolated until factor runtime parity, authenticated integration QA, and branch reconciliation are complete.
