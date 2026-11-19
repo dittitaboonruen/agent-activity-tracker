@@ -9,7 +9,8 @@ import {
 
 type Role =
   | "manager"
-  | "admin";
+  | "admin"
+  | "training";
 
 const SKOOL_IMPORTER_EMAILS =
   new Set([
