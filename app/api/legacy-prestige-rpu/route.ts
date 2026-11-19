@@ -150,7 +150,8 @@ export async function GET(request:NextRequest) {
   const unresolvedRpuBits=LEGACY_RPU_UNRESOLVED_SEGMENT_BITS[`${term}:${gender}`]?.[age]||0;
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
-    const amount=(value:number|undefined)=>typeof value==="number"&&Number.isInteger(value)&&value>0
+    // A source factor of 0 is a known zero, NOT an unavailable/missing value.
+    const amount=(value:number|undefined)=>typeof value==="number"&&Number.isInteger(value)&&value>=0
       ?Math.round(value*sum/1000):null;
     const unresolvedRpu=i<term-1 && Boolean(unresolvedRpuBits & (1<<i));
     return {age:age+i,policyYear:i+1,surrender:amount(cv),paidUp:unresolvedRpu?null:amount(rpu)};
