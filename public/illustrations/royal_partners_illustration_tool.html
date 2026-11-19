@@ -10154,7 +10154,8 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   },
   paylifeplus: { term:20, mode:'mainOnly' },
   paylifeplusRiders:null,
-  plusHappy:{term:20,plan:1,deduct:10000},
+  plusHappy:{term:20,plan:1,deduct:10000,mode:'base'},
+  plusHappyRiders:null,
   plusSaver:{term:20,plan:1},
   cisupercare: { payPeriod:20 },
   excellent: { subtab:'planA', planBTerm:7, mode:'base' },
@@ -10832,6 +10833,21 @@ function viewPayLifePlus(app){
 
 
 const PLUS_HEALTH_DATA={"happy":[[11,16400,20200,25500,33400,14400,18200,21600,27900],[16,13500,16500,20100,26200,15200,19100,23100,30300],[21,13700,16900,21600,28000,17200,21500,27000,35300],[26,14700,18300,26100,33800,17500,21800,30600,38000],[31,15100,18900,29400,37800,18400,22700,34200,42300],[36,17000,20800,31800,40900,20400,25100,37200,46000],[41,19200,23800,36000,47300,22300,27800,42900,53600],[46,21600,26700,40200,52400,24500,30400,46500,60700],[51,28300,35000,50100,65300,28500,35200,50700,65500],[56,34100,42300,63900,83000,34400,42500,65100,84600],[60,40900,50600,72300,94100,41500,50800,73500,95700],[66,59400,72100,105000,136700,60800,74000,107100,139300],[71,85400,104000,152100,197800,88200,107500,155700,202000]],"saver":[[11,10100,12300,16400,20200,8500,10500,14400,18200],[16,7300,8700,10600,13700,7400,9700,12000,15000],[21,6900,8400,10400,13400,8600,10600,14400,18100],[26,7400,8900,13500,16600,9100,11300,17100,21000],[31,7500,9300,14700,18900,9200,11700,18000,22700],[36,8500,10200,15200,20100,10400,11900,18500,25100],[41,10000,11400,17100,21600,12100,13800,21700,26500],[46,11800,13000,18000,24700,14300,16000,23200,29200],[51,15400,17200,24300,30900,15500,17200,25600,34100],[56,20600,24200,30700,40500,20800,24400,31000,40900],[61,27300,31000,47000,56600,27600,31300,47500,57200],[66,37500,47100,65900,81000,37900,47600,66600,81800],[71,53700,67400,94400,115800,54200,68100,95300,117000]],"child":{"10":[[53500,47600,73900,64400,88500,104700,143000,123000],[28600,24600,39400,34500,47700,58500,82500,67900]],"30":[[33500,27600,53900,44400,68400,84600,123000,103000],[14500,11000,22400,17500,29700,40500,64500,49900]]}};
+function ensurePlusHappyRiders(){
+ if(!state.plusHappyRiders){
+  state.plusHappyRiders=JSON.parse(JSON.stringify(state.paylife20));
+  Object.keys(state.plusHappyRiders.riders).forEach(key=>{state.plusHappyRiders.riders[key]=false;});
+  state.plusHappyRiders.mode='full';
+ }
+ state.plusHappyRiders.riders.healthhappy=false;
+ state.plusHappyRiders.riders.hhkids=false;
+ return state.plusHappyRiders;
+}
+function plusHappyExtraRiders(){
+ if(state.plusHappy.mode!=='full')return [];
+ ensurePlusHappyRiders();
+ return get20PayLifeSelectedRiders('plusHappyRiders').filter(r=>r.name!=='AIA Health Happy'&&r.name!=='AIA Health Happy Kids');
+}
 function plusHealthModel(kind){
  const cfg=state[kind==='happy'?'plusHappy':'plusSaver'];
  const age=Number(state.age), female=state.gender==='หญิง';
@@ -10855,6 +10871,13 @@ function viewPlusHealth(app,kind){
  const info=HEALTH_COMBO_BENEFITS[kind];
  app.innerHTML=panelShell('life','20Pay Life Plus + '+title,'สัญญาหลักชำระเบี้ย 10 / 15 / 20 ปี • เลือกเปรียบเทียบความคุ้มครองสุขภาพทั้ง 4 แผน');
  const panel=app.querySelector('.panel');
+ if(kind==='happy'){
+  const modes=document.createElement('div');modes.className='pl20-mode-tabs';
+  modes.innerHTML='<button class="pl20-mode-btn '+(m.cfg.mode==='base'?'active':'')+'" data-plus-happy-mode="base">20Pay Life Plus + Health Happy</button>'+
+   '<button class="pl20-mode-btn '+(m.cfg.mode==='full'?'active':'')+'" data-plus-happy-mode="full">20Pay Life Plus + Health Happy + เลือกความคุ้มครองเอง</button>';
+  panel.appendChild(modes);
+  modes.querySelectorAll('[data-plus-happy-mode]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.mode=btn.dataset.plusHappyMode;render();}));
+ }
  const control=document.createElement('div');control.className='pl20-rider-wrap plus-health-controls';
  control.innerHTML='<div class="pl20-rider-cat">ระยะเวลาชำระเบี้ย Pay Life Plus</div>'+
    '<div class="plus-health-term-options">'+[10,15,20].map(y=>'<button type="button" data-plus-term-health="'+y+'" class="'+(m.cfg.term===y?'active':'')+'">'+y+' ปี</button>').join('')+'</div>'+
@@ -10871,19 +10894,38 @@ function viewPlusHealth(app,kind){
   warn.textContent='อายุหรือทุนไม่เข้าเงื่อนไข: '+(kind==='happy'?'Health Happy รับตั้งแต่ 15 วัน':'Health Saver รับตั้งแต่อายุ 11 ปี')+' ถึงอายุ 75 ปี และทุนสัญญาหลักต้องผ่านเกณฑ์';
   panel.appendChild(warn);return;
  }
- const p=m.cfg.plan-1,fee=m.fees[p],total=m.main.annual+fee;
- fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(m.main.tiBenefit)+' บาท'},{lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:fmt(m.main.sum)+' บาท'}]);
+ const p=m.cfg.plan-1,fee=m.fees[p];
+ const riders=kind==='happy'?plusHappyExtraRiders():[];
+ const riderTotal=riders.reduce((total,r)=>total+r.premium,0);
+ const total=m.main.annual+fee+riderTotal;
+ fillSummary(app,[{lbl:'เบี้ยสัญญาหลัก / ปี',val:fmt(m.main.annual)+' บาท'},{lbl:'เบี้ย '+title+' / ปี',val:fmt(fee)+' บาท'},...(kind==='happy'&&m.cfg.mode==='full'?[{lbl:'เบี้ย Rider อื่นที่เลือก / ปี',val:fmt(riderTotal)+' บาท'}]:[]),{lbl:'รวมเบี้ยปีแรก',val:fmt(total)+' บาท'},{lbl:'TI ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี)',val:fmt(m.main.tiBenefit)+' บาท'},{lbl:'WPCI ยกเว้นเบี้ยโรคร้ายแรง 44 โรค (ฟรี)',val:fmt(m.main.sum)+' บาท'}]);
  const cards=document.createElement('div');cards.className='hc-comparison plus-health-card-comparison';
- cards.innerHTML='<div class="hc-cards">'+m.fees.map((premium,i)=>'<button type="button" class="hc-card'+(p===i?' hc-selected':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><small>แผน '+(i+1)+' · '+fmt(info.limits[i])+' บาท</small><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><strong>'+fmt(premium)+'</strong><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><b>'+fmt(m.main.annual+premium)+'</b></button>').join('')+'</div>';
+ cards.innerHTML='<div class="hc-cards">'+m.fees.map((premium,i)=>'<button type="button" class="hc-card'+(p===i?' hc-selected':'')+'" aria-pressed="'+(p===i)+'" data-plus-health-plan="'+(i+1)+'"><small>แผน '+(i+1)+' · '+fmt(info.limits[i])+' บาท</small><span class="hc-card-caption">เบี้ย '+title+' / ปี</span><strong>'+fmt(premium)+'</strong><span class="hc-card-caption">รวมกับ 20Pay Life Plus / ปี</span><b>'+fmt(m.main.annual+premium+riderTotal)+'</b></button>').join('')+'</div>';
  panel.appendChild(cards);
  cards.querySelectorAll('[data-plus-health-plan]').forEach(btn=>btn.addEventListener('click',()=>{m.cfg.plan=Number(btn.dataset.plusHealthPlan);render();}));
- const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p};
+ const model={info,premiums:m.fees,main:{net:m.main.annual},selected:p,riders,riderTotal};
  const section=document.createElement('div');section.className='ledger-wrap';
  section.innerHTML='<h3>เปรียบเทียบความคุ้มครอง 4 แผน — '+title+' • '+state.gender+' อายุ '+state.age+' ปี</h3>';
  panel.appendChild(section);
  const tableWrap=document.createElement('div');tableWrap.className='plus-health-comparison';
  tableWrap.innerHTML=healthComboTable(model,kind==='saver');
  section.appendChild(tableWrap);
+ if(kind==='happy'&&m.cfg.mode==='full'){
+  ensurePlusHappyRiders();
+  const box=document.createElement('div');box.className='pl20-rider-wrap';
+  box.innerHTML=riderControlsHTML('plusHappyRiders');
+  const first=box.querySelector('.pl20-rider-cat');
+  if(first){const grid=first.nextElementSibling;if(grid?.classList.contains('pl20-rider-grid'))grid.remove();first.remove();}
+  panel.appendChild(box);
+  wireRiderControls(box,'plusHappyRiders');
+  if(riders.length){
+   const sum=document.createElement('div');sum.className='ledger-wrap health-combo-ledger';
+   sum.innerHTML='<h3>สรุปสัญญาเพิ่มเติมที่เลือก</h3><table class="ledger hc-plan-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยปีปัจจุบัน</th></tr></thead><tbody>'+
+    riders.map(r=>'<tr><td>'+escapeResourceHtml(r.name)+'</td><td>'+escapeResourceHtml(r.note||'—')+'</td><td>'+fmt(r.premium)+' บาท</td></tr>').join('')+
+    '<tr><td colspan="2">รวมเบี้ย Rider</td><td>'+fmt(riderTotal)+' บาท</td></tr></tbody></table>';
+   panel.appendChild(sum);
+  }
+ }
  const action=document.createElement('div');action.className='plus-health-report-actions';
  action.innerHTML='<button type="button">ดูตัวอย่างภาพสรุป</button>';
  section.appendChild(action);
@@ -10909,9 +10951,17 @@ function buildPlusHealthReportHTML(kind){
  if(!m.eligible)throw Error('อายุหรือทุนประกันไม่เข้าเงื่อนไข');
  const info=HEALTH_COMBO_BENEFITS[kind],index=m.cfg.plan-1;
  const fullName=escapeResourceHtml([state.customer.firstName,state.customer.lastName].filter(Boolean).join(' ')||'—');
- const fee=m.fees[index],total=m.main.annual+fee;
+ const riders=kind==='happy'?plusHappyExtraRiders():[];
+ const riderTotal=riders.reduce((total,r)=>total+r.premium,0);
+ const full=kind==='happy'&&m.cfg.mode==='full';
+ const riderModel={riders,riderTotal,gender:state.gender,age:state.age};
+ const extraPages=full?healthHappyRiderBenefitPages(riderModel,true):[];
+ const pageCount=2+extraPages.length;
+ const appendix=buildWPCIAppendixHTML().replace('· 2/2','· '+pageCount+'/'+pageCount);
+ const renumbered=extraPages.map(html=>html.replace(/หน้า (\d+)\/(\d+)/g,(match,current)=>'หน้า '+current+'/'+pageCount));
+ const fee=m.fees[index],total=m.main.annual+fee+riderTotal;
  // Reuse the established four-plan report table; premiums remain those from plusHealthModel.
- const model={info,premiums:m.fees,main:{net:m.main.annual},selected:index};
+ const model={info,premiums:m.fees,main:{net:m.main.annual},selected:index,riders,riderTotal};
  return '<div class="rp-report" data-report-version="PLUS-HEALTH-COMBO-1.2"><div class="rp-report-pages">'+
  '<section class="ex-report-page health-combo-report-page plus-health-report-page" id="plus-health-report-page-1"><div class="ex-report-inner">'+
  '<div class="rp-report-head"><div><div class="rp-report-title">20Pay Life Plus + AIA '+title+'</div>'+
@@ -10927,15 +10977,15 @@ function buildPlusHealthReportHTML(kind){
  healthComboCriticalIllnessNoticeHTML()+
  '<div class="hc-report-disclaimer rp-red-remark-before-payment">หมายเหตุ: เบี้ยสุขภาพอาจเปลี่ยนตามอายุและรอบต่ออายุ ตัวเลขเบี้ยรวมเป็นเบี้ยปีแรก • ใช้สำหรับประกอบการเรียนการสอนเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
  '<div class="hc-report-payment"><img src="'+escapeResourceHtml(GLOBAL_REPORT_PAYMENT.imagePath)+'" alt="ข้อมูลโปรโมชันแบ่งชำระจาก AIA" loading="eager" decoding="sync"></div>'+
- '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/2</div>'+
- '</div></section>'+buildWPCIAppendixHTML()+'</div></div>';
+ '<div class="ex-footer-spacer"></div><div class="rp-page-number">ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า 1/'+pageCount+'</div>'+
+ '</div></section>'+renumbered.join('')+appendix+'</div></div>';
 }
 async function downloadPlusHealthPDF(btn){
  if(btn.dataset.busy==='1')return;
  const page=document.getElementById('plus-health-report-page-1');
  if(!page||!window.jspdf?.jsPDF){alert('ไม่พบเอกสาร PDF');return;}
  const old=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
- try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const pages=[page,page.closest('.rp-report-pages')?.querySelector('.rp-wpci-appendix')].filter(Boolean);
+ try{const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const pages=[...page.closest('.rp-report-pages').querySelectorAll(':scope > .ex-report-page')];
    for(let i=0;i<pages.length;i++){
      if(i>0)pdf.addPage();
      const canvas=await renderReportPageToCanvas(pages[i]);pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
@@ -17185,9 +17235,11 @@ function view20HealthCombo(app,type){
  }
  if(model.isEligible)addExportButton(app,type==='happy'?'pay20happy':'pay20saver');
 }
-function healthHappyRiderBenefitPages(model){
- if(state.healthCombo.happyMode!=='full')return [];
- const riders=ensureHealthHappyRiders();
+function healthHappyRiderBenefitPages(model,plus=false){
+ if(plus?state.plusHappy.mode!=='full':state.healthCombo.happyMode!=='full')return [];
+ const riders=plus?ensurePlusHappyRiders():ensureHealthHappyRiders();
+ const riderKey=plus?'plusHappyRiders':'healthComboRiders';
+ const productTitle=plus?'20Pay Life Plus + Health Happy + เลือกความคุ้มครองเอง':'20PL + Health Happy + สัญญาเพิ่มเติม';
  let detailPages=[];
  let fallback=[];
  // Use existing 20PL benefit templates with this product's Rider context directly.
@@ -17213,7 +17265,7 @@ function healthHappyRiderBenefitPages(model){
   // display their original benefit lines instead of inventing new policy language.
   const fullyCovered=new Set(['healthhappy','hhkids','healthsaver','infinitecare','multipayci','tpd','ciplus','citopup','healthcancer','cfc','ai','add','adb','hb','hbextra']);
   if(rs.ladycare){
-   fallback=build20PayLifeRiderDetailRows('healthComboRiders').filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
+   fallback=build20PayLifeRiderDetailRows(riderKey).filter(row=>row.name==='Lady Care'||row.name==='Lady Care Plus');
   }
  const styles='<style>'+
   '.health-happy-rider-page .hh-rider-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:0!important}'+
@@ -17229,10 +17281,10 @@ function healthHappyRiderBenefitPages(model){
  const summary='<div class="rp-section"><div class="rp-section-title">สัญญาเพิ่มเติมที่เลือก</div>'+
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
- const head='<div class="rp-report-head"><div><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div>'+
+ const head='<div class="rp-report-head"><div><div class="rp-report-title">'+productTitle+'</div>'+
   '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
-  '<div class="cell"><div class="l">ทุนสัญญาหลัก 20PL</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
+  '<div class="cell"><div class="l">'+(plus?'ทุนสัญญาหลัก 20Pay Life Plus':'ทุนสัญญาหลัก 20PL')+'</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนในหน้า 1</div></div></div>';
  const disclaimer='<div class="hc-report-disclaimer rp-red-remark-before-payment">การจ่ายผลประโยชน์จริงขึ้นอยู่กับนิยาม เงื่อนไข ข้อยกเว้น และเอกสารสัญญาเพิ่มเติมของ AIA เบี้ย Rider อาจเปลี่ยนตามอายุ</div>';
  const fallbackMarkup=fallback.map(row=>'<div class="hh-fallback-benefit"><h3>'+escapeResourceHtml(row.name)+'</h3><div>'+escapeResourceHtml([row.part1,row.part2].filter(Boolean).join(' • '))+'</div><ul>'+
@@ -17255,7 +17307,7 @@ function healthHappyRiderBenefitPages(model){
  detailPages.forEach(item=>{
   if(!item.html)return;
   let html=item.html.replace('class="ex-report-page"','class="ex-report-page health-combo-report-page health-happy-rider-page"');
-  html=html.replaceAll('20PL + เลือกความคุ้มครองเอง','20PL + Health Happy + สัญญาเพิ่มเติม');
+  html=html.replaceAll('20PL + เลือกความคุ้มครองเอง',productTitle);
   html=html.replace(/<div class="rp-page-number">[\s\S]*?<\/div>/,'<div class="rp-page-number" data-hh-page-number="later"></div>');
   pages.push(html);
  });
