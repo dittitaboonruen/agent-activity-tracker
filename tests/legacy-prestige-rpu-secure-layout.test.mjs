@@ -164,3 +164,24 @@ test('Legacy Table B automatically recovers after a temporary 503 without anothe
  assert.equal(qa.row().paidUp,630000);
  assert.ok(renderCalls>=2,'table refreshes after each completed request');
 });
+
+test('Legacy integrity self-test is restricted and never returns factor or hash data',()=>{
+ const auth=api.indexOf('const {data:{user},error}=await sb.auth.getUser()');
+ const role=api.indexOf('.select("role,active")');
+ const selfTest=api.indexOf('if(query.get("selfTest")==="1")');
+ const calculation=api.indexOf('const gender=query.get("gender")');
+ assert.ok(auth>=0&&role>auth&&selfTest>role&&calculation>selfTest,
+  'authentication and role checks must execute before diagnostic');
+ const diagnostic=api.slice(selfTest,calculation);
+ assert.match(diagnostic,/\["admin","training"\]\.includes\(profile\.role\)/);
+ assert.match(diagnostic,/getVerifiedFactors\(\)/);
+ assert.match(diagnostic,/\[10,15,20\]/);
+ assert.match(diagnostic,/\["M","F"\]/);
+ assert.match(diagnostic,/status:verified\?"PASS":"BLOCKED"/);
+ assert.match(diagnostic,/status:verified\?200:503,headers:noStore/);
+ assert.doesNotMatch(diagnostic,/JSON\.stringify\(factors\)|rows:|factorValues:|hashes:|process\.env\./);
+ assert.match(api,/factorHealthCode = "missing_configuration"/);
+ assert.match(api,/factorHealthCode = "verified"/);
+ assert.match(api,/legacy manual factor integrity mismatch/);
+ assert.match(api,/if\(!factors\) return NextResponse\.json\(\{error:"restricted_factors_not_configured"\}/);
+});
