@@ -84,7 +84,7 @@ test('server missing years use only exact-case iPOS+ values; never overwrite kno
      age===60&&gender==='หญิง'&&sum===15000000&&term===20?{byAge:exact}:null,
  };
  vm.runInNewContext(html.slice(start,end)+
-   '\\nglobalThis.lookup=lookupLegacyPolicyValueIllustration;',sandbox);
+   '\nglobalThis.lookup=lookupLegacyPolicyValueIllustration;',sandbox);
  const female=sandbox.lookup(60,'หญิง',15000000,20).byAge;
  assert.equal(female.get(60).surrender,0);
  assert.equal(female.get(60).paidUp,0);
