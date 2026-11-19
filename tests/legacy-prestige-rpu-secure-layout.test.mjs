@@ -152,9 +152,11 @@ test('Legacy Table B automatically recovers after a temporary 503 without anothe
  assert.match(qa.error(),/503/);
  assert.equal(fetchCalls,1);
  qa.loadLegacyTableB(35,'หญิง',15000000,20);
- assert.equal(timers.length,0,'cooldown prevents repeated requests on re-render');
+ assert.equal(timers.length,1,'at most one deferred retry is scheduled');
+ assert.equal(fetchCalls,1,'no immediate request loop');
  now+=16000;
- qa.loadLegacyTableB(35,'หญิง',15000000,20);
+ timers.shift()(); // Auto retry callback invokes the exact-case loader.
+ assert.equal(timers.length,1,'automatic retry schedules the next fetch');
  await timers.shift()();
  assert.equal(fetchCalls,2);
  assert.equal(qa.error(),undefined);
