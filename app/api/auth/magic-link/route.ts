@@ -69,15 +69,26 @@ export async function POST(request: Request) {
       }
     );
 
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      "https://agent-activity-tracker.vercel.app";
+    // Preview sign-in must return to the SAME Vercel deployment hostname.
+    // Use a platform-provided URL, never an untrusted request Host header.
+    // Supabase Auth must allow this preview URL in its Redirect URLs settings.
+    const previewUrl =
+      process.env.VERCEL_ENV === "preview"
+        ? process.env.VERCEL_URL
+        : null;
+    const origin = previewUrl
+      ? `https://${previewUrl}`
+      : (process.env.NEXT_PUBLIC_SITE_URL ||
+         "https://agent-activity-tracker.vercel.app");
+    const returnPath = previewUrl
+      ? "/illustrations/royal_partners_illustration_tool.html?plan=legacy"
+      : "/";
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(returnPath)}`,
       },
     });
 
