@@ -85,3 +85,14 @@ Obtain the previously audited 20 Pay male RPU values from the private source/man
 
 ### Release state
 **BLOCKED BY VERIFIED CONFIGURATION MISMATCH (20 Pay Male RPU)** — stronger evidence than the previous "runtime not verified" status. Production unaffected.
+
+
+## Private 20 Pay male RPU correction from re-uploaded manual — 19 Nov 2026
+
+- Original PDF reopened: `Manual_AIA+Legacy+Prestige+Plus+(New)_20250220(3).pdf`, physical page 21.
+- Vector-text extraction by column and exact policy-year alignment: 76 ages × 19 policy years = 1,444 primary RPU factors.
+- Recomputed SHA-256: `a217c391778de7084fc4d7cbef8309e835f54fd820d496028b8cc6c0d3ab2ae0`, an exact match to the already committed 20:M RPU audit manifest.
+- Corrected factors were written to a separately scoped encrypted Preview-only Vercel variable `LEGACY_RPU_MALE_20_CORRECTED_BR_B64`; source values were NOT committed.
+- Server verifier and build preflight use this private 20 Pay male-only replacement. All other 10/15 Pay data and the audited expected fingerprints are unchanged.
+- User requests no external insurer contact. This is internal-source quality verification, NOT approval for distribution or customer illustration.
+- Re-run Vercel build to establish actual runtime-source 6/6 PASS before attempting integration.
