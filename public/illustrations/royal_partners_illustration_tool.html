@@ -13996,7 +13996,7 @@ function build20PayLifeReportHTML(config=null){
       ${extraAppendix}
     </div>
   </div>`;
-  return config?.title?reportHTML.replaceAll('20PL + เลือกความคุ้มครองเอง',reportTitle):reportHTML;
+  return config?.title?reportHTML.replaceAll('20PL + เลือกความคุ้มครองเอง',reportTitle).replaceAll('Report v'+PAY20LIFE_REPORT_VERSION,'Report v'+data.reportVersion):reportHTML;
 }
 
 
@@ -17207,7 +17207,7 @@ function healthHappyRiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">20PL + Health Happy + สัญญาเพิ่มเติม</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก 20PL</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">Health Happy</div><div class="v">เปรียบเทียบ 4 แผนในหน้า 1</div></div></div>';
@@ -17297,7 +17297,7 @@ function excellentRiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">Excellent + เลือกความคุ้มครองเอง</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก Excellent</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">Excellent</div><div class="v">Plan A ในหน้า 1</div></div></div>';
@@ -17396,7 +17396,7 @@ function pay25RiderBenefitPages(model){
   '<div class="ledger-wrap health-combo-ledger hh-rider-table-wrap"><table class="ledger hc-plan-table hh-rider-table"><thead><tr><th>สัญญาเพิ่มเติม</th><th>ทุน / เงื่อนไข</th><th>เบี้ยต่อปี</th></tr></thead><tbody>'+rows+
   '<tr><td colspan="2"><strong>รวมเบี้ย Rider อื่นที่เลือก / ปี</strong></td><td><strong>'+fmt(model.riderTotal)+' บาท</strong></td></tr></tbody></table></div></div>';
  const head='<div class="rp-report-head"><div><div class="rp-report-title">15 Pay 25 + เลือกความคุ้มครองเอง</div>'+
-  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์ที่เลือก — อ้างอิง 20PL เดิม</div></div></div>';
+  '<div class="rp-report-sub" style="color:#e6d8b9;font-size:9px">รายละเอียดผลประโยชน์สัญญาเพิ่มเติมที่เลือก</div></div></div>';
  const meta='<div class="rp-report-meta"><div class="cell"><div class="l">เพศ / อายุ</div><div class="v">'+model.gender+' / '+model.age+' ปี</div></div>'+
   '<div class="cell"><div class="l">ทุนสัญญาหลัก 15 Pay 25</div><div class="v">'+fmt(state.sum)+' บาท</div></div>'+
   '<div class="cell"><div class="l">15 Pay 25</div><div class="v">Plan A ในหน้า 1</div></div></div>';
