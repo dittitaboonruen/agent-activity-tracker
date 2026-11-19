@@ -17104,6 +17104,12 @@ const LEGACY_MALE_RPU_DATA=LEGACY_TABLE_B_DATA; // previous QA-only alias
 let LEGACY_TABLE_B_TIMER=null;
 const legacyTableBKey=(age,gender,sum,term)=>[age,gender,sum,term].join(':');
 const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':'); // legacy QA fallback only
+function retryLegacyTableB(){
+  const key=legacyTableBKey(state.age,state.gender,state.sum,state.legacy.term);
+  LEGACY_TABLE_B_ERRORS.delete(key);
+  loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
+  render();
+}
 function loadLegacyTableB(age,gender,sum,term){
   if(!['ชาย','หญิง'].includes(gender)||!Number.isInteger(age)||age<0||age>75||
      !Number.isFinite(sum)||sum<10000000||sum>1000000000||
@@ -17123,6 +17129,7 @@ function loadLegacyTableB(age,gender,sum,term){
         {credentials:'same-origin',cache:'no-store'});
       if(!res.ok)throw Error(res.status===401?'กรุณาเข้าสู่ระบบก่อนใช้ตาราง B':
         res.status===403?'บัญชีนี้ยังไม่มีสิทธิ์ดูตาราง B':
+        res.status===503?'ข้อมูล Factor ยังไม่ผ่านการตรวจสอบบน Server (503)':
         'ไม่สามารถโหลดข้อมูล CV/RPU ที่ตรวจสอบได้');
       const result=await res.json();
       if(result.gender!==sex||result.issueAge!==age||result.sum!==sum||
@@ -17231,6 +17238,12 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const tableBServerReady=LEGACY_TABLE_B_DATA.has(caseKey);
   const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
     (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
+  const tableBAuthAction=tableBError==='กรุณาเข้าสู่ระบบก่อนใช้ตาราง B'
+    ?'<div class="legacy-auth-help"><a href="/login" target="_blank" rel="noopener noreferrer">เข้าสู่ระบบบน Preview นี้</a><span>เมื่อเข้าสู่ระบบเสร็จ กลับมาที่หน้านี้แล้วกดโหลดตารางอีกครั้ง</span></div>'
+    :'';
+  const tableBRetryAction=tableBError
+    ?'<button type="button" class="legacy-retry-btn" onclick="retryLegacyTableB()">ลองโหลดตาราง B อีกครั้ง</button>'
+    :'';
   const thClass='legacy-values-age';
   const renderValue=(value)=>{
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
@@ -17255,11 +17268,13 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
+    '.legacy-auth-help{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.legacy-auth-help a,.legacy-retry-btn{display:inline-block;padding:8px 14px;border-radius:7px;background:#142A47;color:white;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.legacy-auth-help span{font-size:11px}.legacy-retry-btn{margin-top:10px;background:#B8985A;color:#142A47}'+
     '@media(max-width:760px){.legacy-values-table{min-width:420px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
       '<strong>'+tableBStatus+'</strong> · สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA'+
+      tableBAuthAction+tableBRetryAction+
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
     '<table class="legacy-values-table"><thead>'+
