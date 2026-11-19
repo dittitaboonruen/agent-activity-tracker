@@ -16007,9 +16007,150 @@ async function downloadAnnuityPDF(key,btn){
 
 /* Fit oversized A4 report content inside the actual paper (including PDF source).
    Unlike modal zoom, this fixes content clipped by the paper's overflow:hidden. */
+
+/* Excellent Rider A4 paginator: works on the hidden PDF source before cloning
+   to the preview, never alters approved 20PL benefit text or premium formulas. */
+function paginateExcellentRiderReport(root){
+ const report=root?.querySelector('.rp-report-pages');
+ if(!report || state.excellent.mode!=='full')return;
+ const riderPages=[...report.querySelectorAll(':scope > .excellent-rider-report-page')];
+ if(!riderPages.length)return;
+ const summary=riderPages[0];
+ const summaryInner=summary.querySelector(':scope > .ex-report-inner');
+ const summaryFooter=summaryInner?.querySelector(':scope > .rp-page-number');
+ if(!summaryInner || !summaryFooter)return;
+ const inline=document.createElement('div');
+ inline.className='pl20-ci-wrap excellent-inline-details';
+ const disclaimer=summaryInner.querySelector(':scope > .hc-report-disclaimer');
+ summaryInner.insertBefore(inline,disclaimer||summaryFooter);
+ let currentPage=summary, currentContainer=inline;
+ let currentTemplate=null;
+ const contentSelector='.pl20-ci-wrap, .pl20-health-table-list';
+ const fits=page=>{
+  const inner=page.querySelector(':scope > .ex-report-inner');
+  const footer=inner?.querySelector(':scope > .rp-page-number');
+  if(!inner || !footer)return false;
+  const pageRect=page.getBoundingClientRect(), footRect=footer.getBoundingClientRect();
+  const actualBottom=Math.max(footer.getBoundingClientRect().bottom, ...[...inner.children].filter(x=>x!==footer && x.getClientRects().length).map(x=>x.getBoundingClientRect().bottom));
+  return actualBottom<=pageRect.bottom-9 && inner.scrollWidth<=page.clientWidth+1 &&
+    inner.scrollHeight<=page.clientHeight+2 && footRect.bottom<=pageRect.bottom-9;
+ };
+ const createPage=template=>{
+  const page=template.cloneNode(true);
+  page.removeAttribute('id');
+  const holder=page.querySelector(contentSelector);
+  if(!holder)throw new Error('Excellent Rider PDF: ไม่พบพื้นที่รายละเอียดผลประโยชน์');
+  holder.innerHTML='';
+  const inner=page.querySelector(':scope > .ex-report-inner');
+  [...inner.children].forEach(el=>{
+   if(el.classList.contains('pl20-medical-note'))el.remove();
+  });
+  page.querySelector('.rp-page-number')?.replaceChildren();
+  report.appendChild(page);
+  currentPage=page;
+  currentContainer=holder;
+ };
+ // Blocks may be split only at meaningful benefit boundaries. Table rows are
+ // grouped to keep existing merged cells (rowspan) intact.
+ const divide=el=>{
+  if(el.classList.contains('pl20-ci-panel')){
+   const children=[...el.children];
+   const header=children.find(ch=>ch.classList.contains('pl20-ci-panel-title'));
+   return children.filter(ch=>ch!==header).map(ch=>{
+    const part=el.cloneNode(false);
+    if(header)part.appendChild(header.cloneNode(true));
+    part.appendChild(ch.cloneNode(true));
+    return part;
+   });
+  }
+  if(el.classList.contains('pl20-health-table-card')){
+   const head=el.querySelector(':scope > .pl20-health-table-head');
+   const result=[];
+   for(const child of [...el.children].filter(ch=>ch!==head)){
+    if(child.tagName==='TABLE'){
+     const rows=[...child.tBodies[0]?.rows||[]];
+     const groups=[];
+     let i=0;
+     while(i<rows.length){
+      let end=i+1;
+      for(let j=i;j<end;j++){
+       for(const cell of [...rows[j].cells])end=Math.max(end,j+(cell.rowSpan||1));
+      }
+      groups.push(rows.slice(i,end));
+      i=end;
+     }
+     for(const group of groups){
+      const part=el.cloneNode(false);
+      if(head)part.appendChild(head.cloneNode(true));
+      const table=child.cloneNode(false);
+      if(child.tHead)table.appendChild(child.tHead.cloneNode(true));
+      const tbody=document.createElement('tbody');
+      group.forEach(tr=>tbody.appendChild(tr.cloneNode(true)));
+      table.appendChild(tbody);part.appendChild(table);result.push(part);
+     }
+    }else{
+     const part=el.cloneNode(false);
+     if(head)part.appendChild(head.cloneNode(true));
+     part.appendChild(child.cloneNode(true));result.push(part);
+    }
+   }
+   return result;
+  }
+  // Break long benefit cards into existing headings/items rather than text lines.
+  if(el.children.length>=2 && !['TABLE','TBODY','THEAD','TR','UL','OL'].includes(el.tagName)){
+   return [...el.children].map(ch=>{const p=el.cloneNode(false);p.appendChild(ch.cloneNode(true));return p;});
+  }
+  return [];
+ };
+ let safety=0,overflowItems=0;
+ const place=(node,template,depth=0)=>{
+  if(++safety>2500)throw new Error('Excellent Rider PDF: เนื้อหาเกินขีดจำกัดการแบ่งหน้า');
+  const clone=node.cloneNode(true);
+  currentContainer.appendChild(clone);
+  if(fits(currentPage))return;
+  clone.remove();
+  if(currentContainer.children.length>0 || currentPage===summary){
+   createPage(template);
+   currentContainer.appendChild(node.cloneNode(true));
+   if(fits(currentPage))return;
+   currentContainer.lastElementChild.remove();
+  }
+  const pieces=depth<5?divide(node):[];
+  if(pieces.length>1){
+   pieces.forEach(part=>place(part,template,depth+1));
+  }else{
+   // A single very large unbreakable item is isolated, never silently clipped.
+   currentContainer.appendChild(node.cloneNode(true));
+   if(!fits(currentPage))overflowItems++;
+  }
+ };
+ for(const source of riderPages.slice(1)){
+  const template=source.cloneNode(true);
+  const sourceContent=source.querySelector(contentSelector);
+  if(!sourceContent)continue;
+  const blocks=[...sourceContent.children].map(el=>el.cloneNode(true));
+  const note=source.querySelector(':scope > .ex-report-inner > .pl20-medical-note');
+  if(note)blocks.push(note.cloneNode(true));
+  source.remove();
+  for(const block of blocks){
+   place(block,template);
+  }
+ }
+ const all=[...report.querySelectorAll(':scope > .ex-report-page')];
+ all.forEach((page,i)=>{
+  const footer=page.querySelector(':scope > .ex-report-inner > .rp-page-number');
+  if(footer)footer.textContent='ROYAL PARTNER · ใบสรุปข้อเสนอ · หน้า '+(i+1)+'/'+all.length;
+ });
+ if(overflowItems){
+  // Deliberately retain a diagnostic instead of pretending an overflowing item fits.
+  console.warn('Excellent Rider A4: unsplittable oversized benefit blocks:',overflowItems);
+ }
+}
+
 function fitReportA4Contents(root){
   if(!root) return;
   root.querySelectorAll('.rp-report-page, .ex-report-page, .sc-report-page, .ann-report-page').forEach(page=>{
+    if(page.classList.contains('excellent-rider-report-page'))return; // Pager controls page boundaries; no text shrinking.
     const inner = page.querySelector(':scope > .rp-page-inner, :scope > .ex-report-inner, :scope > .sc-report-inner, :scope > .ann-report-inner');
     if(!inner) return;
 
@@ -16209,6 +16350,7 @@ function showReportPreview(key){
       while(fitPaper.firstChild) pdfSource.appendChild(fitPaper.firstChild);
       // Keep the original report first so PDF selectors resolve to the unscaled source.
       host.insertBefore(pdfSource,host.firstChild);
+      if(key==='excellent' && state.excellent.mode==='full')paginateExcellentRiderReport(pdfSource);
       const visualReport = pdfSource.cloneNode(true);
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
@@ -16240,7 +16382,16 @@ function showReportPreview(key){
       host.querySelectorAll('.rp-preview-visual-report img, .rp-preview-pdf-source img').forEach(img=>{
         if(!img.complete) img.addEventListener('load',fitAllReports,{once:true});
       });
-      if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAllReports);
+      if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{
+        if(key==='excellent' && state.excellent.mode==='full' && pdfSource.isConnected){
+          // Re-measure after Thai web fonts load. Rebuild from unpaginated
+          // source so previously split benefit blocks cannot be duplicated.
+          pdfSource.innerHTML=reportHTML;
+          paginateExcellentRiderReport(pdfSource);
+          fitPaper.innerHTML=pdfSource.innerHTML;
+        }
+        fitAllReports();
+      });
       const priorCleanup = window.__rpPreviewFitCleanup;
       if(typeof priorCleanup === 'function') priorCleanup();
       window.__rpPreviewFitCleanup = ()=>{
