@@ -15550,8 +15550,8 @@ async function downloadPay25PDF(btn){
     return;
   }
 
-  const page = document.getElementById('pay25-report-page-1');
-  if(!page){
+  const pages=[...document.querySelectorAll('.rp-preview-pdf-source #pay25-report-page-1, .rp-preview-pdf-source .excellent-rider-report-page')];
+  if(!pages.length){
     alert('ไม่พบใบสรุป 15 Pay 25');
     return;
   }
@@ -15564,9 +15564,11 @@ async function downloadPay25PDF(btn){
   try{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const canvas = await renderReportPageToCanvas(page);
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData,'PNG',0,0,210,297,undefined,'FAST');
+    for(let i=0;i<pages.length;i++){
+      if(i)pdf.addPage('a4','portrait');
+      const canvas=await renderReportPageToCanvas(pages[i]);
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
 
     const customerName = (state.customer.firstName || state.customer.lastName)
       ? `${state.customer.firstName || ''}-${state.customer.lastName || ''}`.trim().replace(/\s+/g,'-')
@@ -16095,7 +16097,7 @@ async function downloadAnnuityPDF(key,btn){
    to the preview, never alters approved 20PL benefit text or premium formulas. */
 function paginateExcellentRiderReport(root){
  const report=root?.querySelector('.rp-report-pages');
- if(!report || state.excellent.mode!=='full')return;
+ if(!report || !(state.excellent.mode==='full'||state.pay25.mode==='full'))return;
  const riderPages=[...report.querySelectorAll(':scope > .excellent-rider-report-page')];
  if(!riderPages.length)return;
  const summary=riderPages[0];
@@ -16431,7 +16433,7 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='pay25'?(state.pay25.mode==='full'?'15 Pay 25 + สัญญาเพิ่มเติม — A4':'15 Pay 25 — ใบสรุป A4 1 หน้า'):key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
@@ -16459,7 +16461,7 @@ function showReportPreview(key){
       while(fitPaper.firstChild) pdfSource.appendChild(fitPaper.firstChild);
       // Keep the original report first so PDF selectors resolve to the unscaled source.
       host.insertBefore(pdfSource,host.firstChild);
-      if(key==='excellent' && state.excellent.mode==='full')paginateExcellentRiderReport(pdfSource);
+      if((key==='excellent' && state.excellent.mode==='full') || (key==='pay25' && state.pay25.mode==='full'))paginateExcellentRiderReport(pdfSource);
       const visualReport = pdfSource.cloneNode(true);
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
@@ -16492,7 +16494,7 @@ function showReportPreview(key){
         if(!img.complete) img.addEventListener('load',fitAllReports,{once:true});
       });
       if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{
-        if(key==='excellent' && state.excellent.mode==='full' && pdfSource.isConnected){
+        if(((key==='excellent' && state.excellent.mode==='full') || (key==='pay25' && state.pay25.mode==='full')) && pdfSource.isConnected){
           // Re-measure after Thai web fonts load. Rebuild from unpaginated
           // source so previously split benefit blocks cannot be duplicated.
           pdfSource.innerHTML=reportHTML;
