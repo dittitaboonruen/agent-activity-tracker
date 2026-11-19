@@ -10786,6 +10786,7 @@ function viewPayLifePlus(app){
     panel.appendChild(warn);
     return;
   }
+  if(plusMode==='full')ensurePayLifePlusRiders();
   const riderRows=plusMode==='full'?get20PayLifeSelectedRiders('paylifeplusRiders'):[];
   const riderTotal=riderRows.reduce((sum,row)=>sum+row.premium,0);
   fillSummary(app,plusMode==='full'?[
