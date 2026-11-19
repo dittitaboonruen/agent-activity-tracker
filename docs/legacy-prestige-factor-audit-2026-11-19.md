@@ -10,6 +10,7 @@
 - Every table has 76 issue-age rows. CV 35 columns (trailing blanks after attained age limits); RPU 9/14/19 columns for 10/15/20 Pay.
 - A second numerical segment occurs in each RPU display cell; **206 cells have a nonzero second segment** (male/female: 10 Pay 10/5, 15 Pay 33/23, 20 Pay 77/58). This segment was preserved in the offline audit but is NOT represented by the current RPU server factor rows. Its contractual interpretation MUST be confirmed with AIA prior to CV/RPU sign-off.
 - The branch API compares SHA-256 of `JSON.stringify` of 12 decoded primary-factor arrays against this manual-derived manifest and fails closed on mismatches; hashes only are in source control, NOT proprietary raw factors.
+- The branch API also **suppresses RPU output (returns an unavailable value, not 0)** at the 206 ambiguous positions until AIA clarifies the second numeric segment. This is a QA safeguard; it is not a replacement for AIA approval.
 - Verify that all configured Preview encrypted env values actually match hashes using an authenticated runtime test. Presence of env variables is not proof of a match.
 
 ## Data handling / security
