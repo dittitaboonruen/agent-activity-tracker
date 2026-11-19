@@ -16019,6 +16019,27 @@ function paginateExcellentRiderReport(root){
  const summaryInner=summary.querySelector(':scope > .ex-report-inner');
  const summaryFooter=summaryInner?.querySelector(':scope > .rp-page-number');
  if(!summaryInner || !summaryFooter)return;
+ // Reapply the original 20PL detail styles to benefit blocks moved into
+ // the summary page. Their original CSS is scoped to the 20PL page IDs.
+ const riderIds=/#pay20life-report-page-(?:ci(?:-other|-plus)?|accident|hb|2)\\b/g;
+ const copied=[];
+ const collectRules=rules=>{
+  for(const rule of rules){
+   if(rule.selectorText && riderIds.test(rule.selectorText)){
+    riderIds.lastIndex=0;
+    copied.push(rule.selectorText.replace(riderIds,'.excellent-inline-details')+'{'+rule.style.cssText+'}');
+   }else if(rule.cssRules)collectRules(rule.cssRules);
+   riderIds.lastIndex=0;
+  }
+ };
+ for(const sheet of document.styleSheets){
+  try{collectRules(sheet.cssRules||[]);}catch(_){/* Cross-origin CSS is not needed for locally defined rider styles. */}
+ }
+ if(copied.length){
+  const scoped=document.createElement('style');
+  scoped.textContent=copied.join('\\n');
+  summaryInner.appendChild(scoped);
+ }
  const inline=document.createElement('div');
  inline.className='pl20-ci-wrap excellent-inline-details';
  const disclaimer=summaryInner.querySelector(':scope > .hc-report-disclaimer');
