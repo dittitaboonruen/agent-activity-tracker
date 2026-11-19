@@ -95,6 +95,15 @@ function getVerifiedFactors(): Factors | null {
         };
       }
       if(position!==binary.length)throw Error("female factor data overflow");
+      // Corrected male 20-pay RPU from uploaded 2025 manual, private Preview env only.
+      // 10/15 Pay remain exactly as previously verified.
+      const male20=process.env.LEGACY_RPU_MALE_20_CORRECTED_BR_B64;
+      if(male20){
+        const rows=JSON.parse(brotliDecompressSync(Buffer.from(male20,"base64"),
+          {maxOutputLength:30000}).toString("utf8")) as number[][];
+        tables["20"].M.rpu=rows;
+      }
+
     }
     for (const term of [10,15,20]) for (const gender of ["M","F"] as Gender[]) {
       const data = tables[String(term)]?.[gender];
