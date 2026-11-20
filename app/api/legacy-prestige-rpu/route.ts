@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { brotliDecompressSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { hasCalculatorAccess } from "@/lib/insurance/legacy-prestige-plus/calculator-access";
+import { classifyLegacyCvEvidence } from "@/lib/insurance/legacy-prestige-plus/cv-evidence-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -242,8 +243,14 @@ export async function GET(request:NextRequest) {
     const male40Cv=male40ScreenshotCv&&attainedAge>=75&&attainedAge<=98
       ?male40ScreenshotCv[attainedAge-75]:null;
     const screenshotCv=exactCv!==null?exactCv:male40Cv;
+    // Source labeling only; preserve exact numeric calculation unchanged.
+    const cvEvidence=classifyLegacyCvEvidence({
+      gender:gender as Gender,issueAge:age,term:term as 10|15|20,
+      sum,attainedAge,publishedAmount:verifiedCv,exactScreenshotAmount:screenshotCv
+    });
     return {age:attainedAge,policyYear:i+1,
       surrender:verifiedCv===null&&screenshotCv!==null?screenshotCv:verifiedCv,
+      cvEvidence,
       paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
