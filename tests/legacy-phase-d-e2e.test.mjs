@@ -113,5 +113,5 @@ test('Phase D: browser script parses and PDF uses exact case key rather than sta
   assert.doesNotThrow(()=>new Function(script[1]));
   assert.match(html,/const caseKey=legacyTableBKey\(state.age,state.gender,state.sum,state.legacy.term\);/);
   assert.match(html,/if\(!LEGACY_TABLE_B_DATA\.has\(caseKey\)\)/);
-  assert.match(html,/policyValues\?\.byAge\.get\(policyAge\)/);
+  assert.match(html,/policyValues\.byAge\.get\(r\.age\)/);
 });
