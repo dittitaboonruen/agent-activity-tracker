@@ -84,3 +84,31 @@ test('Phase D PDF HTML: missing CV and RPU remain dashes, not invented amounts',
   assert.match(body,/<td>1<\/td><td>40<\/td><td class="legacy3-empty">—<\/td><td class="legacy3-empty">—<\/td>/);
   assert.doesNotMatch(body,/\(ประมาณ\)/);
 });
+
+test('Legacy PDF 1.1: every attained age appears once in each of Tables A and B',()=>{
+  for(const issueAge of [0,35,45,75]){
+    const h=createHarness();
+    h.state.age=issueAge;
+    h.verified.set([issueAge,'ชาย',10000000,10].join(':'),new Map(
+      Array.from({length:99-issueAge},(_,i)=>[issueAge+i,{
+        surrender:i<=34?i*10000:null,paidUp:i<9?i*20000:null
+      }])
+    ));
+    const doc=h.report();
+    const tables=[...doc.matchAll(/<table class="legacy3-table-full">([\\s\\S]*?)<\\/table>/g)];
+    const groups=Math.ceil((99-issueAge)/20);
+    assert.equal(tables.length,groups*2,'Table A and Table B span every expected page');
+    const years=(entries)=>entries.flatMap(x=>[...x[1].matchAll(/<tr><td>(\\d+)<\\/td><td>(\\d+)<\\/td>/g)]
+      .map(match=>[Number(match[1]),Number(match[2])]));
+    const tableA=years(tables.slice(0,groups));
+    const tableB=years(tables.slice(groups));
+    for(const entries of [tableA,tableB]){
+      assert.equal(entries.length,99-issueAge);
+      for(let i=0;i<entries.length;i++){
+        assert.equal(entries[i][0],i+1);
+        assert.equal(entries[i][1],issueAge+i);
+      }
+    }
+    assert.doesNotMatch(doc,/6 ข้อควรทราบ|cvResearchCandidate/);
+  }
+});
