@@ -179,9 +179,7 @@ export default function CalculatorPdfDelivery() {
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              <strong>หมายเหตุ:</strong> บน iPad / มือถือ ปุ่มนี้จะเปิดเมนูแชร์ไฟล์ หาก LINE ไม่ปรากฏ ให้เลือกบันทึกลง Files แล้วแนบ PDF ผ่านปุ่ม + ในแชท LINE
-              <br />
-              กรณีส่งอีเมล กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
+              <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
