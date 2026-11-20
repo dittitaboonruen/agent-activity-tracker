@@ -71,9 +71,8 @@ export default function CalculatorPdfDelivery() {
   function downloadPdf() {
     if (!document) return;
     try {
-      // iOS Safari sometimes opens a PDF Blob in a viewer instead of downloading it.
-      // Only the download copy uses octet-stream; the original PDF remains intact
-      // for LINE/Mail file sharing and keeps the .pdf filename.
+      // Download is the safe fallback on browsers without file-share support.
+      // Keep the same top-level download implementation used in production.
       const appleTouch =
         /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -91,37 +90,47 @@ export default function CalculatorPdfDelivery() {
       setNotice("");
     } catch (error) {
       console.error("PDF download error:", error);
-      setNotice("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่ หรือส่งไฟล์ผ่าน LINE / อีเมล");
+      setNotice("บันทึก PDF ไม่สำเร็จ กรุณาลองใหม่");
     }
   }
 
-  async function sharePdf() {
+  async function saveOrSharePdf() {
     if (!document || busy) return;
-    if (!navigator.share || typeof File === "undefined") {
-      setNotice("อุปกรณ์นี้ไม่มีเมนูแชร์ไฟล์ กรุณาใช้ “ดาวน์โหลด PDF” แล้วส่งผ่าน LINE หรืออีเมลจากแอปโดยตรง");
-      return;
-    }
 
-    const file = new File([document.blob], document.filename, { type: "application/pdf" });
-    if (navigator.canShare && !navigator.canShare({ files: [file] })) {
-      setNotice("เบราว์เซอร์นี้ไม่รองรับการแชร์ไฟล์ PDF กรุณาใช้ “ดาวน์โหลด PDF” แทน");
-      return;
-    }
+    const appleTouch =
+      /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const mobileTouch = appleTouch || /Android/i.test(navigator.userAgent);
 
-    setBusy(true);
-    setNotice("");
-    try {
-      // On the tested iPad, LINE disappeared with an empty title. A zero-width
-      // title is a compatibility experiment to advertise a text-capable payload
-      // without visibly attaching the filename. Device-level QA is required.
-      await navigator.share({ files: [file], title: "\u200B" });
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
+    // Use the native file share sheet on mobile. Sending ONLY the File is
+    // essential: title/text/URL produce an extra LINE chat bubble.
+    // iOS decides which share extensions appear; no website can force LINE.
+    if (mobileTouch && typeof File !== "undefined" && navigator.share) {
+      const file = new File([document.blob], document.filename, { type: "application/pdf" });
+      const shareData: ShareData = { files: [file] };
+      if (!navigator.canShare || navigator.canShare(shareData)) {
+        setBusy(true);
+        setNotice("");
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return; // User dismissed share sheet; do not silently save a file.
+          }
+          console.warn("Native file sharing unavailable, using PDF download:", error);
+          // An unexpected share failure may remove user activation, so explain
+          // fallback instead of attempting a download that Safari could block.
+          setNotice("เปิดเมนูแชร์ไม่สำเร็จ กรุณากดอีกครั้ง หรือเปิดจาก Safari");
+          return;
+        } finally {
+          setBusy(false);
+        }
       }
-    } finally {
-      setBusy(false);
     }
+
+    // Desktop and devices without native file-sharing use a real PDF download.
+    downloadPdf();
   }
 
   return (
@@ -165,16 +174,14 @@ export default function CalculatorPdfDelivery() {
             </div>
             <p style={{ overflowWrap: "anywhere", fontSize: 12, color: "#5D6470" }}>{document.filename}</p>
             <div style={{ display: "grid", gap: 10 }}>
-              <button type="button" onClick={downloadPdf} style={primaryButton}>
-                ดาวน์โหลด PDF
-              </button>
-              <button type="button" onClick={sharePdf} disabled={busy} style={secondaryButton}>
-                {busy ? "กำลังเปิดเมนูแชร์..." : "ส่งผ่าน LINE / อีเมล"}
+              <button type="button" onClick={saveOrSharePdf} disabled={busy} style={primaryButton}>
+                {busy ? "กำลังเปิดเมนูบันทึก..." : "บันทึก PDF"}
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
-              เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบว่าแนบไฟล์ PDF แล้ว
+              <strong>iPad / iPhone:</strong> เลือก “บันทึกไปยังไฟล์” (Save to Files) ในเมนูที่แสดง
+              <br />
+              <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจนและตรวจสอบไฟล์แนบก่อนส่ง
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
