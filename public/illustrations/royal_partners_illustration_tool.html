@@ -15505,8 +15505,45 @@ function isAppleTouchDevice(){
   return iOS || iPadOS;
 }
 
+// Safari may omit LINE from the file-only Share Sheet. Keep the PDF in the
+// browser so users can open the actual PDF and share it from Safari's viewer.
+// No filename text is added to navigator.share (prevents extra .txt exports).
+function preparePdfViewerFallback(blob){
+  if(!isAppleTouchDevice()) return;
+  const actions=document.querySelector('#report-preview-host .rp-preview-actions');
+  if(!actions) return;
+
+  if(window.__rpPdfViewerUrl) URL.revokeObjectURL(window.__rpPdfViewerUrl);
+  window.__rpPdfViewerUrl=URL.createObjectURL(blob);
+
+  let button=actions.querySelector('.rp-preview-open-pdf');
+  if(!button){
+    button=document.createElement('button');
+    button.type='button';
+    button.className='rp-preview-open-pdf';
+    button.textContent='เปิด PDF เพื่อส่ง LINE';
+    button.title='หาก LINE ไม่ปรากฏในเมนูแชร์ ให้เปิด PDF แล้วแชร์จากตัวดู PDF ของ Safari';
+    button.style.cssText='background:#fffdf8;color:#0F1B2E;border:1px solid #B8985A;border-radius:3px;padding:8px 12px;cursor:pointer;font:600 13px IBM Plex Sans Thai Looped,sans-serif;';
+    actions.insertBefore(button,actions.querySelector('.rp-preview-close'));
+    button.addEventListener('click',()=>{
+      const url=window.__rpPdfViewerUrl;
+      if(!url){alert('กรุณาสร้าง PDF ใหม่อีกครั้ง');return;}
+      const link=document.createElement('a');
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+  }
+}
+
 async function savePdfCrossDevice(pdf, filename){
   const blob = pdf.output('blob');
+  // Prepare a visible fallback before launching the iPad Share Sheet.
+  // The fallback opens the same PDF from a fresh user tap (no regeneration).
+  preparePdfViewerFallback(blob);
 
   // iPad/iPhone Safari: download attribute can silently do nothing inside iframe.
   // Prefer the native Share sheet so the user can choose "Save to Files".
@@ -16562,6 +16599,10 @@ function fitReportA4Contents(root){
 }
 
 function closeReportPreview(){
+  if(window.__rpPdfViewerUrl){
+    URL.revokeObjectURL(window.__rpPdfViewerUrl);
+    window.__rpPdfViewerUrl=null;
+  }
   if(typeof window.__rpPreviewFitCleanup === 'function'){
     window.__rpPreviewFitCleanup();
     window.__rpPreviewFitCleanup = null;

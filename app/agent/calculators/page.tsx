@@ -36,7 +36,7 @@ export default function CalculatorPage() {
         <iframe
           title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
           src="/illustrations/royal_partners_illustration_tool.html"
-          sandbox="allow-scripts allow-downloads allow-same-origin allow-modals"
+          sandbox="allow-scripts allow-downloads allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox"
           referrerPolicy="no-referrer"
           style={{
             display: "block",
