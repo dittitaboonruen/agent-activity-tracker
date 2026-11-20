@@ -22,6 +22,7 @@ export default function CalculatorPdfDelivery() {
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [notice, setNotice] = useState("");
+  const [downloadAttempted, setDownloadAttempted] = useState(false);
 
   const pdfUrl = useCallback((blob: Blob) => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -48,6 +49,7 @@ export default function CalculatorPdfDelivery() {
         urlRef.current = null;
       }
       setPdfBase64(null);
+      setDownloadAttempted(false);
       setDocument({ blob, filename: safePdfFilename(data.filename) });
       setNotice("");
     };
@@ -98,6 +100,7 @@ export default function CalculatorPdfDelivery() {
     setDocument(null);
     setPdfBase64(null);
     setNotice("");
+    setDownloadAttempted(false);
     if (urlRef.current) {
       URL.revokeObjectURL(urlRef.current);
       urlRef.current = null;
@@ -130,6 +133,12 @@ export default function CalculatorPdfDelivery() {
 
   return (
     <>
+      {/* Native POST has a private download target: never navigate Safari's top-level tab. */}
+      <iframe
+        title="ปลายทางดาวน์โหลด PDF"
+        name="royal-partner-pdf-download-target"
+        style={{ display: "none" }}
+      />
       <iframe
         ref={frameRef}
         title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
@@ -164,7 +173,12 @@ export default function CalculatorPdfDelivery() {
               <form
                 method="POST"
                 action="/agent/calculators/pdf-download"
+                target="royal-partner-pdf-download-target"
                 encType="application/x-www-form-urlencoded"
+                onSubmit={() => {
+                  setDownloadAttempted(true);
+                  setNotice("");
+                }}
                 style={{ display: "grid" }}
               >
                 <input type="hidden" name="filename" value={document.filename} />
@@ -180,6 +194,15 @@ export default function CalculatorPdfDelivery() {
               >
                 {preparing ? "กำลังเตรียม PDF..." : "ดาวน์โหลด PDF"}
               </button>
+            )}
+            {downloadAttempted && pdfBase64 && (
+              <div style={{ fontSize: 12, marginTop: 12, lineHeight: 1.6, color: "#5D6470" }}>
+                ไม่พบไฟล์ใน Downloads?{" "}
+                <button type="button" onClick={downloadPdfFallback}
+                  style={{ border: 0, padding: 0, background: "none", textDecoration: "underline", color: "#0F1B2E", cursor: "pointer", fontSize: 12 }}>
+                  ดาวน์โหลดสำรอง
+                </button>
+              </div>
             )}
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
               <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
