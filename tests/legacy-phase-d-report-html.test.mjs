@@ -11,7 +11,6 @@ assert.ok(begin>=0&&end>begin,'report function exists');
 function createHarness(){
   const state={age:40,gender:'ชาย',sum:10000000,legacy:{term:10},tax:0.1};
   const verified=new Map();
-  let fakeHtml=null;
   let pending=0;
   const sandbox={
     state,LEGACY_TABLE_B_DATA:verified,LEGACY_REPORT_VERSION:'QA-D',
@@ -37,22 +36,28 @@ function createHarness(){
     escapeResourceHtml:s=>String(s),
     fmt:v=>v===null||v===undefined?'—':Number(v).toLocaleString('en-US'),
     buildBrochureSlot:()=>'<div class="brochure">Brochure</div>',
-    buildPaymentCard:()=>'<div class="payment">Payment</div>'
+    buildPaymentCard:()=>'<div class="payment">Payment</div>',
+    buildLegacyAgeTableRows:(issueAge,term,annual,sum)=>Array.from({length:99-issueAge},(_,i)=>({age:issueAge+i,premium:i<term?annual:null,coverage:sum}))
   };
   vm.runInNewContext(html.slice(begin,end)+'\nglobalThis.report=buildLegacyReportHTML;',sandbox);
   return {state,verified,report:sandbox.report,getPending:()=>pending};
 }
 
-test('Phase D PDF HTML: exactly three pages, exact input data and age/year mapping',()=>{
+test('Legacy PDF 1.1: full age data, page breaks and source-matched values',()=>{
   const h=createHarness();
   const first=new Map([[40,{surrender:10000,paidUp:50000}],[41,{surrender:20000,paidUp:60000}]]);
   h.verified.set('40:ชาย:10000000:10',first);
   const pdfHtml=h.report();
-  assert.equal((pdfHtml.match(/class="ex-report-page legacy-report-page"/g)||[]).length,3);
+  assert.equal((pdfHtml.match(/class="ex-report-page legacy-report-page"/g)||[]).length,7);
   assert.match(pdfHtml,/AIA Legacy Prestige Plus/);
   assert.match(pdfHtml,/10,000,000/);
-  assert.match(pdfHtml,/<td>1<\/td><td>40<\/td><td>100,000<\/td><td>100,000<\/td><td>10,000<\/td><td>50,000<\/td>/);
-  assert.match(pdfHtml,/<td>2<\/td><td>41<\/td><td>100,000<\/td><td>200,000<\/td><td>20,000<\/td><td>60,000<\/td>/);
+  assert.match(pdfHtml,/<td>1<\/td><td>40<\/td><td class="legacy3-paid-year">100,000<\/td><td>100,000<\/td><td>10,000,000<\/td>/);
+  assert.match(pdfHtml,/<td>1<\/td><td>40<\/td><td class="legacy3-amount">10,000<\/td><td class="legacy3-amount">50,000<\/td>/);
+  assert.match(pdfHtml,/<td>2<\/td><td>41<\/td><td class="legacy3-paid-year">100,000<\/td><td>200,000<\/td><td>10,000,000<\/td>/);
+  assert.match(pdfHtml,/<td>2<\/td><td>41<\/td><td class="legacy3-amount">20,000<\/td><td class="legacy3-amount">60,000<\/td>/);
+  assert.match(pdfHtml,/หน้า 7 \/ 7/);
+  assert.match(pdfHtml,/<td>59<\/td><td>98<\/td>/);
+  assert.doesNotMatch(pdfHtml,/6 ข้อควรทราบ/);
   assert.doesNotMatch(pdfHtml,/\(ประมาณ\)|cvResearchCandidate/);
 });
 
@@ -76,6 +81,6 @@ test('Phase D PDF HTML: missing CV and RPU remain dashes, not invented amounts',
   const h=createHarness();
   h.verified.set('40:ชาย:10000000:10',new Map([[40,{surrender:null,paidUp:null}]]));
   const body=h.report();
-  assert.match(body,/<td>1<\/td><td>40<\/td><td>100,000<\/td><td>100,000<\/td><td>—<\/td><td>—<\/td>/);
+  assert.match(body,/<td>1<\/td><td>40<\/td><td class="legacy3-empty">—<\/td><td class="legacy3-empty">—<\/td>/);
   assert.doesNotMatch(body,/\(ประมาณ\)/);
 });
