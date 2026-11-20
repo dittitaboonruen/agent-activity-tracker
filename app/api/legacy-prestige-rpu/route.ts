@@ -229,6 +229,19 @@ export async function GET(request:NextRequest) {
     if(!male40ScreenshotCv)
       return NextResponse.json({error:"exact_case_cv_validation_failed"},{status:503,headers:noStore});
   }
+  // For policy years 36+, research an attained-age factor against the
+  // manual's last published policy year (35). A second independent donor
+  // (policy year 34) MUST agree; otherwise fail closed. The output is
+  // explicitly unverified and is never substituted into surrender/PDF.
+  const cvResearchCandidate=(attainedAge:number):number|null=>{
+    const donorAge=attainedAge-34;
+    const nextAge=donorAge+1;
+    if(donorAge<=age||donorAge<0||nextAge>75)return null;
+    const year35=source.cv[donorAge]?.[34];
+    const year34=source.cv[nextAge]?.[33];
+    if(!Number.isInteger(year35)||!Number.isInteger(year34)||year35!==year34)return null;
+    return Math.round(year35*sum/1000);
+  };
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
     // A source factor of 0 is a known zero, NOT an unavailable/missing value.
@@ -242,14 +255,19 @@ export async function GET(request:NextRequest) {
     const male40Cv=male40ScreenshotCv&&attainedAge>=75&&attainedAge<=98
       ?male40ScreenshotCv[attainedAge-75]:null;
     const screenshotCv=exactCv!==null?exactCv:male40Cv;
+    const verifiedSurrender=verifiedCv===null&&screenshotCv!==null?screenshotCv:verifiedCv;
+    const cvCandidate=verifiedSurrender===null&&i>=35
+      ?cvResearchCandidate(attainedAge):null;
     return {age:attainedAge,policyYear:i+1,
-      surrender:verifiedCv===null&&screenshotCv!==null?screenshotCv:verifiedCv,
+      surrender:verifiedSurrender,
+      cvResearchCandidate:cvCandidate,
       paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
     source:"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
     gender, issueAge:age,term,sum,rows,
     cvExactCaseSource:(exactCaseCv||male40ScreenshotCv)?"USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY":null,
-    notice:"Internal QA only; values not approved as an AIA sales illustration."
+    cvResearchMethod:"MANUAL_ATTAINED_AGE_YEAR35_34_AGREEMENT_UNVERIFIED",
+    notice:"Internal QA only. cvResearchCandidate is not verified by iPOS+, is NOT surrender, and must not be exported to sales PDFs."
   },{headers:noStore});
 }
