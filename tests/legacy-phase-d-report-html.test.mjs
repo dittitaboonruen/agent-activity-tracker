@@ -95,10 +95,10 @@ test('Legacy PDF 1.1: every attained age appears once in each of Tables A and B'
       }])
     ));
     const doc=h.report();
-    const tables=[...doc.matchAll(/<table class="legacy3-table-full">([\s\S]*?)<\/table>/g)];
+    const tables=[...doc.matchAll(/<table class="legacy3-table-full">([\s\S]*?)<[/]table>/g)];
     const groups=Math.ceil((99-issueAge)/20);
     assert.equal(tables.length,groups*2,'Table A and Table B span every expected page');
-    const years=(entries)=>entries.flatMap(x=>[...x[1].matchAll(/<tr><td>(\d+)<\/td><td>(\d+)<\/td>/g)]
+    const years=(entries)=>entries.flatMap(x=>[...x[1].matchAll(/<tr><td>(\d+)<[/]td><td>(\d+)<[/]td>/g)]
       .map(match=>[Number(match[1]),Number(match[2])]));
     const tableA=years(tables.slice(0,groups));
     const tableB=years(tables.slice(groups));
