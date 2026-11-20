@@ -158,6 +158,58 @@ try {
   if (masked === 0 || available === 0) fail("table_b_coverage_insufficient");
   console.log("[Legacy Table B QA] PASS: " + cases +
     " exact-input cases, age/year mapping, CV/RPU scaling, missing-value masks");
+  // Private, evidence-backed attained-age regression. This is NOT a generic
+  // CV fill rule. Compare all 29 user-supplied iPOS+ values (one exact case)
+  // against the year-35 published manual CV cells, without logging amounts.
+  const iposRaw = process.env.LEGACY_QA_CV_F_35_15_10M_70_98_JSON;
+  if (!iposRaw) fail("missing_exact_case_configuration");
+  let ipos;
+  try { ipos = JSON.parse(iposRaw); } catch { fail("invalid_exact_case_configuration"); }
+  if (!Array.isArray(ipos) || ipos.length !== 29 ||
+      ipos.some((v,i) => !Number.isSafeInteger(v) || v<0 || v>10000000 ||
+        v%10000!==0 || (i>0 && v<ipos[i-1])))
+    fail("invalid_exact_case_configuration");
+  // Policy year 35 at attained age 70..98 is published on issue-age rows 36..64.
+  for (let offset=0; offset<29; offset++) {
+    const donorIssueAge = 36 + offset;
+    const factor = tables["15"].F.cv[donorIssueAge]?.[34];
+    if (!Number.isInteger(factor) || factor*10000 !== ipos[offset])
+      fail("ipos_manual_lookup_mismatch");
+  }
+  console.log("[Legacy CV Research] PASS: 29 exact-case iPOS+ values agree with published year-35 donor cells (15 Pay/F/issue35/SI10m only)");
+
+  // Conservative cross-validation within the manual: hide a published cell,
+  // then inspect other already-published rows for the SAME attained age.
+  // This diagnostic does not fill the missing years and does not certify any
+  // unseen CV. Aggregate statuses only; never print restricted factor values.
+  let heldoutEligible=0, heldoutMatched=0, heldoutConflicted=0, heldoutDisagreed=0;
+  for (const term of [10,15,20]) for (const gender of ["M","F"]) {
+    const cv = tables[String(term)][gender].cv;
+    for (let originalAge=0; originalAge<=55; originalAge++) {
+      for (let year=term+1; year<=Math.min(35,99-originalAge); year++) {
+        const attained = originalAge+year-1;
+        const actual = cv[originalAge]?.[year-1];
+        if (!Number.isInteger(actual)) continue;
+        const donorValues=[];
+        for (let donorAge=originalAge+1; donorAge<=75; donorAge++) {
+          const donorYear=attained-donorAge+1;
+          if (donorYear<=term || donorYear>35) continue;
+          const candidate=cv[donorAge]?.[donorYear-1];
+          if (Number.isInteger(candidate)) donorValues.push(candidate);
+        }
+        if (donorValues.length<2) continue;
+        heldoutEligible++;
+        if (new Set(donorValues).size!==1) heldoutConflicted++;
+        else if (donorValues[0]===actual) heldoutMatched++;
+        else heldoutDisagreed++;
+      }
+    }
+  }
+  if (heldoutEligible<100) fail("cv_research_coverage_insufficient");
+  console.log("[Legacy CV Research] Cross-validation counts only: verified-match="+heldoutMatched+
+    ", donor-conflict="+heldoutConflicted+", held-out-disagreement="+heldoutDisagreed+
+    ", eligible="+heldoutEligible+" (published cells only; no extrapolation)");
+
   console.log("[Legacy Factor Runtime] PASS: all 6 groups / 12 factor arrays matched; no source values exported");
 } catch (error) {
   // Keep errors coarse. Never include an exception's detailed payload in logs.
