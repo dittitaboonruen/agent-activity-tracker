@@ -22,7 +22,7 @@ test('Table B performs automatic exact-case server lookup for both genders',()=>
 test('Legacy report and Table B share policy year, no ETI in displayed columns',()=>{
  assert.match(html,/const policyAge=d\.age\+n-1;/);
  assert.match(html,/policyValues\?\.byAge\.get\(policyAge\)/);
- assert.match(html,/const cols=\['surrender','paidUp'\]/);
+ assert.match(html,/cvCell\+renderValue\(data\?\.paidUp\)/);
  assert.match(html,/LEGACY_TABLE_B_DATA\.has\(caseKey\)/);
 });
 test('embedded calculator parses',()=>{
