@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CalculatorPdfDelivery from "./CalculatorPdfDelivery";
 
 export const metadata = {
   title: "เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย | Royal Partner",
@@ -33,21 +34,7 @@ export default function CalculatorPage() {
         </h1>
 
 
-        <iframe
-          title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
-          src="/illustrations/royal_partners_illustration_tool.html"
-          sandbox="allow-scripts allow-downloads allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox"
-          referrerPolicy="no-referrer"
-          style={{
-            display: "block",
-            width: "100%",
-            maxWidth: "100%",
-            boxSizing: "border-box",
-            height: "max(1100px, 90dvh)",
-            border: "1px solid #D9D2BF",
-            background: "#FFFDF8",
-          }}
-        />
+        <CalculatorPdfDelivery />
       </div>
     </main>
   );
