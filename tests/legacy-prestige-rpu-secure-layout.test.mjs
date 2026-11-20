@@ -19,7 +19,7 @@ test('Legacy Table B shows only age, CV and RPU; report drops ETI',()=>{
  assert.doesNotMatch(section,/colspan="4" scope="colgroup">การประกันภัยแบบขยายเวลา/);
  assert.match(section,/เงินค่าเวนคืนกรมธรรม์ \(CV\)/);
  assert.match(section,/มูลค่าใช้เงินสำเร็จ \(RPU\)/);
- const reportStart=html.indexOf('const table=\'<div class="legacy3-heading">');
+ const reportStart=html.indexOf('const tableBColumns=');
  assert.ok(reportStart>0);
  const report=html.slice(reportStart,reportStart+1650);
  assert.match(report,/มูลค่าใช้เงินสำเร็จ \(RPU\)/);
