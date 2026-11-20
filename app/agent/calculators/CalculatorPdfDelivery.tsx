@@ -18,6 +18,21 @@ export default function CalculatorPdfDelivery() {
   const [document, setDocument] = useState<PdfDocument | null>(null);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isLineBrowser, setIsLineBrowser] = useState(false);
+  const [copyNotice, setCopyNotice] = useState("");
+
+  useEffect(() => {
+    setIsLineBrowser(/(?:^|\W)LINE\//i.test(navigator.userAgent));
+  }, []);
+
+  async function copyPageLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyNotice("คัดลอกลิงก์แล้ว เปิด Safari แล้ววางลิงก์เพื่อใช้งาน");
+    } catch {
+      setCopyNotice("คัดลอกอัตโนมัติไม่ได้ กรุณาใช้เมนูแชร์ของ LINE เพื่อคัดลอกลิงก์");
+    }
+  }
 
   const pdfUrl = useCallback((blob: Blob) => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -130,6 +145,15 @@ export default function CalculatorPdfDelivery() {
 
   return (
     <>
+      {isLineBrowser && (
+        <aside role="note" style={{ border: "1px solid #D9B96B", background: "#FFF8E7", color: "#302A1D", borderRadius: 10, padding: 16, marginBottom: 14, fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>
+          <strong>คุณกำลังเปิดเว็บไซต์ผ่าน LINE</strong>
+          <p style={{ margin: "6px 0 10px", fontSize: 14 }}>เบราว์เซอร์ใน LINE อาจดาวน์โหลดหรือแชร์ PDF ไม่สำเร็จ แนะนำให้เปิดเว็บไซต์ใน Safari หรือ Chrome แทน</p>
+          <p style={{ margin: "0 0 10px", fontSize: 13 }}>วิธีใช้งาน: คัดลอกลิงก์ → เปิด Safari หรือ Chrome → วางลิงก์แล้วเข้าใช้งาน</p>
+          <button type="button" onClick={copyPageLink} style={{ ...secondaryButton, padding: "9px 14px", background: "#FFFFFF" }}>คัดลอกลิงก์เว็บไซต์</button>
+          {copyNotice && <p role="status" style={{ margin: "8px 0 0", fontSize: 13 }}>{copyNotice}</p>}
+        </aside>
+      )}
       <iframe
         ref={frameRef}
         title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
@@ -168,6 +192,7 @@ export default function CalculatorPdfDelivery() {
               }}>ปิด</button>
             </div>
             <p style={{ overflowWrap: "anywhere", fontSize: 12, color: "#5D6470" }}>{document.filename}</p>
+            {isLineBrowser && <p role="note" style={{ padding: 10, borderRadius: 8, background: "#FFF1D5", fontSize: 13, lineHeight: 1.5 }}>เปิดผ่าน LINE อาจดาวน์โหลด PDF ไม่ได้ กรุณาคัดลอกลิงก์จากคำแนะนำด้านบนแล้วเปิดใน Safari หรือ Chrome</p>}
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ display: "grid", gap: 4 }}>
                 <button type="button" onClick={downloadPdf} style={primaryButton}>
