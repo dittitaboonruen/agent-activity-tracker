@@ -47,32 +47,24 @@ test('table B asks for separate code; no dashboard login link',()=>{
   assert.match(html,/credentials:'same-origin'/);
 });
 
-test('QA-only CV interpolation reaches age 98 while preserving verified cells and RPU',()=>{
-
-  const start=html.indexOf('function estimateLegacyCvForQaOnly(');
-  const end=html.indexOf('function buildLegacyPolicyValuesTableHTML(',start);
-  assert.ok(start>0&&end>start,'estimated CV helper must be available for Table B');
-  const script=html.slice(start,end)+
-    "\nconst verified=new Map([[35,{surrender:0,paidUp:220000}],"+
-    "[69,{surrender:6100000,paidUp:null}]]);"+
-    "const projected=estimateLegacyCvForQaOnly(verified,35,10000000);"+
-    "({first:projected.get(70),last:projected.get(98),size:projected.size,"+
-    "realZero:verified.get(35).surrender,realLast:verified.get(69).surrender,"+
-    "rpu:verified.get(35).paidUp,zeroed:estimateLegacyCvForQaOnly(new Map(),35,10000000).size})";
-  const actual=vm.runInNewContext(script);
-  assert.equal(actual.first,Math.round(6100000+(10000000-6100000)/29));
-  assert.equal(actual.last,10000000);
-  assert.equal(actual.size,29);
-  assert.equal(actual.realZero,0);
-  assert.equal(actual.realLast,6100000);
-  assert.equal(actual.rpu,220000);
-  assert.equal(actual.zeroed,0,'no projection without verified data');
-  assert.match(html,/legacy-cv-estimate/);
-  assert.match(html,/เฉพาะ QA: CV ที่มีคำว่า/);
-  assert.match(html,/tableBServerReady\s*\?estimateLegacyCvForQaOnly/);
+test('Table B displays verified CV only, never linear projections',()=>{
+  assert.doesNotMatch(html,/function estimateLegacyCvForQaOnly\(/);
+  assert.doesNotMatch(html,/legacy-cv-estimate/);
+  assert.doesNotMatch(html,/QA เท่านั้น: CV ค่าประมาณ/);
+  assert.match(html,/const cvCell=Number\.isFinite\(data\?\.surrender\)/);
+  assert.match(html,/const isScreenshotAge=isExactIPOSCase/);
   const report=html.slice(html.indexOf('function buildLegacyReportHTML('),
     html.indexOf('function loadLegacyTableB('));
-  assert.doesNotMatch(report,/estimateLegacyCvForQaOnly/,'never export estimates into PDF');
+  assert.doesNotMatch(report,/estimateLegacyCvForQaOnly/);
+});
+
+test('male issue40 10pay CV uses encrypted private iPOS screenshot only for exact 10m case',()=>{
+  assert.match(api,/gender==="M"&&age===40&&term===10&&sum===10000000/);
+  assert.match(api,/LEGACY_QA_CV_M_40_10_10M_75_98_JSON/);
+  assert.match(api,/male40ScreenshotCv&&attainedAge>=75&&attainedAge<=98/);
+  assert.match(api,/exact_case_cv_not_configured/);
+  assert.match(api,/5dc18a4e74b031fdd7b2974832a6fa434fd42c8f82881d4527fe91ca013307bc/);
+  assert.match(api,/surrender:verifiedCv===null&&screenshotCv!==null\?screenshotCv:verifiedCv/);
 });
 
 test('private iPOS screenshot reference matches complete 29-year exact case',()=>{
