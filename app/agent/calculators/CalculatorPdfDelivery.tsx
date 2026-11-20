@@ -101,7 +101,7 @@ export default function CalculatorPdfDelivery() {
       // Triggered by a direct tap: Safari is more likely to allow this than
       // an automatic popup after asynchronous PDF rendering.
       const url = pdfUrl(document.blob);
-      const opened = window.open(url, "_blank", "noopener");
+      const opened = window.open(url, "_blank");
       if (!opened) {
         setNotice("หาก PDF ไม่เปิด กรุณาอนุญาตหน้าต่างใหม่ใน Safari หรือลองปุ่มดาวน์โหลด");
       } else {
