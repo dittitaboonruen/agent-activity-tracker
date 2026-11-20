@@ -17174,7 +17174,11 @@ function loadLegacyTableB(age,gender,sum,term){
            !['surrender','paidUp'].every(k=>v[k]===null||
              (Number.isSafeInteger(v[k])&&v[k]>=0)))
           throw Error('ข้อมูล CV/RPU ไม่ตรงปีกรมธรรม์');
-        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp});
+        if(!['MANUAL_PUBLISHED','IPOS_EXACT_CASE_QA','UNAVAILABLE'].includes(v.cvEvidence)||
+           (v.surrender===null&&v.cvEvidence!=='UNAVAILABLE')||
+           (v.surrender!==null&&v.cvEvidence==='UNAVAILABLE'))
+          throw Error('แหล่งข้อมูล CV ไม่ตรงกับผลคำนวณ');
+        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp,cvEvidence:v.cvEvidence});
       }
       LEGACY_TABLE_B_DATA.set(key,byAge);
       LEGACY_TABLE_B_CASE_SOURCES.set(key,result.cvExactCaseSource||null);
@@ -17318,11 +17322,12 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     const screenshotAge=isScreenshotAge&&(
       (inputs.gender==='หญิง'&&r.age>=70&&r.age<=98)||
       (inputs.gender==='ชาย'&&r.age>=75&&r.age<=98));
+    const evidenceStatus=data?.cvEvidence||null;
     const cvCell=Number.isFinite(data?.surrender)
-      ?(screenshotAge
-        ?'<td class="legacy-cv-ipos" title="ค่าจากภาพ iPOS+ เฉพาะกรณีทดสอบที่ระบุ">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
+      ?(evidenceStatus==='IPOS_EXACT_CASE_QA'||(evidenceStatus===null&&screenshotAge)
+        ?'<td class="legacy-cv-ipos" title="ยืนยันจากภาพ iPOS+ เฉพาะกรณีที่ตรงกัน">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
         :renderValue(data.surrender))
-      :renderValue(null);
+      :'<td class="legacy-values-placeholder" title="ไม่มีค่า CV ที่ยืนยันสำหรับกรณีนี้">—</td>';
     return '<tr><td class="'+thClass+'">'+r.age+'</td>'+
       cvCell+renderValue(data?.paidUp)+'</tr>';
   }).join('');
@@ -17356,7 +17361,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<th scope="col">เงินค่าเวนคืนกรมธรรม์ (CV)</th>'+
     '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีค่าที่แสดงในตารางอ้างอิง ไม่ใช่จำนวน 0 บาท · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · — = ยังไม่มีค่าที่ตรวจสอบได้ ไม่ใช่ 0 บาท · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
     '</section>';
 }
 
