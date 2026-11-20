@@ -143,7 +143,7 @@ test('Legacy Table B automatically recovers after a temporary 503 without anothe
    render:()=>{renderCalls++;}
  };
  vm.runInNewContext(html.slice(begin,end)+
-   '\\nglobalThis.legacyQA={loadLegacyTableB,'+
+   '\nglobalThis.legacyQA={loadLegacyTableB,'+
    'error:()=>LEGACY_TABLE_B_ERRORS.get(\"35:หญิง:15000000:20\"),'+
    'row:()=>LEGACY_TABLE_B_DATA.get(\"35:หญิง:15000000:20\")?.get(36)};',sandbox);
  const qa=sandbox.legacyQA;
