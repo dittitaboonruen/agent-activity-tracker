@@ -95,6 +95,24 @@ export default function CalculatorPdfDelivery() {
     }
   }
 
+  function openPdfInSafari() {
+    if (!document) return;
+    try {
+      // Triggered by a direct tap: Safari is more likely to allow this than
+      // an automatic popup after asynchronous PDF rendering.
+      const url = pdfUrl(document.blob);
+      const opened = window.open(url, "_blank", "noopener");
+      if (!opened) {
+        setNotice("หาก PDF ไม่เปิด กรุณาอนุญาตหน้าต่างใหม่ใน Safari หรือลองปุ่มดาวน์โหลด");
+      } else {
+        setNotice("");
+      }
+    } catch (error) {
+      console.error("PDF open error:", error);
+      setNotice("เปิด PDF ไม่สำเร็จ กรุณาลองดาวน์โหลดหรือแชร์ไฟล์แทน");
+    }
+  }
+
   async function sharePdf() {
     if (!document || busy) return;
     if (!navigator.share || typeof File === "undefined") {
@@ -167,6 +185,9 @@ export default function CalculatorPdfDelivery() {
             <div style={{ display: "grid", gap: 10 }}>
               <button type="button" onClick={downloadPdf} style={primaryButton}>
                 ดาวน์โหลด PDF
+              </button>
+              <button type="button" onClick={openPdfInSafari} style={secondaryButton}>
+                เปิด PDF ใน Safari (สำหรับ iPad)
               </button>
               <button type="button" onClick={sharePdf} disabled={busy} style={secondaryButton}>
                 {busy ? "กำลังเปิดเมนูแชร์..." : "ส่งผ่าน LINE / อีเมล"}
