@@ -228,6 +228,71 @@ try {
     ", donor-conflict="+heldoutConflicted+", held-out-disagreement="+heldoutDisagreed+
     ", eligible="+heldoutEligible+" (published cells only; no extrapolation)");
 
+  // Dynamic attained-age CV FORMULA RESEARCH (never used in API/PDF).
+  // Published year-35 donor row for target attained age A is issue age A-34.
+  // Adjacent year-34 donor is issue age A-33. They may disagree, so never
+  // treat this heuristic as an insurer-approved CV calculation.
+  const researchStatus=(cv,originalAge,targetAge,payTerm)=>{
+    if(!Number.isInteger(originalAge)||originalAge<0||originalAge>75||
+       !Number.isInteger(targetAge)||targetAge<originalAge||targetAge>98||
+       ![10,15,20].includes(payTerm))return {status:"invalid"};
+    const year=targetAge-originalAge+1;
+    if(year<=35)return {status:"published"};
+    if(originalAge>55)return {status:"unsupported_cohort"};
+    const issue35=targetAge-34, issue34=targetAge-33;
+    if(issue35<=originalAge||issue35<0||issue34>75)
+      return {status:"missing"};
+    const f35=cv[issue35]?.[34], f34=cv[issue34]?.[33];
+    if(!Number.isInteger(f35)||!Number.isInteger(f34))
+      return {status:"missing"};
+    if(f35!==f34)return {status:"conflict"};
+    return {status:"candidate",factor:f35};
+  };
+  // Test all 6 term/gender groups over the whole viable input grid.
+  // Aggregate only; no insurer factors or screenshot amounts in logs.
+  let sampled=0,candidates=0,conflicts=0,missing=0,cohortBlocked=0,incorrectlyPublished=0;
+  for(const term of [10,15,20])for(const gender of ["M","F"]){
+    const cv=tables[String(term)][gender].cv;
+    for(let issueAge=0;issueAge<=75;issueAge++){
+      for(let attainedAge=issueAge;attainedAge<=98;attainedAge++){
+        const yr=attainedAge-issueAge+1;
+        const status=researchStatus(cv,issueAge,attainedAge,term);
+        if(yr<=35){if(status.status!=="published")incorrectlyPublished++;continue;}
+        sampled++;
+        if(status.status==="candidate")candidates++;
+        else if(status.status==="conflict")conflicts++;
+        else if(status.status==="missing")missing++;
+        else if(status.status==="unsupported_cohort")cohortBlocked++;
+        else fail("dynamic_cv_unhandled_status");
+      }
+    }
+  }
+  if(incorrectlyPublished!==0 || sampled<10000 || candidates===0 || conflicts===0 ||
+     candidates+conflicts+missing+cohortBlocked!==sampled)
+    fail("dynamic_cv_research_invariant_failed");
+  console.log("[Legacy CV Dynamic QA] PASS: all 6 groups; supported candidates="+candidates+
+    ", factor conflicts="+conflicts+", missing="+missing+
+    ", cohort blocked="+cohortBlocked+"; no candidate exported");
+
+  // For the two encrypted, EXACT screenshot reference cases only, test
+  // full year-35 source hypothesis. Do not assume year34 consensus is
+  // required for a screenshot-confirmed exact case.
+  let male40DonorMatches=0, female35DonorMatches=0;
+  for(let i=0;i<24;i++){
+    const f=tables["10"].M.cv[41+i]?.[34];
+    if(!Number.isInteger(f)||f*10000!==male40Values[i])
+      fail("male40_dynamic_donor_reference_mismatch");
+    male40DonorMatches++;
+  }
+  for(let i=0;i<29;i++){
+    const f=tables["15"].F.cv[36+i]?.[34];
+    if(!Number.isInteger(f)||f*10000!==ipos[i])
+      fail("female35_dynamic_donor_reference_mismatch");
+    female35DonorMatches++;
+  }
+  console.log("[Legacy CV Dynamic QA] PASS: year35 donor factor agrees with both confidential iPOS+ exact cases ("+
+    male40DonorMatches+" + "+female35DonorMatches+" points); no factors logged");
+
   console.log("[Legacy Factor Runtime] PASS: all 6 groups / 12 factor arrays matched; no source values exported");
 } catch (error) {
   // Keep errors coarse. Never include an exception's detailed payload in logs.
