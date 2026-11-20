@@ -78,33 +78,19 @@ export default function CalculatorPdfDelivery() {
     window.document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    setNotice("ส่งคำขอดาวน์โหลดแล้ว หาก Safari ไม่บันทึกไฟล์ ให้ใช้ “เปิด PDF” เพื่อบันทึกผ่านเมนูแชร์");
-  }
-
-  function openPdf() {
-    if (!document) return;
-    const url = pdfUrl(document.blob);
-    // New tab is opened synchronously from the user's click, avoiding iframe popup restrictions.
-    const anchor = window.document.createElement("a");
-    anchor.href = url;
-    anchor.target = "_blank";
-    anchor.rel = "noopener noreferrer";
-    window.document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setNotice("เมื่อเปิด PDF แล้ว ใช้ปุ่มแชร์ของ Safari เพื่อเลือก LINE, Mail หรือบันทึกลง Files");
+    setNotice("ส่งคำขอดาวน์โหลดแล้ว กรุณาตรวจสอบไฟล์ในรายการดาวน์โหลดของอุปกรณ์");
   }
 
   async function sharePdf() {
     if (!document || busy) return;
     if (!navigator.share || typeof File === "undefined") {
-      setNotice("อุปกรณ์นี้ไม่มีเมนูแชร์ไฟล์ ให้เลือก “เปิด PDF” หรือ “ดาวน์โหลด PDF” แทน");
+      setNotice("อุปกรณ์นี้ไม่มีเมนูแชร์ไฟล์ กรุณาใช้ “ดาวน์โหลด PDF” แล้วส่งผ่าน LINE หรืออีเมลจากแอปโดยตรง");
       return;
     }
 
     const file = new File([document.blob], document.filename, { type: "application/pdf" });
     if (navigator.canShare && !navigator.canShare({ files: [file] })) {
-      setNotice("เบราว์เซอร์นี้ไม่รองรับการแชร์ไฟล์ PDF ให้เลือก “เปิด PDF” แทน");
+      setNotice("เบราว์เซอร์นี้ไม่รองรับการแชร์ไฟล์ PDF กรุณาใช้ “ดาวน์โหลด PDF” แทน");
       return;
     }
 
@@ -116,7 +102,7 @@ export default function CalculatorPdfDelivery() {
       await navigator.share({ files: [file], title: document.filename });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setNotice("เมนูแชร์ไม่พร้อมใช้งาน ให้เลือก “เปิด PDF” แล้วแชร์จาก Safari แทน");
+        setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
       }
     } finally {
       setBusy(false);
@@ -170,13 +156,10 @@ export default function CalculatorPdfDelivery() {
               <button type="button" onClick={sharePdf} disabled={busy} style={secondaryButton}>
                 {busy ? "กำลังเปิดเมนูแชร์..." : "ส่งผ่าน LINE / อีเมล"}
               </button>
-              <button type="button" onClick={openPdf} style={secondaryButton}>
-                เปิด PDF
-              </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
               ระบบสร้าง PDF เพียงครั้งเดียว เมนูแชร์จะแสดงเฉพาะแอปที่ iPad รองรับ
-              หากไม่มี LINE ให้ลองเปิด PDF แล้วแชร์ผ่าน Safari
+              หากไม่มี LINE ให้ดาวน์โหลดไฟล์แล้วส่งผ่านแอป LINE หรืออีเมล
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
