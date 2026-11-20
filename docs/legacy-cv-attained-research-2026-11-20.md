@@ -16,3 +16,17 @@
 - RPU remains untouched; its second numeric segment ambiguity is a separate unresolved question.
 
 **Next release gates**: additional independent iPOS+ comparisons across male/female 10/15/20 Pay (especially post year 35), check age/term/rate differences, documented product-owner acceptance, rights review, secure runtime checks and full Browser/PDF QA before any integration.
+
+## Automated private build verification (20 November 2026)
+
+- Build-stage encrypted factors verified against the manual integrity fingerprints across all six CV and six RPU arrays.
+- A private, encrypted iPOS+ dataset for **female / issue age 35 / 15 Pay / SI 10 million** was compared against independently published policy-year-35 manual cells at attained ages 70–98: **29/29 exact amount matches**. This checks only the one exact case and must not be generalized.
+- Hold-out cross-validation of published known CV cells across six groups (only original issue age <=55 and post-premium policy years):
+  - 6,048 eligible held-out cells had at least two older-age donors
+  - 5,652 unanimous donor factors matched the hidden original cell
+  - 396 donor groups contained conflicting values; deliberately NOT substituted
+  - 0 unanimous-but-incorrect predictions among eligible held-out cells
+- These values are aggregate diagnostics: **they do not establish correctness in policy years 36+**, and must never be presented as AIA approval.
+- `scripts/legacy-factor-build-qa.mjs` now fails the Preview build on any of the 29 private iPOS+ to manual-donor mismatches, missing private iPOS+ configuration, or factor integrity failure. No proprietary factors or iPOS amounts are printed.
+- No API, PDF, public browser bundle, or Production calculation changed.
+- Next: independent insurer iPOS+ examples for the other five term/gender groups, with original issue age and sum insured verified, then rights/compliance approval before any research candidate can be integrated.
