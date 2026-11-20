@@ -74,7 +74,7 @@ test('private iPOS screenshot reference matches complete 29-year exact case',()=
   assert.equal(createHash('sha256').update(JSON.stringify(values)).digest('hex'),
     '5801233bd7c3189f0388ba0d8e09118f6fafce50405d317cbbda6b2655df404d');
   assert.match(api,/gender==="F"&&age===35&&term===15&&sum===10000000/);
-  assert.match(api,/verifiedCv===null&&exactCv!==null\?exactCv:verifiedCv/);
+  assert.match(api,/surrender:verifiedCv===null&&screenshotCv!==null\?screenshotCv:verifiedCv/);
   assert.match(html,/LEGACY_TABLE_B_CASE_SOURCES/);
   assert.match(html,/USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY/);
 });
