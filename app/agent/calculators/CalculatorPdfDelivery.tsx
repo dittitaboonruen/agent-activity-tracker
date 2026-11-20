@@ -111,13 +111,13 @@ export default function CalculatorPdfDelivery() {
     setBusy(true);
     setNotice("");
     try {
-      // On the tested iPad, LINE disappeared with an empty title. A zero-width
-      // title is a compatibility experiment to advertise a text-capable payload
-      // without visibly attaching the filename. Device-level QA is required.
-      await navigator.share({ files: [file], title: "\u200B" });
+      // Share exactly one PDF file. Do not attach title or text:
+      // LINE otherwise creates a second chat message (even for invisible text).
+      // Available native share targets are controlled by iPadOS, not the web app.
+      await navigator.share({ files: [file] });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
+        setNotice("แชร์ไฟล์ไม่สำเร็จ กรุณาดาวน์โหลด PDF แล้วแนบจากแชท LINE หรือแอปอีเมล");
       }
     } finally {
       setBusy(false);
@@ -173,8 +173,9 @@ export default function CalculatorPdfDelivery() {
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
-              เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบว่าแนบไฟล์ PDF แล้ว
+              <strong>หมายเหตุ:</strong> หาก LINE ไม่ปรากฏในเมนูแชร์ ให้ดาวน์โหลด PDF แล้วแนบไฟล์จากในแชท LINE (ปุ่ม +)
+              <br />
+              สำหรับอีเมล กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
