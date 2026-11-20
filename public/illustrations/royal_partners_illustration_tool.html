@@ -9285,6 +9285,34 @@ body > .rp-sales-shell .plus-ledger table thead th *{
 .excellent-rider-report-page .pl20-ci-item,.excellent-rider-report-page .pl20-ci-panel{max-width:100%;min-width:0;box-sizing:border-box}
 .excellent-rider-report-page table{max-width:100%;table-layout:fixed}
 .excellent-rider-report-page td,.excellent-rider-report-page th{overflow-wrap:anywhere;white-space:normal}
+
+/* QA: high-contrast first-year totals in all three rider-enabled reports. */
+.excellent-rider-report-page .excellent-premium-grand-total,
+.excellent-rider-report-page .excellent-premium-grand-total td{
+ background:#142a47!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+ font-weight:800!important;opacity:1!important;
+}
+.excellent-rider-report-page .excellent-premium-grand-total td:last-child,
+.excellent-rider-report-page .excellent-premium-grand-total td:last-child strong{
+ color:#f1d18b!important;-webkit-text-fill-color:#f1d18b!important;font-size:12px!important;font-weight:900!important;
+}
+.excellent-rider-report-page .excellent-premium-grand-total td:first-child strong{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+#pay20life-report-page-1 .ex-summary-box.rp-first-year-premium{background:#142a47!important;border:1px solid #b89756!important}
+#pay20life-report-page-1 .ex-summary-box.rp-first-year-premium .l{color:#fff!important;-webkit-text-fill-color:#fff!important}
+#pay20life-report-page-1 .ex-summary-box.rp-first-year-premium .v{color:#f1d18b!important;-webkit-text-fill-color:#f1d18b!important;font-weight:900!important;font-size:14px!important}
+/* Medical detail styling applies to the reused A4 pages (not only the original 20PL ID). */
+.excellent-rider-report-page .pl20-health-table-list{margin:10px!important;width:calc(100% - 20px)!important;max-width:calc(100% - 20px)!important;min-width:0!important;box-sizing:border-box!important}
+.excellent-rider-report-page .pl20-health-table-card{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:visible!important;margin:0 0 9px!important;background:#fffdf9!important;border:1px solid #ded6c7!important}
+.excellent-rider-report-page .pl20-health-table-head{display:flex!important;justify-content:space-between!important;gap:12px!important;padding:9px 11px!important;background:#f4ecda!important}
+.excellent-rider-report-page .pl20-health-benefit-table{width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:10px!important;line-height:1.35!important}
+.excellent-rider-report-page .pl20-health-benefit-table th{background:#142a47!important;color:#fff!important;-webkit-text-fill-color:#fff!important;padding:7px 9px!important;text-align:left!important}
+.excellent-rider-report-page .pl20-health-benefit-table td{padding:5px 9px!important;line-height:1.35!important;white-space:normal!important;overflow-wrap:anywhere!important;vertical-align:top!important;border-bottom:1px solid #e7e1d4!important}
+.excellent-rider-report-page .pl20-health-benefit-table td:first-child{width:63%!important;text-align:left!important;color:#28394b!important}
+.excellent-rider-report-page .pl20-health-benefit-table td:last-child{width:37%!important;color:#142a47!important;font-weight:700!important}
+.excellent-rider-report-page .pl20-health-table-extra{padding:7px 10px!important;line-height:1.4!important;border-top:1px solid #ded6c7!important}
+.excellent-rider-report-page .pl20-health-table-extra ul{margin:3px 0!important;padding-left:17px!important;font-size:9px!important;line-height:1.4!important}
 </style>
 <style id="excellent-rider-section-balance">
 /* Only Excellent + Riders: remove the empty brochure grid column. */
@@ -14034,7 +14062,7 @@ function build20PayLifeReportHTML(config=null){
           <div class="ex-summary-row">
             <div class="ex-summary-box"><div class="l">เบี้ยสัญญาหลัก / ปี</div><div class="v">${fmt20(data.premium.annual)} บาท</div></div>
             <div class="ex-summary-box"><div class="l">สัญญาเพิ่มเติมรวม</div><div class="v">${fmt20(data.premium.riderTotal)} บาท</div></div>
-            <div class="ex-summary-box"><div class="l">เบี้ยรวมปีปัจจุบัน</div><div class="v">${fmt20(data.premium.totalCurrent)} บาท</div></div>
+            <div class="ex-summary-box rp-first-year-premium"><div class="l">เบี้ยรวมปีปัจจุบัน</div><div class="v">${fmt20(data.premium.totalCurrent)} บาท</div></div>
           </div>
 
           ${config?.benefitVisual||build20PayLifeBenefitHTML({maturityBenefit:data.benefits.maturity})}
@@ -16379,7 +16407,8 @@ function paginateExcellentRiderReport(root){
   if(note)blocks.push(note.cloneNode(true));
   source.remove();
   const containerType=sourceContent.classList.contains('pl20-health-table-list')?'medical':'standard';
-  if(currentPage!==summary && containerType!==previousContainerType)createPage(template);
+  // Keep long Health Happy / Health Saver benefit tables on dedicated A4 sheets.
+   if(containerType==='medical' || (currentPage!==summary && containerType!==previousContainerType))createPage(template);
   previousContainerType=containerType;
   for(const block of blocks){
    place(block,template);
@@ -16424,7 +16453,7 @@ function paginateExcellentRiderReport(root){
  });
  if(overflowItems){
   // Deliberately retain a diagnostic instead of pretending an overflowing item fits.
-  console.warn('Excellent Rider A4: unsplittable oversized benefit blocks:',overflowItems);
+  throw new Error('Rider PDF: รายละเอียดผลประโยชน์ยาวเกินหน้า A4 กรุณาตรวจ Layout');
  }
 }
 
