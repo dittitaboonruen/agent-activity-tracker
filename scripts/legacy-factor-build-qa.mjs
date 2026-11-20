@@ -98,6 +98,66 @@ try {
     }
   }
   if (!allPassed) fail("factor_integrity_mismatch");
+
+  // Run exact-input Table B functional QA using the same verified confidential
+  // factors as the API. This runs on the Vercel build machine; no factors leave.
+  const bits = new Map();
+  const maskBlock = source.split("const LEGACY_RPU_UNRESOLVED_SEGMENT_BITS:")[1]
+    ?.split("let factorCache:")[0] || "";
+  const maskRe = /"(10|15|20):(M|F)":\{([^}]*)\}/g;
+  for (const match of maskBlock.matchAll(maskRe)) {
+    const entries = {};
+    for (const entry of match[3].matchAll(/(\d+):(\d+)/g)) entries[Number(entry[1])] = Number(entry[2]);
+    bits.set(match[1] + ":" + match[2], entries);
+  }
+  if (bits.size !== 6) fail("mask_manifest_structure");
+  const calculate = (term, gender, age, sum) => {
+    const factor = tables[String(term)][gender];
+    const mask = bits.get(term + ":" + gender)?.[age] || 0;
+    return Array.from({length: 99 - age}, (_, i) => {
+      const value = (v) => Number.isInteger(v) && v >= 0 ? Math.round(v * sum / 1000) : null;
+      return {
+        age: age + i, policyYear: i + 1,
+        surrender: value(factor.cv[age][i]),
+        paidUp: i < term - 1 && !!(mask & (1 << i)) ? null : value(factor.rpu[age][i])
+      };
+    });
+  };
+  let cases = 0;
+  let masked = 0;
+  let available = 0;
+  for (const term of [10, 15, 20]) for (const gender of ["M", "F"]) {
+    const sources = tables[String(term)][gender];
+    for (const age of [0, 35, 60, 75]) {
+      const base = calculate(term, gender, age, 10000000);
+      const doubled = calculate(term, gender, age, 20000000);
+      const intermediate = calculate(term, gender, age, 15000000);
+      if (base.length !== 99 - age || intermediate.length !== base.length ||
+          doubled.length !== base.length) fail("table_b_response_length");
+      for (let i = 0; i < base.length; i++) {
+        const r = base[i], r2 = doubled[i], r15 = intermediate[i];
+        if (r.age !== age + i || r.policyYear !== i + 1 ||
+            r2.age !== r.age || r15.policyYear !== r.policyYear) fail("table_b_year_mapping");
+        for (const [key, src] of [["surrender", sources.cv[age][i]],
+                                  ["paidUp", sources.rpu[age][i]]]) {
+          const unavailable = key === "paidUp" && i < term - 1 &&
+            !!((bits.get(term + ":" + gender)?.[age] || 0) & (1 << i));
+          const expected = unavailable || src === undefined ? null : Math.round(src * 10000);
+          const expected15 = unavailable || src === undefined ? null : Math.round(src * 15000);
+          if (r[key] !== expected || r15[key] !== expected15 ||
+              r2[key] !== (expected === null ? null : expected * 2))
+            fail("table_b_amount_or_mask_mismatch");
+          if (unavailable) masked++;
+          if (expected !== null) available++;
+        }
+      }
+      cases += 3; // 10m, 15m, 20m; exact gender/age/term combinations
+    }
+    console.log("[Legacy Table B QA] " + term + " Pay / " + gender + ": PASS");
+  }
+  if (masked === 0 || available === 0) fail("table_b_coverage_insufficient");
+  console.log("[Legacy Table B QA] PASS: " + cases +
+    " exact-input cases, age/year mapping, CV/RPU scaling, missing-value masks");
   console.log("[Legacy Factor Runtime] PASS: all 6 groups / 12 factor arrays matched; no source values exported");
 } catch (error) {
   // Keep errors coarse. Never include an exception's detailed payload in logs.
