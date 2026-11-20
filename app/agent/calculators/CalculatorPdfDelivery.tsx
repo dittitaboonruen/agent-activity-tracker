@@ -129,10 +129,14 @@ export default function CalculatorPdfDelivery() {
     setBusy(true);
     setNotice("");
     try {
-      // On the tested iPad, LINE disappeared with an empty title. A zero-width
-      // title is a compatibility experiment to advertise a text-capable payload
-      // without visibly attaching the filename. Device-level QA is required.
-      await navigator.share({ files: [file], title: "\u200B" });
+      // Attach a human-readable message alongside the actual PDF file.
+      // The receiving app (including LINE) controls whether it displays
+      // the text; iPad/LINE device-level verification is still required.
+      await navigator.share({
+        files: [file],
+        title: "ใบสรุปกรมธรรม์",
+        text: "ขอส่งใบสรุปกรมธรรม์ค่ะ/ครับ",
+      });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
