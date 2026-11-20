@@ -15541,6 +15541,22 @@ function preparePdfViewerFallback(blob){
 
 async function savePdfCrossDevice(pdf, filename){
   const blob = pdf.output('blob');
+
+  // The embedded calculator generates the PDF once, then delegates all
+  // download/share actions to the top-level page, outside iframe restrictions.
+  // Standalone HTML usage keeps its existing local fallback below.
+  if(window.parent !== window){
+    try{
+      window.parent.postMessage({
+        type:'royal-partner:pdf-ready',
+        filename,
+        blob
+      }, window.location.origin);
+      return {mode:'parent-delivery'};
+    }catch(error){
+      console.warn('Top-level PDF delivery unavailable:', error);
+    }
+  }
   // Prepare a visible fallback before launching the iPad Share Sheet.
   // The fallback opens the same PDF from a fresh user tap (no regeneration).
   preparePdfViewerFallback(blob);
