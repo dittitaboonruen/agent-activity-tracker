@@ -17098,6 +17098,7 @@ function lookupLegacyManualFemale10Or15(issueAge,gender,sum,term){
 // A cached entry always belongs to one exact issue-age / term / sum case.
 // Never bundle restricted factor tables into this publicly available HTML.
 const LEGACY_TABLE_B_DATA=new Map();
+const LEGACY_TABLE_B_CASE_SOURCES=new Map();
 const LEGACY_TABLE_B_PENDING=new Set();
 const LEGACY_TABLE_B_ERRORS=new Map();
 const LEGACY_TABLE_B_ERROR_TIME=new Map();
@@ -17176,6 +17177,7 @@ function loadLegacyTableB(age,gender,sum,term){
         byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp});
       }
       LEGACY_TABLE_B_DATA.set(key,byAge);
+      LEGACY_TABLE_B_CASE_SOURCES.set(key,result.cvExactCaseSource||null);
       LEGACY_TABLE_B_ERRORS.delete(key);
       LEGACY_TABLE_B_ERROR_TIME.delete(key);
       LEGACY_TABLE_B_RETRY_COUNTS.delete(key);
@@ -17311,6 +17313,8 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const caseKey=legacyTableBKey(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const tableBError=LEGACY_TABLE_B_ERRORS.get(caseKey);
   const tableBServerReady=LEGACY_TABLE_B_DATA.has(caseKey);
+  const isExactIPOSCase=tableBServerReady&&
+    LEGACY_TABLE_B_CASE_SOURCES.get(caseKey)==='USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY';
   const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
     (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
   const tableBAuthAction=tableBError==='กรุณากรอกรหัสเข้าใช้เครื่องคำนวณเพื่อดูตาราง B'
@@ -17334,7 +17338,9 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     const data=matches?.get(r.age);
     const estimated=qaCvEstimates.get(r.age);
     const cvCell=Number.isFinite(data?.surrender)
-      ?renderValue(data.surrender)
+      ?(isExactIPOSCase&&r.age>=70&&r.age<=98
+        ?'<td class="legacy-cv-ipos" title="ค่าตามภาพ iPOS+ ที่ผู้ใช้อัปโหลด เฉพาะกรณีทดสอบนี้">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
+        :renderValue(data.surrender))
       :Number.isFinite(estimated)
         ?'<td class="legacy-cv-estimate" title="QA เท่านั้น: CV ค่าประมาณ ไม่ใช่ข้อมูลรับรองจาก AIA">'+fmt(estimated)+' <small>(ประมาณ)</small></td>'
         :renderValue(null);
@@ -17354,6 +17360,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
     '.legacy-values-table .legacy-cv-estimate{color:#83571F;background:#FFF4DD;font-weight:650}.legacy-values-table .legacy-cv-estimate small{font-size:10px;font-weight:600;white-space:nowrap}'+
+    '.legacy-values-table .legacy-cv-ipos{color:#1F6646;background:#EAF6EF;font-weight:650}.legacy-values-table .legacy-cv-ipos small{font-size:10px;font-weight:600;white-space:nowrap}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
     '.legacy-auth-help{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.legacy-auth-help button,.legacy-retry-btn{display:inline-block;padding:8px 14px;border-radius:7px;background:#142A47;color:white;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.legacy-auth-help input{font:inherit;min-width:180px;padding:9px 10px;border:1px solid #B8985A;border-radius:7px}.legacy-auth-help label{font-weight:700;font-size:12px}.legacy-auth-help #legacy-calculator-error{color:#A03232}.legacy-auth-help span{font-size:11px}.legacy-retry-btn{margin-top:10px;background:#B8985A;color:#142A47}'+
@@ -17362,6 +17369,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
       '<strong>'+tableBStatus+'</strong> · สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA'+
+      (isExactIPOSCase?'<div style="font-size:11px;color:#1F6646">CV อายุ 70–98 ใช้ค่าตามภาพหน้าจอ iPOS+ ของกรณีหญิง อายุแรกเข้า 35 ปี ทุน 10 ล้านบาท 15 Pay เท่านั้น ไม่ใช่ Factor ใช้ร่วมทุกกรณี</div>':'')+
       tableBAuthAction+tableBRetryAction+
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
