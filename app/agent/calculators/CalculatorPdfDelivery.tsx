@@ -88,7 +88,7 @@ export default function CalculatorPdfDelivery() {
       window.document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-      setNotice("เริ่มดาวน์โหลดไฟล์ PDF แล้ว ตรวจสอบได้ในรายการดาวน์โหลดของ Safari หรือแอป Files หากอุปกรณ์ขอให้ยืนยัน ให้กดดาวน์โหลด");
+      setNotice("");
     } catch (error) {
       console.error("PDF download error:", error);
       setNotice("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่ หรือส่งไฟล์ผ่าน LINE / อีเมล");
@@ -111,10 +111,10 @@ export default function CalculatorPdfDelivery() {
     setBusy(true);
     setNotice("");
     try {
-      // An explicit empty title keeps the file-share payload free from URL/name
-      // text, while allowing iPadOS to discover available share targets.
-      // The OS/LINE chooses the recipients; sites cannot force LINE to appear.
-      await navigator.share({ files: [file], title: "" });
+      // On the tested iPad, LINE disappeared with an empty title. A zero-width
+      // title is a compatibility experiment to advertise a text-capable payload
+      // without visibly attaching the filename. Device-level QA is required.
+      await navigator.share({ files: [file], title: "\u200B" });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
@@ -173,9 +173,6 @@ export default function CalculatorPdfDelivery() {
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              ดาวน์โหลด PDF จะบันทึกไฟล์โดยไม่เปิดหน้าแชร์ลิงก์ ส่วนการแชร์จะส่งไฟล์ PDF โดยไม่แนบข้อความชื่อไฟล์
-              หาก LINE ไม่แสดง ให้เปิดแชท LINE กด + แล้วเลือกไฟล์ PDF ที่ดาวน์โหลดไว้
-              <br />
               <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
               เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบว่าแนบไฟล์ PDF แล้ว
             </p>
