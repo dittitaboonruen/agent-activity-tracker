@@ -158,8 +158,11 @@ export default function CalculatorPdfDelivery() {
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              ระบบสร้าง PDF เพียงครั้งเดียว เมนูแชร์จะแสดงเฉพาะแอปที่ iPad รองรับ
+              ระบบสร้าง PDF เพียงครั้งเดียว เมนูแชร์จะแสดงเฉพาะแอปที่อุปกรณ์รองรับ
               หากไม่มี LINE ให้ดาวน์โหลดไฟล์แล้วส่งผ่านแอป LINE หรืออีเมล
+              <br />
+              <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
+              เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบว่าแนบไฟล์ PDF แล้ว
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
