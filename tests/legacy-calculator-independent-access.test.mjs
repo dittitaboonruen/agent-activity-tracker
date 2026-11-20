@@ -52,7 +52,7 @@ test('QA-only CV interpolation reaches age 98 while preserving verified cells an
   const end=html.indexOf('function buildLegacyPolicyValuesTableHTML(',start);
   assert.ok(start>0&&end>start,'estimated CV helper must be available for Table B');
   const script=html.slice(start,end)+
-    "\\nconst verified=new Map([[35,{surrender:0,paidUp:220000}],"+
+    "\nconst verified=new Map([[35,{surrender:0,paidUp:220000}],"+
     "[69,{surrender:6100000,paidUp:null}]]);"+
     "const projected=estimateLegacyCvForQaOnly(verified,35,10000000);"+
     "({first:projected.get(70),last:projected.get(98),size:projected.size,"+
