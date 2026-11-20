@@ -209,6 +209,26 @@ export async function GET(request:NextRequest) {
           {status:503,headers:noStore});
     }
   }
+
+  // Screenshot-backed CV only for male issue40 / 10 Pay / SI10m, attained 75..98.
+  // This is NOT an interpolated factor and cannot apply to other cases.
+  let male40ScreenshotCv: number[] | null = null;
+  if(gender==="M"&&age===40&&term===10&&sum===10000000){
+    const raw=process.env.LEGACY_QA_CV_M_40_10_10M_75_98_JSON;
+    if(!raw)
+      return NextResponse.json({error:"exact_case_cv_not_configured"},{status:503,headers:noStore});
+    try {
+      const values: unknown=JSON.parse(raw);
+      if(Array.isArray(values)&&values.length===24 &&
+         values.every((v,i)=>Number.isSafeInteger(v)&&v>=0&&v<=sum&&v%10000===0&&
+           (i===0||v>=values[i-1])) &&
+         createHash("sha256").update(JSON.stringify(values)).digest("hex")===
+           "5dc18a4e74b031fdd7b2974832a6fa434fd42c8f82881d4527fe91ca013307bc")
+        male40ScreenshotCv=values as number[];
+    }catch{}
+    if(!male40ScreenshotCv)
+      return NextResponse.json({error:"exact_case_cv_validation_failed"},{status:503,headers:noStore});
+  }
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
     // A source factor of 0 is a known zero, NOT an unavailable/missing value.
@@ -219,14 +239,17 @@ export async function GET(request:NextRequest) {
     const verifiedCv=amount(cv);
     const exactCv=exactCaseCv&&attainedAge>=70&&attainedAge<=98
       ?exactCaseCv[attainedAge-70]:null;
+    const male40Cv=male40ScreenshotCv&&attainedAge>=75&&attainedAge<=98
+      ?male40ScreenshotCv[attainedAge-75]:null;
+    const screenshotCv=exactCv!==null?exactCv:male40Cv;
     return {age:attainedAge,policyYear:i+1,
-      surrender:verifiedCv===null&&exactCv!==null?exactCv:verifiedCv,
+      surrender:verifiedCv===null&&screenshotCv!==null?screenshotCv:verifiedCv,
       paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
     source:"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
     gender, issueAge:age,term,sum,rows,
-    cvExactCaseSource:exactCaseCv?"USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY":null,
+    cvExactCaseSource:(exactCaseCv||male40ScreenshotCv)?"USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY":null,
     notice:"Internal QA only; values not approved as an AIA sales illustration."
   },{headers:noStore});
 }
