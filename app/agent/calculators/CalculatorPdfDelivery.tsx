@@ -169,12 +169,18 @@ export default function CalculatorPdfDelivery() {
             </div>
             <p style={{ overflowWrap: "anywhere", fontSize: 12, color: "#5D6470" }}>{document.filename}</p>
             <div style={{ display: "grid", gap: 10 }}>
-              <button type="button" onClick={downloadPdf} style={primaryButton}>
-                ดาวน์โหลด PDF
-              </button>
-              <button type="button" onClick={sharePdf} disabled={busy} style={secondaryButton}>
-                {busy ? "กำลังเปิดเมนูแชร์..." : "ส่งผ่าน LINE / อีเมล"}
-              </button>
+              <div style={{ display: "grid", gap: 4 }}>
+                <button type="button" onClick={downloadPdf} style={primaryButton}>
+                  ดาวน์โหลด PDF
+                </button>
+                <p style={actionHint}>บันทึกใบสรุปเป็นไฟล์ PDF ลงในอุปกรณ์</p>
+              </div>
+              <div style={{ display: "grid", gap: 4 }}>
+                <button type="button" onClick={sharePdf} disabled={busy} style={secondaryButton}>
+                  {busy ? "กำลังเปิดเมนูแชร์..." : "ส่งผ่าน LINE / อีเมล"}
+                </button>
+                <p style={actionHint}>ส่งไฟล์ PDF พร้อมข้อความให้ลูกค้าผ่าน LINE หรืออีเมล</p>
+              </div>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
               <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
@@ -196,4 +202,8 @@ const primaryButton = {
 const secondaryButton = {
   border: "1px solid #B8985A", borderRadius: 8, background: "#FFFDF8", color: "#0F1B2E",
   fontSize: 15, padding: "13px 16px", fontWeight: 600, cursor: "pointer"
+} as const;
+
+const actionHint = {
+  margin: 0, fontSize: 12, lineHeight: 1.5, color: "#5D6470", textAlign: "center"
 } as const;
