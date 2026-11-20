@@ -17114,6 +17114,26 @@ function retryLegacyTableB(){
   loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
   render();
 }
+async function submitLegacyCalculatorAccess(){
+  const field=document.getElementById('legacy-calculator-code');
+  const btn=document.getElementById('legacy-calculator-submit');
+  const code=field&&field.value?field.value.trim():'';
+  if(code.length<20){ if(field)field.setCustomValidity('กรุณากรอกรหัสเครื่องคำนวณที่ได้รับ');field?.reportValidity();return; }
+  if(field)field.setCustomValidity('');
+  if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบสิทธิ์...';}
+  try{
+    const response=await fetch('/api/legacy-prestige-access',{
+      method:'POST',credentials:'same-origin',cache:'no-store',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({code})
+    });
+    if(!response.ok)throw Error(response.status===401?'รหัสเข้าใช้ไม่ถูกต้อง':'ไม่สามารถตรวจสอบสิทธิ์ได้');
+    retryLegacyTableB();
+  }catch(error){
+    if(btn){btn.disabled=false;btn.textContent='เข้าใช้ตาราง B';}
+    const msg=document.getElementById('legacy-calculator-error');
+    if(msg)msg.textContent=error.message||'ตรวจสอบสิทธิ์ไม่สำเร็จ';
+  }finally{if(field)field.value='';}
+}
 function loadLegacyTableB(age,gender,sum,term){
   if(!['ชาย','หญิง'].includes(gender)||!Number.isInteger(age)||age<0||age>75||
      !Number.isFinite(sum)||sum<10000000||sum>1000000000||
@@ -17138,7 +17158,7 @@ function loadLegacyTableB(age,gender,sum,term){
         sum:String(sum),term:String(term)});
       const res=await fetch('/api/legacy-prestige-rpu?'+params.toString(),
         {credentials:'same-origin',cache:'no-store'});
-      if(!res.ok)throw Error(res.status===401?'กรุณาเข้าสู่ระบบก่อนใช้ตาราง B':
+      if(!res.ok)throw Error(res.status===401?'กรุณากรอกรหัสเข้าใช้เครื่องคำนวณเพื่อดูตาราง B':
         res.status===403?'บัญชีนี้ยังไม่มีสิทธิ์ดูตาราง B':
         res.status===503?'ข้อมูล Factor ยังไม่ผ่านการตรวจสอบบน Server (503)':
         'ไม่สามารถโหลดข้อมูล CV/RPU ที่ตรวจสอบได้');
@@ -17268,8 +17288,12 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const tableBServerReady=LEGACY_TABLE_B_DATA.has(caseKey);
   const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
     (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
-  const tableBAuthAction=tableBError==='กรุณาเข้าสู่ระบบก่อนใช้ตาราง B'
-    ?'<div class="legacy-auth-help"><a href="/login" target="_blank" rel="noopener noreferrer">เข้าสู่ระบบบน Preview นี้</a><span>เมื่อเข้าสู่ระบบเสร็จ กลับมาที่หน้านี้แล้วกดโหลดตารางอีกครั้ง</span></div>'
+  const tableBAuthAction=tableBError==='กรุณากรอกรหัสเข้าใช้เครื่องคำนวณเพื่อดูตาราง B'
+    ?'<div class="legacy-auth-help"><label for="legacy-calculator-code">รหัสเข้าถึงเครื่องคำนวณ</label>'+
+     '<input type="password" id="legacy-calculator-code" autocomplete="off" placeholder="รหัสสำหรับผู้ได้รับอนุญาต" aria-label="รหัสเข้าถึงเครื่องคำนวณ">'+
+     '<button type="button" id="legacy-calculator-submit" onclick="submitLegacyCalculatorAccess()">เข้าใช้ตาราง B</button>'+
+     '<span id="legacy-calculator-error" role="alert"></span>'+
+     '<span>เข้าใช้ได้โดยไม่ต้อง Login ระบบหลังบ้าน · สิทธิ์หมดอายุภายใน 24 ชั่วโมง</span></div>'
     :'';
   const tableBRetryAction=tableBError
     ?'<button type="button" class="legacy-retry-btn" onclick="retryLegacyTableB()">ลองโหลดตาราง B อีกครั้ง</button>'
@@ -17298,7 +17322,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
-    '.legacy-auth-help{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.legacy-auth-help a,.legacy-retry-btn{display:inline-block;padding:8px 14px;border-radius:7px;background:#142A47;color:white;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.legacy-auth-help span{font-size:11px}.legacy-retry-btn{margin-top:10px;background:#B8985A;color:#142A47}'+
+    '.legacy-auth-help{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.legacy-auth-help button,.legacy-retry-btn{display:inline-block;padding:8px 14px;border-radius:7px;background:#142A47;color:white;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.legacy-auth-help input{font:inherit;min-width:180px;padding:9px 10px;border:1px solid #B8985A;border-radius:7px}.legacy-auth-help label{font-weight:700;font-size:12px}.legacy-auth-help #legacy-calculator-error{color:#A03232}.legacy-auth-help span{font-size:11px}.legacy-retry-btn{margin-top:10px;background:#B8985A;color:#142A47}'+
     '@media(max-width:760px){.legacy-values-table{min-width:420px;font-size:11px}.legacy-values-table th{font-size:10px;padding:8px 4px}}'+
     '</style>'+
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
