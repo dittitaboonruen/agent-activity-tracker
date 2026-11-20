@@ -5,13 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type PdfDocument = { blob: Blob; filename: string };
 type PdfMessage = { type?: string; blob?: unknown; filename?: unknown };
 
-// HTTP attachment: strict safe size under Vercel's 4.5 MB body limits.
-// Larger PDFs fall back to existing top-level direct download.
-const MAX_HTTP_PDF_BYTES = 2_500_000;
 const MAX_PDF_BYTES = 80 * 1024 * 1024;
 
 function safePdfFilename(raw: string): string {
-  const cleaned = raw.replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-").slice(0, 180);
+  const cleaned = raw.replace(/[\/\\:*?"<>|\u0000-\u001f]/g, "-").slice(0, 190);
   return cleaned.toLowerCase().endsWith(".pdf") ? cleaned : cleaned + ".pdf";
 }
 
@@ -19,10 +16,8 @@ export default function CalculatorPdfDelivery() {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const urlRef = useRef<string | null>(null);
   const [document, setDocument] = useState<PdfDocument | null>(null);
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
-  const [preparing, setPreparing] = useState(false);
   const [notice, setNotice] = useState("");
-  const [downloadAttempted, setDownloadAttempted] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const pdfUrl = useCallback((blob: Blob) => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -35,8 +30,10 @@ export default function CalculatorPdfDelivery() {
     const receivePdf = (event: MessageEvent<PdfMessage>) => {
       if (event.origin !== window.location.origin ||
           event.source !== frameRef.current?.contentWindow) return;
+
       const data = event.data;
       if (!data || data.type !== "royal-partner:pdf-ready") return;
+
       const blob = data.blob;
       if (!(blob instanceof Blob) || blob.type !== "application/pdf" ||
           blob.size === 0 || blob.size > MAX_PDF_BYTES ||
@@ -44,14 +41,14 @@ export default function CalculatorPdfDelivery() {
         setNotice("ไฟล์ PDF ไม่ถูกต้อง กรุณาลองสร้างใบสรุปอีกครั้ง");
         return;
       }
+
       if (urlRef.current) {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
-      setPdfBase64(null);
-      setDownloadAttempted(false);
       setDocument({ blob, filename: safePdfFilename(data.filename) });
       setNotice("");
+      setBusy(false);
     };
 
     window.addEventListener("message", receivePdf);
@@ -62,83 +59,82 @@ export default function CalculatorPdfDelivery() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!document || document.blob.size > MAX_HTTP_PDF_BYTES) {
-      setPdfBase64(null);
-      setPreparing(false);
-      return;
-    }
-
-    // Convert before button tap so form POST is synchronous user navigation.
-    // Do not fetch and re-create a blob on the client: that reintroduces Safari's
-    // blob URL issue. Native form navigation receives Content-Disposition.
-    const reader = new FileReader();
-    setPdfBase64(null);
-    setPreparing(true);
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        const encoded = reader.result.split(",", 2)[1];
-        setPdfBase64(encoded || null);
-      }
-      setPreparing(false);
-    };
-    reader.onerror = () => {
-      setPdfBase64(null);
-      setPreparing(false);
-    };
-    reader.onabort = () => setPreparing(false);
-    reader.readAsDataURL(document.blob);
-    return () => {
-      reader.onload = null;
-      reader.onerror = null;
-      reader.onabort = null;
-      if (reader.readyState === FileReader.LOADING) reader.abort();
-    };
-  }, [document]);
-
   function closeDialog() {
     setDocument(null);
-    setPdfBase64(null);
     setNotice("");
-    setDownloadAttempted(false);
     if (urlRef.current) {
       URL.revokeObjectURL(urlRef.current);
       urlRef.current = null;
     }
   }
 
-  function downloadPdfFallback() {
+  function downloadPdf() {
     if (!document) return;
     try {
+      // Download is the safe fallback on browsers without file-share support.
+      // Keep the same top-level download implementation used in production.
       const appleTouch =
         /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      const payload = appleTouch
+      const downloadBlob = appleTouch
         ? new Blob([document.blob], { type: "application/octet-stream" })
         : document.blob;
-      const url = pdfUrl(payload);
-      const a = window.document.createElement("a");
-      a.href = url;
-      a.download = document.filename;
-      a.style.display = "none";
-      window.document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const url = pdfUrl(downloadBlob);
+      const anchor = window.document.createElement("a");
+      anchor.href = url;
+      anchor.download = document.filename;
+      anchor.style.display = "none";
+      window.document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
       setNotice("");
     } catch (error) {
-      console.error("PDF fallback download error:", error);
-      setNotice("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่");
+      console.error("PDF download error:", error);
+      setNotice("บันทึก PDF ไม่สำเร็จ กรุณาลองใหม่");
     }
+  }
+
+  async function saveOrSharePdf() {
+    if (!document || busy) return;
+
+    const appleTouch =
+      /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const mobileTouch = appleTouch || /Android/i.test(navigator.userAgent);
+
+    // Use the native file share sheet on mobile. Sending ONLY the File is
+    // essential: title/text/URL produce an extra LINE chat bubble.
+    // iOS decides which share extensions appear; no website can force LINE.
+    if (mobileTouch && typeof File !== "undefined" && navigator.share) {
+      const file = new File([document.blob], document.filename, { type: "application/pdf" });
+      const shareData: ShareData = { files: [file] };
+      if (!navigator.canShare || navigator.canShare(shareData)) {
+        setBusy(true);
+        setNotice("");
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return; // User dismissed share sheet; do not silently save a file.
+          }
+          console.warn("Native file sharing unavailable, using PDF download:", error);
+          // An unexpected share failure may remove user activation, so explain
+          // fallback instead of attempting a download that Safari could block.
+          setNotice("เปิดเมนูแชร์ไม่สำเร็จ กรุณากดอีกครั้ง หรือเปิดจาก Safari");
+          return;
+        } finally {
+          setBusy(false);
+        }
+      }
+    }
+
+    // Desktop and devices without native file-sharing use a real PDF download.
+    downloadPdf();
   }
 
   return (
     <>
-      {/* Native POST has a private download target: never navigate Safari's top-level tab. */}
-      <iframe
-        title="ปลายทางดาวน์โหลด PDF"
-        name="royal-partner-pdf-download-target"
-        style={{ display: "none" }}
-      />
       <iframe
         ref={frameRef}
         title="เครื่องมือคำนวณและจัดทำใบสรุปประกอบการเสนอขาย"
@@ -152,15 +148,23 @@ export default function CalculatorPdfDelivery() {
       />
 
       {document && (
-        <div role="presentation" style={{
-          position: "fixed", inset: 0, zIndex: 2000, background: "rgba(10,20,35,.65)",
-          display: "flex", justifyContent: "center", alignItems: "center", padding: 16
-        }}>
-          <section role="dialog" aria-modal="true" aria-label="ดาวน์โหลด PDF" style={{
-            width: "100%", maxWidth: 440, borderRadius: 12, padding: 22,
-            background: "#FFFDF8", color: "#0F1B2E", boxShadow: "0 18px 70px #0005",
-            fontFamily: "system-ui, sans-serif"
-          }}>
+        <div
+          role="presentation"
+          style={{
+            position: "fixed", inset: 0, zIndex: 2000, background: "rgba(10,20,35,.65)",
+            display: "flex", justifyContent: "center", alignItems: "center", padding: 16
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="บันทึกหรือแชร์ PDF"
+            style={{
+              width: "100%", maxWidth: 440, borderRadius: 12, padding: 22,
+              background: "#FFFDF8", color: "#0F1B2E", boxShadow: "0 18px 70px #0005",
+              fontFamily: "system-ui, sans-serif"
+            }}
+          >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
               <h2 style={{ fontSize: 20, margin: 0 }}>ไฟล์ PDF พร้อมใช้งาน</h2>
               <button type="button" onClick={closeDialog} aria-label="ปิด" style={{
@@ -169,43 +173,15 @@ export default function CalculatorPdfDelivery() {
               }}>ปิด</button>
             </div>
             <p style={{ overflowWrap: "anywhere", fontSize: 12, color: "#5D6470" }}>{document.filename}</p>
-            {pdfBase64 ? (
-              <form
-                method="POST"
-                action="/agent/calculators/pdf-download"
-                target="royal-partner-pdf-download-target"
-                encType="application/x-www-form-urlencoded"
-                onSubmit={() => {
-                  setDownloadAttempted(true);
-                  setNotice("");
-                }}
-                style={{ display: "grid" }}
-              >
-                <input type="hidden" name="filename" value={document.filename} />
-                <input type="hidden" name="pdf_base64" value={pdfBase64} />
-                <button type="submit" style={primaryButton}>ดาวน์โหลด PDF</button>
-              </form>
-            ) : (
-              <button
-                type="button"
-                onClick={downloadPdfFallback}
-                disabled={preparing}
-                style={{ ...primaryButton, width: "100%", opacity: preparing ? 0.6 : 1 }}
-              >
-                {preparing ? "กำลังเตรียม PDF..." : "ดาวน์โหลด PDF"}
+            <div style={{ display: "grid", gap: 10 }}>
+              <button type="button" onClick={saveOrSharePdf} disabled={busy} style={primaryButton}>
+                {busy ? "กำลังเปิดเมนูบันทึก..." : "บันทึก PDF"}
               </button>
-            )}
-            {downloadAttempted && pdfBase64 && (
-              <div style={{ fontSize: 12, marginTop: 12, lineHeight: 1.6, color: "#5D6470" }}>
-                ไม่พบไฟล์ใน Downloads?{" "}
-                <button type="button" onClick={downloadPdfFallback}
-                  style={{ border: 0, padding: 0, background: "none", textDecoration: "underline", color: "#0F1B2E", cursor: "pointer", fontSize: 12 }}>
-                  ดาวน์โหลดสำรอง
-                </button>
-              </div>
-            )}
+            </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
+              <strong>iPad / iPhone:</strong> เลือก “บันทึกไปยังไฟล์” (Save to Files) ในเมนูที่แสดง
+              <br />
+              <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจนและตรวจสอบไฟล์แนบก่อนส่ง
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
@@ -218,4 +194,9 @@ export default function CalculatorPdfDelivery() {
 const primaryButton = {
   border: 0, borderRadius: 8, background: "#B8985A", color: "#0F1B2E",
   fontSize: 15, padding: "13px 16px", fontWeight: 700, cursor: "pointer"
+} as const;
+
+const secondaryButton = {
+  border: "1px solid #B8985A", borderRadius: 8, background: "#FFFDF8", color: "#0F1B2E",
+  fontSize: 15, padding: "13px 16px", fontWeight: 600, cursor: "pointer"
 } as const;
