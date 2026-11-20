@@ -70,15 +70,29 @@ export default function CalculatorPdfDelivery() {
 
   function downloadPdf() {
     if (!document) return;
-    const url = pdfUrl(document.blob);
-    const anchor = window.document.createElement("a");
-    anchor.href = url;
-    anchor.download = document.filename;
-    anchor.style.display = "none";
-    window.document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setNotice("ส่งคำขอดาวน์โหลดแล้ว กรุณาตรวจสอบไฟล์ในรายการดาวน์โหลดของอุปกรณ์");
+    try {
+      // iOS Safari sometimes opens a PDF Blob in a viewer instead of downloading it.
+      // Only the download copy uses octet-stream; the original PDF remains intact
+      // for LINE/Mail file sharing and keeps the .pdf filename.
+      const appleTouch =
+        /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const downloadBlob = appleTouch
+        ? new Blob([document.blob], { type: "application/octet-stream" })
+        : document.blob;
+      const url = pdfUrl(downloadBlob);
+      const anchor = window.document.createElement("a");
+      anchor.href = url;
+      anchor.download = document.filename;
+      anchor.style.display = "none";
+      window.document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setNotice("");
+    } catch (error) {
+      console.error("PDF download error:", error);
+      setNotice("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่ หรือส่งไฟล์ผ่าน LINE / อีเมล");
+    }
   }
 
   async function sharePdf() {
@@ -97,9 +111,10 @@ export default function CalculatorPdfDelivery() {
     setBusy(true);
     setNotice("");
     try {
-      // The title is sent only for SHARE (needed by some iPad LINE integrations).
-      // Download uses a plain file link, so it will not create a companion filename .txt.
-      await navigator.share({ files: [file], title: document.filename });
+      // On the tested iPad, LINE disappeared with an empty title. A zero-width
+      // title is a compatibility experiment to advertise a text-capable payload
+      // without visibly attaching the filename. Device-level QA is required.
+      await navigator.share({ files: [file], title: "\u200B" });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         setNotice("เมนูแชร์ไม่พร้อมใช้งาน กรุณาใช้ “ดาวน์โหลด PDF” แล้วแชร์ไฟล์จากอุปกรณ์แทน");
@@ -158,9 +173,6 @@ export default function CalculatorPdfDelivery() {
               </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              ระบบสร้าง PDF เพียงครั้งเดียว เมนูแชร์จะแสดงเฉพาะแอปที่อุปกรณ์รองรับ
-              หากไม่มี LINE ให้ดาวน์โหลดไฟล์แล้วส่งผ่านแอป LINE หรืออีเมล
-              <br />
               <strong>หมายเหตุสำหรับอีเมล:</strong> ก่อนกดส่ง กรุณาตั้งหัวข้ออีเมลให้ชัดเจน
               เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบว่าแนบไฟล์ PDF แล้ว
             </p>
