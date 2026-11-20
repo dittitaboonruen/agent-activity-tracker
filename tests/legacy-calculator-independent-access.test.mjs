@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {createHash} from 'node:crypto';
 
 const middleware=fs.readFileSync('middleware.ts','utf8');
 const api=fs.readFileSync('app/api/legacy-prestige-rpu/route.ts','utf8');
@@ -72,4 +73,16 @@ test('QA-only CV interpolation reaches age 98 while preserving verified cells an
   const report=html.slice(html.indexOf('function buildLegacyReportHTML('),
     html.indexOf('function loadLegacyTableB('));
   assert.doesNotMatch(report,/estimateLegacyCvForQaOnly/,'never export estimates into PDF');
+});
+
+test('private iPOS screenshot reference matches complete 29-year exact case',()=>{
+  const values=JSON.parse(process.env.LEGACY_QA_CV_F_35_15_10M_70_98_JSON||'null');
+  assert.ok(Array.isArray(values),'private exact case must be configured in this QA branch');
+  assert.equal(values.length,29);
+  assert.equal(createHash('sha256').update(JSON.stringify(values)).digest('hex'),
+    '5801233bd7c3189f0388ba0d8e09118f6fafce50405d317cbbda6b2655df404d');
+  assert.match(api,/gender==="F"&&age===35&&term===15&&sum===10000000/);
+  assert.match(api,/verifiedCv===null&&exactCv!==null\?exactCv:verifiedCv/);
+  assert.match(html,/LEGACY_TABLE_B_CASE_SOURCES/);
+  assert.match(html,/USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY/);
 });
