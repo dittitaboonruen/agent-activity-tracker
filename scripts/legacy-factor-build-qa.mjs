@@ -178,6 +178,24 @@ try {
   }
   console.log("[Legacy CV Research] PASS: 29 exact-case iPOS+ values agree with published year-35 donor cells (15 Pay/F/issue35/SI10m only)");
 
+  // Independent private screenshot supplied by the owner: male issue40,
+  // 10 Pay, SI 10m, attained age 75..98. Do not expose these exact amounts
+  // in source control, browser bundles, snapshots or build diagnostics.
+  const male40Raw=process.env.LEGACY_QA_CV_M_40_10_10M_75_98_JSON;
+  if(!male40Raw) fail("missing_male40_exact_case_configuration");
+  let male40Values;
+  try { male40Values=JSON.parse(male40Raw); }
+  catch { fail("invalid_male40_exact_case_configuration"); }
+  if(!Array.isArray(male40Values)||male40Values.length!==24||
+     male40Values.some((v,i)=>!Number.isSafeInteger(v)||v<0||v>10000000||
+       v%10000!==0||(i>0&&v<male40Values[i-1]))||
+     digest(male40Values)!=="5dc18a4e74b031fdd7b2974832a6fa434fd42c8f82881d4527fe91ca013307bc")
+    fail("male40_exact_case_integrity_mismatch");
+  // Year 36+ must NOT be taken from the source manual's published 35 years.
+  if(tables["10"].M.cv[40].length!==35)
+    fail("male40_manual_scope_mismatch");
+  console.log("[Legacy CV Research] PASS: 24 screenshot-backed CV values integrity-checked (10 Pay/M/issue40/SI10m/ages75-98 only)");
+
   // Conservative cross-validation within the manual: hide a published cell,
   // then inspect other already-published rows for the SAME attained age.
   // This diagnostic does not fill the missing years and does not certify any
