@@ -21,3 +21,13 @@ Evidence build: Vercel Preview deployment `dpl_G3zVLXG6aiLphuMa8iXydhihrZDR`; co
 
 ### Next
 Obtain an authenticated QA session through an approved existing login flow on the protected Preview deployment, compare responses to the verified build-stage results, and perform Table B UI switch and auth negative cases. Do not disable security controls or merge directly from the heavily diverged PR #13.
+
+
+## Authenticated live check attempt — 20 Nov 2026
+
+- Tested URL: the READY Preview build at commit `989bcaf48a28b80fe11b55b59abf108f3eb125a1`, exact API endpoint `/api/legacy-prestige-rpu?age=35&gender=M&sum=15000000&term=20`.
+- Result: Vercel access returned `401 deployment_authentication_required` at `fetch_deployment`, even after an attempted temporary deployment share-link access. The request did not reach the Supabase-authenticated API; this result does not establish API 401 or Factor 503.
+- User's connected browser has Production and Vercel tabs but no Legacy Preview tab with an authorized session.
+- Middleware and API code review confirms the route `/api/legacy-prestige-rpu` is subject to authenticated user role checks; API itself restricts to active admin, manager, training; selfTest is active admin/training only.
+- Magic-link preview callback is scoped to the specific deployment hostname and restricted legacy return path. A real browser session is needed to verify Supabase callback/cookie behavior.
+- **Decision:** Do not weaken deployment protection, bypass session checks, use a service-role token, or claim live-HTTP PASS. The next QA action requires the authorized user to open the protected Preview deployment through their authenticated browser.
