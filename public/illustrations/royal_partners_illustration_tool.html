@@ -15557,7 +15557,8 @@ async function savePdfCrossDevice(pdf, filename){
         navigator.canShare({files:[file]})
       ){
         await navigator.share({
-          files:[file]
+          files:[file],
+          title: filename
         });
         return {mode:'share'};
       }
