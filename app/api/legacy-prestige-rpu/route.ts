@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { brotliDecompressSync } from "node:zlib";
 import { createHash } from "node:crypto";
+import { hasCalculatorAccess } from "@/lib/insurance/legacy-prestige-plus/calculator-access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -139,38 +140,42 @@ function getVerifiedFactors(): Factors | null {
 }
 
 export async function GET(request:NextRequest) {
-  // Independently verify an active internal user, even when middleware is bypassed.
-  const sb=createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {cookies:{getAll:()=>request.cookies.getAll(),setAll:()=>{}}}
-  );
-  const {data:{user},error}=await sb.auth.getUser();
-  if(error||!user) return NextResponse.json({error:"authentication_required"},{status:401,headers:noStore});
-  const {data:profile,error:profileError}=await sb.from("user_profiles")
-    .select("role,active").eq("user_id",user.id).maybeSingle();
-  if(profileError||!profile||profile.active!==true||
-     !["admin","manager","training"].includes(profile.role))
-    return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
   const query=request.nextUrl.searchParams;
-  if(query.get("selfTest")==="1"){
-    // Internal QA only: additionally restrict diagnostic access to admin/training.
-    // No values, secrets, hashes, or table rows leave the server.
-    if(!["admin","training"].includes(profile.role))
-      return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
-    const verified=!!getVerifiedFactors();
-    const groups=([10,15,20] as const).flatMap(term=>
-      (["M","F"] as const).map(gender=>({
-        term,gender,status:verified?"PASS":"BLOCKED"
-      }))
+  // Customer-facing calculator access is independent of the operations
+  // dashboard login. The cookie is signed, short-lived and HttpOnly.
+  // The privileged selfTest remains exclusive to authenticated admin/training.
+  const calculatorAccess=query.get("selfTest")!=="1" && hasCalculatorAccess(request);
+  if(!calculatorAccess){
+    const sb=createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      {cookies:{getAll:()=>request.cookies.getAll(),setAll:()=>{}}}
     );
-    return NextResponse.json({
-      check:"legacy_table_b_integrity",
-      result:verified?"PASS":"BLOCKED",
-      reason:verified?"verified":factorHealthCode,
-      groups,
-      note:"Internal factor integrity only; not a product approval or insurer quotation."
-    },{status:verified?200:503,headers:noStore});
+    const {data:{user},error}=await sb.auth.getUser();
+    if(error||!user)
+      return NextResponse.json({error:"authentication_required"},{status:401,headers:noStore});
+    const {data:profile,error:profileError}=await sb.from("user_profiles")
+      .select("role,active").eq("user_id",user.id).maybeSingle();
+    if(profileError||!profile||profile.active!==true||
+       !["admin","manager","training"].includes(profile.role))
+      return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
+    if(query.get("selfTest")==="1"){
+      if(!["admin","training"].includes(profile.role))
+        return NextResponse.json({error:"not_authorized"},{status:403,headers:noStore});
+      const verified=!!getVerifiedFactors();
+      const groups=([10,15,20] as const).flatMap(term=>
+        (["M","F"] as const).map(gender=>({
+          term,gender,status:verified?"PASS":"BLOCKED"
+        }))
+      );
+      return NextResponse.json({
+        check:"legacy_table_b_integrity",
+        result:verified?"PASS":"BLOCKED",
+        reason:verified?"verified":factorHealthCode,
+        groups,
+        note:"Internal factor integrity only; not a product approval or insurer quotation."
+      },{status:verified?200:503,headers:noStore});
+    }
   }
   const gender=query.get("gender");
   const age=Number(query.get("age"));
