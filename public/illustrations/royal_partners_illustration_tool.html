@@ -17277,28 +17277,6 @@ function lookupLegacyIPOSValues(issueAge,gender,sum,term){
 // Internal QA display-only interpolation. This does NOT create contractual
 // surrender benefits and MUST NOT be used in customer-facing PDF quotations.
 // Never alter authenticated source factors, confirmed zeroes, RPU or API data.
-function estimateLegacyCvForQaOnly(byAge,issueAge,sum){
-  const result=new Map();
-  if(!(byAge instanceof Map)||!Number.isFinite(sum)||sum<=0||
-     !Number.isInteger(issueAge)||issueAge<0||issueAge>75)return result;
-  const available=[...byAge].filter(([age,data])=>
-    Number.isInteger(age)&&age>=issueAge&&age<98&&
-    Number.isSafeInteger(data?.surrender)&&data.surrender>=0);
-  if(!available.length)return result;
-  available.sort((a,b)=>a[0]-b[0]);
-  const [lastAge,lastValue]=[available.at(-1)[0],available.at(-1)[1].surrender];
-  if(lastAge>=98||lastValue>sum)return result;
-  // Estimate ONLY the absent trailing segment, using the final verified CV
-  // and an explicitly hypothetical 100%-sum-assured anchor at age 98.
-  for(let age=lastAge+1;age<=98;age++){
-    if(Number.isFinite(byAge.get(age)?.surrender))continue;
-    const fraction=(age-lastAge)/(98-lastAge);
-    const estimated=Math.round(lastValue+(sum-lastValue)*fraction);
-    result.set(age,Math.min(sum,Math.max(lastValue,estimated)));
-  }
-  return result;
-}
-
 function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
   const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
   const matches=evidence?.byAge||null;
@@ -17332,18 +17310,19 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
     return '<td>'+fmt(value)+'</td>';
   };
-  const qaCvEstimates=tableBServerReady
-    ?estimateLegacyCvForQaOnly(matches,inputs.age,inputs.sum):new Map();
+  const isScreenshotAge=isExactIPOSCase&&(
+    (inputs.gender==='หญิง'&&inputs.age===35&&inputs.term===15&&inputs.sum===10000000)||(
+     inputs.gender==='ชาย'&&inputs.age===40&&inputs.term===10&&inputs.sum===10000000));
   const rows=displayRows.map(r=>{
     const data=matches?.get(r.age);
-    const estimated=qaCvEstimates.get(r.age);
+    const screenshotAge=isScreenshotAge&&(
+      (inputs.gender==='หญิง'&&r.age>=70&&r.age<=98)||
+      (inputs.gender==='ชาย'&&r.age>=75&&r.age<=98));
     const cvCell=Number.isFinite(data?.surrender)
-      ?(isExactIPOSCase&&r.age>=70&&r.age<=98
-        ?'<td class="legacy-cv-ipos" title="ค่าตามภาพ iPOS+ ที่ผู้ใช้อัปโหลด เฉพาะกรณีทดสอบนี้">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
+      ?(screenshotAge
+        ?'<td class="legacy-cv-ipos" title="ค่าจากภาพ iPOS+ เฉพาะกรณีทดสอบที่ระบุ">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
         :renderValue(data.surrender))
-      :Number.isFinite(estimated)
-        ?'<td class="legacy-cv-estimate" title="QA เท่านั้น: CV ค่าประมาณ ไม่ใช่ข้อมูลรับรองจาก AIA">'+fmt(estimated)+' <small>(ประมาณ)</small></td>'
-        :renderValue(null);
+      :renderValue(null);
     return '<tr><td class="'+thClass+'">'+r.age+'</td>'+
       cvCell+renderValue(data?.paidUp)+'</tr>';
   }).join('');
@@ -17359,7 +17338,6 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table .legacy-values-age{position:sticky;left:0;z-index:2;text-align:center;background:#F8F6F2;width:68px}'+
     '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
-    '.legacy-values-table .legacy-cv-estimate{color:#83571F;background:#FFF4DD;font-weight:650}.legacy-values-table .legacy-cv-estimate small{font-size:10px;font-weight:600;white-space:nowrap}'+
     '.legacy-values-table .legacy-cv-ipos{color:#1F6646;background:#EAF6EF;font-weight:650}.legacy-values-table .legacy-cv-ipos small{font-size:10px;font-weight:600;white-space:nowrap}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:9px 11px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
@@ -17369,7 +17347,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
     '<div class="legacy-values-reference">'+
       '<strong>'+tableBStatus+'</strong> · สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA'+
-      (isExactIPOSCase?'<div style="font-size:11px;color:#1F6646">CV อายุ 70–98 ใช้ค่าตามภาพหน้าจอ iPOS+ ของกรณีหญิง อายุแรกเข้า 35 ปี ทุน 10 ล้านบาท 15 Pay เท่านั้น ไม่ใช่ Factor ใช้ร่วมทุกกรณี</div>':'')+
+      (isExactIPOSCase?'<div style="font-size:11px;color:#1F6646">CV ที่ระบุ (ภาพ iPOS+) ใช้เฉพาะกรณีที่กรอกตรงกับภาพต้นทาง: หญิง 35 ปี / 15 Pay / ทุน 10 ล้านบาท / อายุ 70–98 หรือ ชาย 40 ปี / 10 Pay / ทุน 10 ล้านบาท / อายุ 75–98 ไม่ใช่ Factor ใช้ร่วมทุกกรณี</div>':'')+
       tableBAuthAction+tableBRetryAction+
     '</div>'+
     '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
@@ -17379,7 +17357,6 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
     '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">— หมายถึงไม่มีค่าที่แสดงในตารางอ้างอิง ไม่ใช่จำนวน 0 บาท · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
-    (qaCvEstimates.size?'<p class="legacy-cv-qa-warning" role="note" style="padding:10px 12px;background:#FFF4DD;border:1px solid #D8B878;border-radius:7px;font-size:12px;line-height:1.65;color:#734B18"><strong>เฉพาะ QA: CV ที่มีคำว่า (ประมาณ)</strong> เป็นการคำนวณเชิงเส้นจาก CV จริงปีสุดท้ายจนถึงสมมติฐาน CV เท่าทุนประกันที่อายุ 98 ปี ไม่ใช่มูลค่าเวนคืนที่ AIA รับรอง ไม่ใช้สำหรับเสนอขายหรือออกรายงาน PDF · RPU และ CV ที่มีข้อมูลจริงไม่เปลี่ยน</p>':'')+
     '</section>';
 }
 
