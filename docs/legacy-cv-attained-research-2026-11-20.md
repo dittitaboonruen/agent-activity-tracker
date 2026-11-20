@@ -30,3 +30,14 @@
 - `scripts/legacy-factor-build-qa.mjs` now fails the Preview build on any of the 29 private iPOS+ to manual-donor mismatches, missing private iPOS+ configuration, or factor integrity failure. No proprietary factors or iPOS amounts are printed.
 - No API, PDF, public browser bundle, or Production calculation changed.
 - Next: independent insurer iPOS+ examples for the other five term/gender groups, with original issue age and sum insured verified, then rights/compliance approval before any research candidate can be integrated.
+
+## Phase B — encrypted runtime dynamic-CV audit (20 Nov 2026)
+
+This is research-only, additive automated build verification. Calculator API, verified CV/RPU overlays, client illustration and PDFs remain unchanged.
+
+- All six sex/pay-term CV factor groups (10/15/20 Pay × M/F) evaluated against the published year-35 versus year-34 donor hypothesis for post-policy-year-35 attained ages through 98.
+- Runtime diagnostic: **11,480 two-donor agreeing candidates; 784 conflicting; 0 missing; 216 explicitly outside research cohort**. Candidate is NOT an insurer-verified cash surrender value.
+- The year-35 donor hypothesis matched 24/24 encrypted iPOS+ points for male issue40 10 Pay SI10m ages75–98 and 29/29 for female issue35 15 Pay SI10m ages70–98. Both cases are single fixed terms, ages and sums; the evidence does not authorize generalization.
+- This builds on the existing 72 published-factor Table B QA cases, original 12-table integrity checks, and signed calculator-access tests without bypassing them.
+- Important: **agreement between two manual donor rows does not establish correctness for unprinted policy years 36+**. Additional iPOS+ results with independent ages, all six gender/term combinations and distinct sums insured are required before broader activation.
+- Do not merge Legacy to production; retain existing exact screenshot overlays and no extrapolated CV.
