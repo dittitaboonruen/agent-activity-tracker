@@ -48,14 +48,14 @@ test('Legacy PDF 1.1: full age data, page breaks and source-matched values',()=>
   const first=new Map([[40,{surrender:10000,paidUp:50000}],[41,{surrender:20000,paidUp:60000}]]);
   h.verified.set('40:ชาย:10000000:10',first);
   const pdfHtml=h.report();
-  assert.equal((pdfHtml.match(/class="ex-report-page legacy-report-page"/g)||[]).length,7);
+  assert.equal((pdfHtml.match(/class="ex-report-page legacy-report-page"/g)||[]).length,8);
   assert.match(pdfHtml,/AIA Legacy Prestige Plus/);
   assert.match(pdfHtml,/10,000,000/);
   assert.match(pdfHtml,/<td>1<\/td><td>40<\/td><td class="legacy3-paid-year">100,000<\/td><td>100,000<\/td><td>10,000,000<\/td>/);
   assert.match(pdfHtml,/<td>1<\/td><td>40<\/td><td class="legacy3-amount">10,000<\/td><td class="legacy3-amount">50,000<\/td>/);
   assert.match(pdfHtml,/<td>2<\/td><td>41<\/td><td class="legacy3-paid-year">100,000<\/td><td>200,000<\/td><td>10,000,000<\/td>/);
   assert.match(pdfHtml,/<td>2<\/td><td>41<\/td><td class="legacy3-amount">20,000<\/td><td class="legacy3-amount">60,000<\/td>/);
-  assert.match(pdfHtml,/หน้า 7 \/ 7/);
+  assert.match(pdfHtml,/หน้า 8 \/ 8/);
   assert.match(pdfHtml,/<td>59<\/td><td>98<\/td>/);
   assert.doesNotMatch(pdfHtml,/6 ข้อควรทราบ/);
   assert.doesNotMatch(pdfHtml,/\(ประมาณ\)|cvResearchCandidate/);
