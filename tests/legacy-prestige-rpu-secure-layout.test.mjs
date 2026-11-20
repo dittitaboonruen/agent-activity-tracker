@@ -15,7 +15,7 @@ test('Legacy Table B shows only age, CV and RPU; report drops ETI',()=>{
  const to=html.indexOf('function viewLegacyPrestige(',from);
  assert.ok(from>=0&&to>from);
  const section=html.slice(from,to);
- assert.match(section,/const cols=\['surrender','paidUp'\]/);
+ assert.match(section,/cvCell\+renderValue\(data\?\.paidUp\)/);
  assert.doesNotMatch(section,/colspan="4" scope="colgroup">การประกันภัยแบบขยายเวลา/);
  assert.match(section,/เงินค่าเวนคืนกรมธรรม์ \(CV\)/);
  assert.match(section,/มูลค่าใช้เงินสำเร็จ \(RPU\)/);
