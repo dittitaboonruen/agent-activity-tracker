@@ -16904,7 +16904,7 @@ function buildLegacyReportHTML(){
  const totalRows=99-d.age;
  if(displayRows.length!==totalRows||d.c.rows.length!==totalRows||
     !policyValues?.byAge)throw Error('ตาราง A/B ยังไม่พร้อมสำหรับการแสดงครบทุกอายุ');
- const rowsPerPage=24; // conservative A4 portrait layout, repeated header on each page
+ const rowsPerPage=20; // A4 portrait: generous row height, repeated header, no clipped tables
  const groupsOf=(items,size)=>Array.from({length:Math.ceil(items.length/size)},
    (_,i)=>items.slice(i*size,(i+1)*size));
  const allYears=Array.from({length:totalRows},(_,index)=>{
@@ -16974,6 +16974,16 @@ async function downloadLegacyReportPDF(btn){
   if(!window.jspdf?.jsPDF){alert('ไม่พบเครื่องมือ PDF');return;}
   const pages=[...document.querySelectorAll('.rp-preview-pdf-source .legacy-report-page')];
   if(!pages.length){alert('ไม่พบต้นฉบับรายงาน');return;}
+  // A4 is a fixed-height raster page. Reject overflow rather than silently
+  // cutting a policy-year row or important footnote from the exported PDF.
+  for(const page of pages){
+    const outer=page.getBoundingClientRect();
+    const body=page.querySelector('.legacy3-body');
+    if(body&&body.getBoundingClientRect().bottom>outer.bottom-6){
+      alert('หน้ารายงานมีข้อมูลล้นกรอบ A4 กรุณาตรวจรูปแบบก่อนดาวน์โหลด');
+      return;
+    }
+  }
   const previous=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
   try{
     const {jsPDF}=window.jspdf,pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
