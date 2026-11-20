@@ -117,7 +117,7 @@ export default function CalculatorPdfDelivery() {
       await navigator.share({
         files: [file],
         title: "ใบสรุปกรมธรรม์",
-        text: "ขอส่งใบสรุปกรมธรรม์ค่ะ/ครับ",
+        text: "ขอส่งใบสรุปข้อเสนอแบบประกันค่ะ/ครับ",
       });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
