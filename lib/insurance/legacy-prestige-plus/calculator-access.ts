@@ -19,9 +19,18 @@ function signature(payload:string,key:string):string {
 }
 export function validAccessCode(code:unknown):boolean {
   const hash=process.env.LEGACY_CALCULATOR_CODE_SHA256?.toLowerCase();
-  if(typeof code!=="string"||code.length<20||code.length>256||
-     !hash||!secret())return false;
-  return equalHex(createHash("sha256").update(code).digest("hex"),hash);
+  if(typeof code!=="string"||code.length<20||code.length>256||!secret())return false;
+  const supplied=createHash("sha256").update(code).digest("hex");
+  // Preserve all existing users' credentials. This second, time-limited
+  // owner entitlement exists ONLY on the separately configured QA Preview.
+  // Never introduce this fallback on Production.
+  const originalValid=typeof hash==="string" && equalHex(supplied,hash);
+  const expires=Date.parse(process.env.LEGACY_QA_OWNER_CODE_EXPIRES_AT||"");
+  const qaHash=process.env.LEGACY_QA_OWNER_CODE_SHA256?.toLowerCase();
+  const qaValid=process.env.VERCEL_ENV==="preview" &&
+    Number.isFinite(expires) && Date.now()<expires &&
+    typeof qaHash==="string" && equalHex(supplied,qaHash);
+  return originalValid || qaValid;
 }
 export function issueAccessCookie() {
   const key=secret();
