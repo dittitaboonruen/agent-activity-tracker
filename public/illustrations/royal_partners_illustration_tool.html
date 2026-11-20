@@ -9579,15 +9579,41 @@ function getExcellentIssueAge(age){
   return Math.max(0, Math.min(75, n));
 }
 
+// Benefits Plus 2025, AIA Excellent (Non Par), printed page 45 (PDF page 44):
+// annual standard premium per 1,000 SI; discount = 1 baht per 1,000 SI
+// for sums insured >= 250,000 baht. Keep the original age rate table intact.
+function excellentPremiumBreakdown(age, sum){
+  const issueAge = getExcellentIssueAge(age);
+  const sumInsured = Math.max(0, Number(sum) || 0);
+  const premiumBase = EXCELLENT_LATEST.premiumByAge[issueAge] || 0;
+  const gross = premiumBase * (sumInsured / 1000000);
+  const discount = sumInsured >= 250000 ? sumInsured / 1000 : 0;
+  return {gross, discount, net:gross-discount};
+}
+
+// Reverse lookup must respect the 250k threshold; one flat rate is incorrect.
+// Near the discount threshold two different sums insured can yield the same net
+// premium, so prefer the candidate nearest to the current insured amount.
+function excellentSumFromNetPremium(premium, age, currentSum){
+  const premiumBase = EXCELLENT_LATEST.premiumByAge[getExcellentIssueAge(age)] || 0;
+  if(!Number.isFinite(premium) || premium<=0 || premiumBase<=1000)return null;
+  const candidates = [
+    premium * 1000000 / premiumBase,
+    premium * 1000000 / (premiumBase-1000)
+  ].map(sum=>Math.round(sum*100)/100).filter((sum,index)=>
+    sum>=100000 && (index===0 ? sum<250000 : sum>=250000) &&
+    Math.abs(excellentPremiumBreakdown(age,sum).net-premium)<0.02
+  );
+  if(!candidates.length)return null;
+  return candidates.sort((a,b)=>Math.abs(a-currentSum)-Math.abs(b-currentSum))[0];
+}
+
 function calcExcellent(age, gender, sum, tax){
   const issueAge = getExcellentIssueAge(age);
   const sumInsured = Math.max(0, Number(sum) || 0);
   const taxRate = Math.max(0, Number(tax) || 0);
 
-  // Latest workbook formula:
-  // annual premium = premium table (base SI 1,000,000) × SI / 1,000,000
-  const premiumBase = EXCELLENT_LATEST.premiumByAge[issueAge] || 0;
-  const premium = premiumBase * (sumInsured / 1000000);
+  const {gross,discount,net:premium} = excellentPremiumBreakdown(issueAge,sumInsured);
 
   const rows = [];
 
@@ -9616,8 +9642,8 @@ function calcExcellent(age, gender, sum, tax){
 
   // Keep gross/discount/net keys for report/export compatibility.
   return {
-    gross:premium,
-    discount:0,
+    gross,
+    discount,
     net:premium,
     premium,
     rows,
@@ -9638,8 +9664,7 @@ function calcExcellentPlanBTerm(age, gender, sum, term){
   const stopYear = Math.max(6, Math.min(10, Math.round(Number(term) || 7)));
   const sumInsured = Math.max(0, Number(sum) || 0);
 
-  const premiumBase = EXCELLENT_LATEST.premiumByAge[issueAge] || 0;
-  const annualPremium = premiumBase * (sumInsured / 1000000);
+  const annualPremium = excellentPremiumBreakdown(issueAge,sumInsured).net;
 
   const genderKey = gender === 'หญิง' ? 'หญิง' : 'ชาย';
   const fund6Table = genderKey === 'ชาย'
@@ -10274,8 +10299,7 @@ function viewExcellent(app){
   );
 
   const excellentRiderMode=state.excellent.mode==='full';
-  // Excellent premium input uses the same approved premium table, in reverse.
-  // No change to the original calcExcellent rate or benefit formulas.
+  // Net premium input uses Excellent's approved SI-based discount in reverse.
   const panel = app.querySelector('.panel');
   const premiumEditor = document.createElement('div');
   premiumEditor.className = 'ledger-wrap ex-premium-editor';
@@ -10283,17 +10307,21 @@ function viewExcellent(app){
   premiumEditor.innerHTML = '<label for="excellent-premium-input" style="display:block;font-size:13px;font-weight:800;margin-bottom:6px">เบี้ยประกันภัยต่อปี (บาท)</label>' +
     '<input id="excellent-premium-input" type="text" inputmode="decimal" autocomplete="off" style="width:100%;max-width:280px;border:1px solid #c8b88d;border-radius:8px;padding:10px;font-size:16px;font-weight:700" value="' +
     Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2}) + '">' +
-    '<div style="font-size:11px;margin-top:6px;color:#75694d">แก้เบี้ยแล้วระบบคำนวณทุนประกันกลับด้วยอัตรา Excellent ตามอายุเดิม</div>';
+    '<div style="font-size:11px;margin-top:6px;color:#75694d">กรอกเบี้ยสุทธิหลังหักส่วนลดตามทุนประกัน (ตั้งแต่ 250,000 บาท ลด 1 บาทต่อทุน 1,000 บาท)</div>';
   panel.prepend(premiumEditor);
   premiumEditor.querySelector('#excellent-premium-input').addEventListener('change', e=>{
     const raw=String(e.target.value).replace(/,/g,'').trim();
     const amount=Number(raw);
-    const rate=EXCELLENT_LATEST.premiumByAge[getExcellentIssueAge(state.age)] || 0;
-    if(!raw || !Number.isFinite(amount) || amount<=0 || !rate){
+    if(!raw || !Number.isFinite(amount) || amount<=0){
       e.target.value=Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2});
       return;
     }
-    const newSum=Math.round(amount * 1000000 / rate * 100)/100;
+    const newSum=excellentSumFromNetPremium(amount,state.age,state.sum);
+    if(newSum===null){
+      alert('เบี้ยที่กรอกไม่สอดคล้องกับอัตรา Excellent และเงื่อนไขส่วนลดตามทุนประกัน กรุณาตรวจสอบยอดเบี้ยสุทธิ');
+      e.target.value=Number(r.net.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2});
+      return;
+    }
     const check=validateSumInsured(newSum);
     if(!check.ok){
       alert(check.message);
