@@ -99,7 +99,9 @@ test('server missing years use only exact-case iPOS+ values; never overwrite kno
 });
 
 test('Legacy private calculator code restores guarded Table B without dashboard login',()=>{
- assert.match(html,/legacy-calculator-code/);\n assert.match(html,/submitLegacyCalculatorAccess/);\n assert.doesNotMatch(html,/เข้าสู่ระบบบน Preview นี้/);
+ assert.match(html,/legacy-calculator-code/);
+ assert.match(html,/submitLegacyCalculatorAccess/);
+ assert.doesNotMatch(html,/เข้าสู่ระบบบน Preview นี้/);
  assert.match(html,/function retryLegacyTableB\(\)/);
  assert.match(html,/LEGACY_TABLE_B_ERRORS\.delete\(key\)/);
  assert.match(html,/new URLSearchParams\(location\.search\)\.get\('plan'\)==='legacy'/);
@@ -126,7 +128,8 @@ test('Legacy Table B automatically recovers after a temporary 503 without anothe
  const expected={
    gender:'F',issueAge:35,sum:15000000,term:20,
    rows:Array.from({length:64},(_,i)=>({age:35+i,policyYear:i+1,
-      surrender:i===1?105000:null,paidUp:i===1?630000:null,\n      cvEvidence:i===1?'MANUAL_PUBLISHED':'UNAVAILABLE'}))
+      surrender:i===1?105000:null,paidUp:i===1?630000:null,
+      cvEvidence:i===1?'MANUAL_PUBLISHED':'UNAVAILABLE'}))
  };
  const sandbox={
    state,Map,Set,Number,String,Error,
