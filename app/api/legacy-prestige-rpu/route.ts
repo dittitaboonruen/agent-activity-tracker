@@ -188,17 +188,45 @@ export async function GET(request:NextRequest) {
   if(!factors) return NextResponse.json({error:"restricted_factors_not_configured"},{status:503,headers:noStore});
   const source=factors[String(term)][gender];
   const unresolvedRpuBits=LEGACY_RPU_UNRESOLVED_SEGMENT_BITS[`${term}:${gender}`]?.[age]||0;
+  // QA ONLY: exact-case CV numbers transcribed from the operator's iPOS+
+  // screenshots (ages 70..98). Not general insurer factors; do not commit
+  // source amounts or extrapolate to any other sex, age, term or sum.
+  let exactCaseCv: number[] | null = null;
+  if(gender==="F"&&age===35&&term===15&&sum===10000000){
+    const raw=process.env.LEGACY_QA_CV_F_35_15_10M_70_98_JSON;
+    if(raw){
+      try{
+        const values:unknown=JSON.parse(raw);
+        if(Array.isArray(values)&&values.length===29&&
+           values.every((v,i)=>Number.isSafeInteger(v)&&v>=0&&v<=sum&&v%10000===0&&
+             (i===0||v>=values[i-1]))&&
+           values[0]===5840000&&values[20]===8560000&&
+           values[28]===sum)
+          exactCaseCv=values as number[];
+      }catch{}
+      if(!exactCaseCv)
+        return NextResponse.json({error:"exact_case_cv_validation_failed"},
+          {status:503,headers:noStore});
+    }
+  }
   const rows=Array.from({length:99-age},(_,i)=>{
     const cv=source.cv[age][i],rpu=source.rpu[age][i];
     // A source factor of 0 is a known zero, NOT an unavailable/missing value.
     const amount=(value:number|undefined)=>typeof value==="number"&&Number.isInteger(value)&&value>=0
       ?Math.round(value*sum/1000):null;
     const unresolvedRpu=i<term-1 && Boolean(unresolvedRpuBits & (1<<i));
-    return {age:age+i,policyYear:i+1,surrender:amount(cv),paidUp:unresolvedRpu?null:amount(rpu)};
+    const attainedAge=age+i;
+    const verifiedCv=amount(cv);
+    const exactCv=exactCaseCv&&attainedAge>=70&&attainedAge<=98
+      ?exactCaseCv[attainedAge-70]:null;
+    return {age:attainedAge,policyYear:i+1,
+      surrender:verifiedCv===null&&exactCv!==null?exactCv:verifiedCv,
+      paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
     source:"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
     gender, issueAge:age,term,sum,rows,
+    cvExactCaseSource:exactCaseCv?"USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY":null,
     notice:"Internal QA only; values not approved as an AIA sales illustration."
   },{headers:noStore});
 }
