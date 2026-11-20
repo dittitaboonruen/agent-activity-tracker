@@ -15,6 +15,7 @@ function safePdfFilename(raw: string): string {
 export default function CalculatorPdfDelivery() {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const urlRef = useRef<string | null>(null);
+  const viewerUrlsRef = useRef<string[]>([]);
   const [document, setDocument] = useState<PdfDocument | null>(null);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,6 +57,8 @@ export default function CalculatorPdfDelivery() {
       window.removeEventListener("message", receivePdf);
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
       urlRef.current = null;
+      for (const url of viewerUrlsRef.current) URL.revokeObjectURL(url);
+      viewerUrlsRef.current = [];
     };
   }, []);
 
@@ -91,6 +94,24 @@ export default function CalculatorPdfDelivery() {
     } catch (error) {
       console.error("PDF download error:", error);
       setNotice("บันทึก PDF ไม่สำเร็จ กรุณาลองใหม่");
+    }
+  }
+
+  function openPdfViewerForShare() {
+    if (!document) return;
+    // Safari's document viewer is a DIFFERENT share surface than Web Share API.
+    // Keep this as a separate QA experiment. A browser might still share a
+    // blob: link rather than an actual PDF; NEVER treat it as verified.
+    const pdfBlob = new Blob([document.blob], { type: "application/pdf" });
+    const url = URL.createObjectURL(pdfBlob);
+    viewerUrlsRef.current.push(url);
+    const opened = window.open(url, "_blank");
+    if (!opened) {
+      URL.revokeObjectURL(url);
+      viewerUrlsRef.current = viewerUrlsRef.current.filter((item) => item !== url);
+      setNotice("Safari ไม่อนุญาตให้เปิดเอกสาร กรุณาใช้ดาวน์โหลด / แชร์ PDF แทน");
+    } else {
+      setNotice("");
     }
   }
 
@@ -177,9 +198,14 @@ export default function CalculatorPdfDelivery() {
               <button type="button" onClick={saveOrSharePdf} disabled={busy} style={primaryButton}>
                 {busy ? "กำลังเปิดเมนูแชร์..." : "ดาวน์โหลด / แชร์ PDF"}
               </button>
+              <button type="button" onClick={openPdfViewerForShare} style={secondaryButton}>
+                ทดลองเปิด PDF ใน Safari เพื่อแชร์
+              </button>
             </div>
             <p style={{ fontSize: 12, color: "#5D6470", marginBottom: 0, lineHeight: 1.6 }}>
-              <strong>หมายเหตุสำหรับอีเมล:</strong> กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
+              <strong>หมายเหตุ:</strong> ปุ่มทดลองเปิด PDF ใช้ตรวจว่า Safari แชร์เป็นไฟล์จริงหรือเป็นลิงก์เท่านั้น หากใน LINE มีข้อความ blob: หรือไม่มีไฟล์ PDF ให้ยุติการทดลอง
+              <br />
+              สำหรับอีเมล กรุณาตั้งหัวข้อให้ชัดเจน เช่น “ใบสรุปข้อเสนอแบบประกัน — Royal Partner” และตรวจสอบไฟล์แนบก่อนส่ง
             </p>
             {notice && <p role="status" style={{ fontSize: 12, color: "#7A2E2E", lineHeight: 1.6 }}>{notice}</p>}
           </section>
