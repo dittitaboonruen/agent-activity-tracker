@@ -68,6 +68,21 @@ try{
  assert.equal(pdfBytes.subarray(0,5).toString('latin1'),'%PDF-','download must be a real PDF');
  assert.match(pdfBytes.subarray(-2048).toString('latin1'),/%%EOF/,'PDF must include end-of-file marker');
  execFileSync('python3',['scripts/legacy_pdf_a4_verify.py',pdfPath],{stdio:'inherit',timeout:120000});
+ // Non-Legacy regression: all pre-existing tabs must remain navigable
+ // after Legacy Table B, preview, and PDF operations in the same session.
+ const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"])')
+   .evaluateAll(nodes=>nodes.map(el=>el.getAttribute('data-id')).filter(Boolean));
+ assert.ok(nonLegacyTabs.length>=3,'legacy must not remove original calculator tabs');
+ for(const tabId of nonLegacyTabs){
+   const tab=page.locator('.tab[data-id="'+tabId+'"]');
+   await tab.click();
+   assert.equal(await tab.getAttribute('aria-pressed'),'true',
+     'original plan remains selectable: '+tabId);
+   assert.deepEqual(errors,[],'switching to original plan must not throw: '+tabId);
+ }
+ await page.locator('.tab[data-id="legacy"]').click();
+ assert.equal(await page.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true',
+   'Legacy remains reachable after switching back from original plans');
  assert.deepEqual(errors,[],'no browser runtime errors or PDF alerts');
  console.log('PASS: anonymous Legacy A/B, zoom toggle, A4 and real PDF download');
 }finally{
