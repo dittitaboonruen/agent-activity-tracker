@@ -119,6 +119,48 @@ try {
    await page.locator('.rp-preview-close').first().click();
    console.log('PASS: female '+term+' Pay - Table A/B and report matching');
  }
+ // Signed-link flow: grant is redeemed automatically; no dashboard or typed code.
+ const linkPage=await browser.newPage({viewport:{width:1100,height:800}});
+ try{
+   await linkPage.route('**/api/legacy-prestige-link?**',async route=>{
+     await route.fulfill({status:303,headers:{
+       'location':'/illustrations/royal_partners_illustration_tool.html?plan=legacy',
+       'set-cookie':'__Host-rp_legacy_access=qa-signed-link-fixture; Path=/; HttpOnly; SameSite=Strict',
+       'cache-control':'no-store'
+     },body:''});
+   });
+   await linkPage.route('**/api/legacy-prestige-rpu?**',async route=>{
+     const hasGrant=(route.request().headers().cookie||'').includes('__Host-rp_legacy_access=');
+     if(!hasGrant){
+       await route.fulfill({status:401,contentType:'application/json',
+         body:JSON.stringify({error:'authentication_required'})});
+       return;
+     }
+     const q=new URL(route.request().url()).searchParams;
+     const age=Number(q.get('age')),term=Number(q.get('term'));
+     const rows=Array.from({length:99-age},(_,i)=>({
+       age:age+i,policyYear:i+1,surrender:i===1?105000:null,paidUp:i===1?630000:null
+     }));
+     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+       gender:q.get('gender'),issueAge:age,sum:Number(q.get('sum')),term,rows
+     })});
+   });
+   await linkPage.goto('http://127.0.0.1:8787/api/legacy-prestige-link?grant=qa-fixture',{
+     waitUntil:'domcontentloaded',timeout:45000});
+   assert.ok(!linkPage.url().includes('grant='),'grant removed from browser URL');
+   assert.equal(await linkPage.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true');
+   await linkPage.locator('#in-age').fill('35');
+   await linkPage.locator('#in-gender').selectOption('หญิง');
+   await linkPage.locator('#in-sum').fill('15000000');
+   await linkPage.locator('#legacy-term').selectOption('20');
+   await linkPage.waitForFunction(()=>{
+     const row=document.querySelector('#legacy-table-B tbody tr:nth-child(2)');
+     return row?.cells?.[1]?.textContent?.trim()==='105,000';
+   },null,{timeout:20000});
+   assert.equal(await linkPage.locator('#legacy-calculator-code').count(),0,
+     'valid signed link must show Table B automatically with no passcode prompt');
+   console.log('PASS: authorized signed link auto-opens Table B; no typed code/login');
+ }finally{await linkPage.close();}
  // Direct-link + calculator-only code: independent of Supabase dashboard sessions.
  // These are isolated browser fixtures, not a claim of live protected-preview access.
  const accessPage=await browser.newPage({viewport:{width:1100,height:800}});
