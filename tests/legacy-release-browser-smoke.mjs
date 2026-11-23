@@ -68,6 +68,9 @@ try{
  assert.equal(pdfBytes.subarray(0,5).toString('latin1'),'%PDF-','download must be a real PDF');
  assert.match(pdfBytes.subarray(-2048).toString('latin1'),/%%EOF/,'PDF must include end-of-file marker');
  execFileSync('python3',['scripts/legacy_pdf_a4_verify.py',pdfPath],{stdio:'inherit',timeout:120000});
+ // Close the print-preview overlay before exercising original plan tabs.
+ // Reload preserves the same release code, but resets the modal to its normal closed state.
+ await page.reload({waitUntil:'domcontentloaded'});
  // Non-Legacy regression: all pre-existing tabs must remain navigable
  // after Legacy Table B, preview, and PDF operations in the same session.
  const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"])')
