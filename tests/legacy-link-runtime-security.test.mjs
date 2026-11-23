@@ -59,6 +59,12 @@ test('durable agent-specific links validate signature, expiry and revocation',()
   assert.equal(x.validAgentCalculatorGrant(token),false);
   const y=agentHarness();
   assert.equal(y.validAgentCalculatorGrant(token),true);
+  const session=y.issueAccessCookie(id);
+  const request={cookies:{get:()=>({value:session.value})}};
+  assert.equal(y.hasCalculatorAccess(request),true);
+  assert.equal(agentHarness({LEGACY_REVOKED_AGENT_LINK_IDS:id}).hasCalculatorAccess(request),false,
+    'revocation must immediately invalidate previously redeemed agent sessions');
+
   assert.equal(agentHarness({LEGACY_REVOKED_AGENT_LINK_IDS:id}).validAgentCalculatorGrant(token),false);
   assert.equal(agentHarness({LEGACY_AGENT_LINK_ACCESS_ENABLED:'false'}).validAgentCalculatorGrant(token),false);
   assert.equal(agentHarness({VERCEL_ENV:'production'}).validAgentCalculatorGrant(token),false);
