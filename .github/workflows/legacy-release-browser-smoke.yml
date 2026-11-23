@@ -6,6 +6,7 @@ on:
     paths:
       - 'public/illustrations/royal_partners_illustration_tool.html'
       - 'tests/legacy-release-browser-smoke.mjs'
+      - 'scripts/legacy_pdf_a4_verify.py'
       - '.github/workflows/legacy-release-browser-smoke.yml'
   pull_request:
     branches: [main]
@@ -30,6 +31,8 @@ jobs:
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.56.1
           npx playwright install --with-deps chromium
+      - name: Install PDF raster verifier
+        run: python3 -m pip install --user pymupdf==1.26.6
       - name: Start isolated static preview
         run: |
           python3 -m http.server 8787 --directory public > /tmp/legacy-release-server.log 2>&1 &
