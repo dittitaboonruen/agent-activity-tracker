@@ -145,8 +145,15 @@ export async function GET(request:NextRequest) {
   // Customer-facing calculator access is independent of the operations
   // dashboard login. The cookie is signed, short-lived and HttpOnly.
   // The privileged selfTest remains exclusive to authenticated admin/training.
+  // Public Table B is explicitly opt-in. Never enable this for restricted AIA
+  // manual-derived outputs without documented redistribution clearance.
+  // Even calculated CV/RPU can reveal source factors across repeated requests.
+  // selfTest always remains limited to authenticated admin/training.
+  const publicTableB=query.get("selfTest")!=="1" &&
+    process.env.LEGACY_PUBLIC_TABLE_B_ENABLED==="true" &&
+    process.env.LEGACY_SOURCE_USE_APPROVED==="true";
   const calculatorAccess=query.get("selfTest")!=="1" && hasCalculatorAccess(request);
-  if(!calculatorAccess){
+  if(!publicTableB&&!calculatorAccess){
     const sb=createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -254,9 +261,11 @@ export async function GET(request:NextRequest) {
       paidUp:unresolvedRpu?null:amount(rpu)};
   });
   return NextResponse.json({
-    source:"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
+    source:publicTableB?"AIA_AGENT_MANUAL_2025_REVIEWED_PUBLIC_MODE":"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
     gender, issueAge:age,term,sum,rows,
     cvExactCaseSource:(exactCaseCv||male40ScreenshotCv)?"USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY":null,
-    notice:"Internal QA only; values not approved as an AIA sales illustration."
+    notice:publicTableB
+      ?"Calculated benefits are illustrative; final values and eligibility are subject to insurer documentation and approval."
+      :"Internal QA only; values not approved as an AIA sales illustration."
   },{headers:noStore});
 }
