@@ -8,13 +8,15 @@ const headers={"Cache-Control":"private, no-store, max-age=0",
 
 export async function GET(request:NextRequest){
   const grant=request.nextUrl.searchParams.get("grant");
-  if(!validCalculatorLinkGrant(grant) && !validAgentCalculatorGrant(grant))
+  const shortGrant=validCalculatorLinkGrant(grant);
+  const agentGrant=!shortGrant&&validAgentCalculatorGrant(grant);
+  if(!shortGrant&&!agentGrant)
     return NextResponse.json({ok:false,error:"link_expired_or_invalid"},
       {status:403,headers});
   // Exchange URL grant for an HttpOnly cookie and erase token from address bar.
   const next=new URL("/illustrations/royal_partners_illustration_tool.html?plan=legacy",request.url);
   const response=NextResponse.redirect(next,{status:303,headers});
-  const cookie=issueAccessCookie();
+  const cookie=issueAccessCookie(agentGrant?grant!.split('.')[0]:undefined);
   response.cookies.set(cookie.name,cookie.value,cookie.options);
   return response;
 }
