@@ -44,7 +44,8 @@ test('Table B has no passcode form and offers automatic authorized-link access',
   const to=html.indexOf('function viewLegacyPrestige(',from);
   const ui=html.slice(from,to);
   assert.match(ui,/const tableBAuthAction=/);
-  assert.match(ui,/ตาราง B จะคำนวณอัตโนมัติเมื่อเปิดผ่านลิงก์/);
+  assert.match(ui,/ลิงก์ที่เปิดอยู่ยังไม่ได้รับสิทธิ์ดูตาราง B/);
+  assert.match(ui,/const tableBRetryAction=tableBError&&!accessRequired/);
   assert.doesNotMatch(ui,/id="legacy-calculator-code"/);
   assert.doesNotMatch(ui,/id="legacy-calculator-submit"/);
   assert.match(html,/credentials:'same-origin'/);
