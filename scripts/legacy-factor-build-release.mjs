@@ -161,7 +161,6 @@ try {
   console.log("[Legacy Release Factor] PASS: verified factors + 72 cases; no private screenshot overlays");
 } catch(error){
   console.error("[Legacy Release Factor] BLOCKED: "+(
-    ["manifest_structure","missing_configuration","factor_integrity_mismatch","table_b_coverage_insufficient",
-     "table_b_amount_or_mask_mismatch"].includes(error?.message)?error.message:"validation_failed"));
+    ["manifest_structure","missing_configuration","female_payload_size","female_payload_truncated","male_rpu_dimensions","female_payload_overflow","factor_integrity_mismatch","mask_manifest_structure","table_b_response_length","table_b_year_mapping","table_b_amount_or_mask_mismatch","table_b_coverage_insufficient"].includes(error?.message)?error.message:"validation_failed"));
   process.exitCode=1;
 }
