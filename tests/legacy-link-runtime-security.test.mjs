@@ -47,6 +47,40 @@ test('invalid, expired, excessive lifetime or modified links fail closed',()=>{
   assert.equal(x.validCalculatorLinkGrant('not-a-grant'),false);
   assert.equal(x.validCalculatorLinkGrant(null),false);
 });
+test('durable agent-specific links validate signature, expiry and revocation',()=>{
+  const id='a1'.repeat(16),now=Math.floor(Date.now()/1000);
+  const exp=String(now+29*24*60*60);
+  const sig=createHmac('sha256',key)
+    .update('legacy-agent-link:v1:'+id+':'+exp).digest('hex');
+  const token=id+'.'+exp+'.'+sig;
+  const x=harness();
+  x.__agentLinkTestGrant=token;
+  // The default harness has durable agent links disabled.
+  assert.equal(x.validAgentCalculatorGrant(token),false);
+  const y=agentHarness();
+  assert.equal(y.validAgentCalculatorGrant(token),true);
+  assert.equal(agentHarness({LEGACY_REVOKED_AGENT_LINK_IDS:id}).validAgentCalculatorGrant(token),false);
+  assert.equal(agentHarness({LEGACY_AGENT_LINK_ACCESS_ENABLED:'false'}).validAgentCalculatorGrant(token),false);
+  assert.equal(agentHarness({VERCEL_ENV:'production'}).validAgentCalculatorGrant(token),false);
+  assert.equal(agentHarness({VERCEL_ENV:'production',LEGACY_SOURCE_USE_APPROVED:'true'}).validAgentCalculatorGrant(token),true);
+  assert.equal(y.validAgentCalculatorGrant(token.slice(0,-1)+(token.endsWith('a')?'b':'a')),false);
+  const tooLong=String(now+31*24*60*60);
+  const longSig=createHmac('sha256',key)
+    .update('legacy-agent-link:v1:'+id+':'+tooLong).digest('hex');
+  assert.equal(y.validAgentCalculatorGrant(id+'.'+tooLong+'.'+longSig),false);
+});
+function agentHarness(overrides={}){
+  const exports={};
+  const env={
+    VERCEL_ENV:'preview',
+    LEGACY_AGENT_LINK_ACCESS_ENABLED:'true',
+    LEGACY_CALCULATOR_COOKIE_SECRET:key,
+    ...overrides,
+  };
+  vm.runInNewContext(compiled,{exports,require,process:{env},Buffer,Date},
+    {filename:'agent-calculator-link-runtime.js',timeout:2000});
+  return exports;
+}
 test('feature disabled and production without source clearance fail closed',()=>{
   const g=grant(Math.floor(Date.now()/1000)+300);
   assert.equal(harness('preview','false').validCalculatorLinkGrant(g),false);
