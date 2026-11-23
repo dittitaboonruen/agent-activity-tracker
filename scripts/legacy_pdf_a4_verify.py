@@ -1,5 +1,6 @@
 """QA synthetic Legacy PDF pages only; no restricted AIA factors or customer data."""
 import json
+import shutil
 import os
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ if len(sys.argv) != 2:
 source = Path(sys.argv[1])
 out = Path("artifacts/legacy-pdf-a4-qa")
 out.mkdir(parents=True, exist_ok=True)
+shutil.copy2(source, out / "synthetic-legacy-report.pdf")
 doc = fitz.open(source)
 assert len(doc) >= 4, f"Expected at least four PDF pages, got {len(doc)}"
 summary = []
