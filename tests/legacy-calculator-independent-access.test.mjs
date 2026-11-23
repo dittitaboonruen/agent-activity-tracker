@@ -39,11 +39,14 @@ test('calculator access issues hardened server-cookie; no raw code stored',()=>{
   assert.match(access,/response\.cookies\.set/);
   assert.doesNotMatch(access,/SUPABASE_SERVICE_ROLE_KEY/);
 });
-test('table B asks for separate code; no dashboard login link',()=>{
-  assert.match(html,/submitLegacyCalculatorAccess/);
-  assert.match(html,/legacy-calculator-code/);
-  assert.match(html,/api\/legacy-prestige-access/);
-  assert.doesNotMatch(html,/เข้าสู่ระบบบน Preview นี้/);
+test('Table B has no passcode form and offers automatic authorized-link access',()=>{
+  const from=html.indexOf('function buildLegacyPolicyValuesTableHTML(');
+  const to=html.indexOf('function viewLegacyPrestige(',from);
+  const ui=html.slice(from,to);
+  assert.match(ui,/const tableBAuthAction=/);
+  assert.match(ui,/ตาราง B จะคำนวณอัตโนมัติเมื่อเปิดผ่านลิงก์/);
+  assert.doesNotMatch(ui,/id="legacy-calculator-code"/);
+  assert.doesNotMatch(ui,/id="legacy-calculator-submit"/);
   assert.match(html,/credentials:'same-origin'/);
 });
 
