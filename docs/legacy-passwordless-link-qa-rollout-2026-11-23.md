@@ -11,6 +11,14 @@ Authorized link → Legacy calculator automatically selected → input sex/age/s
 - `LEGACY_LINK_ACCESS_ENABLED=true` is scoped only to the existing legacy QA Preview branch. Production defaults to disabled. Even if enabled later, production also requires `LEGACY_SOURCE_USE_APPROVED=true` **only after actual authorization**. Do not set that variable as a substitute for approval.
 - Restricted actuarial factors stay server side and the existing `/api/legacy-prestige-rpu` guard is unchanged. The legacy typed-code access endpoint remains temporarily for backward compatibility; signed-link recipients never need it.
 
+## Phase 3: 30-day individual agent links (controlled rollout)
+- New internal utility `scripts/create-legacy-agent-link.mjs` generates a separate random 128-bit ID and HMAC signature per issued agent URL. Link expires after 30 days, unlike the 5-minute QA link.
+- Opening a valid link calls the existing exchange endpoint, which redirects into the calculator, without dashboard authentication or typed code. Table B continues using the server-side factor endpoint.
+- New `LEGACY_AGENT_LINK_ACCESS_ENABLED=true` exists ONLY on the isolated QA Preview branch. Other Preview branches and Production default to disabled. Production also requires actual restricted-source clearance before the explicit `LEGACY_SOURCE_USE_APPROVED=true` switch may be set.
+- Revoke an issued URL by adding its ID to the server-only `LEGACY_REVOKED_AGENT_LINK_IDS` comma-separated list. Newly generated agent-bound cookies also fail authorization immediately after this setting is deployed. Existing legacy shared-code cookies are a separate access mechanism and must be phased out deliberately before a fully agent-only release.
+- URLs are bearer credentials. They identify a generated link, **not a verified person's identity**. Forwarding one gives its holder access until expiration or revocation. For wide organization rollout, favor verified agent identity and audit, rather than a public permanent URL.
+- Vercel Preview SSO remains enabled and is separate from application authorization. Do not weaken Deployment Protection just to test the preview.
+
 ## QA/release gates still required
 1. Confirm Vercel build READY for latest commit.
 2. Run real authorized HTTP link redemption with a private link; assert 303, Secure HttpOnly cookie, URL without grant, exact-case Table B 200 without Supabase session; test invalid and expired grants 403. Preview Vercel Authentication must be handled as a separate protection layer, not disabled just to pass QA.
