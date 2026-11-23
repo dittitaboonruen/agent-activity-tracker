@@ -77,3 +77,27 @@ export function validCalculatorLinkGrant(grant:unknown):boolean {
     .update(LINK_PURPOSE+":"+parts[0]).digest("hex");
   return equalHex(expected,parts[1]);
 }
+
+/** Revocable 30-day agent-specific bearer links, scoped to calculator only.
+ * Security: a forwarded link is a credential. Distribute privately.
+ * Revocation is checked at redemption; existing 24-hour sessions require
+ * global cookie-secret rotation for immediate invalidation.
+ */
+export function validAgentCalculatorGrant(grant:unknown):boolean {
+  if(process.env.LEGACY_AGENT_LINK_ACCESS_ENABLED!=="true")return false;
+  if(process.env.VERCEL_ENV==="production" &&
+     process.env.LEGACY_SOURCE_USE_APPROVED!=="true")return false;
+  const key=secret();
+  if(!key||typeof grant!=="string"||grant.length>170)return false;
+  const parts=grant.split(".");
+  if(parts.length!==3||!/^[a-f0-9]{32}$/.test(parts[0])||
+     !/^[0-9]{10}$/.test(parts[1])||!/^[a-f0-9]{64}$/.test(parts[2]))return false;
+  const expiry=Number(parts[1]), now=Math.floor(Date.now()/1000);
+  if(!Number.isSafeInteger(expiry)||expiry<=now||expiry>now+30*24*60*60)return false;
+  const revoked=(process.env.LEGACY_REVOKED_AGENT_LINK_IDS||"")
+    .split(",").map(v=>v.trim().toLowerCase());
+  if(revoked.includes(parts[0]))return false;
+  const expected=createHmac("sha256",key)
+    .update("legacy-agent-link:v1:"+parts[0]+":"+parts[1]).digest("hex");
+  return equalHex(expected,parts[2]);
+}
