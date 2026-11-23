@@ -57,6 +57,24 @@ try {
    assert.equal(cols[0],'36','year 2 issue age');
    assert.equal(cols.length,3,'Table B shows ONLY age, CV and RPU');
    assert.deepEqual([cols[1],cols[2]],expected[term],term+' Pay CV/RPU values');
+   // Visual-contract QA: the original year 1..20 indicators and gold triangles stay visible.
+   const visual=await page.locator('.legacy-graphic').evaluate(root=>{
+     const yearLabels=[...root.querySelectorAll('.legacy-graphic-grid span')].map(n=>n.textContent.trim());
+     const choices=[...root.querySelectorAll('.legacy-graphic-option')].map(option=>({
+       selected:option.classList.contains('selected'),
+       ticks:[...option.querySelectorAll('.legacy-graphic-ticks span')].map(n=>n.textContent.trim())
+     }));
+     return {yearLabels,choices};
+   });
+   assert.deepEqual(visual.yearLabels,Array.from({length:20},(_,i)=>String(i+1)),'calculator must show years 1..20');
+   assert.equal(visual.choices.length,3,'10/15/20 Pay options remain visible');
+   for(const [index,pay] of [10,15,20].entries()){
+     assert.equal(visual.choices[index].ticks.length,20,'20 triangle positions for '+pay+' Pay');
+     assert.equal(visual.choices[index].ticks.filter(x=>x==='▲').length,pay,'paid-year triangles for '+pay+' Pay');
+     assert.equal(visual.choices[index].selected,pay===term,'selected payment term must be highlighted');
+   }
+   if(term===20) await page.locator('.legacy-graphic').screenshot({
+     path:path.join(qaDir,'legacy-calculator-year-triangles.png')});
    await page.locator('[data-legacy-table="A"]').click();
    const a=page.locator('#legacy-table-A tbody tr');
    assert.equal(await a.last().locator('td').first().innerText(),'98','table A last age');
@@ -68,6 +86,23 @@ try {
    assert.equal(values[4],expected[term][0],'report cash value');
    assert.equal(values[5],expected[term][1],'report paid up');
    assert.equal(values.length,6,'report removed ETI');
+   const pdfLayout=await page.locator('.legacy-report-page').first().evaluate(root=>{
+     const years=[...root.querySelectorAll('.legacy3-years span')].map(n=>n.textContent.trim());
+     const triangles=[...root.querySelectorAll('.legacy3-tris span')].map(n=>n.textContent.trim());
+     const color=getComputedStyle(root.querySelector('.legacy3-tris span')).color;
+     return {years,triangles,color};
+   });
+   assert.deepEqual(pdfLayout.years,Array.from({length:20},(_,i)=>String(i+1)),'PDF must show years 1..20');
+   assert.equal(pdfLayout.triangles.length,20,'PDF must preserve 20 triangle positions');
+   assert.equal(pdfLayout.triangles.filter(x=>x==='▲').length,term,'PDF highlighted paid-year triangles');
+   assert.ok(pdfLayout.color.startsWith('rgb('),'PDF triangle color must be rendered');
+   const overflow=await page.locator('.legacy-report-page').evaluateAll(pages=>pages.map((p,i)=>{
+     const root=p.getBoundingClientRect();
+     const body=p.querySelector('.legacy3-body');
+     const rect=body?.getBoundingClientRect();
+     return {page:i+1,overflow:!!rect&&rect.bottom>root.bottom-6};
+   }));
+   assert.deepEqual(overflow.filter(p=>p.overflow),[],'PDF content must not overflow page bounds');
    // Capture the exact Legacy preview for a manual typography/pagination review.
    await page.locator('.legacy-report-page').first().screenshot({path:path.join(qaDir,`female-${term}-pay-report-page1.png`)});
    // Exercise the real app PDF button, not Playwright's generic print-to-PDF.
