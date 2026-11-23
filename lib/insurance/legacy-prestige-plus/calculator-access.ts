@@ -34,14 +34,21 @@ export function validAccessCode(code:unknown):boolean {
     typeof qaHash==="string" && equalHex(supplied,qaHash);
   return originalValid || qaValid;
 }
-export function issueAccessCookie() {
+function isRevokedAgentLinkId(id:string):boolean {
+  return (process.env.LEGACY_REVOKED_AGENT_LINK_IDS||"")
+    .split(",").some(v=>v.trim().toLowerCase()===id);
+}
+export function issueAccessCookie(agentLinkId?:string) {
   const key=secret();
   if(!key)throw Error("calculator_access_not_configured");
+  if(agentLinkId && !/^[a-f0-9]{32}$/.test(agentLinkId))
+    throw Error("invalid_agent_link_id");
   const expires=Math.floor(Date.now()/1000)+TTL_SECONDS;
   const payload=String(expires);
+  const signedPayload=agentLinkId?payload+":"+agentLinkId:payload;
   return {
     name:COOKIE,
-    value:payload+"."+signature(payload,key),
+    value:payload+(agentLinkId?"."+agentLinkId:"")+"."+signature(signedPayload,key),
     options:{httpOnly:true,secure:true,sameSite:"strict" as const,path:"/",maxAge:TTL_SECONDS},
   };
 }
@@ -50,10 +57,16 @@ export function hasCalculatorAccess(request:NextRequest):boolean {
   const token=request.cookies.get(COOKIE)?.value;
   if(!key||!token||token.length>160)return false;
   const parts=token.split(".");
-  if(parts.length!==2||!/^[0-9]{10}$/.test(parts[0])||
-     !/^[a-f0-9]{64}$/.test(parts[1]))return false;
+  if(parts.length!==2&&parts.length!==3)return false;
+  if(!/^[0-9]{10}$/.test(parts[0])||
+     !/^[a-f0-9]{64}$/.test(parts[parts.length-1]))return false;
   const expiry=Number(parts[0]),now=Math.floor(Date.now()/1000);
   if(!Number.isSafeInteger(expiry)||expiry<=now||expiry>now+TTL_SECONDS)return false;
+  if(parts.length===3){
+    const id=parts[1];
+    if(!/^[a-f0-9]{32}$/.test(id)||isRevokedAgentLinkId(id))return false;
+    return equalHex(signature(parts[0]+":"+id,key),parts[2]);
+  }
   return equalHex(signature(parts[0],key),parts[1]);
 }
 
@@ -94,9 +107,7 @@ export function validAgentCalculatorGrant(grant:unknown):boolean {
      !/^[0-9]{10}$/.test(parts[1])||!/^[a-f0-9]{64}$/.test(parts[2]))return false;
   const expiry=Number(parts[1]), now=Math.floor(Date.now()/1000);
   if(!Number.isSafeInteger(expiry)||expiry<=now||expiry>now+30*24*60*60)return false;
-  const revoked=(process.env.LEGACY_REVOKED_AGENT_LINK_IDS||"")
-    .split(",").map(v=>v.trim().toLowerCase());
-  if(revoked.includes(parts[0]))return false;
+  if(isRevokedAgentLinkId(parts[0]))return false;
   const expected=createHmac("sha256",key)
     .update("legacy-agent-link:v1:"+parts[0]+":"+parts[1]).digest("hex");
   return equalHex(expected,parts[2]);
