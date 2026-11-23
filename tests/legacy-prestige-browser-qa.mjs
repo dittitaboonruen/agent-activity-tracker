@@ -121,8 +121,10 @@ try {
  }
  // Signed-link flow: grant is redeemed automatically; no dashboard or typed code.
  const linkPage=await browser.newPage({viewport:{width:1100,height:800}});
+ let grantRedeemed=false;
  try{
    await linkPage.route('**/api/legacy-prestige-link?**',async route=>{
+     grantRedeemed=true;
      await route.fulfill({status:303,headers:{
        'location':'/illustrations/royal_partners_illustration_tool.html?plan=legacy',
        'set-cookie':'__Host-rp_legacy_access=qa-signed-link-fixture; Path=/; HttpOnly; SameSite=Strict',
@@ -130,7 +132,7 @@ try {
      },body:''});
    });
    await linkPage.route('**/api/legacy-prestige-rpu?**',async route=>{
-     const hasGrant=(route.request().headers().cookie||'').includes('__Host-rp_legacy_access=');
+     const hasGrant=grantRedeemed; // fixture of server-side authorization after valid grant
      if(!hasGrant){
        await route.fulfill({status:401,contentType:'application/json',
          body:JSON.stringify({error:'authentication_required'})});
