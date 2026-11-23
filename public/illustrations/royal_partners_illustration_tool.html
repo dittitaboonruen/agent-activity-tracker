@@ -16026,6 +16026,12 @@ function showReportPreview(key){
           parseFloat(getComputedStyle(previewContent).paddingLeft) -
           parseFloat(getComputedStyle(previewContent).paddingRight) - 2);
         const scale = key==='legacy' && legacyZoomFull ? 1 : Math.min(1, availableWidth / reportWidth);
+        if(key==='legacy'){
+          // Full-size A4 stays wider than a phone; scroll the preview instead of clipping.
+          previewContent.style.overflowX=legacyZoomFull?'auto':'hidden';
+          fitStage.style.marginLeft=legacyZoomFull?'0':'auto';
+          fitStage.style.marginRight=legacyZoomFull?'0':'auto';
+        }
         fitPaper.style.transform = 'scale(' + scale + ')';
         fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
         fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
@@ -16044,6 +16050,7 @@ function showReportPreview(key){
           zoomBtn.setAttribute('aria-pressed',String(legacyZoomFull));
           fitPreview();
           previewContent.scrollLeft=0;
+          previewContent.scrollTop=0;
         });
       }
       const resizeObserver = typeof ResizeObserver !== 'undefined'
@@ -17264,7 +17271,7 @@ function loadLegacyTableB(age,gender,sum,term){
         sum:String(sum),term:String(term)});
       const res=await fetch('/api/legacy-prestige-rpu?'+params.toString(),
         {credentials:'same-origin',cache:'no-store'});
-      if(!res.ok)throw Error(res.status===401?'กรุณากรอกรหัสเข้าใช้เครื่องคำนวณเพื่อดูตาราง B':
+      if(!res.ok)throw Error(res.status===401?'ตาราง B ยังไม่มีสิทธิ์เข้าถึง กรุณาเปิดลิงก์เครื่องคำนวณสำหรับตัวแทนที่ได้รับอนุญาต':
         res.status===403?'บัญชีนี้ยังไม่มีสิทธิ์ดูตาราง B':
         res.status===503?'ข้อมูล Factor ยังไม่ผ่านการตรวจสอบบน Server (503)':
         'ไม่สามารถโหลดข้อมูล CV/RPU ที่ตรวจสอบได้');
@@ -17404,12 +17411,10 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     LEGACY_TABLE_B_CASE_SOURCES.get(caseKey)==='USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY';
   const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
     (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
-  const tableBAuthAction=tableBError==='กรุณากรอกรหัสเข้าใช้เครื่องคำนวณเพื่อดูตาราง B'
-    ?'<div class="legacy-auth-help"><label for="legacy-calculator-code">รหัสเข้าถึงเครื่องคำนวณ</label>'+
-     '<input type="password" id="legacy-calculator-code" autocomplete="off" placeholder="รหัสสำหรับผู้ได้รับอนุญาต" aria-label="รหัสเข้าถึงเครื่องคำนวณ">'+
-     '<button type="button" id="legacy-calculator-submit" onclick="submitLegacyCalculatorAccess()">เข้าใช้ตาราง B</button>'+
-     '<span id="legacy-calculator-error" role="alert"></span>'+
-     '<span>เข้าใช้ได้โดยไม่ต้อง Login ระบบหลังบ้าน · สิทธิ์หมดอายุภายใน 24 ชั่วโมง</span></div>'
+  // No manual passcode: an authorized link grants Table B access on the server.
+  // An ordinary public URL cannot unlock restricted AIA values.
+  const tableBAuthAction=tableBError&&tableBError.includes('ยังไม่มีสิทธิ์เข้าถึง')
+    ?'<div class="legacy-auth-help" role="status">ตาราง B จะคำนวณอัตโนมัติเมื่อเปิดผ่านลิงก์สำหรับตัวแทนที่ได้รับอนุญาต ไม่ต้องกรอกรหัสเพิ่ม</div>'
     :'';
   const tableBRetryAction=tableBError
     ?'<button type="button" class="legacy-retry-btn" onclick="retryLegacyTableB()">ลองโหลดตาราง B อีกครั้ง</button>'
