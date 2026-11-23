@@ -305,7 +305,8 @@ export async function middleware(
   // Separate calculator entitlement: exact route only. The API verifies the
   // signed, HttpOnly calculator cookie itself; all dashboard APIs remain gated.
   if(pathname === "/api/legacy-prestige-rpu" ||
-     pathname === "/api/legacy-prestige-access"){
+     pathname === "/api/legacy-prestige-access" ||
+     pathname === "/api/legacy-prestige-link"){
     const result=NextResponse.next();
     result.headers.set("Cache-Control","private, no-store, max-age=0");
     result.headers.set("X-Robots-Tag","noindex, noarchive");
