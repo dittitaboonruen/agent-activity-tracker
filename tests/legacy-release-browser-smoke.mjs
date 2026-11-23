@@ -20,6 +20,7 @@ await page.route('**/api/legacy-prestige-rpu?**',async route=>{
 try{
  await page.goto('http://127.0.0.1:8787/illustrations/royal_partners_illustration_tool.html?plan=legacy',
    {waitUntil:'domcontentloaded',timeout:40000});
+ assert.deepEqual(errors,[],'browser page must initialize without JavaScript errors');
  assert.equal(await page.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true');
  await page.locator('#in-age').fill('35');
  await page.locator('#in-gender').selectOption('หญิง');
