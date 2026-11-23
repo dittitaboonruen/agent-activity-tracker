@@ -6932,21 +6932,11 @@ tbody tr:hover td{
   box-shadow:var(--rp-shadow-sm);
 }
 
-/* High-net-worth category: navigation UI only, no live Legacy calculations yet. */
-.rp-product-card .rp-high-net-worth-group{
-  border:1px solid #b49ae5;
-  border-radius:13px;
-  background:linear-gradient(110deg,#f5efff,#eeeaff);
-  padding:10px 12px;
-  margin-top:6px;
-}
-.rp-high-net-worth-group .rp-group-icon{background:#e4d8fc;color:#663bb3}
-.rp-high-net-worth-new{border-radius:999px;background:#f5cc63;color:#4a3104;padding:3px 7px;font-size:9px}
-.rp-product-card .rp-legacy-coming-soon{border:1px solid #b390e4;color:#49326e;background:#fffdfd;opacity:1;cursor:not-allowed}
-.rp-product-card .rp-legacy-coming-soon:hover{transform:none;box-shadow:none;background:#fffdfd}
-.rp-legacy-coming-soon-note{font-size:10px;color:#775f98;align-self:center;font-weight:700}
-@media(max-width:640px){.rp-product-card .rp-high-net-worth-group{padding:10px}.rp-legacy-coming-soon-note{width:100%}}
-
+/* Legacy Prestige Plus follows the existing Royal Partner grouping system. */
+.rp-product-card .rp-high-net-worth-group{border:0;background:transparent;padding:0;margin-top:0}
+.rp-high-net-worth-group .rp-group-icon{background:#F8F6F2;color:#C4A363}
+.rp-high-net-worth-new{display:none}
+@media(max-width:640px){.rp-product-card .rp-high-net-worth-group{padding:0}}
 .rp-product-card .tab.active{
   background:linear-gradient(135deg,#182f50,#0f233f);
   color:#fff;
@@ -9478,8 +9468,7 @@ body > .rp-sales-shell .plus-ledger table thead th *{
     <div class="rp-product-group rp-high-net-worth-group">
       <div class="tabgroup-label"><span>5. กลุ่มสินทรัพย์สูง</span><span class="rp-high-net-worth-new">ใหม่</span></div>
       <div class="tabs" id="tabs-high-net-worth">
-        <button type="button" class="tab rp-legacy-coming-soon" disabled aria-disabled="true" title="AIA Legacy Prestige Plus อยู่ระหว่างตรวจสอบสูตรและข้อมูลผลประโยชน์">AIA Legacy Prestige Plus</button>
-        <span class="rp-legacy-coming-soon-note">กำลังพัฒนาระบบคำนวณ</span>
+        <!-- Filled by buildTabs(), same shared product selector as groups 1–4. -->
       </div>
     </div>
   </div>
@@ -10215,7 +10204,9 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   pay25: { subtab:'planA', planBTerm:7, mode:'base' },
   pay25Riders:null,
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
-  annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' }
+  annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' },
+  legacy: { term:10, savedSum:null, tableView:'A' },
+  standardSavedSum:1000000
 };
 
 const TABS = [
@@ -10231,6 +10222,7 @@ const TABS = [
   {id:'cisupercare', label:'CI SuperCare', group:'ci'},
   {id:'annuityfix', label:'Annuity Fix', group:'retirement'},
   {id:'annuitysure', label:'Annuity Sure', group:'retirement'},
+  {id:'legacy', label:'AIA Legacy Prestige Plus', group:'high-net-worth'},
 ];
 
 function buildTabs(){
@@ -10238,6 +10230,7 @@ function buildTabs(){
   const sEl = document.getElementById('tabs-savings');
   const cEl = document.getElementById('tabs-ci');
   const rEl = document.getElementById('tabs-retirement');
+  const hEl = document.getElementById('tabs-high-net-worth');
 
   TABS.forEach(t=>{
     const b = document.createElement('button');
@@ -10246,11 +10239,25 @@ function buildTabs(){
     b.dataset.id = t.id;
     b.setAttribute('aria-pressed','false');
     b.setAttribute('aria-label',t.label);
-    b.onclick = ()=>{ state.tab = t.id; render(); };
+    b.onclick = ()=>{
+      if(t.id==='legacy' && state.tab!=='legacy'){
+        state.standardSavedSum=state.sum;
+        const remembered=state.legacy.savedSum;
+        state.sum=remembered || (state.sum>=10000000 && state.sum<=50000000 ? state.sum : 10000000);
+      }else if(t.id!=='legacy' && state.tab==='legacy'){
+        state.legacy.savedSum=state.sum;
+        state.sum=state.standardSavedSum;
+      }
+      state.tab=t.id;
+      document.getElementById('in-sum').value=formatInsuredAmount(state.sum);
+      setSumValidationUI(validateSumInsured(state.sum));
+      render();
+    };
 
     if(t.group==='life') lEl.appendChild(b);
     else if(t.group==='savings') sEl.appendChild(b);
     else if(t.group==='ci') cEl.appendChild(b);
+    else if(t.group==='high-net-worth') hEl.appendChild(b);
     else rEl.appendChild(b);
   });
 }
@@ -16663,6 +16670,10 @@ function showReportPreview(key){
       }
 
       reportHTML = buildExcellentReportHTML();
+    }else if(key==='legacy'){
+      const v=validateLegacyReportData(buildLegacyReportData());
+      if(!v.ok){alert('ข้อมูลรายงานไม่พร้อม: '+v.errors.join('; '));return;}
+      reportHTML=buildLegacyReportHTML();
     }else if(key==='pay25'){
       const data = buildPay25ReportData();
       const validation = validatePay25ReportData(data);
@@ -16717,10 +16728,11 @@ function showReportPreview(key){
       <div class="rp-preview-overlay" role="dialog" aria-modal="true" aria-label="ตัวอย่างใบสรุป">
         <div class="rp-preview-dialog">
           <div class="rp-preview-toolbar">
-            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='pay25'?(state.pay25.mode==='full'?'15 Pay 25 + สัญญาเพิ่มเติม — A4':'15 Pay 25 — ใบสรุป A4 1 หน้า'):key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?(state.paylifeplus.mode==='full'?'20Pay Life Plus + สัญญาเพิ่มเติม — A4':'20Pay Life Plus — ใบสรุป A4'):key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
-            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
+            <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='legacy'?'Legacy Prestige Plus — ใบสรุป A4':key==='pay25'?(state.pay25.mode==='full'?'15 Pay 25 + สัญญาเพิ่มเติม — A4':'15 Pay 25 — ใบสรุป A4 1 หน้า'):key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?(state.paylifeplus.mode==='full'?'20Pay Life Plus + สัญญาเพิ่มเติม — A4':'20Pay Life Plus — ใบสรุป A4'):key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
+            <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='legacy'?'Report v'+LEGACY_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
+              ${key==='legacy'?'<button type="button" class="rp-preview-legacy-zoom" aria-pressed="false">ขยาย 100%</button>':''}
+              ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
                 <button type="button" class="rp-preview-download">ดาวน์โหลด PNG</button>
@@ -16737,7 +16749,7 @@ function showReportPreview(key){
     const previewContent = host.querySelector('.rp-preview-content');
     const fitStage = host.querySelector('.rp-preview-fit-stage');
     const fitPaper = host.querySelector('.rp-preview-fit-paper');
-    const isPdfReport = ['ciprocare','cisupercare','excellent','pay25','paylifeplus','plusHappy','plusSaver','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
+    const isPdfReport = ['ciprocare','cisupercare','excellent','legacy','pay25','paylifeplus','plusHappy','plusSaver','paylife20','pay20happy','pay20saver','annuityfix','annuitysure'].includes(key);
     if(isPdfReport && previewContent && fitStage && fitPaper){
       const pdfSource = document.createElement('div');
       pdfSource.className = 'rp-preview-pdf-source';
@@ -16750,6 +16762,7 @@ function showReportPreview(key){
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
       while(visualReport.firstChild) fitPaper.appendChild(visualReport.firstChild);
+      let legacyZoomFull = false;
       const fitPreview = ()=>{
         if(!fitStage.isConnected) return;
         fitPaper.style.transform = 'none';
@@ -16760,7 +16773,13 @@ function showReportPreview(key){
         const availableWidth = Math.max(1,previewContent.clientWidth -
           parseFloat(getComputedStyle(previewContent).paddingLeft) -
           parseFloat(getComputedStyle(previewContent).paddingRight) - 2);
-        const scale = Math.min(1, availableWidth / reportWidth);
+        const scale = key==='legacy' && legacyZoomFull ? 1 : Math.min(1, availableWidth / reportWidth);
+        if(key==='legacy'){
+          // Full-size A4 stays wider than a phone; scroll the preview instead of clipping.
+          previewContent.style.overflowX=legacyZoomFull?'auto':'hidden';
+          fitStage.style.marginLeft=legacyZoomFull?'0':'auto';
+          fitStage.style.marginRight=legacyZoomFull?'0':'auto';
+        }
         fitPaper.style.transform = 'scale(' + scale + ')';
         fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
         fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
@@ -16771,6 +16790,17 @@ function showReportPreview(key){
         fitPreview();
       };
       fitAllReports();
+      if(key==='legacy'){
+        const zoomBtn=host.querySelector('.rp-preview-legacy-zoom');
+        if(zoomBtn)zoomBtn.addEventListener('click',()=>{
+          legacyZoomFull=!legacyZoomFull;
+          zoomBtn.textContent=legacyZoomFull?'พอดีหน้าจอ':'ขยาย 100%';
+          zoomBtn.setAttribute('aria-pressed',String(legacyZoomFull));
+          fitPreview();
+          previewContent.scrollLeft=0;
+          previewContent.scrollTop=0;
+        });
+      }
       const resizeObserver = typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(()=>fitPreview()) : null;
       if(resizeObserver) resizeObserver.observe(previewContent);
@@ -16801,7 +16831,7 @@ function showReportPreview(key){
       throw new Error('Preview DOM is incomplete');
     }
 
-    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
+    if(key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure'){
       const pdfBtn = host.querySelector('.rp-preview-download-pdf');
 
       if(!pdfBtn){
@@ -16814,6 +16844,8 @@ function showReportPreview(key){
         pdfBtn.addEventListener('click', ()=>downloadCISuperCarePDF(pdfBtn));
       }else if(key==='excellent'){
         pdfBtn.addEventListener('click', ()=>downloadExcellentPDF(pdfBtn));
+      }else if(key==='legacy'){
+        pdfBtn.addEventListener('click', ()=>downloadLegacyReportPDF(pdfBtn));
       }else if(key==='pay25'){
         pdfBtn.addEventListener('click', ()=>downloadPay25PDF(pdfBtn));
       }else if(key==='plusHappy'||key==='plusSaver'){
@@ -16856,7 +16888,7 @@ function addExportButton(app, key){
   const panel = app.querySelector('.panel');
   const row = document.createElement('div'); row.className = 'export-row';
   row.innerHTML = `<button class="btn-export">${
-      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='annuityfix' || key==='annuitysure'
+      key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='annuityfix' || key==='annuitysure'
         ? 'ดูใบสรุปฉบับเต็ม'
         : 'ดูตัวอย่างภาพสรุป'
     }</button>`;
@@ -17675,13 +17707,964 @@ async function download20HealthComboPDF(key,btn){
  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=text;}
 }
 
+
+/* =========================================================
+ * AIA Legacy Prestige Plus — MAIN POLICY ONLY
+ * Source: uploaded AIA rate matrix / Benefits Plus 2025.
+ * Rates per THB 1,000 sum insured, columns M10,F10,M15,F15,M20,F20.
+ * No preferred-health discount, rider prices, cash values, or PDF
+ * are extrapolated from incomplete source material.
+ * ========================================================= */
+const LEGACY_PRESTIGE_RATES = [[22.13,17.19,15.37,12.66,12.67,10.92],[22.32,17.42,15.53,12.8,12.73,10.97],[22.69,17.79,15.8,12.96,12.92,10.99],[23.06,18.14,16.09,13.15,13.11,11.07],[23.45,18.52,16.39,13.36,13.32,11.19],[23.86,18.91,16.72,13.57,13.55,11.32],[24.29,19.32,17.04,13.8,13.79,11.48],[24.72,19.73,17.39,14.05,14.03,11.67],[25.2,20.27,17.76,14.32,14.3,11.86],[25.69,20.73,18.14,14.59,14.58,12.08],[26.2,21.19,18.55,14.88,14.87,12.33],[26.75,21.63,18.96,15.19,15.19,12.58],[27.3,22.08,19.4,15.49,15.51,12.83],[27.87,22.55,19.93,15.82,15.84,13.11],[28.43,23.02,20.39,16.14,16.16,13.38],[29.01,23.5,20.85,16.5,16.49,13.63],[29.6,24.02,21.29,16.85,16.83,13.88],[30.2,24.54,21.7,17.22,17.16,14.15],[30.8,25.08,22.13,17.6,17.51,14.41],[31.42,25.63,22.58,17.98,17.84,14.69],[32.06,26.2,23.02,18.39,18.2,14.98],[32.7,27.07,23.49,19.1,18.57,15.46],[33.37,27.72,23.96,19.72,18.95,15.74],[34.06,28.4,24.46,20.43,19.34,16.05],[34.78,29.11,24.97,20.9,19.76,16.39],[35.51,29.86,25.5,21.37,20.29,16.75],[36.3,30.62,26.06,21.83,20.74,17.12],[37.05,31.42,26.63,22.32,21.21,17.52],[37.85,32.12,27.25,22.83,21.68,17.92],[38.67,32.8,27.88,23.37,22.16,18.37],[39.55,33.52,28.53,23.92,22.67,18.81],[40.46,34.28,29.23,24.5,23.2,19.29],[41.41,35.07,29.95,25.1,23.78,19.79],[42.41,35.91,30.7,25.73,24.37,20.42],[43.45,36.78,31.47,26.39,24.97,20.97],[44.52,37.69,32.22,27.08,25.57,21.5],[45.66,38.65,33.0,27.8,26.2,22.07],[46.83,39.65,33.81,28.55,26.85,22.65],[48.05,40.7,34.66,29.32,27.54,23.26],[49.33,41.8,35.53,30.13,28.26,23.9],[50.57,42.93,36.45,30.99,28.99,24.57],[51.85,44.12,37.4,31.87,29.79,25.26],[53.18,45.36,38.39,32.79,30.61,26.0],[54.57,46.66,39.42,33.72,31.47,26.76],[56.0,48.01,40.49,34.65,32.38,27.5],[57.49,49.42,41.61,35.61,33.43,28.29],[59.04,50.89,42.77,36.61,34.61,29.11],[60.64,52.35,43.98,37.66,35.82,29.99],[62.3,53.83,45.25,38.75,37.12,30.9],[64.02,55.37,46.56,39.89,38.27,31.86],[65.8,56.97,47.88,41.09,39.45,32.87],[67.65,58.64,49.15,42.34,40.6,34.0],[69.58,60.38,50.47,43.65,41.81,35.34],[71.58,62.2,51.86,45.02,43.1,36.76],[73.53,64.09,53.32,46.47,44.47,38.15],[75.43,66.06,54.86,47.94,45.93,39.49],[77.42,68.12,56.5,49.35,47.5,40.78],[79.5,70.26,58.22,50.82,49.2,42.17],[81.68,72.51,60.07,52.39,51.01,43.66],[83.96,74.58,61.25,54.05,52.31,45.26],[86.36,76.71,62.37,55.82,53.59,47.0],[88.9,78.96,63.29,57.72,54.9,48.88],[91.58,81.32,64.56,59.77,56.25,50.92],[94.41,83.83,65.68,61.97,57.62,53.16],[95.3,86.5,66.79,63.51,59.04,55.01],[97.8,89.34,67.89,64.96,60.48,56.64],[105.34,92.4,73.82,67.82,64.4,59.87],[107.98,95.66,77.1,69.94,68.7,63.41],[111.16,99.6,83.29,73.46,71.02,67.29],[114.97,103.09,89.31,79.36,82.39,70.15],[119.38,106.56,94.16,82.41,87.49,73.03],[123.85,110.78,99.22,86.98,93.04,77.69],[128.31,115.83,104.93,91.92,97.97,82.76],[134.4,121.23,111.11,97.27,104.45,88.3],[139.55,127.0,117.8,104.06,111.47,94.32],[146.47,133.17,125.01,110.4,119.05,99.74]];
+function calcLegacyPrestige(age,gender,sum,term,tax){
+  if(!Number.isInteger(age) || age<0 || age>75 ||
+     !Number.isFinite(sum) || sum<10000000 || sum>1000000000 ||
+     ![10,15,20].includes(term) || !['ชาย','หญิง'].includes(gender)){
+    return {ok:false,message:'กรุณากรอกอายุ 0–75 ปี และทุนประกัน 10–1,000 ล้านบาท'};
+  }
+  const column=({10:0,15:2,20:4})[term]+(gender==='ชาย'?0:1);
+  const standardRate=LEGACY_PRESTIGE_RATES[age]?.[column];
+  if(!Number.isFinite(standardRate)||standardRate<=0)return {ok:false,message:'ไม่มีอัตราเบี้ยประกันสำหรับข้อมูลที่เลือก'};
+  // Public AIA Legacy Prestige Plus (New) brochure p.10: published
+  // discounted standard rates are rounded PER THB 1,000 of coverage.
+  // Rechecked all 456 male/female 10/15/20 pay brochure entries.
+  // Preferred health underwriting rate is deliberately NOT inferred.
+  const discountPct=sum>=20000000?(term===10?5:10):0;
+  const rate=discountPct
+    ?Math.round((standardRate*(100-discountPct)/100)*100+1e-9)/100
+    :standardRate;
+  const annual=Math.round(rate*(sum/1000)*100)/100;
+  const annualStandard=Math.round(standardRate*(sum/1000)*100)/100;
+  const annualDiscount=Math.round((annualStandard-annual)*100)/100;
+  const maxYears=99-age;
+  const rows=Array.from({length:maxYears},(_,idx)=>{
+    const year=idx+1;
+    const premium=year<=term?annual:0;
+    return {year,age:age+year,premium,paid:Math.min(year,term)*annual,coverage:sum,
+      taxRelief:year<=term?Math.min(annual,100000)*tax:0};
+  });
+  return {ok:true,annual,annualStandard,annualDiscount,discountPct,
+    term,rate,standardRate,rows,taxRelief:Math.min(annual,100000)*tax,
+    wpciUntil:Math.min(age+term,80),sum};
+}
+
+/* Legacy illustration-only figures. WPCI is a conditional waiver of future
+ * unpaid base policy premiums; never a cash benefit or guaranteed award.
+ * WPCI benefit sum is not independently captured in the current shared UI,
+ * so the upper bound assumes it is approved at 100% of the base sum. */
+function calcLegacyIllustratedBenefits(r,age){
+  if(!r?.ok)return null;
+  const wpciYears=Math.max(0,Math.min(r.term,80-age));
+  const wpciAnnual=r.annual;
+  return {
+    tiMaximum:r.sum*0.9,
+    wpciCoverage:r.sum,
+    wpciYears,
+    wpciAnnual,
+    wpciCeiling:wpciAnnual*wpciYears,
+    wpciUntil:r.wpciUntil
+  };
+}
+
+/* Separate prominent summary cards in the existing calculator flow.
+ * WPCI is a conditional ceiling for future premium waiver, not a cash payout. */
+function buildLegacyBenefitSummaryHTML(r,age){
+  if(!r?.ok)return '';
+  const b=calcLegacyIllustratedBenefits(r,age);
+  const money=n=>Number(n).toLocaleString('th-TH',{maximumFractionDigits:2});
+  return '<section class="legacy-benefit-summary ledger-wrap" aria-label="สรุปผลประโยชน์ WPCI และ TI">'+
+    '<style>'+
+    '.legacy-benefit-summary{margin:14px 0;padding:18px;background:#fffdf8}'+
+    '.legacy-benefit-summary h3{color:#142A47;font-size:18px;margin:0 0 12px;font-weight:800}'+
+    '.legacy-benefit-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'+
+    '.legacy-benefit-summary-item{background:#FFF0D7;border:1px solid #ECD39D;border-bottom:2px solid #C4A363;border-radius:17px;padding:14px;min-width:0;box-shadow:var(--rp-shadow-sm)}'+
+    '.legacy-benefit-summary-item:nth-child(2){background:#E3F3EC;border-color:#C7E8D8;border-bottom-color:#68A68D}'+
+    '.legacy-benefit-summary-item .label{font-family:\'IBM Plex Sans Thai Looped\',sans-serif;font-size:10px;color:var(--rp-text-soft);line-height:1.35;font-weight:400}'+
+    '.legacy-benefit-summary-item .amount{font-family:\'Noto Serif Thai\',serif;font-size:26px;font-weight:700;color:var(--rp-navy);line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:5px}'+
+    '.legacy-benefit-summary-item .amount .unit{font-family:\'IBM Plex Sans Thai Looped\',sans-serif;font-size:13px;font-weight:500;color:#736B5F;margin-left:3px}'+
+    '.legacy-benefit-summary-item .hint{font-family:\'IBM Plex Sans Thai Looped\',sans-serif;font-size:11px;color:#685D4B;line-height:1.5;margin-top:7px}'+
+    '.legacy-benefit-summary-assumption{font-size:11px;line-height:1.65;color:#625D53;margin:10px 0 0}'+
+    '@media(max-width:760px){.legacy-benefit-summary-grid{grid-template-columns:1fr}.legacy-benefit-summary-item .amount{font-size:24px}.legacy-benefit-summary{padding:12px}}'+
+    '</style>'+
+    '<h3>ผลประโยชน์ WPCI และ TI</h3>'+
+    '<div class="legacy-benefit-summary-grid">'+
+      '<div class="legacy-benefit-summary-item"><div class="label">WPCI · ทุนความคุ้มครองโรคร้ายแรง 44 โรค/การรักษา</div>'+
+      '<div class="amount">'+money(b.wpciCoverage)+'<span class="unit">บาท</span></div>'+
+      '<div class="hint">แสดงทุน WPCI อ้างอิงทุนประกันหลัก · เป็นสิทธิยกเว้นเบี้ย ไม่ใช่เงินสด</div></div>'+
+      '<div class="legacy-benefit-summary-item"><div class="label">TI · ผลประโยชน์สูงสุด 90%</div>'+
+      '<div class="amount">'+money(b.tiMaximum)+'<span class="unit">บาท</span></div>'+
+      '<div class="hint">คำนวณตามทุนประกันที่กรอก</div></div>'+
+    '</div>'+
+    '<p class="legacy-benefit-summary-assumption">จำนวนเงิน WPCI ที่แสดงเป็นทุนความคุ้มครองอ้างอิงตามทุนประกันหลัก ไม่ใช่จำนวนเงินชดเชยหรือเบี้ยที่จะได้รับยกเว้นจริง สิทธิขึ้นอยู่กับทุน WPCI ที่ได้รับอนุมัติและเงื่อนไขกรมธรรม์</p>'+
+    '</section>';
+}
+
+function buildLegacyCoverageIllustrationHTML(r,age){
+  if(!r.ok)return '';
+  const money=n=>Number(n).toLocaleString('th-TH',{maximumFractionDigits:2});
+  const years=Array.from({length:20},(_,i)=>'<span>'+(i+1)+'</span>').join('');
+  const paymentOptions=[10,15,20].map(term=>{
+    const selected=term===r.term;
+    return '<div class="legacy-graphic-option '+(selected?'selected':'')+'"><b>'+term+' ปี'+(selected?' ✓':'')+'</b>'+
+      '<div class="legacy-graphic-ticks">'+Array.from({length:20},(_,i)=>'<span>'+(i<term?'▲':'')+'</span>').join('')+'</div></div>';
+  }).join('');
+  return '<section class="legacy-graphic ledger-wrap" aria-label="แผนภาพผลประโยชน์และความคุ้มครอง">'+
+  '<style>'+
+  '.legacy-graphic{padding:15px 16px;margin:14px 0;background:#fffdf8;color:#142A47}'+
+  '.legacy-graphic h3{color:#142A47;margin:0 0 12px}'+
+
+  '.legacy-graphic .legacy-graphic-row{display:grid;grid-template-columns:23% minmax(0,1fr);align-items:center;gap:12px;margin:7px 0}'+
+  '.legacy-graphic .legacy-graphic-label{font-weight:700;font-size:12px}'+
+  '.legacy-graphic .legacy-graphic-band{background:#A28F61;color:#fff;display:flex;justify-content:space-between;gap:8px;padding:10px;border-radius:5px;font-size:12px;align-items:center}'+
+  '.legacy-graphic .legacy-graphic-band.ti{background:#4C564E;margin-top:6px}'+
+  '.legacy-graphic .legacy-graphic-band .bar{flex:1;border-top:1px solid #fff;min-width:10px}'+
+  '.legacy-graphic .legacy-graphic-band strong{white-space:nowrap}'+
+  '.legacy-graphic .legacy-graphic-death{background:#F0ECE4;border-radius:5px;padding:12px;font-size:12px;line-height:1.7;margin-top:6px}'+
+  '.legacy-graphic .legacy-graphic-years{display:flex;gap:7px;align-items:center;background:#142A47;color:#fff;border-radius:5px;padding:9px 7px}'+
+  '.legacy-graphic .legacy-graphic-grid,.legacy-graphic .legacy-graphic-ticks{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));flex:1;gap:1px;text-align:center}'+
+  '.legacy-graphic .legacy-graphic-grid span{font-size:10px}.legacy-graphic .legacy-graphic-years strong{white-space:nowrap;font-size:11px}'+
+  '.legacy-graphic .legacy-graphic-option{display:grid;grid-template-columns:46px minmax(0,1fr);gap:8px;padding:4px;opacity:.5}'+
+  '.legacy-graphic .legacy-graphic-option.selected{opacity:1;background:#F8F6F2;outline:1px solid #C4A363;border-radius:5px}'+
+  '.legacy-graphic .legacy-graphic-option b{font-size:11px}.legacy-graphic .legacy-graphic-ticks span{font-size:12px;color:#A28F61}'+
+  '.legacy-graphic .legacy-graphic-note{font-size:11px;line-height:1.65;color:#6B6455;margin:7px 0}'+
+  '@media(max-width:640px){.legacy-graphic{padding:10px}.legacy-graphic .legacy-graphic-row{grid-template-columns:1fr;gap:4px}.legacy-graphic .legacy-graphic-band{font-size:10px;padding:7px}.legacy-graphic .legacy-graphic-grid span,.legacy-graphic .legacy-graphic-ticks span{font-size:8px}.legacy-graphic .legacy-graphic-years strong{font-size:9px}.legacy-graphic .legacy-graphic-years{gap:3px;padding:5px 3px}}'+
+  '</style>'+
+  '<h3>ภาพแสดงผลประโยชน์และความคุ้มครองชีวิต</h3>'+
+
+  '<div class="legacy-graphic-row"><div class="legacy-graphic-label">ความคุ้มครองชีวิต</div><div>'+
+  '<div class="legacy-graphic-band">WPCI ยกเว้นเบี้ยเมื่อเจ็บป่วยโรคร้ายแรง <i class="bar"></i><strong>ถึงอายุ 80 ปี</strong></div>'+
+  '<div class="legacy-graphic-band ti">TI ผลประโยชน์ภาวะเจ็บป่วยระยะสุดท้าย <i class="bar"></i><strong>ถึงอายุ 99 ปี</strong></div>'+
+  '<div class="legacy-graphic-death"><strong>จำนวนเงินเอาประกันภัย '+money(r.sum)+' บาท</strong><div>กรณีเสียชีวิต จ่ายจำนวนใดที่มากกว่าระหว่างจำนวนเงินเอาประกันภัย เงินค่าเวนคืนกรมธรรม์ หรือเบี้ยหลักสะสมที่ปรับตามการลดทุน (ถ้ามี) ตามเงื่อนไขบริษัท</div></div></div></div>'+
+  '<div class="legacy-graphic-row"><div class="legacy-graphic-label">ระยะเวลาคุ้มครอง</div><div class="legacy-graphic-years"><div class="legacy-graphic-grid">'+years+'</div><strong>→ อายุ 99 ปี</strong></div></div>'+
+  '<div class="legacy-graphic-row"><div class="legacy-graphic-label">เลือกชำระเบี้ยได้ 3 แบบ</div><div>'+paymentOptions+'</div></div>'+
+  '<div class="legacy-graphic-note">▲ = ปีที่ชำระเบี้ย | แถวที่มีกรอบสีทองคือระยะชำระเบี้ยที่เลือก • คุ้มครองถึงอายุ 99 ปี (รวม '+(99-age)+' ปีจากอายุที่กรอก) • WPCI/TI เป็นไปตามเกณฑ์พิจารณารับประกันและเงื่อนไขกรมธรรม์</div>'+
+  '<div class="legacy-graphic-note">กรณีอยู่ถึงวันครบสัญญา จ่ายจำนวนใดที่มากกว่าระหว่างทุนประกัน เงินค่าเวนคืน หรือเบี้ยหลักสะสมที่ปรับตามการลดทุน (ถ้ามี) ไม่แสดงตัวเลขมูลค่าเวนคืนที่ยังไม่มีข้อมูลยืนยัน</div>'+
+  '</section>';
+}
+
+/* WPCI official-condition descriptions transcribed from the supplied 44-condition
+   reference image. Disclosure is informational, not an automatic claims decision. */
+const LEGACY_WPCI_CATEGORIES = [{"title":"กลุ่ม 1 โรคมะเร็งและเนื้องอก","items":["โรคมะเร็งระยะลุกลาม","เนื้องอกในสมองชนิดที่ไม่ใช่มะเร็ง"]},{"title":"กลุ่ม 2 โรคหัวใจ ระบบหายใจ และระบบไหลเวียนโลหิต","items":["กล้ามเนื้อหัวใจตายเฉียบพลันจากการขาดเลือด","การผ่าตัดเส้นเลือดเลี้ยงกล้ามเนื้อหัวใจ","โรคกล้ามเนื้อหัวใจ","การผ่าตัดลิ้นหัวใจโดยวิธีการเปิดหัวใจ","การผ่าตัดเส้นเลือดแดงใหญ่เอออร์ตา","โรคแรงดันในหลอดเลือดแดงปอดสูงแบบปฐมภูมิ","โรคหลอดลมปอดอุดกั้นเรื้อรังขั้นรุนแรง / โรคปอดระยะสุดท้าย","โรคโลหิตจางจากไขกระดูกไม่สร้างเม็ดโลหิต"]},{"title":"กลุ่ม 3 โรคหลอดเลือดสมอง ระบบประสาทและกล้ามเนื้อ","items":["โรคหลอดเลือดสมองแตกหรืออุดตัน","โรคหลอดเลือดสมองโป่งพองที่ต้องรักษาโดยการผ่าตัด","ภาวะโคม่า","โรคสมองเสื่อมชนิดอัลไซเมอร์","โรคเยื่อหุ้มสมองและไขสันหลังอักเสบจากเชื้อแบคทีเรีย","สมองอักเสบจากเชื้อไวรัส","โรคพาร์กินสัน","โรคระบบประสาทมัลติเพิลสเคลอโรซิส","โรคของเซลล์ประสาทควบคุมการเคลื่อนไหว","ภาวะอะเพลลิก","อัมพาตของกล้ามเนื้อแขนหรือขา","โรคโปลิโอ","โรคกล้ามเนื้อเสื่อม"]},{"title":"กลุ่ม 4 โรคอวัยวะและระบบการทำงานที่สำคัญของร่างกาย","items":["ตับวาย","ไตวายเรื้อรัง","โรคลำไส้อักเสบเป็นแผลรุนแรง","การผ่าตัดเปลี่ยนอวัยวะ หรือปลูกถ่ายไขกระดูก","โรคไวรัสตับอักเสบขั้นรุนแรง","ภาวะตับอ่อนอักเสบที่กลับเป็นซ้ำและเรื้อรัง","ไตอักเสบลูปัส จากโรคซิสเต็มมิค ลูปัส อิริธีมาโตซูส","ภาวะข้ออักเสบรูมาตอยด์ชนิดรุนแรง"]},{"title":"กลุ่ม 5 ภาวะฉุกเฉิน การบาดเจ็บรุนแรง และภาวะทุพพลภาพ","items":["แผลไหม้ฉกรรจ์ (การเกิดแผลไหม้ระดับ 3)","การบาดเจ็บที่ศีรษะอย่างรุนแรง","การสูญเสียการดำรงชีพอย่างอิสระ","การทุพพลภาพถาวรสิ้นเชิง","ตาบอด","การฉีกขาดของรากประสาทต้นแขน","การสูญเสียความสามารถในการพูด","โรคเนื้อเยื่อพังผืดอักเสบติดเชื้อและเป็นเนื้อตาย","โรคเท้าช้าง"]},{"title":"กลุ่ม 6 โรคร้ายแรงสำหรับผู้เยาว์ (คุ้มครองถึงอายุ 16 ปี)","items":["โรคไข้รูมาติกที่ทำให้หัวใจผิดปกติ","โรคคาวาซากิที่ทำให้เกิดโรคแทรกซ้อนของหัวใจ","โรคเบาหวานชนิดที่ 1","โรคน้ำไขสันหลังคั่งในโพรงสมองซึ่งเกิดภายหลังและต้องใส่ท่อระบาย"]}];
+function buildLegacyWPCICategoriesHTML(){
+  let number=0;
+  return '<section class="legacy-wpci ledger-wrap" aria-label="WPCI โรคร้ายแรง 44 โรคและการรักษา">'+
+  '<style>'+
+  '.legacy-wpci{margin:14px 0;padding:16px;background:#fffdf8;color:#142A47}'+
+  '.legacy-wpci h3{font-size:17px;color:#142A47;margin:0 0 6px}'+
+  '.legacy-wpci .legacy-wpci-intro{font-size:12px;line-height:1.7;color:#68645d;margin:0 0 14px}'+
+  '.legacy-wpci .legacy-wpci-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'+
+  '.legacy-wpci details{background:#F8F6F2;border:1px solid #E5DFD5;border-radius:10px;padding:11px 12px;min-width:0}'+
+  '.legacy-wpci details[open]{border-color:#C4A363}'+
+  '.legacy-wpci summary{cursor:pointer;font-size:13px;font-weight:700;color:#142A47;line-height:1.6}'+
+  '.legacy-wpci summary:focus-visible{outline:2px solid #C4A363;outline-offset:3px}'+
+  '.legacy-wpci ol{padding-left:22px;margin:10px 0 0;font-size:12px;line-height:1.75}'+
+  '.legacy-wpci li{margin:2px 0;overflow-wrap:anywhere}'+
+  '.legacy-wpci .legacy-wpci-footer{font-size:11px;line-height:1.7;color:#6B6455;margin-top:12px}'+
+  '@media(max-width:640px){.legacy-wpci{padding:10px}.legacy-wpci .legacy-wpci-grid{grid-template-columns:minmax(0,1fr)}.legacy-wpci details{padding:10px}}'+
+  '</style>'+
+  '<h3>WPCI — โรคร้ายแรง 44 โรค/การรักษา</h3>'+
+  '<p class="legacy-wpci-intro">ยกเว้นเบี้ยสัญญาหลักส่วนที่เท่ากับทุน WPCI เมื่อได้รับการวินิจฉัยครั้งแรกขณะมีชีวิตอยู่ • คุ้มครองตามระยะชำระเบี้ยหรือถึงอายุ 80 ปี แล้วแต่วันใดถึงก่อน ทั้งนี้เป็นไปตามเงื่อนไขและเกณฑ์บริษัท</p>'+
+  '<div class="legacy-wpci-grid">'+LEGACY_WPCI_CATEGORIES.map((group,i)=>{
+     const start=number+1;number+=group.items.length;
+     return '<details'+(i===0?' open':'')+'><summary>'+group.title+' ('+group.items.length+' รายการ)</summary>'+
+       '<ol start="'+start+'">'+group.items.map(item=>'<li>'+item+'</li>').join('')+'</ol></details>';
+   }).join('')+'</div>'+
+  '</section>';
+}
+
+const LEGACY_REPORT_VERSION='1.1.0';
+function buildLegacyReportData(){
+  const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
+  return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
+    name:[state.customer.firstName,state.customer.lastName].filter(Boolean).join(' '),
+    tax:state.tax,groups:LEGACY_WPCI_CATEGORIES};
+}
+function validateLegacyReportData(d){
+  const errors=[];
+  if(!d.c.ok)errors.push(d.c.message||'ข้อมูลแบบประกันไม่ถูกต้อง');
+  if(d.groups.length!==6||d.groups.reduce((n,g)=>n+g.items.length,0)!==44)errors.push('ข้อมูล WPCI ไม่ครบ 44 รายการ');
+  if(d.c.ok && d.c.rows.at(-1)?.age!==99)errors.push('ตารางรายปีไม่ครบ');
+  return {ok:errors.length===0,errors};
+}
+
+const LEGACY_BROCHURE_FIXED={
+ title:'โบรชัวร์ AIA Legacy Prestige Plus',
+ targetUrl:'https://www.aia.co.th/content/dam/th/th/docs/brochure/AIA%20Legacy%20Prestige%20Plus.pdf',
+ qrImagePath:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaAQAAAAAQ03yvAAAByklEQVR42pVUz4ccQRT+el9fmhc15JpLWHIaavSwlo5q5rp/Rq4h7N8R5po/Iww5DRV1iKVbN3tahr0sexqqdbFCtcohRPo1IXWq8qnvx3v1Kkv4s75f4K/1j8OQbbPV5lVbZ7lAKHGHk/6wN14S5NPH87sfj5dDPUdyIHB9fBxupE4O4HBi0MIBxqQJttLOjHaGZH5V/t61dJw7UMl+mQoUSFHoBKz0Xr++QzZKHYpVMkDUQifnn9vTEKh46YJIOlGj+wd9aKdesHmtTGVV1ClJtm7ATr296nPhDUmDrcJYqdIKxHTk0UWKgi1LucbnT/TwjcM0vxMpjj6proJkG20VnWaOLJIimkhkoy0lcoHDFRoKqvBvZN18p9hApVLWrdgNZ9o4bEj2NFln0BigceJOUPVXDoGfObTCm2qMSx18qYQ3urztETZU85PQiboZtTUV2MmklR45ltbL/sArC0XRJFp0IZVQPjVxdLI6G2uOvA1baPkOmKkBe4tOdg6hx3UfdmeaJ82Hlb4vnknp2i1mwUAbVTq/cJCHxoU1T6ubxWQV4X1zH+puOY2g07an6/VTK9gircu9uXvpF+8apYceI9wyz3//Lr8AVSbhEOQa5qgAAAAASUVORK5CYII=',
+ version:'Official AIA · 17/07/2021',active:true
+};
+function buildLegacyReportHTML(){
+ const caseKey=legacyTableBKey(state.age,state.gender,state.sum,state.legacy.term);
+ if(!LEGACY_TABLE_B_DATA.has(caseKey)){
+   loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
+   throw Error(LEGACY_TABLE_B_ERRORS.get(caseKey)||'กรุณารอให้ตาราง B คำนวณเสร็จก่อนสร้าง PDF');
+ }
+ const d=buildLegacyReportData(),valid=validateLegacyReportData(d);
+ if(!valid.ok)throw Error(valid.errors.join('; '));
+ const esc=escapeResourceHtml,fmtB=n=>fmt(n)+' บาท';
+ const css='<style>'+
+ '.legacy-report-page .ex-report-inner{width:100%;box-sizing:border-box}'+
+ '.legacy-report-page .legacy3-body{padding:11px 18px;color:#142A47}'+
+ '.legacy-report-page .legacy3-heading{margin:10px 0 8px;padding-left:8px;border-left:4px solid #C4A363;font-size:15px;font-weight:800;color:#142A47}'+
+ '.legacy-report-page .legacy3-meta{font-size:11px;background:#F8F6F2;padding:8px;margin:8px 0;border-radius:5px}'+
+ '.legacy-report-page .legacy3-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}'+
+ '.legacy-report-page .legacy3-stat{background:#FBFAF7;border:1px solid #E6DFD3;border-radius:7px;padding:11px;border-left:3px solid #C4A363}'+
+ '.legacy-report-page .legacy3-stat small{font-size:10px;display:block;color:#766D5E}'+
+ '.legacy-report-page .legacy3-stat strong{font-size:16px;color:#142A47}'+
+ '.legacy-report-page .legacy3-bar{padding:10px 12px;margin:7px 0;background:#A28F61;color:#fff;border-radius:6px;font-size:11px;line-height:1.5}'+
+ '.legacy-report-page .legacy3-bar.ti{background:#526057}.legacy-report-page .legacy3-bar.navy{background:#142A47}'+
+ '.legacy-report-page .legacy3-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}'+
+ '.legacy-report-page .legacy3-benefits>div{background:#FBFAF7;border:1px solid #E6DFD3;padding:10px;border-radius:6px;font-size:10px;line-height:1.6}'+
+ '.legacy-report-page .legacy3-benefits b{display:block;font-size:12px}'+
+ '.legacy-report-page .legacy3-example{background:#FAF0DA;border:1px solid #C4A363;padding:10px;border-radius:6px;font-size:12px;font-weight:700;margin:8px 0}'+
+ '.legacy-report-page .legacy3-years,.legacy-report-page .legacy3-tris{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));text-align:center;gap:1px}'+
+ '.legacy-report-page .legacy3-years{background:#142A47;color:#fff;padding:8px 5px;border-radius:5px}'+
+ '.legacy-report-page .legacy3-years span{font-size:9px}.legacy-report-page .legacy3-tris span{font-size:12px;color:#B29A63}'+
+ '.legacy-report-page .legacy3-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px}'+
+ '.legacy-report-page .legacy3-table th{background:#142A47!important;color:white!important;padding:8px 2px;text-align:center}'+
+ '.legacy-report-page .legacy3-table td{padding:6px 3px;border-bottom:1px solid #ddd5c7;text-align:right}'+
+ '.legacy-report-page .legacy3-table td:first-child,.legacy-report-page .legacy3-table td:nth-child(2){text-align:center}'+
+ '.legacy-report-page .legacy3-table tr:nth-child(even){background:#F8F6F2}'+
+ '.legacy-report-page .legacy3-values{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}'+
+ '.legacy-report-page .legacy3-values>div{background:#F8F6F2;padding:9px;border:1px solid #e1d9cc;font-size:10px;line-height:1.6}'+
+ '.legacy-report-page .legacy3-groups{display:grid;grid-template-columns:1fr 1fr;gap:8px}'+
+ '.legacy-report-page .legacy3-groups>div{padding:9px;background:#F8F6F2;border:1px solid #e1d9cc;border-radius:5px;font-size:11px;line-height:1.5}'+
+ '.legacy-report-page .legacy3-note{font-size:10px;line-height:1.6;color:#686056;margin:8px 0}'+
+ '.legacy-report-page .legacy3-brochure{padding:10px 0}'+
+ '.legacy-report-page .legacy3-brochure .rp-resource-payment-image img{max-height:140px;width:100%;height:auto;object-fit:contain}'+
+ '.legacy-report-page .legacy3-brochure .rp-resource-card[data-resource-type="brochure"]{max-width:380px}'+
+ '.legacy-report-page .legacy3-pageno{text-align:right;font-size:9px;color:#7b7062;margin-top:8px}'+
+ '.legacy-report-page .legacy3-heading{font-size:17px;line-height:1.5;border-left:5px solid #C49E55;padding-left:11px;margin:14px 0 12px}'+
+ '.legacy-report-page .legacy3-section-description{color:#53667B;font-size:12px;margin:0 0 13px;line-height:1.7}'+
+ '.legacy-report-page .legacy3-summary-strip{display:flex;gap:10px;margin:10px 0 14px}'+
+ '.legacy-report-page .legacy3-summary-strip>span{flex:1;padding:9px 11px;border:1px solid #DEE6EA;border-radius:7px;background:#F7F9FA;font-size:12px;color:#1B4962}'+
+ '.legacy-report-page .legacy3-summary-strip b{font-size:14px;color:#142A47}'+
+ '.legacy-report-page .legacy3-summary-strip.premium>span{background:#FFF8EA;border-color:#E7D2A6;color:#7E5A21}'+
+ '.legacy-report-page .legacy3-summary-strip.cv>span{background:#EAF6F4;border-color:#B6DAD2;color:#196458}'+
+ '.legacy-report-page .legacy3-table-full{border:1px solid #DAE4E9;border-collapse:separate;border-spacing:0;border-radius:8px;overflow:hidden;width:100%;table-layout:fixed;font-size:12px;font-variant-numeric:tabular-nums}'+
+ '.legacy-report-page .legacy3-table-full th{background:#17314D!important;color:#FFFFFF!important;font-size:12px;font-weight:700;padding:10px 7px;text-align:center;border-right:1px solid #3B5873;line-height:1.45}'+
+ '.legacy-report-page .legacy3-table-full td{padding:7px 10px;line-height:1.5;font-size:12px;border-bottom:1px solid #E7ECEF;text-align:right;color:#23394B}'+
+ '.legacy-report-page .legacy3-table-full td:first-child,.legacy-report-page .legacy3-table-full td:nth-child(2){text-align:center}'+
+ '.legacy-report-page .legacy3-table-full tbody tr:nth-child(even) td{background:#F4F8FA}'+
+ '.legacy-report-page .legacy3-table-full tbody tr:nth-child(odd) td{background:#FFFFFF}'+
+ '.legacy-report-page .legacy3-table-full tbody tr:nth-child(5n) td{border-bottom-color:#C6D5DD}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-amount{font-weight:650;color:#226650;background:#EAF6F1}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-zero{color:#728398}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-empty{color:#8B96A2;background:#F5F6F7}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-paid-year{color:#94601D;font-weight:700}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-no-pay{color:#82909E}'+
+ '.legacy-report-page .legacy3-page-note{font-size:11px;color:#637487;line-height:1.7;margin:13px 0 0}'+
+ '.legacy-report-page .legacy3-pageno{padding:6px 0 0;margin-top:15px}'+
+ '.legacy-report-page .legacy3-body{padding:13px 20px;color:#172D45}'+
+ '.legacy-report-page .legacy3-heading{font-size:16px;line-height:1.45;margin:13px 0 9px;padding:3px 0 3px 10px;border-left:4px solid #C49E55}'+
+ '.legacy-report-page .legacy3-meta{font-size:12px;line-height:1.6;background:#F5F7F8;border:1px solid #E1E8E8;border-radius:6px;padding:9px 12px;margin:7px 0 11px;color:#23394B}'+
+ '.legacy-report-page .legacy3-stat{background:#FFFCF6;padding:11px 13px;border-left:4px solid #C4A363}'+
+ '.legacy-report-page .legacy3-stat small{font-size:11.5px;line-height:1.45;margin-bottom:4px;color:#4F6172}'+
+ '.legacy-report-page .legacy3-stat strong{display:block;font-size:18px;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}'+
+ '.legacy-report-page .legacy3-bar{font-size:11.5px;line-height:1.55;padding:9px 12px;margin:6px 0}'+
+ '.legacy-report-page .legacy3-benefits>div{font-size:11px;line-height:1.55;padding:9px 10px;background:#FAFAF8}'+
+ '.legacy-report-page .legacy3-benefits b{font-size:12px;margin-bottom:3px}'+
+ '.legacy-report-page .legacy3-example{font-size:12px;line-height:1.5;padding:9px 11px}'+
+ '.legacy-report-page .legacy3-years span{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}'+
+ '.legacy-report-page .legacy3-tris span{font-size:13px;font-weight:800;color:#AE873B}'+
+ '.legacy-report-page .legacy3-section-description{font-size:12px;line-height:1.6;color:#43576A;margin:0 0 10px}'+
+ '.legacy-report-page .legacy3-summary-strip{margin:9px 0 11px}'+
+ '.legacy-report-page .legacy3-summary-strip>span{padding:10px 12px;font-size:12px;line-height:1.5}'+
+ '.legacy-report-page .legacy3-summary-strip b{font-size:14px;font-variant-numeric:tabular-nums}'+
+ '.legacy-report-page .legacy3-table-full{border-color:#CEDAE1;border-radius:6px}'+
+ '.legacy-report-page .legacy3-table-full th{font-size:12px;line-height:1.35;padding:9px 6px;background:#142A47!important}'+
+ '.legacy-report-page .legacy3-table-full td{font-size:12.5px;line-height:1.38;padding:6px 9px;color:#1F3549;font-variant-numeric:tabular-nums}'+
+ '.legacy-report-page .legacy3-table-full tbody tr:nth-child(even) td{background:#F4F7F9}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-amount{font-weight:700;color:#196451;background:#EAF5F0}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-empty{color:#657582;background:#F6F7F8}'+
+ '.legacy-report-page .legacy3-page-note,.legacy-report-page .legacy3-note{font-size:11.5px;line-height:1.5;color:#526274;margin:10px 0 0}'+
+ '.legacy-report-page .legacy3-pageno{font-size:10px;color:#667584;margin-top:12px;padding:6px 0 0;border-top:1px solid #E9EDF0}'+
+ '</style>';
+ const wrap=(body,page,total,first=false)=>{
+   return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+page+'"><div class="ex-report-inner">'+
+    (first?css:'')+
+    '<div class="rp-report-head"><div><div class="rp-report-title">AIA Legacy Prestige Plus</div><div class="rp-report-sub">ROYAL PARTNERS · ใบสรุปสำหรับตรวจสอบภายใน</div></div>'+
+    '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">'+fmtB(d.sum)+'</div></div></div>'+
+    '<div class="legacy3-body">'+body+'<div class="legacy3-pageno">ROYAL PARTNERS · หน้า '+page+' / '+total+' · Report v'+LEGACY_REPORT_VERSION+'</div></div></div></section>';
+ };
+ const stats='<div class="legacy3-stats">'+[
+  ['เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)',fmtB(d.c.annual)],
+  ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
+  ['ทุนประกัน',fmtB(d.sum)],
+  ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
+ ].map(([l,v])=>'<div class="legacy3-stat"><small>'+l+'</small><strong>'+v+'</strong></div>').join('')+'</div>';
+ const benefits='<div class="legacy3-heading">1 ความคุ้มครองชีวิต</div>'+
+  '<div class="legacy3-bar">WPCI — โรคร้ายแรง 44 โรค/การรักษา · ยกเว้นเบี้ยหลักตามเกณฑ์ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน</div>'+
+  '<div class="legacy3-bar ti">TI — ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี) · สูงสุด 90% ของทุนประกัน ถึงอายุ 99 ปี</div>'+
+  '<div class="legacy3-bar navy">คุ้มครองชีวิตถึงอายุ 99 ปี · ชำระเบี้ย '+d.term+' ปี</div>'+
+  '<div class="legacy3-benefits"><div><b>WPCI</b>เมื่อเข้าเงื่อนไขโรคร้ายแรง จะยกเว้นเบี้ยหลักส่วนที่ได้รับอนุมัติ ไม่ใช่เงินชดเชย</div>'+
+  '<div><b>TI</b>รับผลประโยชน์ล่วงหน้าตามเกณฑ์ของบริษัท สูงสุด 90% จากผลประโยชน์กรณีเสียชีวิต</div>'+
+  '<div><b>หลังจ่าย TI</b>ทุนประกันหลักลดลงตามจำนวนเงินเอาประกันภัย TI ที่ได้รับอนุมัติ</div></div>'+
+  '<div class="legacy3-example">กรณีจ่าย TI เต็ม 90%: TI สูงสุด '+fmtB(d.sum*.9)+' · ทุนประกันหลักคงเหลือ '+fmtB(d.sum*.1)+'</div>';
+ const y=Array.from({length:20},(_,i)=>'<span>'+(i+1)+'</span>').join('');
+ const t=Array.from({length:20},(_,i)=>'<span>'+(i<d.term?'▲':'·')+'</span>').join('');
+ const timeline='<div class="legacy3-heading">2 ระยะเวลาคุ้มครองและชำระเบี้ย</div>'+
+  '<div class="legacy3-years">'+y+'</div><div class="legacy3-tris">'+t+'</div>'+
+  '<div class="legacy3-note">▲ คือปีที่ชำระเบี้ย · คุ้มครองถึงอายุ 99 ปี (รวม '+(99-d.age)+' ปีนับจากอายุแรกเข้า) · ภาษีเป็นเพียงประมาณการ</div>';
+ const page1Body='<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits+timeline;
+
+ // All attained ages use the EXACT same inputs as calculator Tables A and B.
+ // Do not use the old milestone-only table or derive missing CV/RPU values.
+ const policyValues=lookupLegacyPolicyValueIllustration(d.age,d.gender,d.sum,d.term);
+ const displayRows=buildLegacyAgeTableRows(d.age,d.term,d.c.annual,d.sum);
+ const totalRows=99-d.age;
+ if(displayRows.length!==totalRows||d.c.rows.length!==totalRows||
+    !policyValues?.byAge)throw Error('ตาราง A/B ยังไม่พร้อมสำหรับการแสดงครบทุกอายุ');
+ const rowsPerPage=20; // A4 portrait: generous row height, repeated header, no clipped tables
+ const groupsOf=(items,size)=>Array.from({length:Math.ceil(items.length/size)},
+   (_,i)=>items.slice(i*size,(i+1)*size));
+ const allYears=Array.from({length:totalRows},(_,index)=>{
+   const r=displayRows[index];
+   const a=d.c.rows[index];
+   if(r.age!==d.age+index || a.year!==index+1 ||
+      a.premium!==(index<d.term?d.c.annual:0))
+     throw Error('ตาราง A ปีกรมธรรม์ไม่ตรงกับหน้าคำนวณ');
+   return {age:r.age,year:index+1,premium:r.premium,coverage:r.coverage,
+     paid:a.paid,policy:policyValues.byAge.get(r.age)||null};
+ });
+ const dash='—';
+ const renderNum=(value,kind)=>{
+   if(value===null||value===undefined||!Number.isFinite(value))
+     return '<td class="legacy3-empty">'+dash+'</td>';
+   const cls=value===0?'legacy3-zero':kind==='cv'?'legacy3-amount':'';
+   return '<td class="'+cls+'">'+fmt(value)+'</td>';
+ };
+ const tableAColumns='<th style="width:13%">ปีกรมธรรม์</th><th style="width:15%">อายุ</th>'+
+   '<th style="width:23%">เบี้ยหลักต่อปี (บาท)</th>'+
+   '<th style="width:24%">เบี้ยสะสม (บาท)</th>'+
+   '<th style="width:25%">ทุนประกัน (บาท)</th>';
+ const tableBColumns='<th style="width:16%">ปีกรมธรรม์</th><th style="width:16%">อายุ</th>'+
+   '<th style="width:34%">เงินค่าเวนคืน (CV) บาท</th>'+
+   '<th style="width:34%">มูลค่าใช้เงินสำเร็จ (RPU) บาท</th>';
+ const tableAChunks=groupsOf(allYears,rowsPerPage);
+ const tableBChunks=groupsOf(allYears,rowsPerPage);
+ const tableAPages=tableAChunks.map((rows,index)=>
+   '<div class="legacy3-heading">3 ตาราง A · เบี้ยประกัน'+(index?' (ต่อ)':'')+'</div>'+
+   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
+   ' ปี · เบี้ยหลักมาจากตาราง A ของเครื่องคำนวณ · เบี้ยสะสมคำนวณจากเบี้ยหลักตามปีชำระ</p>'+
+   '<div class="legacy3-summary-strip premium"><span>ระยะชำระเบี้ย <b>'+d.term+
+   ' ปี</b></span><span>เบี้ยต่อปี <b>'+fmt(d.c.annual)+' บาท</b></span></div>'+
+   '<table class="legacy3-table-full"><thead><tr>'+tableAColumns+'</tr></thead><tbody>'+
+   rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
+     (r.premium===null?'<td class="legacy3-no-pay">—</td>':
+       '<td class="'+(r.premium>0?'legacy3-paid-year':'legacy3-no-pay')+'">'+fmt(r.premium)+'</td>')+
+     '<td>'+fmt(r.paid)+'</td><td>'+fmt(r.coverage)+'</td></tr>').join('')+'</tbody></table>'+
+   '<p class="legacy3-page-note">เบี้ยหลักต่อปีหลังพ้นระยะชำระแสดง 0 บาท; เบี้ยและเบี้ยสะสมอ้างอิงผลคำนวณตามข้อมูลที่เลือก</p>');
+ const tableBPages=tableBChunks.map((rows,index)=>
+   '<div class="legacy3-heading">4 ตาราง B · มูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
+   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
+   ' ปี · CV และ RPU จากผลคำนวณที่ผ่านการตรวจสอบของกรณีเดียวกัน</p>'+
+   '<div class="legacy3-summary-strip cv"><span>ทุนประกัน <b>'+fmt(d.sum)+' บาท</b></span>'+
+   '<span>สีเขียว = ค่าที่มีหลักฐาน <b>CV / RPU</b></span></div>'+
+   '<table class="legacy3-table-full"><thead><tr>'+tableBColumns+'</tr></thead><tbody>'+
+   rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
+     renderNum(r.policy?.surrender,'cv')+renderNum(r.policy?.paidUp,'cv')+'</tr>').join('')+
+   '</tbody></table>'+
+   '<p class="legacy3-page-note">— หมายถึงยังไม่มีค่าที่ตรวจสอบได้ ไม่ใช่ 0 บาท · แสดง 0 เฉพาะเมื่อข้อมูลต้นทางยืนยันว่ามีค่าเป็นศูนย์ · ใช้ตรวจสอบภายในเท่านั้น</p>');
+ const groups='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา</div>'+
+   '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+
+    '</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
+   '<div class="legacy3-note">รายละเอียดทั้งหมด 44 รายการดูได้ในหน้า Calculator และเอกสารอ้างอิง AIA</div>';
+ const last='<div class="legacy3-heading">6 โบรชัวร์และเอกสารประกอบ</div>'+
+  '<div class="legacy3-brochure"><div class="rp-resource-grid">'+
+  buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
+  '<div class="rp-red-remark rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนและตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
+  '<div class="rp-resource-payment-row">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>';
+ const pageBodies=[page1Body,...tableAPages,...tableBPages,groups+last];
+ const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
+ return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
+   '"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
+}
+async function downloadLegacyReportPDF(btn){
+  if(btn.dataset.busy==='1')return;
+  if(!window.jspdf?.jsPDF){alert('ไม่พบเครื่องมือ PDF');return;}
+  const pages=[...document.querySelectorAll('.rp-preview-pdf-source .legacy-report-page')];
+  if(!pages.length){alert('ไม่พบต้นฉบับรายงาน');return;}
+  // A4 is a fixed-height raster page. Reject overflow rather than silently
+  // cutting a policy-year row or important footnote from the exported PDF.
+  for(const page of pages){
+    const outer=page.getBoundingClientRect();
+    const body=page.querySelector('.legacy3-body');
+    if(body&&body.getBoundingClientRect().bottom>outer.bottom-6){
+      alert('หน้ารายงานมีข้อมูลล้นกรอบ A4 กรุณาตรวจรูปแบบก่อนดาวน์โหลด');
+      return;
+    }
+  }
+  const previous=btn.textContent;btn.dataset.busy='1';btn.disabled=true;btn.textContent='กำลังสร้าง PDF...';
+  try{
+    const {jsPDF}=window.jspdf,pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    for(let i=0;i<pages.length;i++){
+      if(i)pdf.addPage();
+      const canvas=await renderReportPageToCanvas(pages[i]);
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,210,297,undefined,'FAST');
+    }
+    await savePdfCrossDevice(pdf,'royal-partner-legacy-prestige-plus-'+Date.now()+'.pdf');
+  }catch(error){console.error('Legacy PDF',error);alert(error?.message||'สร้าง PDF ไม่สำเร็จ');}
+  finally{btn.dataset.busy='0';btn.disabled=false;btn.textContent=previous;}
+}
+
+
+/* Legacy display table model is intentionally independent from the actuarial
+ * report rows: the customer age entered is the FIRST displayed age. */
+function buildLegacyAgeTableRows(issueAge,term,annual,sum){
+  if(!Number.isInteger(issueAge)||issueAge<0||issueAge>75||
+     ![10,15,20].includes(term)||!Number.isFinite(annual)||annual<=0||
+     !Number.isFinite(sum)||sum<=0)return [];
+  return Array.from({length:99-issueAge},(_,index)=>({
+    age:issueAge+index,
+    premium:index<term?annual:null,
+    coverage:sum
+  }));
+}
+/* Skeleton only. AIA contract values must come from an approved rate/value
+ * table for the exact sex, age, payment plan and coverage. Never extrapolate. */
+
+/* AIA iPOS screenshot evidence supplied 12 Nov 2026:
+ * Female, issue age 51, 20-year premium payment, THB 15,000,000 coverage.
+ * Values are *literal transcriptions*, NOT formulas/rates or general cash-value curves.
+ * Source shows age 51–98 only; 99 and any missing columns remain unavailable.
+ * Each array: [age, surrender, paidUp, extendedYears, extendedDays].
+ * Instant payout and extended maturity values are absent on screenshot.
+ */
+const LEGACY_IPOS_VALUES_F51_20_15M = [[51,null,null,null,null],[52,180000,585000,3,55],[53,510000,1575000,7,77],[54,885000,2625000,10,94],[55,1275000,3645000,12,116],[56,1710000,4710000,13,320],[57,2205000,5850000,15,52],[58,2610000,6675000,15,239],[59,3030000,7470000,16,11],[60,3480000,8280000,16,126],[61,3930000,9030000,16,198],[62,4410000,9780000,16,270],[63,4890000,10470000,16,315],[64,5385000,11145000,16,357],[65,5910000,11835000,17,55],[66,6450000,12495000,17,131],[67,7005000,13140000,17,229],[68,7575000,13770000,17,360],[69,8160000,14400000,18,205],[70,8760000,null,null,null],[71,9015000,null,null,null],[72,9270000,null,null,null],[73,9510000,null,null,null],[74,9750000,null,null,null],[75,9975000,null,null,null],[76,10200000,null,null,null],[77,10425000,null,null,null],[78,10635000,null,null,null],[79,10845000,null,null,null],[80,11055000,null,null,null],[81,11250000,null,null,null],[82,11445000,null,null,null],[83,11625000,null,null,null],[84,11805000,null,null,null],[85,11985000,null,null,null],[86,12165000,null,null,null],[87,12345000,null,null,null],[88,12525000,null,null,null],[89,12690000,null,null,null],[90,12840000,null,null,null],[91,13005000,null,null,null],[92,13170000,null,null,null],[93,13320000,null,null,null],[94,13500000,null,null,null],[95,13710000,null,null,null],[96,13965000,null,null,null],[97,14355000,null,null,null],[98,15000000,null,null,null]];
+const LEGACY_IPOS_MATCH = Object.freeze({age:51,gender:'หญิง',sum:15000000,term:20});
+
+/* Policy Value Factor Database — controlled exact evidence only.
+ * Data provenance:
+ * A) AIA iPOS screenshot (user supplied 12 Nov 2026): female 51, 20-pay, THB15m.
+ * B) AIA Legacy Prestige Plus brochure p.5: male 40, 10-pay, THB20m.
+ *
+ * Normalizing a KNOWN value by sum assures factor comparison, but DOES NOT
+ * establish that any factor is valid for other issue ages, genders, terms,
+ * or coverage amounts. No extrapolation or interpolation is authorized.
+ * Brochure's example premium is preferred-health discounted to THB900,000;
+ * the existing calculator's premium engine uses undiscounted rates.
+ */
+const LEGACY_BROCHURE_CASH_M40_10_20M = [0,320000,1020000,1760000,2660000,3380000,4140000,4940000,5780000,6640000,6880000,7120000,7360000,7600000,7860000,8120000,8380000,8660000,8940000,9220000,9520000,9820000,10120000,10420000,10720000,11040000,11340000,11660000,11980000,12280000,12580000,12880000,13180000,13480000,13760000,14040000,14300000,14560000,14800000,15040000,15260000,15480000,15700000,15900000,16100000,16300000,16500000,16720000,16900000,17100000,17280000,17460000,17660000,17840000,18040000,18300000,18640000,19140000,20000000];
+/* Exact AIA iPOS+ screenshot transcription, female age 60, 20-pay, THB 15m, 12 Nov 2026. */
+const LEGACY_IPOS_VALUES_F60_20_15M = [[60,null,null,null,null],[61,240000,555000,1,254],[62,705000,1575000,4,35],[63,1215000,2610000,5,303],[64,1740000,3615000,7,6],[65,2325000,4665000,7,352],[66,2970000,5760000,8,280],[67,3510000,6585000,9,48],[68,4050000,7365000,9,141],[69,4605000,8130000,9,217],[70,5160000,8850000,9,274],[71,5730000,9540000,9,326],[72,6315000,10245000,10,15],[73,6900000,10905000,10,69],[74,7500000,11565000,10,134],[75,8115000,12210000,10,215],[76,8745000,12870000,10,319],[77,9405000,13545000,11,110],[78,10110000,14280000,11,352],[79,10845000,null,null,null],[80,11055000,null,null,null],[81,11250000,null,null,null],[82,11445000,null,null,null],[83,11625000,null,null,null],[84,11805000,null,null,null],[85,11985000,null,null,null],[86,12165000,null,null,null],[87,12345000,null,null,null],[88,12525000,null,null,null],[89,12690000,null,null,null],[90,12840000,null,null,null],[91,13005000,null,null,null],[92,13170000,null,null,null],[93,13320000,null,null,null],[94,13500000,null,null,null],[95,13710000,null,null,null],[96,13965000,null,null,null],[97,14355000,null,null,null],[98,15000000,null,null,null]];
+const LEGACY_POLICY_VALUE_EVIDENCE = Object.freeze([
+  {
+    id:'ipos-f51-20-15m',source:'AIA iPOS screenshot',
+    issueAge:51,gender:'หญิง',term:20,sum:15000000,
+    status:'reference_only',
+    records:LEGACY_IPOS_VALUES_F51_20_15M.map(([age,surrender,paidUp,extendedYears,extendedDays])=>({
+      age,surrender,paidUp,extendedYears,extendedDays,
+      paidUpInstant:null,extendedMaturity:null,extendedInstant:null
+    }))
+  },
+  {
+    id:'ipos-f60-20-15m',source:'AIA iPOS+ screenshot 12 Nov 2026 11:39–11:40',
+    issueAge:60,gender:'หญิง',term:20,sum:15000000,status:'reference_only',
+    records:LEGACY_IPOS_VALUES_F60_20_15M.map(([age,surrender,paidUp,extendedYears,extendedDays])=>({
+      age,surrender,paidUp,extendedYears,extendedDays,
+      paidUpInstant:null,extendedMaturity:null,extendedInstant:null
+    }))
+  },
+  {
+    // AIA publicly distributed brochure, p.6 and p.8: exact, isolated
+    // male 35 / 20-pay / THB 20m cash-value spot checks.
+    // All other ages and RPU/ETI are unavailable; NEVER interpolate.
+    id:'brochure-m35-20-20m',source:'AIA Legacy Prestige Plus (New) public brochure pp.6,8',
+    issueAge:35,gender:'ชาย',term:20,sum:20000000,
+    status:'reference_only',
+    records:[
+      {age:45,surrender:3440000,paidUp:null,extendedYears:null,extendedDays:null,
+       paidUpInstant:null,extendedMaturity:null,extendedInstant:null},
+      {age:55,surrender:8120000,paidUp:null,extendedYears:null,extendedDays:null,
+       paidUpInstant:null,extendedMaturity:null,extendedInstant:null}
+    ]
+  },
+  {
+    id:'brochure-m40-10-20m',source:'AIA Legacy Prestige Plus brochure page 5 (preferred-rate example)',
+    issueAge:40,gender:'ชาย',term:10,sum:20000000,
+    status:'reference_only',
+    records:LEGACY_BROCHURE_CASH_M40_10_20M.map((surrender,i)=>({
+      age:40+i,surrender:i===0?null:surrender,
+      paidUp:null,extendedYears:null,extendedDays:null,
+      paidUpInstant:null,extendedMaturity:null,extendedInstant:null
+    }))
+  }
+]);
+function legacyPolicyValueFactorRecord(record,sum){
+  const ratio=v=>Number.isFinite(v)&&sum>0?v/sum:null;
+  return {
+    age:record.age,
+    surrenderFactor:ratio(record.surrender),
+    paidUpFactor:ratio(record.paidUp),
+    extendedYears:record.extendedYears,
+    extendedDays:record.extendedDays
+  };
+}
+function lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term){
+  const match=LEGACY_POLICY_VALUE_EVIDENCE.find(entry=>
+    entry.issueAge===issueAge && entry.gender===gender &&
+    entry.sum===sum && entry.term===term
+  );
+  if(!match)return null;
+  const byAge=new Map(match.records.map(row=>[row.age,row]));
+  return {source:match.source,id:match.id,status:match.status,
+    sum:match.sum,byAge,
+    factors:match.records.map(row=>legacyPolicyValueFactorRecord(row,match.sum))};
+}
+/* AIA Legacy Prestige Plus (New) / female 20 Pay only.
+ * Source: AIA internal manual (2025) CV page 18, RPU page 22, ETI page 20.
+ * No actuarial extrapolation. Suppress unknown values and zero entries.
+ * Public sales illustration is NOT authorized by source manual.
+ */
+let LEGACY_MANUAL_F20_INDEX=null;
+function lookupLegacyManualF20(issueAge,gender,sum,term){
+  if(gender!=='หญิง'||term!==20||!Number.isInteger(issueAge)||
+     issueAge<0||issueAge>75||!Number.isFinite(sum)||sum<10000000)return null;
+  const data=window.RP_LEGACY_F20_FACTORS;
+  if(!data||!['cv','rpu','eti'].every(k=>Array.isArray(data[k])))return null;
+  if(!LEGACY_MANUAL_F20_INDEX||LEGACY_MANUAL_F20_INDEX.data!==data){
+    const build=rows=>new Map(rows.map(r=>[r[0]+':'+r[1],r]));
+    LEGACY_MANUAL_F20_INDEX={data,cv:build(data.cv),rpu:build(data.rpu),eti:build(data.eti)};
+  }
+  const m=LEGACY_MANUAL_F20_INDEX;
+  const amount=f=>Number.isFinite(f)&&f>0?Math.round(f*sum/1000):null;
+  const byAge=new Map();
+  for(let age=issueAge;age<=98;age++){
+    const year=age-issueAge+1,k=issueAge+':'+year;
+    const c=m.cv.get(k),p=m.rpu.get(k),e=m.eti.get(k);
+    const ey=e&&Number.isFinite(e[2])&&Number.isFinite(e[3])&&(e[2]>0||e[3]>0)?e[2]:null;
+    byAge.set(age,{age,
+      surrender:amount(c?.[2]),paidUp:amount(p?.[2]),paidUpInstant:amount(p?.[3]),
+      extendedYears:ey,extendedDays:ey!==null?e[3]:null,
+      extendedMaturity:amount(e?.[4]),extendedInstant:amount(e?.[5])});
+  }
+  return {id:'manual-female-20-pay-2025',mode:'manual',sum,byAge,
+    source:'AIA Legacy Prestige Plus (New) internal manual 2025 / CV p.18, RPU p.22, ETI p.20'};
+}
+/* Legacy Prestige Plus: female 10 / 15 pay manual tables ONLY.
+ * No shared plan logic, actuarial extrapolation or change to Table A.
+ * The manual provides CV 35 policy years (or less if past age 99);
+ * RPU / ETI stop at policy year 9 for 10-pay, year 14 for 15-pay.
+ */
+const LEGACY_MANUAL_FEMALE_10_15_INDEX=new Map();
+function lookupLegacyManualFemale10Or15(issueAge,gender,sum,term){
+  if(gender!=='หญิง'||![10,15].includes(term)||!Number.isInteger(issueAge)||
+     issueAge<0||issueAge>75||!Number.isFinite(sum)||
+     sum<10000000||sum>1000000000)return null;
+  const data=window.RP_LEGACY_FEMALE_10_15_FACTORS?.[term];
+  if(!data||!['cv','rpu','eti'].every(k=>Array.isArray(data[k])))return null;
+  let entry=LEGACY_MANUAL_FEMALE_10_15_INDEX.get(term);
+  if(!entry||entry.data!==data){
+    const build=rows=>new Map(rows.map(r=>[r[0]+':'+r[1],r]));
+    entry={data,cv:build(data.cv),rpu:build(data.rpu),eti:build(data.eti)};
+    LEGACY_MANUAL_FEMALE_10_15_INDEX.set(term,entry);
+  }
+  const amount=f=>Number.isFinite(f)&&f>0?Math.round(f*sum/1000):null;
+  const byAge=new Map();
+  for(let age=issueAge;age<=98;age++){
+    const year=age-issueAge+1,k=issueAge+':'+year;
+    const c=entry.cv.get(k),p=entry.rpu.get(k),e=entry.eti.get(k);
+    const hasTerm=!!e&&Number.isFinite(e[2])&&Number.isFinite(e[3])&&(e[2]>0||e[3]>0);
+    byAge.set(age,{age,
+      surrender:amount(c?.[2]),paidUp:amount(p?.[2]),paidUpInstant:amount(p?.[3]),
+      extendedYears:hasTerm?e[2]:null,extendedDays:hasTerm?e[3]:null,
+      extendedMaturity:amount(e?.[4]),extendedInstant:amount(e?.[5])});
+  }
+  return {id:'manual-female-'+term+'-pay-2025',mode:'manual',sum,byAge,
+    source:'AIA Legacy Prestige Plus (New) internal manual 2025 / female '+term+' Pay'};
+}
+// Male RPU values are retrieved from an authenticated server-only endpoint.
+// A cached entry always belongs to one exact issue-age / term / sum case.
+// Never bundle restricted factor tables into this publicly available HTML.
+const LEGACY_TABLE_B_DATA=new Map();
+const LEGACY_TABLE_B_CASE_SOURCES=new Map();
+const LEGACY_TABLE_B_PENDING=new Set();
+const LEGACY_TABLE_B_ERRORS=new Map();
+const LEGACY_TABLE_B_ERROR_TIME=new Map();
+const LEGACY_TABLE_B_RETRY_COUNTS=new Map();
+const LEGACY_TABLE_B_RETRY_TIMERS=new Map();
+const LEGACY_MALE_RPU_DATA=LEGACY_TABLE_B_DATA; // previous QA-only alias
+let LEGACY_TABLE_B_TIMER=null;
+const legacyTableBKey=(age,gender,sum,term)=>[age,gender,sum,term].join(':');
+const legacyMaleRpuKey=(age,sum,term)=>[age,sum,term].join(':'); // legacy QA fallback only
+function retryLegacyTableB(){
+  const key=legacyTableBKey(state.age,state.gender,state.sum,state.legacy.term);
+  LEGACY_TABLE_B_ERRORS.delete(key);
+  LEGACY_TABLE_B_ERROR_TIME.delete(key);
+  loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
+  render();
+}
+async function submitLegacyCalculatorAccess(){
+  const field=document.getElementById('legacy-calculator-code');
+  const btn=document.getElementById('legacy-calculator-submit');
+  const code=field&&field.value?field.value.trim():'';
+  if(code.length<20){ if(field)field.setCustomValidity('กรุณากรอกรหัสเครื่องคำนวณที่ได้รับ');field?.reportValidity();return; }
+  if(field)field.setCustomValidity('');
+  if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบสิทธิ์...';}
+  try{
+    const response=await fetch('/api/legacy-prestige-access',{
+      method:'POST',credentials:'same-origin',cache:'no-store',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({code})
+    });
+    if(!response.ok)throw Error(response.status===401?'รหัสเข้าใช้ไม่ถูกต้อง':'ไม่สามารถตรวจสอบสิทธิ์ได้');
+    retryLegacyTableB();
+  }catch(error){
+    if(btn){btn.disabled=false;btn.textContent='เข้าใช้ตาราง B';}
+    const msg=document.getElementById('legacy-calculator-error');
+    if(msg)msg.textContent=error.message||'ตรวจสอบสิทธิ์ไม่สำเร็จ';
+  }finally{if(field)field.value='';}
+}
+function loadLegacyTableB(age,gender,sum,term){
+  if(!['ชาย','หญิง'].includes(gender)||!Number.isInteger(age)||age<0||age>75||
+     !Number.isFinite(sum)||sum<10000000||sum>1000000000||
+     ![10,15,20].includes(term))return;
+  const key=legacyTableBKey(age,gender,sum,term);
+  if(LEGACY_TABLE_B_DATA.has(key)||LEGACY_TABLE_B_PENDING.has(key))return;
+  // Temporary server failures can recover after a login or factor configuration fix.
+  // Retry only after a cooldown; do not spin on every render or bypass access checks.
+  if(LEGACY_TABLE_B_ERRORS.has(key)){
+    const last=LEGACY_TABLE_B_ERROR_TIME.get(key)||0;
+    if(Date.now()-last<15000)return;
+    LEGACY_TABLE_B_ERRORS.delete(key);
+    LEGACY_TABLE_B_ERROR_TIME.delete(key);
+  }
+  clearTimeout(LEGACY_TABLE_B_TIMER);
+  LEGACY_TABLE_B_TIMER=setTimeout(async()=>{
+    if(LEGACY_TABLE_B_DATA.has(key)||LEGACY_TABLE_B_PENDING.has(key))return;
+    LEGACY_TABLE_B_PENDING.add(key);
+    try{
+      const sex=gender==='ชาย'?'M':'F';
+      const params=new URLSearchParams({age:String(age),gender:sex,
+        sum:String(sum),term:String(term)});
+      const res=await fetch('/api/legacy-prestige-rpu?'+params.toString(),
+        {credentials:'same-origin',cache:'no-store'});
+      if(!res.ok)throw Error(res.status===401?'ตาราง B ยังไม่มีสิทธิ์เข้าถึง กรุณาเปิดลิงก์เครื่องคำนวณสำหรับตัวแทนที่ได้รับอนุญาต':
+        res.status===403?'บัญชีนี้ยังไม่มีสิทธิ์ดูตาราง B':
+        res.status===503?'ข้อมูล Factor ยังไม่ผ่านการตรวจสอบบน Server (503)':
+        'ไม่สามารถโหลดข้อมูล CV/RPU ที่ตรวจสอบได้');
+      const result=await res.json();
+      if(result.gender!==sex||result.issueAge!==age||result.sum!==sum||
+         result.term!==term||!Array.isArray(result.rows)||
+         result.rows.length!==99-age)throw Error('ผลการคำนวณไม่ตรงกับข้อมูลที่กรอก');
+      const byAge=new Map();
+      for(let i=0;i<result.rows.length;i++){
+        const v=result.rows[i];
+        if(v.age!==age+i||v.policyYear!==i+1||
+           !['surrender','paidUp'].every(k=>v[k]===null||
+             (Number.isSafeInteger(v[k])&&v[k]>=0)))
+          throw Error('ข้อมูล CV/RPU ไม่ตรงปีกรมธรรม์');
+        if(!['MANUAL_PUBLISHED','IPOS_EXACT_CASE_QA','UNAVAILABLE'].includes(v.cvEvidence)||
+           (v.surrender===null&&v.cvEvidence!=='UNAVAILABLE')||
+           (v.surrender!==null&&v.cvEvidence==='UNAVAILABLE'))
+          throw Error('แหล่งข้อมูล CV ไม่ตรงกับผลคำนวณ');
+        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp,cvEvidence:v.cvEvidence});
+      }
+      LEGACY_TABLE_B_DATA.set(key,byAge);
+      LEGACY_TABLE_B_CASE_SOURCES.set(key,result.cvExactCaseSource||null);
+      LEGACY_TABLE_B_ERRORS.delete(key);
+      LEGACY_TABLE_B_ERROR_TIME.delete(key);
+      LEGACY_TABLE_B_RETRY_COUNTS.delete(key);
+    }catch(err){
+      LEGACY_TABLE_B_ERRORS.set(key,err?.message||'ไม่สามารถโหลดข้อมูล CV/RPU');
+      LEGACY_TABLE_B_ERROR_TIME.set(key,Date.now());
+      // One bounded automatic retry after a transient 503/network issue.
+      // Auth errors (401/403) require a valid login/role; never bypass them.
+      const retriable=/\(503\)|ไม่สามารถโหลดข้อมูล CV\/RPU/.test(String(err?.message||''));
+      const retries=LEGACY_TABLE_B_RETRY_COUNTS.get(key)||0;
+      if(retriable&&retries<1&&!LEGACY_TABLE_B_RETRY_TIMERS.has(key)){
+        LEGACY_TABLE_B_RETRY_COUNTS.set(key,retries+1);
+        const timer=setTimeout(()=>{
+          LEGACY_TABLE_B_RETRY_TIMERS.delete(key);
+          if(state.tab!=='legacy'||state.age!==age||state.gender!==gender||
+             state.sum!==sum||state.legacy.term!==term)return;
+          LEGACY_TABLE_B_ERRORS.delete(key);
+          LEGACY_TABLE_B_ERROR_TIME.delete(key);
+          loadLegacyTableB(age,gender,sum,term);
+        },15000);
+        LEGACY_TABLE_B_RETRY_TIMERS.set(key,timer);
+      }
+    }finally{
+      LEGACY_TABLE_B_PENDING.delete(key);
+      if(state.tab==='legacy'&&state.age===age&&state.gender===gender&&
+         state.sum===sum&&state.legacy.term===term)render();
+    }
+  },160);
+}
+// Preserve entry point used by existing Legacy-only QA scripts.
+function loadLegacyMaleRpu(age,gender,sum,term){
+  return loadLegacyTableB(age,gender,sum,term);
+}
+function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
+  // Prefer a server-computed exact input case. Never reuse another user's case.
+  const verified=LEGACY_TABLE_B_DATA.get(legacyTableBKey(issueAge,gender,sum,term));
+  if(verified){
+    // Only an exact issue-age/gender/sum/pay-term AIA reference can complete a
+    // missing server cell (e.g. iPOS+ years beyond the manual CV table).
+    // A known zero is never replaced, and no other contract's values are used.
+    const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+    if(!exact)return {id:'legacy-table-b-server',mode:'internal-qa',sum,
+      byAge:verified,source:'ตารางอ้างอิง AIA 2025 ที่คำนวณในระบบภายใน'};
+    const byAge=new Map(verified);
+    for(const [rowAge,reference] of exact.byAge){
+      const current=byAge.get(rowAge);
+      if(!current)continue;
+      const merged={...current};
+      for(const key of ['surrender','paidUp']){
+        if((merged[key]===null||merged[key]===undefined)&&
+           Number.isFinite(reference?.[key]))merged[key]=reference[key];
+      }
+      byAge.set(rowAge,merged);
+    }
+    return {id:'legacy-table-b-server-plus-exact-case-reference',mode:'internal-qa',sum,
+      byAge,source:'ข้อมูลภายใน AIA 2025 + iPOS+/Brochure เฉพาะกรณีตรงกัน'};
+  }
+  if(gender==='ชาย'){
+    const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+    const loaded=LEGACY_MALE_RPU_DATA.get(legacyMaleRpuKey(issueAge,sum,term));
+    if(!loaded)return exact;
+    const byAge=new Map(exact?.byAge||[]);
+    for(const [age,paidUp] of loaded){
+      byAge.set(age,{...(byAge.get(age)||{age}),paidUp});
+    }
+    return {id:'authorized-internal-male-rpu',mode:'internal-qa',
+      source:(exact?exact.source+' + ':'')+'ตาราง RPU ภายใน AIA (เฉพาะบัญชีพนักงานที่ได้รับอนุญาต)',
+      sum,byAge};
+  }
+  const manual=term===20?lookupLegacyManualF20(issueAge,gender,sum,term):
+    lookupLegacyManualFemale10Or15(issueAge,gender,sum,term);
+  const exact=lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term);
+  if(!manual)return exact;
+  if(!exact)return manual;
+  // Only fill genuinely unavailable manual cells from the same exact iPOS+
+  // gender/issue age/term/sum case. Never estimate across capital or age.
+  const keys=['surrender','paidUp','paidUpInstant','extendedYears',
+    'extendedDays','extendedMaturity','extendedInstant'];
+  const byAge=new Map(manual.byAge);
+  for(const [age,reference] of exact.byAge){
+    const current=byAge.get(age)||{age};
+    const row={...current};
+    for(const key of keys){
+      if(row[key]===null||row[key]===undefined){
+        if(Number.isFinite(reference[key]))row[key]=reference[key];
+      }
+    }
+    byAge.set(age,row);
+  }
+  return {...manual,byAge,source:manual.source+' + iPOS+ เฉพาะเคสตรงกัน',
+    status:'manual_with_exact_case_ipos_fallback'};
+}
+/* Backward-compatible exact lookup: map returned only for matching evidence. */
+function lookupLegacyIPOSValues(issueAge,gender,sum,term){
+  return lookupLegacyPolicyValueEvidence(issueAge,gender,sum,term)?.byAge||null;
+}
+// Internal QA display-only interpolation. This does NOT create contractual
+// surrender benefits and MUST NOT be used in customer-facing PDF quotations.
+// Never alter authenticated source factors, confirmed zeroes, RPU or API data.
+function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
+  const evidence=lookupLegacyPolicyValueIllustration(inputs.age,inputs.gender,inputs.sum,inputs.term);
+  const matches=evidence?.byAge||null;
+  // An exact-case public brochure may include CV but not RPU or ETI.
+  // Describe that partial coverage explicitly; never infer these benefits.
+  const available=[...(matches?.values()||[])];
+  const cvAvailable=available.some(v=>Number.isFinite(v?.surrender));
+  const rpuAvailable=available.some(v=>Number.isFinite(v?.paidUp));
+  const partialMaleNote=inputs.gender==='ชาย'&&evidence&&cvAvailable&&!rpuAvailable
+    ?' · CV มีข้อมูลยืนยันแล้ว แต่มูลค่าใช้เงินสำเร็จ (RPU) ยังไม่มีค่าอ้างอิงสำหรับกรณีนี้'
+    :'';
+  const caseKey=legacyTableBKey(inputs.age,inputs.gender,inputs.sum,inputs.term);
+  const tableBError=LEGACY_TABLE_B_ERRORS.get(caseKey);
+  const tableBServerReady=LEGACY_TABLE_B_DATA.has(caseKey);
+  const isExactIPOSCase=tableBServerReady&&
+    LEGACY_TABLE_B_CASE_SOURCES.get(caseKey)==='USER_SUPPLIED_IPOS_SCREENSHOT_QA_ONLY';
+  const tableBStatus=tableBServerReady?'คำนวณ CV/RPU อัตโนมัติจากข้อมูลอ้างอิงที่ระบบจัดเก็บภายใน':
+    (tableBError||'กำลังคำนวณ CV/RPU อัตโนมัติ...');
+  // No manual passcode: an authorized link grants Table B access on the server.
+  // An ordinary public URL cannot unlock restricted AIA values.
+  const tableBAuthAction=tableBError&&(/ยังไม่มีสิทธิ์เข้าถึง|ไม่มีสิทธิ์ดูตาราง B/.test(tableBError))
+    ?'<div class="legacy-auth-help" role="status">ลิงก์ที่เปิดอยู่ยังไม่ได้รับสิทธิ์ดูตาราง B กรุณาใช้ลิงก์เฉพาะตัวแทนที่ผู้ดูแลออกให้ แล้วตารางจะคำนวณอัตโนมัติโดยไม่ต้องกรอกรหัส ไม่ต้องกดโหลดซ้ำ</div>'
+    :'';
+  const accessRequired=!!tableBError&&(/ยังไม่มีสิทธิ์เข้าถึง|ไม่มีสิทธิ์ดูตาราง B/.test(tableBError));
+  // Do not offer a misleading retry when the server denied access (401/403).
+  // Restricted actuarial values remain server-only and require a valid agent grant.
+  const tableBRetryAction=tableBError&&!accessRequired
+    ?'<button type="button" class="legacy-retry-btn" onclick="retryLegacyTableB()">ลองโหลดตาราง B อีกครั้ง</button>'
+    :'';
+  const thClass='legacy-values-age';
+  const renderValue=(value)=>{
+    if(value===null||value===undefined)return '<td class="legacy-values-placeholder">—</td>';
+    return '<td>'+fmt(value)+'</td>';
+  };
+  const isScreenshotAge=isExactIPOSCase&&(
+    (inputs.gender==='หญิง'&&inputs.age===35&&inputs.term===15&&inputs.sum===10000000)||(
+     inputs.gender==='ชาย'&&inputs.age===40&&inputs.term===10&&inputs.sum===10000000));
+  const rows=displayRows.map(r=>{
+    const data=matches?.get(r.age);
+    const screenshotAge=isScreenshotAge&&(
+      (inputs.gender==='หญิง'&&r.age>=70&&r.age<=98)||
+      (inputs.gender==='ชาย'&&r.age>=75&&r.age<=98));
+    const evidenceStatus=data?.cvEvidence||null;
+    const cvCell=Number.isFinite(data?.surrender)
+      ?(evidenceStatus==='IPOS_EXACT_CASE_QA'||(evidenceStatus===null&&screenshotAge)
+        ?'<td class="legacy-cv-ipos" title="ยืนยันจากภาพ iPOS+ เฉพาะกรณีที่ตรงกัน">'+fmt(data.surrender)+' <small>(ภาพ iPOS+)</small></td>'
+        :renderValue(data.surrender))
+      :'<td class="legacy-values-placeholder" title="ไม่มีค่า CV ที่ยืนยันสำหรับกรณีนี้">—</td>';
+    return '<tr><td class="'+thClass+'">'+r.age+'</td>'+
+      cvCell+renderValue(data?.paidUp)+'</tr>';
+  }).join('');
+  return '<section class="ledger-wrap legacy-values-section">'+
+    '<style>'+
+    '.legacy-values-section{margin-top:18px}'+
+    '.legacy-values-scroll{overflow:auto;max-height:530px;border:1px solid #E1D8C9;border-radius:10px;overscroll-behavior-x:contain}'+
+    '.legacy-values-table{width:100%;min-width:420px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13px;font-variant-numeric:tabular-nums}'+
+    '.legacy-values-table th{background:#142A47;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:12px;text-align:center;line-height:1.45;padding:11px 8px;border-right:1px solid rgba(255,255,255,.16)}'+
+    '.legacy-values-table thead tr:nth-child(2) th{background:#234263}'+
+    '.legacy-values-table td{text-align:right;padding:10px 12px;border-bottom:1px solid #E8E1D6;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+    '.legacy-values-table tbody tr:nth-child(even){background:#F8F6F2}'+
+    '.legacy-values-table tbody tr:hover td:not(.legacy-values-age){background:#FFF7E6}'+
+    '.legacy-values-table .legacy-values-age{position:sticky;left:0;z-index:2;text-align:center;background:#F8F6F2;width:68px}'+
+    '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
+    '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
+    '.legacy-values-table .legacy-cv-ipos{color:#1F6646;background:#EAF6EF;font-weight:650}.legacy-values-table .legacy-cv-ipos small{font-size:10px;font-weight:600;white-space:nowrap}'+
+    '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
+    '.legacy-values-section .legacy-values-reference{padding:12px 14px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
+    '.legacy-auth-help{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.legacy-auth-help button,.legacy-retry-btn{display:inline-block;padding:8px 14px;border-radius:7px;background:#142A47;color:white;font-size:12px;font-weight:700;text-decoration:none;border:0;cursor:pointer}.legacy-auth-help input{font:inherit;min-width:180px;padding:9px 10px;border:1px solid #B8985A;border-radius:7px}.legacy-auth-help label{font-weight:700;font-size:12px}.legacy-auth-help #legacy-calculator-error{color:#A03232}.legacy-auth-help span{font-size:11px}.legacy-retry-btn{margin-top:10px;background:#B8985A;color:#142A47}'+
+    '@media(max-width:760px){.legacy-values-table{min-width:360px;font-size:12px}.legacy-values-table th{font-size:11px;padding:9px 5px}.legacy-values-table td{padding:9px 7px}.legacy-values-table .legacy-cv-ipos small{display:block;font-size:9px}}'+
+    '</style>'+
+    '<h3>ตารางมูลค่ากรมธรรม์</h3>'+
+    '<div class="legacy-values-reference">'+
+      '<strong>'+tableBStatus+'</strong> · สำหรับการตรวจสอบภายในเท่านั้น ไม่ใช่ใบเสนอขายอย่างเป็นทางการของ AIA'+
+      (isExactIPOSCase?'<div style="font-size:11px;color:#1F6646">CV ที่ระบุ (ภาพ iPOS+) ใช้เฉพาะกรณีที่กรอกตรงกับภาพต้นทาง: หญิง 35 ปี / 15 Pay / ทุน 10 ล้านบาท / อายุ 70–98 หรือ ชาย 40 ปี / 10 Pay / ทุน 10 ล้านบาท / อายุ 75–98 ไม่ใช่ Factor ใช้ร่วมทุกกรณี</div>':'')+
+      tableBAuthAction+tableBRetryAction+
+    '</div>'+
+    '<div class="legacy-values-scroll" role="region" tabindex="0" aria-label="ตารางมูลค่ากรมธรรม์ เลื่อนแนวนอนได้">'+
+    '<table class="legacy-values-table"><thead>'+
+    '<tr><th class="legacy-values-age" scope="col">อายุ</th>'+
+    '<th scope="col">เงินค่าเวนคืนกรมธรรม์ (CV)</th>'+
+    '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
+    '</thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · — = ยังไม่มีค่าที่ตรวจสอบได้ ไม่ใช่ 0 บาท · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
+    '</section>';
+}
+
+function viewLegacyPrestige(app){
+  const term=state.legacy.term;
+  const r=calcLegacyPrestige(state.age,state.gender,state.sum,term,state.tax);
+  if(r.ok)loadLegacyTableB(state.age,state.gender,state.sum,term);
+  app.innerHTML=panelShell('life','AIA Legacy Prestige Plus',
+    'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • ข้อมูลเบี้ยมาตรฐานก่อนส่วนลดสุขภาพ');
+  const panel=app.querySelector('.panel');
+  // Legacy-only visual alignment with the other product summaries. No formula changes.
+  panel.classList.add('legacy-clean-panel');
+  const legacyCleanStyle=document.createElement('style');
+  legacyCleanStyle.textContent=
+    '#app .legacy-clean-panel .smart-summary-head{margin-top:16px}'+
+    '#app .legacy-clean-panel .smart-summary-head h3{margin:0;font-size:15px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat{border-radius:16px;padding:13px 15px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+1){background:#fff0d5;border-color:#e7d2a5}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+2){background:#e3f2e9;border-color:#cbe5d6}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+3){background:#e8f1fc;border-color:#cadcef}'+
+    '@media(max-width:720px){#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}'+
+    '@media(max-width:470px){#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:1fr}}';
+  panel.appendChild(legacyCleanStyle);
+  const controls=document.createElement('div');
+  controls.className='pl20-rider-wrap plus-term-panel';
+  controls.innerHTML='<label for="legacy-term" style="display:block;margin-bottom:8px;font-weight:700">ระยะเวลาชำระเบี้ยประกัน</label>'+
+    '<select id="legacy-term" style="max-width:280px;width:100%;padding:10px;border:1px solid #d9d2bf;border-radius:8px">'+
+    [10,15,20].map(n=>'<option value="'+n+'" '+(n===term?'selected':'')+'>'+n+' ปี</option>').join('')+'</select>';
+  panel.appendChild(controls);
+  controls.querySelector('#legacy-term').addEventListener('change',e=>{
+    state.legacy.term=Number(e.target.value);
+    render();
+  });
+  if(!r.ok){
+    const note=document.createElement('div');
+    note.className='ledger-wrap';
+    note.textContent=r.message;
+    panel.appendChild(note);
+    return;
+  }
+  fillSummary(app,[
+    {lbl:'เบี้ยประกันภัยมาตรฐานต่อปี (ก่อนส่วนลด)',val:fmt(r.annualStandard)},
+    {lbl:'ส่วนลดเบี้ยประกันตามทุน '+r.discountPct+'%',val:fmt(r.annualDiscount)},
+    {lbl:'เบี้ยประกันภัยต่อปี (หลังส่วนลดทุน)',val:fmt(r.annual)},
+    {lbl:'ระยะเวลาชำระเบี้ย',val:r.term+' ปี'},
+    {lbl:'จำนวนเงินเอาประกันภัย',val:fmt(r.sum)},
+    {lbl:'ประมาณการประหยัดภาษีต่อปี (ตามฐานภาษี)',val:fmt(r.taxRelief)}
+  ]);
+  // Remove English decorative kickers and icon badges ONLY from this plan.
+  // Product name AIA Legacy Prestige Plus and policy acronyms WPCI/TI stay intact.
+  panel.querySelectorAll('.rp-section-kicker,.summary .stat-icon')
+    .forEach(node=>node.remove());
+  const graphic=document.createElement('div');
+  const benefitSummary=document.createElement('div');
+  benefitSummary.innerHTML=buildLegacyBenefitSummaryHTML(r,state.age);
+  panel.appendChild(benefitSummary.firstElementChild);
+  graphic.innerHTML=buildLegacyCoverageIllustrationHTML(r,state.age);
+  panel.appendChild(graphic.firstElementChild);
+  const wpci=document.createElement('div');
+  wpci.innerHTML=buildLegacyWPCICategoriesHTML();
+  panel.appendChild(wpci.firstElementChild);
+
+  const displayRows=buildLegacyAgeTableRows(state.age,r.term,r.annual,r.sum);
+  const tableSwitch=document.createElement('section');
+  tableSwitch.className='legacy-table-switch-wrap';
+  tableSwitch.innerHTML='<style>'+
+    '.legacy-table-switch-wrap{margin:20px 22px 6px}'+
+    '.legacy-table-switch-header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}'+
+    '.legacy-table-switch-header h3{font-size:17px;color:#142A47;margin:0}'+
+    '.legacy-table-choice{display:flex;gap:5px;padding:4px;background:#F8F6F2;border:1px solid #E1D8C9;border-radius:10px;flex-wrap:wrap}'+
+    '.legacy-table-choice button{font-family:inherit;border:1px solid transparent;border-radius:7px;background:transparent;color:#142A47;min-height:38px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}'+
+    '.legacy-table-choice button[aria-pressed="true"]{background:#142A47;color:#fff;border-color:#C4A363}'+
+    '.legacy-table-choice button:focus-visible{outline:2px solid #C4A363;outline-offset:2px}'+
+    '.legacy-table-switch-wrap .ledger-wrap{margin:0}'+
+    '@media(max-width:640px){.legacy-table-switch-wrap{margin:16px 10px 6px}.legacy-table-choice{width:100%}.legacy-table-choice button{flex:1}}'+
+    '</style>'+
+    '<div class="legacy-table-switch-header"><h3>ตารางผลประโยชน์</h3>'+
+    '<div class="legacy-table-choice" role="group" aria-label="เลือกตารางที่ต้องการดู">'+
+    '<button type="button" data-legacy-table="A" aria-pressed="false">ตาราง A · เบี้ยประกัน</button>'+
+    '<button type="button" data-legacy-table="B" aria-pressed="false">ตาราง B · มูลค่ากรมธรรม์</button>'+
+    '</div></div>'+
+    '<div class="legacy-table-panel" id="legacy-table-A"><div class="ledger-wrap"><h3>ตารางเบี้ยประกันหลักและทุนประกัน (ไม่รวมมูลค่าเวนคืน)</h3><div class="ledger-el"></div></div></div>'+
+    '<div class="legacy-table-panel" id="legacy-table-B" hidden></div>';
+  panel.appendChild(tableSwitch);
+  renderLedger(tableSwitch.querySelector('#legacy-table-A .ledger-el'),displayRows,[
+    {key:'age',label:'อายุ'},
+    {key:'premium',label:'เบี้ยหลักต่อปี'},
+    {key:'coverage',label:'จำนวนเงินเอาประกันภัย'}
+  ]);
+  tableSwitch.querySelector('#legacy-table-B').innerHTML=buildLegacyPolicyValuesTableHTML(displayRows,{age:state.age,gender:state.gender,sum:state.sum,term:r.term});
+  const setTableView=(view)=>{
+    const current=view==='B'?'B':'A';
+    state.legacy.tableView=current;
+    for(const key of ['A','B']){
+      const active=key===current;
+      tableSwitch.querySelector('#legacy-table-'+key).hidden=!active;
+      const button=tableSwitch.querySelector('[data-legacy-table="'+key+'"]');
+      button.setAttribute('aria-pressed',String(active));
+    }
+  };
+  tableSwitch.querySelectorAll('[data-legacy-table]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      setTableView(button.dataset.legacyTable);
+      // Reopening Table B should refresh the exact case after the cooldown.
+      // No manual factor upload, mutation of another product, or unsafe fallback.
+      if(button.dataset.legacyTable==='B')
+        loadLegacyTableB(state.age,state.gender,state.sum,state.legacy.term);
+    });
+  });
+  setTableView(state.legacy.tableView);
+  addExportButton(app,'legacy');
+}
+
 /* ===================== main render ===================== */
 function render(){
   syncSelectedPlanSumMinimum();
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacy:viewLegacyPrestige };
   map[state.tab](app);
 }
 
@@ -17694,7 +18677,8 @@ function minSumInsuredForPlan(plan=state.tab){
 
 // Shared input: only the three selected tabs (SuperCare includes both pay terms) get 200,000.
 function syncSelectedPlanSumMinimum(){
-  const min=minSumInsuredForPlan();
+  const min=state.tab==='legacy'?10000000:minSumInsuredForPlan();
+  const maximum=state.tab==='legacy'?1000000000:SUM_INSURED_MAX;
   const help=document.getElementById('sum-help');
   if(help) help.textContent='ขั้นต่ำ '+min.toLocaleString('en-US')+' • สูงสุด 50,000,000 บาท';
 
@@ -17718,8 +18702,8 @@ function validateSumInsured(value){
     return {ok:false, message:'ทุนประกันขั้นต่ำ '+min.toLocaleString('en-US')+' บาท'};
   }
 
-  if(numericValue > SUM_INSURED_MAX){
-    return {ok:false, message:'ทุนประกันสูงสุด 50,000,000 บาท'};
+  if(numericValue > maximum){
+    return {ok:false, message:state.tab==='legacy'?'ทุนประกันสูงสุด 1,000,000,000 บาท':'ทุนประกันสูงสุด 50,000,000 บาท'};
   }
 
   return {ok:true, message:''};
@@ -17812,7 +18796,15 @@ buildTabs();
 wireInputs();
 initReportDate();
 setSumValidationUI(validateSumInsured(state.sum));
-render();
+// Return from the QA sign-in callback directly to the Legacy Table B preview.
+if(new URLSearchParams(location.search).get('plan')==='legacy'){
+  state.legacy.tableView='B';
+  const legacyTab=document.querySelector('.tab[data-id="legacy"]');
+  if(legacyTab)legacyTab.click();
+  else render();
+}else{
+  render();
+}
 </script>
 </body>
 </html>
