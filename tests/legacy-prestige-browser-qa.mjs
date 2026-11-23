@@ -103,6 +103,17 @@ try {
      return {page:i+1,overflow:!!rect&&rect.bottom>root.bottom-6};
    }));
    assert.deepEqual(overflow.filter(p=>p.overflow),[],'PDF content must not overflow page bounds');
+   // Check the real PDF preview zoom click, not only the presence of a button.
+   const zoom=page.locator('.rp-preview-legacy-zoom');
+   await zoom.waitFor({timeout:15000});
+   assert.equal(await zoom.getAttribute('aria-pressed'),'false');
+   await zoom.click();
+   assert.equal(await zoom.getAttribute('aria-pressed'),'true','zoom must respond to click');
+   assert.equal(await zoom.innerText(),'พอดีหน้าจอ');
+   assert.equal(await page.locator('.rp-preview-fit-paper').evaluate(el=>el.style.transform),'scale(1)');
+   await zoom.click();
+   assert.equal(await zoom.getAttribute('aria-pressed'),'false','fit-page must respond to click');
+   assert.equal(await zoom.innerText(),'ขยาย 100%');
    // Capture the exact Legacy preview for a manual typography/pagination review.
    await page.locator('.legacy-report-page').first().screenshot({path:path.join(qaDir,`female-${term}-pay-report-page1.png`)});
    // Exercise the real app PDF button, not Playwright's generic print-to-PDF.
