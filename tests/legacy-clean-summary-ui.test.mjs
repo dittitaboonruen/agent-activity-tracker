@@ -21,9 +21,9 @@ test('Legacy formula and summaries stay unchanged',()=>{
   for(const expr of ['fmt(r.annualStandard)','fmt(r.annualDiscount)','fmt(r.annual)','r.term+\' ปี\'','fmt(r.sum)','fmt(r.taxRelief)'])
     assert.ok(legacy.includes(expr),expr);
 });
-test('shared summary code still includes icons and headings for other plans',()=>{
+test('current main shared UI stays clean without English kickers and icons',()=>{
   const shared=src.slice(src.indexOf('function panelShell('),src.indexOf('function chartAndLedger('));
-  assert.match(shared,/SELECTED PLAN/);
-  assert.match(shared,/YOUR PLAN AT A GLANCE/);
-  assert.match(shared,/stat-icon/);
+  assert.doesNotMatch(shared,/SELECTED PLAN|YOUR PLAN AT A GLANCE/);
+  assert.doesNotMatch(shared,/class="stat-icon"/);
+  assert.match(shared,/สรุปแผนที่เลือก/);
 });
