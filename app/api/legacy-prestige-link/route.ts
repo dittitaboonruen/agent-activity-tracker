@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {issueAccessCookie, validCalculatorLinkGrant} from "@/lib/insurance/legacy-prestige-plus/calculator-access";
+import {issueAccessCookie, validCalculatorLinkGrant, validAgentCalculatorGrant} from "@/lib/insurance/legacy-prestige-plus/calculator-access";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -8,7 +8,7 @@ const headers={"Cache-Control":"private, no-store, max-age=0",
 
 export async function GET(request:NextRequest){
   const grant=request.nextUrl.searchParams.get("grant");
-  if(!validCalculatorLinkGrant(grant))
+  if(!validCalculatorLinkGrant(grant) && !validAgentCalculatorGrant(grant))
     return NextResponse.json({ok:false,error:"link_expired_or_invalid"},
       {status:403,headers});
   // Exchange URL grant for an HttpOnly cookie and erase token from address bar.
