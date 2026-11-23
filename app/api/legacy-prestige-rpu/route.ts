@@ -17,6 +17,38 @@ type Gender = "M" | "F";
 type Factors = Record<string, Record<Gender, {cv:number[][];rpu:number[][]}>>;
 const noStore = {"Cache-Control":"private, no-store, max-age=0","X-Robots-Tag":"noindex, noarchive"};
 
+const PUBLIC_WINDOW_MS=60_000;
+const PUBLIC_MAX_REQUESTS_PER_WINDOW=90;
+// Best-effort per-instance burst protection. Platform-wide enforcement must
+// be configured separately at the edge: serverless instances do not share RAM.
+const publicBurst=new Map<string,{start:number,count:number}>();
+function publicBurstAllowed(request:NextRequest):boolean{
+  const headers=request.headers;
+  const forwarded=(headers?.get("x-vercel-forwarded-for")||
+    headers?.get("x-forwarded-for")||headers?.get("x-real-ip")||"unknown");
+  const ip=forwarded.split(",")[0].trim().slice(0,128);
+  // Never retain or log raw IPs. This is not a durable identity.
+  const key=createHash("sha256").update(ip).digest("hex");
+  const now=Date.now();
+  const entry=publicBurst.get(key);
+  if(!entry||now-entry.start>=PUBLIC_WINDOW_MS){
+    publicBurst.set(key,{start:now,count:1});
+  }else if(entry.count>=PUBLIC_MAX_REQUESTS_PER_WINDOW){
+    return false;
+  }else{
+    entry.count++;
+  }
+  if(publicBurst.size>5000){
+    for(const [id,value] of publicBurst){
+      if(now-value.start>=PUBLIC_WINDOW_MS)publicBurst.delete(id);
+    }
+    // Hard memory bound on long-lived instances.
+    while(publicBurst.size>5000)publicBurst.delete(publicBurst.keys().next().value!);
+  }
+  return true;
+}
+
+
 // SHA-256 of JSON.stringify(row arrays) for each CV/RPU table, extracted from
 // the supplied AIA 2025 manual, independently cross-read by PyMuPDF/pdfplumber.
 // Only integrity fingerprints are committed. NEVER commit raw restricted factors.
@@ -192,6 +224,9 @@ export async function GET(request:NextRequest) {
   if((gender!=="M"&&gender!=="F")||!Number.isInteger(age)||age<0||age>75||
      !Number.isFinite(sum)||sum<10000000||sum>1000000000||![10,15,20].includes(term))
     return NextResponse.json({error:"invalid_case"},{status:400,headers:noStore});
+  if(publicTableB&&!publicBurstAllowed(request))
+    return NextResponse.json({error:"rate_limited"},
+      {status:429,headers:{...noStore,"Retry-After":"60"}});
   const factors=getVerifiedFactors();
   if(!factors) return NextResponse.json({error:"restricted_factors_not_configured"},{status:503,headers:noStore});
   const source=factors[String(term)][gender];
