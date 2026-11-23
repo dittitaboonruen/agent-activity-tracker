@@ -82,7 +82,7 @@ test('Phase D: unauthenticated users never receive a fabricated cached result',a
   h.qa.load(35,'ชาย',10000000,10);
   await h.pending.shift()();
   assert.equal(h.qa.data.size,0);
-  assert.match(h.qa.errors.get('35:ชาย:10000000:10'),/รหัสเข้าใช้/);
+  assert.match(h.qa.errors.get('35:ชาย:10000000:10'),/ยังไม่มีสิทธิ์เข้าถึง/);
 });
 
 test('Phase D: service failures return no data instead of an estimated value',async()=>{
