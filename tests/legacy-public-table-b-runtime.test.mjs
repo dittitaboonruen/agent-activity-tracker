@@ -67,3 +67,12 @@ test('public mode validates requested insurance case before factor lookup',async
  assert.equal(result.body.error,'invalid_case');
  assert.equal(x.authCalls(),0);
 });
+
+test('anonymous endpoint returns 429 on excessive bursts; no factor data leaks',async()=>{
+ const x=setup({publicEnabled:true,approved:true});
+ let last;
+ for(let i=0;i<91;i++)last=await x.get(req());
+ assert.equal(last.status,429);
+ assert.equal(last.body.error,'rate_limited');
+ assert.equal(x.authCalls(),0);
+});
