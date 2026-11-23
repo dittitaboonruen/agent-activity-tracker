@@ -15984,6 +15984,7 @@ function showReportPreview(key){
             <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?'Excellent — ใบสรุป A4 1 หน้า':key==='legacy'?'Legacy Prestige Plus — ใบสรุป A4':key==='pay25'?'15 Pay 25 — ใบสรุป A4 1 หน้า':key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?'20Pay Life Plus — ใบสรุป A4 1 หน้า':key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='legacy'?'Report v'+LEGACY_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
+              ${key==='legacy'?'<button type="button" class="rp-preview-legacy-zoom" aria-pressed="false">ขยาย 100%</button>':''}
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
@@ -16013,6 +16014,7 @@ function showReportPreview(key){
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
       while(visualReport.firstChild) fitPaper.appendChild(visualReport.firstChild);
+      let legacyZoomFull = false;
       const fitPreview = ()=>{
         if(!fitStage.isConnected) return;
         fitPaper.style.transform = 'none';
@@ -16023,7 +16025,7 @@ function showReportPreview(key){
         const availableWidth = Math.max(1,previewContent.clientWidth -
           parseFloat(getComputedStyle(previewContent).paddingLeft) -
           parseFloat(getComputedStyle(previewContent).paddingRight) - 2);
-        const scale = Math.min(1, availableWidth / reportWidth);
+        const scale = key==='legacy' && legacyZoomFull ? 1 : Math.min(1, availableWidth / reportWidth);
         fitPaper.style.transform = 'scale(' + scale + ')';
         fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
         fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
@@ -16034,6 +16036,16 @@ function showReportPreview(key){
         fitPreview();
       };
       fitAllReports();
+      if(key==='legacy'){
+        const zoomBtn=host.querySelector('.rp-preview-legacy-zoom');
+        if(zoomBtn)zoomBtn.addEventListener('click',()=>{
+          legacyZoomFull=!legacyZoomFull;
+          zoomBtn.textContent=legacyZoomFull?'พอดีหน้าจอ':'ขยาย 100%';
+          zoomBtn.setAttribute('aria-pressed',String(legacyZoomFull));
+          fitPreview();
+          previewContent.scrollLeft=0;
+        });
+      }
       const resizeObserver = typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(()=>fitPreview()) : null;
       if(resizeObserver) resizeObserver.observe(previewContent);
