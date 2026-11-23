@@ -40,8 +40,8 @@ const waitForTableB=async expected=>page.waitForFunction(value=>{
     ?.textContent?.includes('คำนวณ CV/RPU อัตโนมัติจาก');
 },expected,{timeout:15000});
 try {
- await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
- await page.locator('.tab[data-id="legacy"]').click();
+ await page.goto(base+'?plan=legacy',{waitUntil:'domcontentloaded',timeout:45000});
+ assert.equal(await page.locator('.tab[data-id="legacy"]').getAttribute('aria-selected'),'true','direct link selects Legacy without dashboard login');
  await page.locator('#in-gender').selectOption('หญิง');
  await page.locator('#in-age').fill('35');
  await page.locator('#in-sum').fill('15000000');
