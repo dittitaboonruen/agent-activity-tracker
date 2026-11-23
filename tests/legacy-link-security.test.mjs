@@ -16,7 +16,7 @@ test('link exchange gated by explicit enable flag and production source clearanc
 });
 test('signed link is exchanged for HttpOnly cookie then sensitive grant removed by redirect',()=>{
   assert.match(route,/validCalculatorLinkGrant\(grant\)/);
-  assert.match(route,/issueAccessCookie\(\)/);
+  assert.match(route,/issueAccessCookie\(agentGrant/);
   assert.match(route,/NextResponse\.redirect\(next,\{status:303,headers\}\)/);
   assert.match(route,/Referrer-Policy.*no-referrer/);
   assert.match(route,/royal_partners_illustration_tool\.html\?plan=legacy/);
