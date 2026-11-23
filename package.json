@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node --test tests/legacy-public-table-b-guard.test.mjs tests/legacy-report-readability-regression.test.mjs tests/legacy-clean-summary-ui.test.mjs tests/legacy-link-runtime-security.test.mjs tests/legacy-link-security.test.mjs tests/legacy-timeline-design-regression.test.mjs tests/legacy-table-b-zero-missing-regression.test.mjs tests/legacy-calculator-independent-access.test.mjs tests/legacy-cv-phase-c-provenance.test.mjs tests/legacy-phase-d-e2e.test.mjs tests/legacy-phase-d-report-html.test.mjs tests/legacy-internal-qa-access.test.mjs && npm run test:legacy && node scripts/legacy-factor-build-qa.mjs && next build",
+    "build": "node --test tests/legacy-public-table-b-runtime.test.mjs tests/legacy-public-table-b-guard.test.mjs tests/legacy-report-readability-regression.test.mjs tests/legacy-clean-summary-ui.test.mjs tests/legacy-link-runtime-security.test.mjs tests/legacy-link-security.test.mjs tests/legacy-timeline-design-regression.test.mjs tests/legacy-table-b-zero-missing-regression.test.mjs tests/legacy-calculator-independent-access.test.mjs tests/legacy-cv-phase-c-provenance.test.mjs tests/legacy-phase-d-e2e.test.mjs tests/legacy-phase-d-report-html.test.mjs tests/legacy-internal-qa-access.test.mjs && npm run test:legacy && node scripts/legacy-factor-build-qa.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "test:legacy": "node --test tests/legacy-prestige-plus-phase4.test.mjs tests/legacy-prestige-plus-female-10-15.test.mjs tests/legacy-prestige-premium-both-genders.test.mjs tests/legacy-prestige-plus-male-public-evidence.test.mjs tests/legacy-prestige-male-table-b-engine.test.mjs tests/legacy-prestige-rpu-secure-layout.test.mjs",
