@@ -1,3 +1,4 @@
+import {execFileSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
@@ -66,6 +67,7 @@ try{
  assert.ok(pdfBytes.byteLength>10000,'generated PDF is not empty or suspiciously small');
  assert.equal(pdfBytes.subarray(0,5).toString('latin1'),'%PDF-','download must be a real PDF');
  assert.match(pdfBytes.subarray(-2048).toString('latin1'),/%%EOF/,'PDF must include end-of-file marker');
+ execFileSync('python3',['scripts/legacy_pdf_a4_verify.py',pdfPath],{stdio:'inherit',timeout:120000});
  assert.deepEqual(errors,[],'no browser runtime errors or PDF alerts');
  console.log('PASS: anonymous Legacy A/B, zoom toggle, A4 and real PDF download');
 }finally{
