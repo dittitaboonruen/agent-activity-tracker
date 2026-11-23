@@ -163,53 +163,31 @@ try {
      'valid signed link must show Table B automatically with no passcode prompt');
    console.log('PASS: authorized signed link auto-opens Table B; no typed code/login');
  }finally{await linkPage.close();}
- // Direct-link + calculator-only code: independent of Supabase dashboard sessions.
- // These are isolated browser fixtures, not a claim of live protected-preview access.
+ // Public deep link can show the plan but must NOT display a manual Table B passcode.
+ // The API still rejects an unauthorized request instead of leaking private factors.
  const accessPage=await browser.newPage({viewport:{width:1100,height:800}});
- let calculatorAuthorized=false, calculatorCodePosts=0, calculatorTableGets=0;
+ let unauthorizedRequests=0;
  try{
-   await accessPage.route('**/api/legacy-prestige-access',async route=>{
-     calculatorCodePosts++;
-     assert.equal(route.request().method(),'POST');
-     const body=route.request().postDataJSON();
-     calculatorAuthorized=body.code==='QA-only-valid-calculator-code-12345';
-     await route.fulfill({status:calculatorAuthorized?200:401,contentType:'application/json',
-       body:JSON.stringify({ok:calculatorAuthorized})});
-   });
    await accessPage.route('**/api/legacy-prestige-rpu?**',async route=>{
-     calculatorTableGets++;
-     if(!calculatorAuthorized){
-       await route.fulfill({status:401,contentType:'application/json',
-         body:JSON.stringify({error:'calculator_access_required'})});
-       return;
-     }
-     const q=new URL(route.request().url()).searchParams;
-     const age=Number(q.get('age')),term=Number(q.get('term'));
-     const rows=Array.from({length:99-age},(_,i)=>({age:age+i,policyYear:i+1,
-       surrender:i===1?105000:null,paidUp:i===1?630000:null}));
-     await route.fulfill({status:200,contentType:'application/json',
-       body:JSON.stringify({gender:q.get('gender'),issueAge:age,sum:Number(q.get('sum')),term,rows})});
+     unauthorizedRequests++;
+     await route.fulfill({status:401,contentType:'application/json',
+       body:JSON.stringify({error:'authentication_required'})});
    });
    await accessPage.goto(base+'?plan=legacy',{waitUntil:'domcontentloaded',timeout:45000});
    assert.equal(await accessPage.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true');
-   await accessPage.locator('#in-age').fill('35');
-   await accessPage.locator('#in-gender').selectOption('หญิง');
-   await accessPage.locator('#in-sum').fill('15000000');
-   await accessPage.locator('#legacy-term').selectOption('20');
-   await accessPage.locator('#legacy-calculator-code').waitFor({timeout:20000});
-   assert.equal(await accessPage.locator('a[href="/login"]').count(),0,
-     'direct calculator does not require dashboard login');
-   await accessPage.locator('#legacy-calculator-code').fill('QA-only-valid-calculator-code-12345');
-   await accessPage.locator('#legacy-calculator-submit').click();
+   await accessPage.locator('[data-legacy-table="B"]').click();
    await accessPage.waitForFunction(()=>{
-     const row=document.querySelector('#legacy-table-B tbody tr:nth-child(2)');
-     return row?.cells?.[1]?.textContent?.trim()==='105,000' &&
-       row?.cells?.[2]?.textContent?.trim()==='630,000';
+     const panel=document.querySelector('#legacy-table-B');
+     return panel?.textContent?.includes('ยังไม่มีสิทธิ์เข้าถึง');
    },null,{timeout:20000});
-   assert.equal(calculatorCodePosts,1,'separate calculator code issued once');
-   assert.ok(calculatorTableGets>=2,'Table B retried after calculator authorization');
-   console.log('PASS: direct link + calculator-only access code + Table B, no dashboard login');
- } finally {await accessPage.close();}
+   assert.equal(await accessPage.locator('#legacy-calculator-code').count(),0,
+     'no manual passcode input on Table B');
+   assert.equal(await accessPage.locator('#legacy-calculator-submit').count(),0,
+     'no manual passcode button on Table B');
+   assert.ok(unauthorizedRequests>0,'unauthorized API request is still denied');
+   assert.equal(await accessPage.locator('a[href="/login"]').count(),0);
+   console.log('PASS: no code field or dashboard login; unauthorized factor API stays guarded');
+ }finally{await accessPage.close();}
  // Male Table B must update automatically on changes without any upload.
  // Only exact publicly documented cases have published cash values.
  await page.locator('#in-gender').selectOption('ชาย');
