@@ -14,6 +14,7 @@ on:
       - 'public/illustrations/royal_partners_illustration_tool.html'
       - 'tests/legacy-release-browser-smoke.mjs'
       - '.github/workflows/legacy-release-browser-smoke.yml'
+      - 'scripts/legacy_pdf_a4_verify.py'
 permissions:
   contents: read
 jobs:
@@ -39,3 +40,11 @@ jobs:
           sleep 2
       - name: Verify Table B, preview zoom, A4 and PDF download
         run: node tests/legacy-release-browser-smoke.mjs
+      - name: Archive rendered PDF QA images and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-a4-visual-qa
+          path: artifacts/legacy-pdf-a4-qa/
+          if-no-files-found: warn
+          retention-days: 7
