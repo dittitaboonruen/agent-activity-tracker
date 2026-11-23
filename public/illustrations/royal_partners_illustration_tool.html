@@ -17442,6 +17442,20 @@ function viewLegacyPrestige(app){
   app.innerHTML=panelShell('life','AIA Legacy Prestige Plus',
     'ชำระเบี้ย 10 / 15 / 20 ปี • คุ้มครองถึงอายุ 99 ปี • ข้อมูลเบี้ยมาตรฐานก่อนส่วนลดสุขภาพ');
   const panel=app.querySelector('.panel');
+  // Legacy-only visual alignment with the other product summaries. No formula changes.
+  panel.classList.add('legacy-clean-panel');
+  const legacyCleanStyle=document.createElement('style');
+  legacyCleanStyle.textContent=
+    '#app .legacy-clean-panel .smart-summary-head{margin-top:16px}'+
+    '#app .legacy-clean-panel .smart-summary-head h3{margin:0;font-size:15px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat{border-radius:16px;padding:13px 15px}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+1){background:#fff0d5;border-color:#e7d2a5}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+2){background:#e3f2e9;border-color:#cbe5d6}'+
+    '#app .legacy-clean-panel .summary.smart-summary-grid .stat:nth-child(3n+3){background:#e8f1fc;border-color:#cadcef}'+
+    '@media(max-width:720px){#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}'+
+    '@media(max-width:470px){#app .legacy-clean-panel .summary.smart-summary-grid{grid-template-columns:1fr}}';
+  panel.appendChild(legacyCleanStyle);
   const controls=document.createElement('div');
   controls.className='pl20-rider-wrap plus-term-panel';
   controls.innerHTML='<label for="legacy-term" style="display:block;margin-bottom:8px;font-weight:700">ระยะเวลาชำระเบี้ยประกัน</label>'+
@@ -17467,6 +17481,10 @@ function viewLegacyPrestige(app){
     {lbl:'จำนวนเงินเอาประกันภัย',val:fmt(r.sum)},
     {lbl:'ประมาณการประหยัดภาษีต่อปี (ตามฐานภาษี)',val:fmt(r.taxRelief)}
   ]);
+  // Remove English decorative kickers and icon badges ONLY from this plan.
+  // Product name AIA Legacy Prestige Plus and policy acronyms WPCI/TI stay intact.
+  panel.querySelectorAll('.rp-section-kicker,.summary .stat-icon')
+    .forEach(node=>node.remove());
   const graphic=document.createElement('div');
   const benefitSummary=document.createElement('div');
   benefitSummary.innerHTML=buildLegacyBenefitSummaryHTML(r,state.age);
