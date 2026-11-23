@@ -43,7 +43,7 @@ try{
  assert.equal(await page.locator('.rp-preview-fit-paper').evaluate(el=>el.style.transform),'scale(1)');
  await button.click();
  assert.equal(await button.getAttribute('aria-pressed'),'false');
- const pages=page.locator('.rp-preview-visual-report .legacy-report-page');
+ const pages=page.locator('.rp-preview-fit-paper .legacy-report-page');
  assert.ok(await pages.count()>=4,'report includes annual Table A/B pages');
  const labels=await pages.first().locator('.legacy3-years span').allInnerTexts();
  assert.deepEqual(labels,Array.from({length:20},(_,i)=>String(i+1)));
