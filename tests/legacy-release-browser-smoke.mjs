@@ -1,3 +1,4 @@
+import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 const browser=await chromium.launch({headless:true});
@@ -60,6 +61,11 @@ try{
    downloadButton.click(),
  ]);
  assert.ok(download.suggestedFilename().toLowerCase().endsWith('.pdf'));
+ const pdfPath=await download.path();
+ const pdfBytes=await readFile(pdfPath);
+ assert.ok(pdfBytes.byteLength>10000,'generated PDF is not empty or suspiciously small');
+ assert.equal(pdfBytes.subarray(0,5).toString('latin1'),'%PDF-','download must be a real PDF');
+ assert.match(pdfBytes.subarray(-2048).toString('latin1'),/%%EOF/,'PDF must include end-of-file marker');
  assert.deepEqual(errors,[],'no browser runtime errors or PDF alerts');
  console.log('PASS: anonymous Legacy A/B, zoom toggle, A4 and real PDF download');
 }finally{
