@@ -7,6 +7,12 @@ on:
       - 'public/illustrations/royal_partners_illustration_tool.html'
       - 'tests/legacy-release-browser-smoke.mjs'
       - '.github/workflows/legacy-release-browser-smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'public/illustrations/royal_partners_illustration_tool.html'
+      - 'tests/legacy-release-browser-smoke.mjs'
+      - '.github/workflows/legacy-release-browser-smoke.yml'
 permissions:
   contents: read
 jobs:
