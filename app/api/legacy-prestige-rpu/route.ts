@@ -200,7 +200,7 @@ export async function GET(request:NextRequest) {
   // screenshots (ages 70..98). Not general insurer factors; do not commit
   // source amounts or extrapolate to any other sex, age, term or sum.
   let exactCaseCv: number[] | null = null;
-  if(gender==="F"&&age===35&&term===15&&sum===10000000){
+  if(!publicTableB&&gender==="F"&&age===35&&term===15&&sum===10000000){
     const raw=process.env.LEGACY_QA_CV_F_35_15_10M_70_98_JSON;
     if(raw){
       try{
@@ -221,7 +221,7 @@ export async function GET(request:NextRequest) {
   // Screenshot-backed CV only for male issue40 / 10 Pay / SI10m, attained 75..98.
   // This is NOT an interpolated factor and cannot apply to other cases.
   let male40ScreenshotCv: number[] | null = null;
-  if(gender==="M"&&age===40&&term===10&&sum===10000000){
+  if(!publicTableB&&gender==="M"&&age===40&&term===10&&sum===10000000){
     const raw=process.env.LEGACY_QA_CV_M_40_10_10M_75_98_JSON;
     if(!raw)
       return NextResponse.json({error:"exact_case_cv_not_configured"},{status:503,headers:noStore});
