@@ -18692,7 +18692,8 @@ function syncSelectedPlanSumMinimum(){
 
 function validateSumInsured(value){
   const numericValue = Number(value);
-  const min=minSumInsuredForPlan();
+  const min=state.tab==='legacy'?10000000:minSumInsuredForPlan();
+  const maximum=state.tab==='legacy'?1000000000:SUM_INSURED_MAX;
 
   if(!Number.isFinite(numericValue)){
     return {ok:false, message:'กรุณากรอกทุนประกันเป็นตัวเลข'};
