@@ -14,6 +14,7 @@ await page.route('**/api/legacy-prestige-rpu?**',async route=>{
    age:age+i,policyYear:i+1,
    surrender:i===1?120000:null,
    paidUp:i===1?720000:null,
+   rpuStatus:i===1?'VERIFIED':i>=term-1?'OUTSIDE_SOURCE_RANGE':'UNAVAILABLE',
    cvEvidence:i===1?'MANUAL_PUBLISHED':'UNAVAILABLE'
  }));
  await route.fulfill({status:200,contentType:'application/json',
