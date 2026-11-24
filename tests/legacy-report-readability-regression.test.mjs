@@ -16,11 +16,11 @@ test('Legacy PDF improves readability without changing report source rows',()=>{
    '.legacy3-page-note,.legacy-report-page .legacy3-note{font-size:11.5px']){
    assert.ok(pdf.includes(rule),rule);
  }
- assert.match(pdf,/const rowsPerPage=20/);
+ assert.match(pdf,/const rowsPerPage=32/);
  assert.match(pdf,/const y=Array.from\(\{length:20\}/);
  assert.match(pdf,/i<d\.term\?'▲':'·'/);
  assert.match(pdf,/const tableAChunks=groupsOf\(allYears,rowsPerPage\)/);
- assert.match(pdf,/const tableBChunks=groupsOf\(allYears,rowsPerPage\)/);
+ assert.match(pdf,/const tableBChunks=shownBYears\.length\?groupsOf\(shownBYears,rowsPerPage\)/);
  assert.match(pdf,/const dash='—'/);
 });
 test('Legacy preview alone gets fit / 100 percent zoom; PDF source stays unscaled',()=>{
