@@ -47,7 +47,17 @@ try{
  await button.click();
  assert.equal(await button.getAttribute('aria-pressed'),'false');
  const pages=page.locator('.rp-preview-fit-paper .legacy-report-page');
- assert.ok(await pages.count()>=4,'report includes annual Table A/B pages');
+ assert.equal(await pages.count(),6,'female age 35 / 15 Pay report should use exactly six A4 pages');
+ const titles=await pages.locator('.legacy3-heading').allInnerTexts();
+ assert.ok(titles.some(x=>x.includes('ตาราง A'))&&titles.some(x=>x.includes('ตาราง B')));
+ const aRows=await page.locator('.rp-preview-pdf-source .legacy-report-page .legacy3-table-full').nth(0).locator('tbody tr').count();
+ assert.equal(aRows,32,'Table A must fit 32 complete years on first page');
+ const wpciTitles=await page.locator('.rp-preview-pdf-source .legacy-v2-wpci-title').count();
+ const wpciItems=await page.locator('.rp-preview-pdf-source .legacy-v2-wpci-group li').count();
+ assert.equal(wpciTitles,6,'WPCI six groups must be present');
+ assert.equal(wpciItems,44,'WPCI 44 disease/treatment names must be present');
+ assert.equal(await pages.last().locator('.rp-resource-card[data-resource-type="brochure"]').count(),1);
+ assert.equal(await pages.last().locator('.rp-resource-card[data-resource-type="payment"]').count(),1);
  const labels=await pages.first().locator('.legacy3-years span').allInnerTexts();
  assert.deepEqual(labels,Array.from({length:20},(_,i)=>String(i+1)));
  const triangles=await pages.first().locator('.legacy3-tris span').allInnerTexts();
