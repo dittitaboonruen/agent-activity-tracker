@@ -285,8 +285,7 @@ export async function middleware(
   // Exact path only: no session lookup and no public dashboard access.
   if (
     pathname === "/api/integrations/google-form-quiz" ||
-    pathname === "/api/monthly-performance-sheet-sync" ||
-    pathname === "/api/legacy-prestige-rpu"
+    pathname === "/api/monthly-performance-sheet-sync"
   ) {
     return NextResponse.next();
   }
