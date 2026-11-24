@@ -6,7 +6,7 @@ const route=fs.readFileSync('app/api/legacy-prestige-rpu/route.ts','utf8');
 const html=fs.readFileSync('public/illustrations/royal_partners_illustration_tool.html','utf8');
 const source=route.match(/const LEGACY_RPU_UNRESOLVED_SEGMENT_BITS[^=]*= (\{[\s\S]*?\n\});/);
 assert.ok(source,'RPU pending map must exist');
-const masks=JSON.parse(source[1].replace(/([,{]\s*)(\d+):/g,'$1"$2":'));
+const masks=JSON.parse(source[1].replace(/([,{]\s*)(\d+):/g,'$1"$2":').replace(/,\s*([}\]])/g,'$1'));
 test('the pending status applies only to exactly 206 source positions',()=>{
  let count=0;
  for(const ages of Object.values(masks)) for(const value of Object.values(ages)){
