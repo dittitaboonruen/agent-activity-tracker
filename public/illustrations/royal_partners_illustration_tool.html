@@ -18076,7 +18076,7 @@ function buildLegacyReportHTML(){
  const lastBIndex=allYears.findLastIndex(r=>Number.isFinite(r.policy?.surrender)||
    Number.isFinite(r.policy?.paidUp)||r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION');
  const shownBYears=lastBIndex>=0?allYears.slice(0,lastBIndex+1):[];
- const tableBChunks=shownBYears.length?groupsOf(shownBYears,rowsPerPage):[[]];
+ const tableBChunks=shownBYears.length?groupsOf(shownBYears,36):[[]];
  const tableAPages=tableAChunks.map((rows,index)=>
    '<div class="legacy3-heading">3 ตาราง A · เบี้ยประกัน'+(index?' (ต่อ)':'')+'</div>'+
    '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
