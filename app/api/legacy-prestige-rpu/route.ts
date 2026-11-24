@@ -293,7 +293,11 @@ export async function GET(request:NextRequest) {
     return {age:attainedAge,policyYear:i+1,
       surrender:verifiedCv===null&&screenshotCv!==null?screenshotCv:verifiedCv,
       cvEvidence,
-      paidUp:unresolvedRpu?null:amount(rpu)};
+      paidUp:unresolvedRpu?null:amount(rpu),
+      rpuStatus:unresolvedRpu?"PENDING_SOURCE_INTERPRETATION":
+        i>=term-1?"OUTSIDE_SOURCE_RANGE":
+        typeof rpu!=="number"?"UNAVAILABLE":
+        rpu===0?"CONFIRMED_ZERO":"VERIFIED"};
   });
   return NextResponse.json({
     source:publicTableB?"AIA_AGENT_MANUAL_2025_REVIEWED_PUBLIC_MODE":"AIA_AGENT_MANUAL_2025_INTERNAL_QA",
