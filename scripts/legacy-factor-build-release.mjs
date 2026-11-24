@@ -14,6 +14,7 @@ const decode = (value, limit) => JSON.parse(
 );
 const digest = rows => createHash("sha256").update(JSON.stringify(rows)).digest("hex");
 
+let validationStage = "manifest";
 try {
   const source = readFileSync(new URL("../app/api/legacy-prestige-rpu/route.ts", import.meta.url), "utf8");
   const expected = new Map();
@@ -24,16 +25,21 @@ try {
   if (expected.size !== 6) fail("manifest_structure");
 
   let tables;
+  validationStage = "combined-or-source-select";
   const combined = process.env.LEGACY_TABLE_B_FACTORS_BR_B64;
   if (combined) {
+    validationStage = "decode-combined";
     tables = decode(combined, 150000);
   } else {
     const cvSource = process.env.LEGACY_TABLE_B_MALE_CV_BR_B64;
     const rpuSource = process.env.LEGACY_RPU_MALE_FACTORS_BR_B64;
     const femaleSource = process.env.LEGACY_TABLE_B_FEMALE_U16_B64;
     if (!cvSource || !rpuSource || !femaleSource) fail("missing_configuration");
+    validationStage = "decode-male-cv";
     const maleCv = decode(cvSource, 60000);
+    validationStage = "decode-male-rpu";
     const maleRpu = decode(rpuSource, 60000);
+    validationStage = "decode-female-binary";
     const binary = Buffer.from(femaleSource, "base64");
     if (binary.length !== 21948) fail("female_payload_size");
     let cursor = 0;
@@ -65,6 +71,7 @@ try {
       };
     }
     if (cursor !== binary.length) fail("female_payload_overflow");    // Secure correction overlay; leaves independently verified 10/15 Pay untouched.
+    validationStage = "decode-male20-overlay";
     const male20=process.env.LEGACY_RPU_MALE_20_CORRECTED_BR_B64;
     if(male20){
       const rows=decode(male20,30000);
@@ -73,6 +80,7 @@ try {
 
   }
 
+  validationStage = "integrity-digests";
   let allPassed = true;
   for (const term of [10, 15, 20]) {
     for (const gender of ["M", "F"]) {
@@ -101,6 +109,7 @@ try {
 
   // Run exact-input Table B functional QA using the same verified confidential
   // factors as the API. This runs on the Vercel build machine; no factors leave.
+  validationStage = "masked-functional-tests";
   const bits = new Map();
   const maskBlock = source.split("const LEGACY_RPU_UNRESOLVED_SEGMENT_BITS:")[1]
     ?.split("let factorCache:")[0] || "";
@@ -160,6 +169,7 @@ try {
     " exact-input cases, age/year mapping, CV/RPU scaling, missing-value masks");
   console.log("[Legacy Release Factor] PASS: verified factors + 72 cases; no private screenshot overlays");
 } catch(error){
+  console.error("[Legacy Release Factor] stage="+validationStage+"; type="+String(error?.name||"Unknown").replace(/[^A-Za-z]/g,"").slice(0,40));
   console.error("[Legacy Release Factor] BLOCKED: "+(
     ["manifest_structure","missing_configuration","female_payload_size","female_payload_truncated","male_rpu_dimensions","female_payload_overflow","factor_integrity_mismatch","mask_manifest_structure","table_b_response_length","table_b_year_mapping","table_b_amount_or_mask_mismatch","table_b_coverage_insufficient"].includes(error?.message)?error.message:"validation_failed"));
   process.exitCode=1;
