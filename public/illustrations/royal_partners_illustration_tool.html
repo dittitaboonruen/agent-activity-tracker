@@ -17872,7 +17872,7 @@ function buildLegacyWPCICategoriesHTML(){
   '</section>';
 }
 
-const LEGACY_REPORT_VERSION='1.1.0';
+const LEGACY_REPORT_VERSION='1.2.0';
 function buildLegacyReportData(){
   const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
   return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
@@ -17979,6 +17979,36 @@ function buildLegacyReportHTML(){
  '.legacy-report-page .legacy3-table-full .legacy3-empty{color:#657582;background:#F6F7F8}'+
  '.legacy-report-page .legacy3-page-note,.legacy-report-page .legacy3-note{font-size:11.5px;line-height:1.5;color:#526274;margin:10px 0 0}'+
  '.legacy-report-page .legacy3-pageno{font-size:10px;color:#667584;margin-top:12px;padding:6px 0 0;border-top:1px solid #E9EDF0}'+
+
+ '.legacy-report-page .rp-report-head{padding:12px 23px 10px}'+
+ '.legacy-report-page .rp-report-title{font-size:22px;margin:0 0 2px}'+
+ '.legacy-report-page .rp-report-sub{font-size:9px}'+
+ '.legacy-report-page .rp-report-sum .v{font-size:20px}'+
+ '.legacy-report-page .rp-report-sum .l{font-size:9px}'+
+ '.legacy-report-page .legacy3-body{padding:11px 18px}'+
+ '.legacy-report-page .legacy3-table-full{font-size:10px}'+
+ '.legacy-report-page .legacy3-table-full th{font-size:10px;padding:6px 4px;line-height:1.25}'+
+ '.legacy-report-page .legacy3-table-full td{font-size:10px;padding:3.3px 7px;line-height:1.25}'+
+ '.legacy-report-page .legacy3-heading{font-size:15px;margin:9px 0 7px}'+
+ '.legacy-report-page .legacy3-section-description{font-size:10px;margin:0 0 7px}'+
+ '.legacy-report-page .legacy3-summary-strip{margin:6px 0 8px}'+
+ '.legacy-report-page .legacy3-summary-strip>span{font-size:10px;padding:6px 8px}'+
+ '.legacy-report-page .legacy3-summary-strip b{font-size:11px}'+
+ '.legacy-report-page .legacy3-page-note{font-size:10px;margin:7px 0 0}'+
+ '.legacy-report-page .legacy3-pageno{font-size:9px;margin-top:8px}'+
+ '.legacy-report-page .legacy-v2-wpci-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:6px;align-items:start}'+
+ '.legacy-report-page .legacy-v2-wpci-group{border:1px solid #E7DFD0;background:#FFFEFA;border-radius:6px;padding:5px 8px;min-width:0;break-inside:avoid}'+
+ '.legacy-report-page .legacy-v2-wpci-title{font-size:10px;line-height:1.25;color:#142A47;font-weight:800}'+
+ '.legacy-report-page .legacy-v2-wpci-title small{font-size:9px;color:#7B6A4C}'+
+ '.legacy-report-page .legacy-v2-wpci-group ol{padding:0 0 0 20px;margin:4px 0 0;font-size:9.5px;line-height:1.5;color:#263C51}'+
+ '.legacy-report-page .legacy-v2-wpci-group li{margin:0 0 3px;overflow-wrap:anywhere}'+
+ '.legacy-report-page .legacy-v2-resources-heading{margin-top:9px;font-size:12px}'+
+ '.legacy-report-page .legacy-v2-brochure{padding:0}'+
+ '.legacy-report-page .legacy-v2-brochure .rp-resource-grid{margin:0}'+
+ '.legacy-report-page .legacy-v2-brochure .rp-resource-card[data-resource-type="brochure"]{max-width:300px;padding:5px}'+
+ '.legacy-report-page .legacy-v2-brochure .rp-resource-card[data-resource-type="brochure"] img{max-height:62px}'+
+ '.legacy-report-page .legacy-v2-brochure .rp-resource-payment-row{margin-top:4px}'+
+ '.legacy-report-page .legacy-v2-brochure .rp-resource-payment-image img{max-height:62px;width:100%;object-fit:contain}'+
  '</style>';
  const wrap=(body,page,total,first=false)=>{
    return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+page+'"><div class="ex-report-inner">'+
@@ -17990,7 +18020,6 @@ function buildLegacyReportHTML(){
  const stats='<div class="legacy3-stats">'+[
   ['เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)',fmtB(d.c.annual)],
   ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
-  ['ทุนประกัน',fmtB(d.sum)],
   ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
  ].map(([l,v])=>'<div class="legacy3-stat"><small>'+l+'</small><strong>'+v+'</strong></div>').join('')+'</div>';
  const benefits='<div class="legacy3-heading">1 ความคุ้มครองชีวิต</div>'+
@@ -18015,7 +18044,7 @@ function buildLegacyReportHTML(){
  const totalRows=99-d.age;
  if(displayRows.length!==totalRows||d.c.rows.length!==totalRows||
     !policyValues?.byAge)throw Error('ตาราง A/B ยังไม่พร้อมสำหรับการแสดงครบทุกอายุ');
- const rowsPerPage=20; // A4 portrait: generous row height, repeated header, no clipped tables
+ const rowsPerPage=32; // V2 compact A4: complete annual Table A with 32 rows per page
  const groupsOf=(items,size)=>Array.from({length:Math.ceil(items.length/size)},
    (_,i)=>items.slice(i*size,(i+1)*size));
  const allYears=Array.from({length:totalRows},(_,index)=>{
@@ -18042,7 +18071,12 @@ function buildLegacyReportHTML(){
    '<th style="width:34%">เงินค่าเวนคืน (CV) บาท</th>'+
    '<th style="width:34%">มูลค่าใช้เงินสำเร็จ (RPU) บาท</th>';
  const tableAChunks=groupsOf(allYears,rowsPerPage);
- const tableBChunks=groupsOf(allYears,rowsPerPage);
+ // Keep all rows until the last verifiable CV/RPU or explicitly pending RPU.
+ // Remove only the trailing years where both values are genuinely absent.
+ const lastBIndex=allYears.findLastIndex(r=>Number.isFinite(r.policy?.surrender)||
+   Number.isFinite(r.policy?.paidUp)||r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION');
+ const shownBYears=lastBIndex>=0?allYears.slice(0,lastBIndex+1):[];
+ const tableBChunks=shownBYears.length?groupsOf(shownBYears,rowsPerPage):[[]];
  const tableAPages=tableAChunks.map((rows,index)=>
    '<div class="legacy3-heading">3 ตาราง A · เบี้ยประกัน'+(index?' (ต่อ)':'')+'</div>'+
    '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
@@ -18057,8 +18091,9 @@ function buildLegacyReportHTML(){
    '<p class="legacy3-page-note">เบี้ยหลักต่อปีหลังพ้นระยะชำระแสดง 0 บาท; เบี้ยและเบี้ยสะสมอ้างอิงผลคำนวณตามข้อมูลที่เลือก</p>');
  const tableBPages=tableBChunks.map((rows,index)=>
    '<div class="legacy3-heading">4 ตาราง B · มูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
-   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
-   ' ปี · CV และ RPU จากผลคำนวณที่ผ่านการตรวจสอบของกรณีเดียวกัน</p>'+
+   '<p class="legacy3-section-description">'+(rows.length?
+   'ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+' ปี · ':'')+
+   'แสดงถึงปีสุดท้ายที่มี CV/RPU หรือสถานะรอยืนยัน · ช่วงท้ายที่ไม่มีข้อมูลไม่แสดง</p>'+
    '<div class="legacy3-summary-strip cv"><span>ทุนประกัน <b>'+fmt(d.sum)+' บาท</b></span>'+
    '<span>สีเขียว = ค่าที่มีหลักฐาน <b>CV / RPU</b></span></div>'+
    '<table class="legacy3-table-full"><thead><tr>'+tableBColumns+'</tr></thead><tbody>'+
@@ -18071,16 +18106,33 @@ function buildLegacyReportHTML(){
          :renderNum(r.policy?.paidUp,'cv'))+'</tr>').join('')+
    '</tbody></table>'+
    '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · — = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
- const groups='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา</div>'+
-   '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+
-    '</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
-   '<div class="legacy3-note">รายละเอียดทั้งหมด 44 รายการดูได้ในหน้า Calculator และเอกสารอ้างอิง AIA</div>';
- const last='<div class="legacy3-heading">6 โบรชัวร์และเอกสารประกอบ</div>'+
-  '<div class="legacy3-brochure"><div class="rp-resource-grid">'+
-  buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
-  '<div class="rp-red-remark rp-red-remark-before-payment">หมายเหตุ: ใช้สำหรับประกอบการเรียนการสอนและตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</div>'+
-  '<div class="rp-resource-payment-row">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>';
- const pageBodies=[page1Body,...tableAPages,...tableBPages,groups+last];
+ // Every official 44-item WPCI description comes directly from the same
+ // authoritative in-app category list; never ship the mockup's sample text.
+ let wpciNumber=0;
+ const wpciCard=(group)=>{
+   const offset=wpciNumber;
+   wpciNumber+=group.items.length;
+   return '<div class="legacy-v2-wpci-group"><div class="legacy-v2-wpci-title">'+esc(group.title)+
+     ' <small>('+group.items.length+' รายการ)</small></div><ol start="'+(offset+1)+'">'+
+     group.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>';
+ };
+ const wpciFirst=d.groups.slice(0,3).map(wpciCard).join('');
+ const wpciSecond=d.groups.slice(3).map(wpciCard).join('');
+ if(wpciNumber!==44)throw Error('WPCI V2 must include exactly 44 items');
+ const wpciPage1='<div class="legacy3-heading">5 WPCI — โรคร้ายแรง 44 โรค/การรักษา (1/2)</div>'+
+   '<p class="legacy3-section-description">รายการ 1–23 · กลุ่ม 1–3 · รายละเอียดตามเงื่อนไขสัญญาเพิ่มเติม</p>'+
+   '<div class="legacy-v2-wpci-list">'+wpciFirst+'</div>'+
+   '<p class="legacy3-page-note">การคุ้มครองต้องเป็นไปตามคำจำกัดความและข้อยกเว้นในกรมธรรม์</p>';
+ const wpciPage2='<div class="legacy3-heading">5 WPCI — โรคร้ายแรง 44 โรค/การรักษา (2/2)</div>'+
+   '<p class="legacy3-section-description">รายการ 24–44 · กลุ่ม 4–6 · พร้อมเอกสารประกอบ</p>'+
+   '<div class="legacy-v2-wpci-list">'+wpciSecond+'</div>'+
+   '<div class="legacy3-heading legacy-v2-resources-heading">6 โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
+   '<div class="legacy3-brochure legacy-v2-brochure"><div class="rp-resource-grid">'+
+     buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
+     '<div class="rp-resource-payment-row">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
+   '<p class="legacy3-page-note">โปรโมชั่นผ่อน 0% 4 เดือน: ตรวจสอบช่วงเวลาและเงื่อนไขกับผู้ให้บริการก่อนนำเสนอ · '+
+   'เอกสารนี้ใช้สำหรับการตรวจสอบภายใน ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</p>';
+ const pageBodies=[page1Body,...tableAPages,...tableBPages,wpciPage1,wpciPage2];
  const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
    '"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
