@@ -23,10 +23,10 @@ test('Legacy PDF improves readability without changing report source rows',()=>{
  assert.match(pdf,/const tableBChunks=shownBYears\.length\?groupsOf\(shownBYears,36\)/);
  assert.match(pdf,/const dash='—'/);
 });
-test('Legacy preview alone gets fit / 100 percent zoom; PDF source stays unscaled',()=>{
- assert.match(preview,/key==='legacy'\?'<button type="button" class="rp-preview-legacy-zoom"/);
- assert.match(preview,/key==='legacy' && legacyZoomFull \? 1/);
- assert.match(preview,/zoomBtn\.setAttribute\('aria-pressed'/);
+test('Legacy V3 preview uses auto fit only while PDF source remains unscaled',()=>{
+ assert.doesNotMatch(preview,/rp-preview-legacy-zoom/);
+ assert.doesNotMatch(preview,/legacyZoomFull/);
+ assert.match(preview,/const scale = Math.min\(1, availableWidth \/ reportWidth\)/);
  assert.match(preview,/const visualReport = pdfSource\.cloneNode\(true\)/);
  assert.match(preview,/host\.insertBefore\(pdfSource,host\.firstChild\)/);
 });
