@@ -16731,7 +16731,7 @@ function showReportPreview(key){
             <strong>${key==='ciprocare'?'CI ProCare — ใบสรุป A4 1 หน้า':key==='cisupercare'?'CI SuperCare — ใบสรุป A4 1 หน้า':key==='excellent'?(state.excellent.mode==='full'?'Excellent + สัญญาเพิ่มเติม — A4':'Excellent — ใบสรุป A4 1 หน้า'):key==='legacy'?'Legacy Prestige Plus — ใบสรุป A4':key==='pay25'?(state.pay25.mode==='full'?'15 Pay 25 + สัญญาเพิ่มเติม — A4':'15 Pay 25 — ใบสรุป A4 1 หน้า'):key==='plusHappy'?'20Pay Life Plus + Health Happy — A4':key==='plusSaver'?'20Pay Life Plus + Health Saver — A4':key==='paylifeplus'?(state.paylifeplus.mode==='full'?'20Pay Life Plus + สัญญาเพิ่มเติม — A4':'20Pay Life Plus — ใบสรุป A4'):key==='paylife20'?'20PL + เลือกความคุ้มครองเอง — ใบสรุป A4 1 หน้า':key==='pay20happy'?'20PL + Health Happy — ใบสรุป A4':key==='pay20saver'?'20PL + Health Saver — ใบสรุป A4':key==='annuityfix'?'Annuity Fix — ตารางรายปี A4':key==='annuitysure'?'Annuity Sure — ตารางรายปี A4':'ตัวอย่างใบสรุปก่อนบันทึก'}</strong>
             <span class="rp-preview-status">${key==='ciprocare'?'Report v'+CI_PROCARE_REPORT_VERSION:key==='cisupercare'?'Report v'+CI_SUPERCARE_REPORT_VERSION:key==='excellent'?'Report v'+EXCELLENT_REPORT_VERSION:key==='legacy'?'Report v'+LEGACY_REPORT_VERSION:key==='pay25'?'Report v'+PAY25_REPORT_VERSION:key==='paylifeplus'?'Report v'+PAYLIFE_PLUS_REPORT_VERSION:key==='paylife20'?'Report v'+PAY20LIFE_REPORT_VERSION:key==='annuityfix'?'Report v'+ANNUITY_FIX_REPORT_VERSION:key==='annuitysure'?'Report v'+ANNUITY_SURE_REPORT_VERSION:''}</span>
             <div class="rp-preview-actions">
-              ${key==='legacy'?'<button type="button" class="rp-preview-legacy-zoom" aria-pressed="false">ขยาย 100%</button>':''}
+              
               ${key==='ciprocare' || key==='cisupercare' || key==='excellent' || key==='legacy' || key==='pay25' || key==='paylife20' || key==='paylifeplus' || key==='plusHappy' || key==='plusSaver' || key==='pay20happy' || key==='pay20saver' || key==='annuityfix' || key==='annuitysure' ? `
                 <button type="button" class="rp-preview-download-pdf">ดาวน์โหลด PDF</button>
               ` : `
@@ -16762,7 +16762,6 @@ function showReportPreview(key){
       visualReport.className = 'rp-preview-visual-report';
       visualReport.removeAttribute('aria-hidden');
       while(visualReport.firstChild) fitPaper.appendChild(visualReport.firstChild);
-      let legacyZoomFull = false;
       const fitPreview = ()=>{
         if(!fitStage.isConnected) return;
         fitPaper.style.transform = 'none';
@@ -16773,13 +16772,7 @@ function showReportPreview(key){
         const availableWidth = Math.max(1,previewContent.clientWidth -
           parseFloat(getComputedStyle(previewContent).paddingLeft) -
           parseFloat(getComputedStyle(previewContent).paddingRight) - 2);
-        const scale = key==='legacy' && legacyZoomFull ? 1 : Math.min(1, availableWidth / reportWidth);
-        if(key==='legacy'){
-          // Full-size A4 stays wider than a phone; scroll the preview instead of clipping.
-          previewContent.style.overflowX=legacyZoomFull?'auto':'hidden';
-          fitStage.style.marginLeft=legacyZoomFull?'0':'auto';
-          fitStage.style.marginRight=legacyZoomFull?'0':'auto';
-        }
+        const scale = Math.min(1, availableWidth / reportWidth);
         fitPaper.style.transform = 'scale(' + scale + ')';
         fitStage.style.width = Math.ceil(reportWidth * scale) + 'px';
         fitStage.style.height = Math.ceil(reportHeight * scale + 20) + 'px';
@@ -16790,17 +16783,6 @@ function showReportPreview(key){
         fitPreview();
       };
       fitAllReports();
-      if(key==='legacy'){
-        const zoomBtn=host.querySelector('.rp-preview-legacy-zoom');
-        if(zoomBtn)zoomBtn.addEventListener('click',()=>{
-          legacyZoomFull=!legacyZoomFull;
-          zoomBtn.textContent=legacyZoomFull?'พอดีหน้าจอ':'ขยาย 100%';
-          zoomBtn.setAttribute('aria-pressed',String(legacyZoomFull));
-          fitPreview();
-          previewContent.scrollLeft=0;
-          previewContent.scrollTop=0;
-        });
-      }
       const resizeObserver = typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(()=>fitPreview()) : null;
       if(resizeObserver) resizeObserver.observe(previewContent);
@@ -17872,7 +17854,7 @@ function buildLegacyWPCICategoriesHTML(){
   '</section>';
 }
 
-const LEGACY_REPORT_VERSION='1.2.0';
+const LEGACY_REPORT_VERSION='1.3.0';
 function buildLegacyReportData(){
   const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
   return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
@@ -18009,6 +17991,45 @@ function buildLegacyReportHTML(){
  '.legacy-report-page .legacy-v2-brochure .rp-resource-card[data-resource-type="brochure"] img{max-height:62px}'+
  '.legacy-report-page .legacy-v2-brochure .rp-resource-payment-row{margin-top:4px}'+
  '.legacy-report-page .legacy-v2-brochure .rp-resource-payment-image img{max-height:62px;width:100%;object-fit:contain}'+
+ '.legacy-report-page{background:#FFFFFF;color:#173A56}'+
+ '.legacy-report-page .rp-report-head{background:#12334F;border-bottom:3px solid #C9A666}'+
+ '.legacy-report-page .rp-report-sub{color:#C8E1F2}'+
+ '.legacy-report-page .rp-report-sum .v{color:#F4D287}'+
+ '.legacy-report-page .legacy3-body{background:#FFFFFF;color:#173A56}'+
+ '.legacy-report-page .legacy3-meta{background:#EFF7FC;border-color:#D1E4F0;color:#28506E}'+
+ '.legacy-report-page .legacy3-stat{background:#F2F8FD;border-color:#D7E7F3;border-left:3px solid #D0AA64}'+
+ '.legacy-report-page .legacy3-stat:nth-child(2){background:#E9F8F3;border-color:#CEEBE2}'+
+ '.legacy-report-page .legacy-v3-stats{grid-template-columns:1fr 1fr;gap:8px}'+
+ '.legacy-report-page .legacy3-heading{color:#173E5B;border-left-color:#D0AA64}'+
+ '.legacy-report-page .legacy3-bar{background:#2D6383}'+
+ '.legacy-report-page .legacy3-bar.ti{background:#397A73}'+
+ '.legacy-report-page .legacy3-bar.navy{background:#143855}'+
+ '.legacy-report-page .legacy3-benefits>div{border-color:#D7E6EF;background:#F4FAFE}'+
+ '.legacy-report-page .legacy3-benefits>div:nth-child(2){background:#EDF9F5}'+
+ '.legacy-report-page .legacy3-example{background:#FFF8E8;border-color:#DFC38D;color:#6B502A}'+
+ '.legacy-report-page .legacy3-summary-strip.premium>span{background:#EFF7FC;border-color:#D7E7F3;color:#286081}'+
+ '.legacy-report-page .legacy3-summary-strip.cv>span{background:#EAF8F3;border-color:#CDEADF;color:#236D62}'+
+ '.legacy-report-page .legacy3-table-full th{background:#153C5A!important;border-right-color:#45677F}'+
+ '.legacy-report-page .legacy3-table-full tbody tr:nth-child(even) td{background:#F1F7FB}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-amount{color:#187A68;background:#ECF8F4}'+
+ '.legacy-report-page .legacy3-table-full .legacy3-paid-year{color:#A47A35}'+
+ '.legacy-report-page .legacy3-page-note{background:#F4F9FC;padding:6px 8px;border-left:2px solid #C9A666;border-radius:3px}'+
+ '.legacy-report-page .legacy-v3-wpci-intro{display:flex;justify-content:space-between;align-items:center;background:#EAF6FA;border:1px solid #CFE5ED;border-radius:6px;padding:8px 11px;margin:7px 0 9px;color:#1D5870;font-size:10px}'+
+ '.legacy-report-page .legacy-v3-wpci-intro span{color:#55788B;font-size:9px}'+
+ '.legacy-report-page .legacy-v3-wpci-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}'+
+ '.legacy-report-page .legacy-v3-wpci-group{border:1px solid #D8E8F2;background:#FCFEFF;border-radius:6px;padding:0 0 5px;margin-bottom:8px;overflow:hidden;break-inside:avoid}'+
+ '.legacy-report-page .legacy-v3-wpci-title{background:#E6F3FB;border-left:3px solid #C9A666;padding:6px 7px;font-size:10px;font-weight:800;color:#173E5B;line-height:1.3}'+
+ '.legacy-report-page .legacy-v3-wpci-title small{font-size:9px;color:#55768C}'+
+ '.legacy-report-page .legacy-v3-wpci-group ol{padding:4px 7px 0 25px;margin:0;font-size:9px;line-height:1.45;color:#2F5067}'+
+ '.legacy-report-page .legacy-v3-wpci-group li{padding:0 0 1px;overflow-wrap:anywhere}'+
+ '.legacy-report-page .legacy-v3-resources-heading{margin:5px 0 5px;font-size:12px}'+
+ '.legacy-report-page .legacy-v3-resources{display:grid;grid-template-columns:40% 1fr;gap:10px;align-items:stretch}'+
+ '.legacy-report-page .legacy-v3-brochure .rp-resource-card{width:100%;max-width:none!important;padding:5px 7px;background:#F3FAFF;border-color:#D7E7F3}'+
+ '.legacy-report-page .legacy-v3-brochure .rp-resource-qr img{width:76px;height:76px;object-fit:contain}'+
+ '.legacy-report-page .legacy-v3-brochure .rp-resource-copy .name{font-size:10px}'+
+ '.legacy-report-page .legacy-v3-payment .rp-resource-card{margin:0;border-color:#D7E7F3;padding:4px}'+
+ '.legacy-report-page .legacy-v3-payment .rp-resource-payment-image{height:91px;overflow:hidden}'+
+ '.legacy-report-page .legacy-v3-payment .rp-resource-payment-image img{width:100%;height:100%;max-height:91px;object-fit:contain}'+
  '</style>';
  const wrap=(body,page,total,first=false)=>{
    return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+page+'"><div class="ex-report-inner">'+
@@ -18017,7 +18038,7 @@ function buildLegacyReportHTML(){
     '<div class="rp-report-sum"><div class="l">จำนวนเงินเอาประกันภัย</div><div class="v">'+fmtB(d.sum)+'</div></div></div>'+
     '<div class="legacy3-body">'+body+'<div class="legacy3-pageno">ROYAL PARTNERS · หน้า '+page+' / '+total+' · Report v'+LEGACY_REPORT_VERSION+'</div></div></div></section>';
  };
- const stats='<div class="legacy3-stats">'+[
+ const stats='<div class="legacy3-stats legacy-v3-stats">'+[
   ['เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)',fmtB(d.c.annual)],
   ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
   ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
@@ -18106,33 +18127,26 @@ function buildLegacyReportHTML(){
          :renderNum(r.policy?.paidUp,'cv'))+'</tr>').join('')+
    '</tbody></table>'+
    '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · — = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
- // Every official 44-item WPCI description comes directly from the same
- // authoritative in-app category list; never ship the mockup's sample text.
- let wpciNumber=0;
- const wpciCard=(group)=>{
-   const offset=wpciNumber;
-   wpciNumber+=group.items.length;
-   return '<div class="legacy-v2-wpci-group"><div class="legacy-v2-wpci-title">'+esc(group.title)+
-     ' <small>('+group.items.length+' รายการ)</small></div><ol start="'+(offset+1)+'">'+
-     group.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>';
- };
- const wpciFirst=d.groups.slice(0,3).map(wpciCard).join('');
- const wpciSecond=d.groups.slice(3).map(wpciCard).join('');
- if(wpciNumber!==44)throw Error('WPCI V2 must include exactly 44 items');
- const wpciPage1='<div class="legacy3-heading">5 WPCI — โรคร้ายแรง 44 โรค/การรักษา (1/2)</div>'+
-   '<p class="legacy3-section-description">รายการ 1–23 · กลุ่ม 1–3 · รายละเอียดตามเงื่อนไขสัญญาเพิ่มเติม</p>'+
-   '<div class="legacy-v2-wpci-list">'+wpciFirst+'</div>'+
-   '<p class="legacy3-page-note">การคุ้มครองต้องเป็นไปตามคำจำกัดความและข้อยกเว้นในกรมธรรม์</p>';
- const wpciPage2='<div class="legacy3-heading">5 WPCI — โรคร้ายแรง 44 โรค/การรักษา (2/2)</div>'+
-   '<p class="legacy3-section-description">รายการ 24–44 · กลุ่ม 4–6 · พร้อมเอกสารประกอบ</p>'+
-   '<div class="legacy-v2-wpci-list">'+wpciSecond+'</div>'+
-   '<div class="legacy3-heading legacy-v2-resources-heading">6 โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
-   '<div class="legacy3-brochure legacy-v2-brochure"><div class="rp-resource-grid">'+
+ // The actual protected source list is always the app's 44-item WPCI registry.
+ const wpciCard=(group,offset)=>'<div class="legacy-v3-wpci-group">'+
+   '<div class="legacy-v3-wpci-title">'+esc(group.title)+' <small>('+group.items.length+' รายการ)</small></div>'+
+   '<ol start="'+(offset+1)+'">'+group.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>';
+ const starts=[];let wpciCount=0;
+ for(const group of d.groups){starts.push(wpciCount);wpciCount+=group.items.length;}
+ if(wpciCount!==44)throw Error('WPCI V3 must include all 44 items');
+ // Balanced columns: odd-numbered groups contain 24 terms, even-numbered groups 20.
+ const wpciColumn=(indexes)=>indexes.map(i=>wpciCard(d.groups[i],starts[i])).join('');
+ const wpciPage='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา พร้อมเอกสารประกอบ</div>'+
+   '<p class="legacy3-section-description">รายการโรคร้ายแรง 6 กลุ่ม ครบ 44 รายการ · คุ้มครองตามเงื่อนไขสัญญาเพิ่มเติมและข้อยกเว้น</p>'+
+   '<div class="legacy-v3-wpci-intro"><b>WPCI · 6 หมวด / 44 โรคและการรักษา</b><span>ชื่อรายการอ้างอิงข้อมูลเดียวกับหน้าคำนวณ</span></div>'+
+   '<div class="legacy-v3-wpci-columns"><div>'+wpciColumn([0,2,4])+'</div><div>'+wpciColumn([1,3,5])+'</div></div>'+
+   '<div class="legacy3-heading legacy-v3-resources-heading">6 โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
+   '<div class="legacy-v3-resources"><div class="legacy-v3-brochure">'+
      buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
-     '<div class="rp-resource-payment-row">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
-   '<p class="legacy3-page-note">โปรโมชั่นผ่อน 0% 4 เดือน: ตรวจสอบช่วงเวลาและเงื่อนไขกับผู้ให้บริการก่อนนำเสนอ · '+
-   'เอกสารนี้ใช้สำหรับการตรวจสอบภายใน ไม่ใช่เอกสารเสนอขายหรือสัญญาประกันภัย</p>';
- const pageBodies=[page1Body,...tableAPages,...tableBPages,wpciPage1,wpciPage2];
+     '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
+   '<p class="legacy3-page-note">รายชื่อโรคเป็นข้อมูลสรุปเท่านั้น ความคุ้มครองขึ้นกับคำนิยามและข้อยกเว้นของกรมธรรม์ · '+
+   'โปรโมชั่น 0% 4 เดือนตรวจสอบเงื่อนไขและช่วงเวลาที่มีผลก่อนใช้งาน · เอกสารสำหรับตรวจสอบภายใน ไม่ใช่ใบเสนอขายอย่างเป็นทางการ</p>';
+ const pageBodies=[page1Body,...tableAPages,...tableBPages,wpciPage];
  const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
    '"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
