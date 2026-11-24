@@ -18067,10 +18067,10 @@ function buildLegacyReportHTML(){
      (r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'
        ?'<td class="legacy3-empty">รอยืนยัน RPU</td>'
        :r.policy?.rpuStatus==='OUTSIDE_SOURCE_RANGE'||r.policy?.rpuStatus==='UNAVAILABLE'
-         ?'<td class="legacy3-empty">ไม่มีข้อมูล</td>'
+         ?'<td class="legacy3-empty">—</td>'
          :renderNum(r.policy?.paidUp,'cv'))+'</tr>').join('')+
    '</tbody></table>'+
-   '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · ไม่มีข้อมูล = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
+   '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · — = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
  const groups='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา</div>'+
    '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+
     '</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
@@ -18524,7 +18524,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
       cvCell+(data?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'
         ?'<td class="legacy-rpu-pending" title="ข้อมูล RPU ต้นฉบับมีสองส่วน และยังไม่ยืนยันวิธีตีความ">รอยืนยัน RPU</td>'
         :data?.rpuStatus==='OUTSIDE_SOURCE_RANGE'||data?.rpuStatus==='UNAVAILABLE'
-          ?'<td class="legacy-values-placeholder" title="ไม่มี Factor RPU สำหรับปีกรมธรรม์นี้">ไม่มีข้อมูล</td>'
+          ?'<td class="legacy-values-placeholder" title="ไม่มี Factor RPU สำหรับปีกรมธรรม์นี้">—</td>'
           :renderValue(data?.paidUp))+'</tr>';
   }).join('');
   return '<section class="ledger-wrap legacy-values-section">'+
@@ -18559,7 +18559,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<th scope="col">เงินค่าเวนคืนกรมธรรม์ (CV)</th>'+
     '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · รอยืนยัน RPU = ตัวเลขต้นฉบับมีสองส่วนและยังไม่ยืนยันวิธีตีความ · ไม่มีข้อมูล = ไม่มี Factor ของปีนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · รอยืนยัน RPU = ตัวเลขต้นฉบับมีสองส่วนและยังไม่ยืนยันวิธีตีความ · — = ไม่มี Factor ของปีนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
     '</section>';
 }
 
