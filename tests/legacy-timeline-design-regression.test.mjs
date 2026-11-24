@@ -34,7 +34,7 @@ test('design changes do not remove Table A/B or source-grounded missing-value ha
   assert.match(html,/data-legacy-table="A"/);
   assert.match(html,/data-legacy-table="B"/);
   assert.match(report,/const tableAChunks=groupsOf/);
-  assert.match(report,/const tableBChunks=groupsOf/);
+  assert.match(report,/const tableBChunks=shownBYears\.length\?groupsOf/);
   assert.match(report,/const dash='—'/);
   assert.match(report,/value===null\|\|value===undefined/);
 });
