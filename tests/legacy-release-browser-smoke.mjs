@@ -39,21 +39,15 @@ try{
  assert.equal(await page.locator('#legacy-calculator-submit').count(),0);
  assert.equal(await page.locator('a[href="/login"]').count(),0);
  await page.locator('.btn-export').click();
- const button=page.locator('.rp-preview-legacy-zoom');
- await button.waitFor({timeout:25000});
- await button.click();
- assert.equal(await button.getAttribute('aria-pressed'),'true');
- assert.equal(await page.locator('.rp-preview-fit-paper').evaluate(el=>el.style.transform),'scale(1)');
- await button.click();
- assert.equal(await button.getAttribute('aria-pressed'),'false');
+ assert.equal(await page.locator('.rp-preview-legacy-zoom').count(),0,'Legacy zoom button removed');
  const pages=page.locator('.rp-preview-fit-paper .legacy-report-page');
- assert.equal(await pages.count(),6,'female age 35 / 15 Pay report should use exactly six A4 pages');
+ assert.equal(await pages.count(),5,'female age 35 / 15 Pay V3 report must use exactly five A4 pages');
  const titles=await pages.locator('.legacy3-heading').allInnerTexts();
  assert.ok(titles.some(x=>x.includes('ตาราง A'))&&titles.some(x=>x.includes('ตาราง B')));
  const aRows=await page.locator('.rp-preview-pdf-source .legacy-report-page .legacy3-table-full').nth(0).locator('tbody tr').count();
  assert.equal(aRows,32,'Table A must fit 32 complete years on first page');
- const wpciTitles=await page.locator('.rp-preview-pdf-source .legacy-v2-wpci-title').count();
- const wpciItems=await page.locator('.rp-preview-pdf-source .legacy-v2-wpci-group li').count();
+ const wpciTitles=await page.locator('.rp-preview-pdf-source .legacy-v3-wpci-title').count();
+ const wpciItems=await page.locator('.rp-preview-pdf-source .legacy-v3-wpci-group li').count();
  assert.equal(wpciTitles,6,'WPCI six groups must be present');
  assert.equal(wpciItems,44,'WPCI 44 disease/treatment names must be present');
  assert.equal(await pages.last().locator('.rp-resource-card[data-resource-type="brochure"]').count(),1);
@@ -98,7 +92,7 @@ try{
  assert.equal(await page.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true',
    'Legacy remains reachable after switching back from original plans');
  assert.deepEqual(errors,[],'no browser runtime errors or PDF alerts');
- console.log('PASS: anonymous Legacy A/B, zoom toggle, A4 and real PDF download');
+ console.log('PASS: Legacy V3 5-page A4, WPCI 44, brochure and payment promo, real PDF');
 }finally{
  await browser.close();
 }
