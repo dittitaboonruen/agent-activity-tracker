@@ -18063,9 +18063,14 @@ function buildLegacyReportHTML(){
    '<span>สีเขียว = ค่าที่มีหลักฐาน <b>CV / RPU</b></span></div>'+
    '<table class="legacy3-table-full"><thead><tr>'+tableBColumns+'</tr></thead><tbody>'+
    rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
-     renderNum(r.policy?.surrender,'cv')+renderNum(r.policy?.paidUp,'cv')+'</tr>').join('')+
+     renderNum(r.policy?.surrender,'cv')+
+     (r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'
+       ?'<td class="legacy3-empty">รอยืนยัน RPU</td>'
+       :r.policy?.rpuStatus==='OUTSIDE_SOURCE_RANGE'||r.policy?.rpuStatus==='UNAVAILABLE'
+         ?'<td class="legacy3-empty">ไม่มีข้อมูล</td>'
+         :renderNum(r.policy?.paidUp,'cv'))+'</tr>').join('')+
    '</tbody></table>'+
-   '<p class="legacy3-page-note">— หมายถึงยังไม่มีค่าที่ตรวจสอบได้ ไม่ใช่ 0 บาท · แสดง 0 เฉพาะเมื่อข้อมูลต้นทางยืนยันว่ามีค่าเป็นศูนย์ · ใช้ตรวจสอบภายในเท่านั้น</p>');
+   '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · ไม่มีข้อมูล = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
  const groups='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา</div>'+
    '<div class="legacy3-groups">'+d.groups.map(g=>'<div><b>'+esc(g.title)+
     '</b><div>'+g.items.length+' รายการ</div></div>').join('')+'</div>'+
@@ -18358,7 +18363,12 @@ function loadLegacyTableB(age,gender,sum,term){
            (v.surrender===null&&v.cvEvidence!=='UNAVAILABLE')||
            (v.surrender!==null&&v.cvEvidence==='UNAVAILABLE'))
           throw Error('แหล่งข้อมูล CV ไม่ตรงกับผลคำนวณ');
-        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp,cvEvidence:v.cvEvidence});
+        if(!['PENDING_SOURCE_INTERPRETATION','OUTSIDE_SOURCE_RANGE','UNAVAILABLE','CONFIRMED_ZERO','VERIFIED'].includes(v.rpuStatus)||
+           (v.rpuStatus==='PENDING_SOURCE_INTERPRETATION'&&v.paidUp!==null)||
+           (v.rpuStatus==='OUTSIDE_SOURCE_RANGE'&&v.paidUp!==null)||
+           (v.rpuStatus==='CONFIRMED_ZERO'&&v.paidUp!==0))
+          throw Error('สถานะ RPU ไม่ตรงกับข้อมูลต้นทาง');
+        byAge.set(v.age,{age:v.age,surrender:v.surrender,paidUp:v.paidUp,cvEvidence:v.cvEvidence,rpuStatus:v.rpuStatus});
       }
       LEGACY_TABLE_B_DATA.set(key,byAge);
       LEGACY_TABLE_B_CASE_SOURCES.set(key,result.cvExactCaseSource||null);
@@ -18412,6 +18422,7 @@ function lookupLegacyPolicyValueIllustration(issueAge,gender,sum,term){
       const merged={...current};
       for(const key of ['surrender','paidUp']){
         if((merged[key]===null||merged[key]===undefined)&&
+           !(key==='paidUp'&&current.rpuStatus==='PENDING_SOURCE_INTERPRETATION')&&
            Number.isFinite(reference?.[key]))merged[key]=reference[key];
       }
       byAge.set(rowAge,merged);
@@ -18510,7 +18521,11 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
         :renderValue(data.surrender))
       :'<td class="legacy-values-placeholder" title="ไม่มีค่า CV ที่ยืนยันสำหรับกรณีนี้">—</td>';
     return '<tr><td class="'+thClass+'">'+r.age+'</td>'+
-      cvCell+renderValue(data?.paidUp)+'</tr>';
+      cvCell+(data?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'
+        ?'<td class="legacy-rpu-pending" title="ข้อมูล RPU ต้นฉบับมีสองส่วน และยังไม่ยืนยันวิธีตีความ">รอยืนยัน RPU</td>'
+        :data?.rpuStatus==='OUTSIDE_SOURCE_RANGE'||data?.rpuStatus==='UNAVAILABLE'
+          ?'<td class="legacy-values-placeholder" title="ไม่มี Factor RPU สำหรับปีกรมธรรม์นี้">ไม่มีข้อมูล</td>'
+          :renderValue(data?.paidUp))+'</tr>';
   }).join('');
   return '<section class="ledger-wrap legacy-values-section">'+
     '<style>'+
@@ -18525,6 +18540,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '.legacy-values-table .legacy-values-age{position:sticky;left:0;z-index:2;text-align:center;background:#F8F6F2;width:68px}'+
     '.legacy-values-table thead .legacy-values-age{z-index:5;background:#142A47;color:#fff}'+
     '.legacy-values-table .legacy-values-placeholder{color:#948C7C;text-align:center}'+
+    '.legacy-values-table .legacy-rpu-pending{color:#85550B;background:#FFF4DC;text-align:center;font-size:11px;font-weight:650;white-space:normal;line-height:1.25}'+
     '.legacy-values-table .legacy-cv-ipos{color:#1F6646;background:#EAF6EF;font-weight:650}.legacy-values-table .legacy-cv-ipos small{font-size:10px;font-weight:600;white-space:nowrap}'+
     '.legacy-values-table thead{position:sticky;top:0;z-index:4}'+
     '.legacy-values-section .legacy-values-reference{padding:12px 14px;border:1px solid #E1D8C9;border-radius:7px;background:#F8F6F2;color:#5F5545;font-size:11px;line-height:1.6;margin-bottom:10px}'+
@@ -18543,7 +18559,7 @@ function buildLegacyPolicyValuesTableHTML(displayRows,inputs){
     '<th scope="col">เงินค่าเวนคืนกรมธรรม์ (CV)</th>'+
     '<th scope="col">กรมธรรม์ใช้เงินสำเร็จ — มูลค่าใช้เงินสำเร็จ (RPU)</th></tr>'+
     '</thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · — = ยังไม่มีค่าที่ตรวจสอบได้ ไม่ใช่ 0 บาท · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
+    '<p style="font-size:11px;color:#786C58;line-height:1.6;margin-top:8px">CV ปกติ = ค่าจากตารางคู่มือ AIA ที่เผยแพร่ในช่วงข้อมูล · CV (ภาพ iPOS+) = ข้อมูลที่ยืนยันเฉพาะกรณีตรงกัน · รอยืนยัน RPU = ตัวเลขต้นฉบับมีสองส่วนและยังไม่ยืนยันวิธีตีความ · ไม่มีข้อมูล = ไม่มี Factor ของปีนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ไม่ใช้ค่า CV ทดลองจากสูตร Dynamic · ใช้ตรวจสอบภายในเท่านั้น ไม่ใช่เอกสารเสนอขาย</p>'+
     '</section>';
 }
 
