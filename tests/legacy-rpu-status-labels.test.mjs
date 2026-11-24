@@ -21,7 +21,10 @@ test('the pending status applies only to exactly 206 source positions',()=>{
 });
 test('screens and PDFs distinguish pending, unavailable, and real zero',()=>{
  assert.match(html,/รอยืนยัน RPU/);
- assert.match(html,/ไม่มีข้อมูล/);
+ assert.match(html,/<td class="legacy3-empty">—<\/td>/);
+ assert.match(html,/<td class="legacy-values-placeholder" title="ไม่มี Factor RPU สำหรับปีกรมธรรม์นี้">—<\/td>/);
+ assert.doesNotMatch(html,/<td class="legacy3-empty">ไม่มีข้อมูล<\/td>/);
+ assert.doesNotMatch(html,/title="ไม่มี Factor RPU สำหรับปีกรมธรรม์นี้">ไม่มีข้อมูล<\/td>/);
  assert.match(html,/0 บาท = ศูนย์จริงจากต้นฉบับ/);
  assert.match(html,/current\.rpuStatus==='PENDING_SOURCE_INTERPRETATION'/);
  assert.match(html,/r\.policy\?\.rpuStatus==='PENDING_SOURCE_INTERPRETATION'/);
