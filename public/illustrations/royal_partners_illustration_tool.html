@@ -16952,7 +16952,7 @@ function riderControlsHTML(context='paylife20'){
       <div class="pl20-rider-card">
         ${toggle('citopup','AIA CI Top Up')}
         <div class="pl20-rider-options">${moneyInput('ctuSi',op.ctuSi,'ทุน CI Top Up')}</div>
-        <div class="pl20-rider-premium">${rs.ciplus ? `สูงสุด 40% ของทุน CI Plus = ${fmt((Number(op.ciplusSi)||0)*0.4)} บาท` : 'ต้องเลือก AIA CI Plus ก่อน'}</div>
+        <div class="pl20-rider-premium">${rs.ciplus ? `สูงสุด 40% ของทุน CI Plus = ${fmt((Number(op.ciplusSi)||0)*0.4)} บาท` : '<span style="color:#DC2626">ต้องเลือก AIA CI Plus ก่อน</span>'}</div>
       </div>
       <div class="pl20-rider-card">
         ${toggle('healthcancer','AIA Health Cancer')}
