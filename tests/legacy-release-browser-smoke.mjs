@@ -73,6 +73,18 @@ try{
  assert.equal(pdfBytes.subarray(0,5).toString('latin1'),'%PDF-','download must be a real PDF');
  assert.match(pdfBytes.subarray(-2048).toString('latin1'),/%%EOF/,'PDF must include end-of-file marker');
  execFileSync('python3',['scripts/legacy_pdf_a4_verify.py',pdfPath],{stdio:'inherit',timeout:120000});
+ // Simulate older iPad Safari implementations lacking newer Array helpers.
+ // The report must still render and keep its real source-backed values.
+ await page.locator('.rp-preview-close').click();
+ await page.evaluate(()=>{
+   Array.prototype.findLastIndex=undefined;
+   Array.prototype.at=undefined;
+ });
+ await page.locator('.btn-export').click();
+ await page.locator('.rp-preview-fit-paper .legacy-report-page').first().waitFor({timeout:15000});
+ assert.equal(await page.locator('.rp-preview-fit-paper .legacy-report-page').count(),5,
+   'older Safari without Array.at/findLastIndex must still open all five pages');
+ assert.deepEqual(errors,[],'older Safari compatibility must not throw browser errors');
  // Close the print-preview overlay before exercising original plan tabs.
  // Reload preserves the same release code, but resets the modal to its normal closed state.
  await page.reload({waitUntil:'domcontentloaded'});

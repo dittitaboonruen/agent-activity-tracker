@@ -16859,7 +16859,9 @@ function showReportPreview(key){
     });
   }catch(error){
     console.error('Report preview error:', error);
-    alert('เกิดข้อผิดพลาดในการเปิดใบสรุป กรุณาลองใหม่อีกครั้ง');
+    // A safe, short device-specific error avoids exposing personal data or factors.
+    const detail=error&&typeof error.message==='string'?error.message.slice(0,180):'unknown';
+    alert('เกิดข้อผิดพลาดในการเปิดใบสรุป\\n'+detail+'\\nกรุณาลองใหม่อีกครั้ง');
   }
 }
 
@@ -17865,7 +17867,7 @@ function validateLegacyReportData(d){
   const errors=[];
   if(!d.c.ok)errors.push(d.c.message||'ข้อมูลแบบประกันไม่ถูกต้อง');
   if(d.groups.length!==6||d.groups.reduce((n,g)=>n+g.items.length,0)!==44)errors.push('ข้อมูล WPCI ไม่ครบ 44 รายการ');
-  if(d.c.ok && d.c.rows.at(-1)?.age!==99)errors.push('ตารางรายปีไม่ครบ');
+  if(d.c.ok && d.c.rows[d.c.rows.length-1]?.age!==99)errors.push('ตารางรายปีไม่ครบ');
   return {ok:errors.length===0,errors};
 }
 
@@ -18094,13 +18096,20 @@ function buildLegacyReportHTML(){
  const tableAChunks=groupsOf(allYears,rowsPerPage);
  // Keep all rows until the last verifiable CV/RPU or explicitly pending RPU.
  // Remove only the trailing years where both values are genuinely absent.
- const lastBIndex=allYears.findLastIndex(r=>Number.isFinite(r.policy?.surrender)||
-   Number.isFinite(r.policy?.paidUp)||r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION');
+ let lastBIndex=-1;
+ for(let i=allYears.length-1;i>=0;i--){
+   const row=allYears[i];
+   if(Number.isFinite(row.policy?.surrender)||Number.isFinite(row.policy?.paidUp)||
+      row.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'){
+     lastBIndex=i;
+     break;
+   }
+ }
  const shownBYears=lastBIndex>=0?allYears.slice(0,lastBIndex+1):[];
  const tableBChunks=shownBYears.length?groupsOf(shownBYears,36):[[]];
  const tableAPages=tableAChunks.map((rows,index)=>
    '<div class="legacy3-heading">3 ตาราง A · เบี้ยประกัน'+(index?' (ต่อ)':'')+'</div>'+
-   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+
+   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows[rows.length-1].age+
    ' ปี · เบี้ยหลักมาจากตาราง A ของเครื่องคำนวณ · เบี้ยสะสมคำนวณจากเบี้ยหลักตามปีชำระ</p>'+
    '<div class="legacy3-summary-strip premium"><span>ระยะชำระเบี้ย <b>'+d.term+
    ' ปี</b></span><span>เบี้ยต่อปี <b>'+fmt(d.c.annual)+' บาท</b></span></div>'+
@@ -18113,7 +18122,7 @@ function buildLegacyReportHTML(){
  const tableBPages=tableBChunks.map((rows,index)=>
    '<div class="legacy3-heading">4 ตาราง B · มูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
    '<p class="legacy3-section-description">'+(rows.length?
-   'ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows.at(-1).age+' ปี · ':'')+
+   'ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows[rows.length-1].age+' ปี · ':'')+
    'แสดงถึงปีสุดท้ายที่มี CV/RPU หรือสถานะรอยืนยัน · ช่วงท้ายที่ไม่มีข้อมูลไม่แสดง</p>'+
    '<div class="legacy3-summary-strip cv"><span>ทุนประกัน <b>'+fmt(d.sum)+' บาท</b></span>'+
    '<span>สีเขียว = ค่าที่มีหลักฐาน <b>CV / RPU</b></span></div>'+
