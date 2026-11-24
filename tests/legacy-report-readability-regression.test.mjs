@@ -20,7 +20,7 @@ test('Legacy PDF improves readability without changing report source rows',()=>{
  assert.match(pdf,/const y=Array.from\(\{length:20\}/);
  assert.match(pdf,/i<d\.term\?'▲':'·'/);
  assert.match(pdf,/const tableAChunks=groupsOf\(allYears,rowsPerPage\)/);
- assert.match(pdf,/const tableBChunks=shownBYears\.length\?groupsOf\(shownBYears,rowsPerPage\)/);
+ assert.match(pdf,/const tableBChunks=shownBYears\.length\?groupsOf\(shownBYears,36\)/);
  assert.match(pdf,/const dash='—'/);
 });
 test('Legacy preview alone gets fit / 100 percent zoom; PDF source stays unscaled',()=>{
