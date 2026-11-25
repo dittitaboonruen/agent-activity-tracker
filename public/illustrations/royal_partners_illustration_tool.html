@@ -17856,7 +17856,7 @@ function buildLegacyWPCICategoriesHTML(){
   '</section>';
 }
 
-const LEGACY_REPORT_VERSION='1.3.0';
+const LEGACY_REPORT_VERSION='1.4.0';
 function buildLegacyReportData(){
   const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
   return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
@@ -18032,6 +18032,20 @@ function buildLegacyReportHTML(){
  '.legacy-report-page .legacy-v3-payment .rp-resource-card{margin:0;border-color:#D7E7F3;padding:4px}'+
  '.legacy-report-page .legacy-v3-payment .rp-resource-payment-image{height:91px;overflow:hidden}'+
  '.legacy-report-page .legacy-v3-payment .rp-resource-payment-image img{width:100%;height:100%;max-height:91px;object-fit:contain}'+
+ '.legacy-report-page .legacy-v4-benefits{grid-template-columns:1fr 1fr;margin:5px 0;gap:6px}'+
+ '.legacy-report-page .legacy-v4-benefits>div{font-size:10px;line-height:1.35;padding:5px 7px}'+
+ '.legacy-report-page .legacy3-stat{padding:5px 8px}'+
+ '.legacy-report-page .legacy-v3-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin:5px 0;gap:5px}'+
+ '.legacy-report-page .legacy3-bar{padding:5px 8px;margin:4px 0}'+
+ '.legacy-report-page .legacy3-example{padding:5px 7px;margin:4px 0;font-size:10px}'+
+ '.legacy-report-page .legacy-v3-wpci-group{margin-bottom:4px;padding-bottom:2px}'+
+ '.legacy-report-page .legacy-v3-wpci-group ol{font-size:9px;line-height:1.25;padding-top:2px}'+
+ '.legacy-report-page .legacy-v3-wpci-group li{margin:0}'+
+ '.legacy-report-page .legacy-v3-wpci-intro{margin:3px 0;padding:4px 7px}'+
+ '.legacy-report-page .legacy-v4-table th{padding:5px 2px;font-size:9.5px}'+
+ '.legacy-report-page .legacy-v4-table td{padding:4px 3px;font-size:10px;overflow-wrap:anywhere}'+
+ '.legacy-report-page .legacy-v4-table th:nth-child(6),.legacy-report-page .legacy-v4-table th:nth-child(7){background:#307D6D!important}'+
+ '.legacy-report-page .legacy-v4-table th:nth-child(8){background:#8B703F!important}'+
  '</style>';
  const wrap=(body,page,total,first=false)=>{
    return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+page+'"><div class="ex-report-inner">'+
@@ -18041,24 +18055,16 @@ function buildLegacyReportHTML(){
     '<div class="legacy3-body">'+body+'<div class="legacy3-pageno">ROYAL PARTNERS · หน้า '+page+' / '+total+' · Report v'+LEGACY_REPORT_VERSION+'</div></div></div></section>';
  };
  const stats='<div class="legacy3-stats legacy-v3-stats">'+[
-  ['เบี้ยหลักมาตรฐานต่อปี (ก่อนส่วนลด)',fmtB(d.c.annual)],
+  ['เบี้ยหลักต่อปี',fmtB(d.c.annual)],
   ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
   ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
  ].map(([l,v])=>'<div class="legacy3-stat"><small>'+l+'</small><strong>'+v+'</strong></div>').join('')+'</div>';
  const benefits='<div class="legacy3-heading">1 ความคุ้มครองชีวิต</div>'+
-  '<div class="legacy3-bar">WPCI — โรคร้ายแรง 44 โรค/การรักษา · ยกเว้นเบี้ยหลักตามเกณฑ์ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน</div>'+
-  '<div class="legacy3-bar ti">TI — ภาวะเจ็บป่วยระยะสุดท้าย (ฟรี) · สูงสุด 90% ของทุนประกัน ถึงอายุ 99 ปี</div>'+
-  '<div class="legacy3-bar navy">คุ้มครองชีวิตถึงอายุ 99 ปี · ชำระเบี้ย '+d.term+' ปี</div>'+
-  '<div class="legacy3-benefits"><div><b>WPCI</b>เมื่อเข้าเงื่อนไขโรคร้ายแรง จะยกเว้นเบี้ยหลักส่วนที่ได้รับอนุมัติ ไม่ใช่เงินชดเชย</div>'+
-  '<div><b>TI</b>รับผลประโยชน์ล่วงหน้าตามเกณฑ์ของบริษัท สูงสุด 90% จากผลประโยชน์กรณีเสียชีวิต</div>'+
-  '<div><b>หลังจ่าย TI</b>ทุนประกันหลักลดลงตามจำนวนเงินเอาประกันภัย TI ที่ได้รับอนุมัติ</div></div>'+
-  '<div class="legacy3-example">กรณีจ่าย TI เต็ม 90%: TI สูงสุด '+fmtB(d.sum*.9)+' · ทุนประกันหลักคงเหลือ '+fmtB(d.sum*.1)+'</div>';
- const y=Array.from({length:20},(_,i)=>'<span>'+(i+1)+'</span>').join('');
- const t=Array.from({length:20},(_,i)=>'<span>'+(i<d.term?'▲':'·')+'</span>').join('');
- const timeline='<div class="legacy3-heading">2 ระยะเวลาคุ้มครองและชำระเบี้ย</div>'+
-  '<div class="legacy3-years">'+y+'</div><div class="legacy3-tris">'+t+'</div>'+
-  '<div class="legacy3-note">▲ คือปีที่ชำระเบี้ย · คุ้มครองถึงอายุ 99 ปี (รวม '+(99-d.age)+' ปีนับจากอายุแรกเข้า) · ภาษีเป็นเพียงประมาณการ</div>';
- const page1Body='<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits+timeline;
+  '<div class="legacy3-bar navy"><b>กรณีเสียชีวิต · ทุนประกัน '+fmtB(d.sum)+'</b> · คุ้มครองถึงอายุ 99 ปี ผลประโยชน์จริงตามกรมธรรม์</div>'+
+  '<div class="legacy3-benefits legacy-v4-benefits"><div><b>WPCI — 44 โรค/การรักษา</b>ยกเว้นเบี้ยหลักปีที่เหลือเฉพาะส่วนที่ได้รับอนุมัติ เมื่อเข้าเงื่อนไขครั้งแรกขณะมีชีวิตอยู่ ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน'+(d.c.wpciUntil>=d.age+4?' เช่น ชำระแล้ว 3 ปี จากแผน '+d.term+' ปี อาจยกเว้นได้สูงสุด '+Math.min(d.term-3,d.c.wpciUntil-d.age-3)+' ปี ตามเงื่อนไข':'')+'</div>'+
+  '<div><b>TI — ภาวะเจ็บป่วยระยะสุดท้าย</b>แพทย์ผู้เชี่ยวชาญวินิจฉัยว่าไม่สามารถรักษาให้หายได้ ไม่มีแผนรักษาเฉพาะ เหลือการบรรเทาหรือประคับประคอง และประเมินว่าจะเสียชีวิตภายใน 12 เดือน ตามเงื่อนไข รับผลประโยชน์ล่วงหน้าตามสัดส่วนทุน TI ที่อนุมัติ</div></div>'+
+  '<div class="legacy3-example">ตัวอย่าง TI เต็ม 90% ของทุนหลัก: '+fmtB(d.sum*.9)+' · ทุนหลักคงเหลือ '+fmtB(d.sum*.1)+' · ยกเว้นเบี้ยหลักหลังจ่าย TI (ไม่รวมสัญญาเพิ่มเติม) ตามเงื่อนไข</div>';
+ const page1Body='<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits;
 
  // All attained ages use the EXACT same inputs as calculator Tables A and B.
  // Do not use the old milestone-only table or derive missing CV/RPU values.
@@ -18067,7 +18073,7 @@ function buildLegacyReportHTML(){
  const totalRows=99-d.age;
  if(displayRows.length!==totalRows||d.c.rows.length!==totalRows||
     !policyValues?.byAge)throw Error('ตาราง A/B ยังไม่พร้อมสำหรับการแสดงครบทุกอายุ');
- const rowsPerPage=32; // V2 compact A4: complete annual Table A with 32 rows per page
+ const rowsPerPage=28; // V4: reserve space for repeated notes and eight columns
  const groupsOf=(items,size)=>Array.from({length:Math.ceil(items.length/size)},
    (_,i)=>items.slice(i*size,(i+1)*size));
  const allYears=Array.from({length:totalRows},(_,index)=>{
@@ -18077,85 +18083,52 @@ function buildLegacyReportHTML(){
       a.premium!==(index<d.term?d.c.annual:0))
      throw Error('ตาราง A ปีกรมธรรม์ไม่ตรงกับหน้าคำนวณ');
    return {age:r.age,year:index+1,premium:r.premium,coverage:r.coverage,
-     paid:a.paid,policy:policyValues.byAge.get(r.age)||null};
+     paid:a.paid,taxRelief:a.taxRelief,policy:policyValues.byAge.get(r.age)||null};
  });
- const dash='—';
  const renderNum=(value,kind)=>{
    if(value===null||value===undefined||!Number.isFinite(value))
-     return '<td class="legacy3-empty">'+dash+'</td>';
-   const cls=value===0?'legacy3-zero':kind==='cv'?'legacy3-amount':'';
+     return '<td class="legacy3-empty">'+(kind==='cv'?'*':'—')+'</td>';
+   const cls=value===0?'legacy3-zero':'legacy3-amount';
    return '<td class="'+cls+'">'+fmt(value)+'</td>';
  };
- const tableAColumns='<th style="width:13%">ปีกรมธรรม์</th><th style="width:15%">อายุ</th>'+
-   '<th style="width:23%">เบี้ยหลักต่อปี (บาท)</th>'+
-   '<th style="width:24%">เบี้ยสะสม (บาท)</th>'+
-   '<th style="width:25%">ทุนประกัน (บาท)</th>';
- const tableBColumns='<th style="width:16%">ปีกรมธรรม์</th><th style="width:16%">อายุ</th>'+
-   '<th style="width:34%">เงินค่าเวนคืน (CV) บาท</th>'+
-   '<th style="width:34%">มูลค่าใช้เงินสำเร็จ (RPU) บาท</th>';
- const tableAChunks=groupsOf(allYears,rowsPerPage);
- // Keep all rows until the last verifiable CV/RPU or explicitly pending RPU.
- // Remove only the trailing years where both values are genuinely absent.
- let lastBIndex=-1;
- for(let i=allYears.length-1;i>=0;i--){
-   const row=allYears[i];
-   if(Number.isFinite(row.policy?.surrender)||Number.isFinite(row.policy?.paidUp)||
-      row.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'){
-     lastBIndex=i;
-     break;
-   }
- }
- const shownBYears=lastBIndex>=0?allYears.slice(0,lastBIndex+1):[];
- const tableBChunks=shownBYears.length?groupsOf(shownBYears,36):[[]];
- const tableAPages=tableAChunks.map((rows,index)=>
-   '<div class="legacy3-heading">3 ตาราง A · เบี้ยประกัน'+(index?' (ต่อ)':'')+'</div>'+
-   '<p class="legacy3-section-description">ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows[rows.length-1].age+
-   ' ปี · เบี้ยหลักมาจากตาราง A ของเครื่องคำนวณ · เบี้ยสะสมคำนวณจากเบี้ยหลักตามปีชำระ</p>'+
-   '<div class="legacy3-summary-strip premium"><span>ระยะชำระเบี้ย <b>'+d.term+
-   ' ปี</b></span><span>เบี้ยต่อปี <b>'+fmt(d.c.annual)+' บาท</b></span></div>'+
-   '<table class="legacy3-table-full"><thead><tr>'+tableAColumns+'</tr></thead><tbody>'+
+ const columns='<th style="width:7%">ปีกรมธรรม์</th><th style="width:6%">อายุ</th>'+
+   '<th style="width:14%">เบี้ยหลักต่อปี</th><th style="width:15%">เบี้ยสะสม</th>'+
+   '<th style="width:16%">ทุนประกันชีวิต</th><th style="width:15%">เงินค่าเวนคืน (CV)</th>'+
+   '<th style="width:15%">กรมธรรม์ใช้เงินสำเร็จ (RPU)</th><th style="width:12%">ประมาณการประหยัดภาษี</th>';
+ const combinedPages=groupsOf(allYears,rowsPerPage).map((rows,index)=>
+   '<div class="legacy3-heading">3 ตารางสรุปผลประโยชน์และมูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
+   '<p class="legacy3-section-description">อายุ '+rows[0].age+'–'+rows[rows.length-1].age+' ปี · หน่วย: บาท · ชำระเบี้ย '+d.term+' ปี</p>'+
+   '<table class="legacy3-table-full legacy-v4-table"><thead><tr>'+columns+'</tr></thead><tbody>'+
    rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
-     (r.premium===null?'<td class="legacy3-no-pay">—</td>':
-       '<td class="'+(r.premium>0?'legacy3-paid-year':'legacy3-no-pay')+'">'+fmt(r.premium)+'</td>')+
-     '<td>'+fmt(r.paid)+'</td><td>'+fmt(r.coverage)+'</td></tr>').join('')+'</tbody></table>'+
-   '<p class="legacy3-page-note">เบี้ยหลักต่อปีหลังพ้นระยะชำระแสดง 0 บาท; เบี้ยและเบี้ยสะสมอ้างอิงผลคำนวณตามข้อมูลที่เลือก</p>');
- const tableBPages=tableBChunks.map((rows,index)=>
-   '<div class="legacy3-heading">4 ตาราง B · มูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
-   '<p class="legacy3-section-description">'+(rows.length?
-   'ทุกอายุตั้งแต่ '+rows[0].age+'–'+rows[rows.length-1].age+' ปี · ':'')+
-   'แสดงถึงปีสุดท้ายที่มี CV/RPU หรือสถานะรอยืนยัน · ช่วงท้ายที่ไม่มีข้อมูลไม่แสดง</p>'+
-   '<div class="legacy3-summary-strip cv"><span>ทุนประกัน <b>'+fmt(d.sum)+' บาท</b></span>'+
-   '<span>สีเขียว = ค่าที่มีหลักฐาน <b>CV / RPU</b></span></div>'+
-   '<table class="legacy3-table-full"><thead><tr>'+tableBColumns+'</tr></thead><tbody>'+
-   rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
-     renderNum(r.policy?.surrender,'cv')+
+     '<td class="'+(r.premium>0?'legacy3-paid-year':'legacy3-no-pay')+'">'+fmt(r.premium===null?0:r.premium)+'</td>'+
+     '<td>'+fmt(r.paid)+'</td><td>'+fmt(r.coverage)+'</td>'+renderNum(r.policy?.surrender,'cv')+
      (r.policy?.rpuStatus==='PENDING_SOURCE_INTERPRETATION'
        ?'<td class="legacy3-empty">รอยืนยัน RPU</td>'
        :r.policy?.rpuStatus==='OUTSIDE_SOURCE_RANGE'||r.policy?.rpuStatus==='UNAVAILABLE'
          ?'<td class="legacy3-empty">—</td>'
-         :renderNum(r.policy?.paidUp,'cv'))+'</tr>').join('')+
-   '</tbody></table>'+
-   '<p class="legacy3-page-note">รอยืนยัน RPU = ต้นฉบับยังต้องยืนยันวิธีตีความ · — = ไม่มี Factor สำหรับช่วงนั้น · 0 บาท = ศูนย์จริงจากต้นฉบับ · ใช้ตรวจสอบภายในเท่านั้น</p>');
+         :renderNum(r.policy?.paidUp,'rpu'))+
+     '<td>'+fmt(r.taxRelief)+'</td></tr>').join('')+'</tbody></table>'+
+   '<p class="legacy3-page-note">* มูลค่าเวนคืนกรมธรรม์ โปรดตรวจสอบกับบริษัทประกันภัยอีกครั้ง หรือดูจากตารางมูลค่าเวนคืนในกรมธรรม์ · รอยืนยัน RPU = รอยืนยันความหมายจากต้นฉบับ · — = ไม่มีข้อมูล RPU · 0 = ค่าศูนย์จริงหรือไม่มีเบี้ย/ภาษีในปีนั้น · ภาษีเป็นประมาณการ</p>');
  // The actual protected source list is always the app's 44-item WPCI registry.
  const wpciCard=(group,offset)=>'<div class="legacy-v3-wpci-group">'+
    '<div class="legacy-v3-wpci-title">'+esc(group.title)+' <small>('+group.items.length+' รายการ)</small></div>'+
    '<ol start="'+(offset+1)+'">'+group.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ol></div>';
  const starts=[];let wpciCount=0;
  for(const group of d.groups){starts.push(wpciCount);wpciCount+=group.items.length;}
- if(wpciCount!==44)throw Error('WPCI V3 must include all 44 items');
+ if(wpciCount!==44)throw Error('WPCI V4 must include all 44 items');
  // Balanced columns: odd-numbered groups contain 24 terms, even-numbered groups 20.
  const wpciColumn=(indexes)=>indexes.map(i=>wpciCard(d.groups[i],starts[i])).join('');
- const wpciPage='<div class="legacy3-heading">5 WPCI — 44 โรค/การรักษา พร้อมเอกสารประกอบ</div>'+
+ const wpciPage='<div class="legacy3-heading">2 WPCI — 44 โรค/การรักษา</div>'+
    '<p class="legacy3-section-description">รายการโรคร้ายแรง 6 กลุ่ม ครบ 44 รายการ · คุ้มครองตามเงื่อนไขสัญญาเพิ่มเติมและข้อยกเว้น</p>'+
    '<div class="legacy-v3-wpci-intro"><b>WPCI · 6 หมวด / 44 โรคและการรักษา</b><span>ชื่อรายการอ้างอิงข้อมูลเดียวกับหน้าคำนวณ</span></div>'+
    '<div class="legacy-v3-wpci-columns"><div>'+wpciColumn([0,2,4])+'</div><div>'+wpciColumn([1,3,5])+'</div></div>'+
-   '<div class="legacy3-heading legacy-v3-resources-heading">6 โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
+   '<div class="legacy3-heading legacy-v3-resources-heading">โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
    '<div class="legacy-v3-resources"><div class="legacy-v3-brochure">'+
      buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
      '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
    '<p class="legacy3-page-note">รายชื่อโรคเป็นข้อมูลสรุปเท่านั้น ความคุ้มครองขึ้นกับคำนิยามและข้อยกเว้นของกรมธรรม์ · '+
    'โปรโมชั่น 0% 4 เดือนตรวจสอบเงื่อนไขและช่วงเวลาที่มีผลก่อนใช้งาน · เอกสารสำหรับตรวจสอบภายใน ไม่ใช่ใบเสนอขายอย่างเป็นทางการ</p>';
- const pageBodies=[page1Body,...tableAPages,...tableBPages,wpciPage];
+ const pageBodies=[page1Body+wpciPage,...combinedPages];
  const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
    '"><div class="rp-report-pages">'+pages.join('')+'</div></div>';
