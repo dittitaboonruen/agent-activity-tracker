@@ -16,7 +16,7 @@ test('Legacy PDF improves readability without changing report source rows',()=>{
    '.legacy3-page-note,.legacy-report-page .legacy3-note{font-size:11.5px']){
    assert.ok(pdf.includes(rule),rule);
  }
- assert.match(pdf,/const rowsPerPage=28/);
+ assert.match(pdf,/const rowsPerPage=32/);
  assert.match(pdf,/groupsOf\(allYears,rowsPerPage\)/);
  assert.match(pdf,/paid:a\.paid,taxRelief:a\.taxRelief,policy:/);
  assert.match(pdf,/renderNum\(r\.policy\?\.surrender,'cv'\)/);
