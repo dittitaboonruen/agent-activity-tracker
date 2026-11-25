@@ -62,6 +62,16 @@ try{
  assert.equal(await pages.first().locator('.rp-resource-card[data-resource-type="payment"]').count(),1);
  assert.equal(await pages.first().locator('.legacy3-years span').count(),0);
  assert.equal(await pages.first().locator('.legacy-v3-wpci-group li').count(),44);
+ const first=pages.first();
+ const headings=await first.locator('.legacy3-heading').allInnerTexts();
+ assert.deepEqual(headings.slice(0,3),['1 ความคุ้มครองชีวิต','2 WPCI — 44 โรค/การรักษา','3 TI — ผลประโยชน์เจ็บป่วยระยะสุดท้าย']);
+ assert.equal(await first.locator('.legacy3-example,.legacy-v4-benefits').count(),0);
+ assert.equal(await first.locator('.legacy-v41-ti-copy').count(),1);
+ assert.ok(await first.locator('.legacy-v41-wpci-copy strong').innerText()==='ขึ้นอยู่กับการพิจารณาของบริษัท');
+ assert.ok(await first.locator('.legacy-v3-wpci-columns').evaluate(el=>!!(el.compareDocumentPosition(el.parentElement.querySelector('.legacy-v41-ti-heading')) & Node.DOCUMENT_POSITION_FOLLOWING)));
+ assert.equal(await first.locator('.legacy-v41-death-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(166, 56, 56)');
+ assert.equal(await first.locator('.legacy-v41-ti-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(245, 214, 117)');
+
  const overflow=await pages.evaluateAll(items=>items.map(p=>{
    const paper=p.getBoundingClientRect(),body=p.querySelector('.legacy3-body')?.getBoundingClientRect();
    return !!body&&body.bottom>paper.bottom-5;

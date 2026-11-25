@@ -17856,7 +17856,7 @@ function buildLegacyWPCICategoriesHTML(){
   '</section>';
 }
 
-const LEGACY_REPORT_VERSION='1.4.0';
+const LEGACY_REPORT_VERSION='1.4.1';
 function buildLegacyReportData(){
   const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
   return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
@@ -18046,6 +18046,16 @@ function buildLegacyReportHTML(){
  '.legacy-report-page .legacy-v4-table td{padding:4px 3px;font-size:10px;overflow-wrap:anywhere}'+
  '.legacy-report-page .legacy-v4-table th:nth-child(6),.legacy-report-page .legacy-v4-table th:nth-child(7){background:#307D6D!important}'+
  '.legacy-report-page .legacy-v4-table th:nth-child(8){background:#8B703F!important}'+
+ '.legacy-report-page .legacy-v41-death-heading{background:#A63838;color:#fff;border-left:0;padding:4px 8px;border-radius:4px;margin:5px 0 3px}'+
+ '.legacy-report-page .legacy-v41-death{background:#FCF0F0;color:#843030;border:1px solid #E5B9B9}'+
+ '.legacy-report-page .legacy-v41-wpci-heading{background:#307D6D;color:#fff;border-left:0;padding:4px 8px;border-radius:4px;margin:5px 0 3px}'+
+ '.legacy-report-page .legacy-v41-wpci-copy{background:#EAF5F0;border:1px solid #B8D8CB;color:#244E47;padding:5px 8px;border-radius:4px;font-size:10px;line-height:1.35}'+
+ '.legacy-report-page .legacy-v41-wpci-copy strong{background:#FFF3CE;color:#765516}'+
+ '.legacy-report-page .legacy-v41-condition{font-size:9px;line-height:1.3;margin:3px 0;color:#526274}'+
+ '.legacy-report-page .legacy-v3-wpci-title{background:#D5EBE2;border-left-color:#307D6D;color:#244E47}'+
+ '.legacy-report-page .legacy-v3-wpci-group{border-color:#B8D8CB}'+
+ '.legacy-report-page .legacy-v41-ti-heading{background:#F5D675;color:#634917;border-left:0;padding:4px 8px;border-radius:4px;margin:5px 0 3px}'+
+ '.legacy-report-page .legacy-v41-ti-copy{background:#FFFAEA;color:#634917;border:1px solid #E5CC80;padding:5px 8px;border-radius:4px;font-size:10px;line-height:1.35}'+
  '</style>';
  const wrap=(body,page,total,first=false)=>{
    return '<section class="ex-report-page legacy-report-page" id="legacy-report-page-'+page+'"><div class="ex-report-inner">'+
@@ -18059,11 +18069,8 @@ function buildLegacyReportHTML(){
   ['ระยะเวลาชำระเบี้ย',d.term+' ปี'],
   ['ประมาณการประหยัดภาษีต่อปี',fmtB(d.c.taxRelief)]
  ].map(([l,v])=>'<div class="legacy3-stat"><small>'+l+'</small><strong>'+v+'</strong></div>').join('')+'</div>';
- const benefits='<div class="legacy3-heading">1 ความคุ้มครองชีวิต</div>'+
-  '<div class="legacy3-bar navy"><b>กรณีเสียชีวิต · ทุนประกัน '+fmtB(d.sum)+'</b> · คุ้มครองถึงอายุ 99 ปี ผลประโยชน์จริงตามกรมธรรม์</div>'+
-  '<div class="legacy3-benefits legacy-v4-benefits"><div><b>WPCI — 44 โรค/การรักษา</b>ยกเว้นเบี้ยหลักปีที่เหลือเฉพาะส่วนที่ได้รับอนุมัติ เมื่อเข้าเงื่อนไขครั้งแรกขณะมีชีวิตอยู่ ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน'+(d.c.wpciUntil>=d.age+4?' เช่น ชำระแล้ว 3 ปี จากแผน '+d.term+' ปี อาจยกเว้นได้สูงสุด '+Math.min(d.term-3,d.c.wpciUntil-d.age-3)+' ปี ตามเงื่อนไข':'')+'</div>'+
-  '<div><b>TI — ภาวะเจ็บป่วยระยะสุดท้าย</b>แพทย์ผู้เชี่ยวชาญวินิจฉัยว่าไม่สามารถรักษาให้หายได้ ไม่มีแผนรักษาเฉพาะ เหลือการบรรเทาหรือประคับประคอง และประเมินว่าจะเสียชีวิตภายใน 12 เดือน ตามเงื่อนไข รับผลประโยชน์ล่วงหน้าตามสัดส่วนทุน TI ที่อนุมัติ</div></div>'+
-  '<div class="legacy3-example">ตัวอย่าง TI เต็ม 90% ของทุนหลัก: '+fmtB(d.sum*.9)+' · ทุนหลักคงเหลือ '+fmtB(d.sum*.1)+' · ยกเว้นเบี้ยหลักหลังจ่าย TI (ไม่รวมสัญญาเพิ่มเติม) ตามเงื่อนไข</div>';
+ const benefits='<div class="legacy3-heading legacy-v41-death-heading">1 ความคุ้มครองชีวิต</div>'+
+  '<div class="legacy3-bar legacy-v41-death"><b>กรณีเสียชีวิต · ทุนประกัน '+fmtB(d.sum)+'</b> · คุ้มครองถึงอายุ 99 ปี</div>';
  const page1Body='<div class="legacy3-meta">ผู้เอาประกัน: <b>'+esc(d.name||'—')+'</b> · '+esc(d.gender)+' · อายุ '+d.age+' ปี · ฐานภาษี '+Math.round(d.tax*100)+'%</div>'+stats+benefits;
 
  // All attained ages use the EXACT same inputs as calculator Tables A and B.
@@ -18096,7 +18103,7 @@ function buildLegacyReportHTML(){
    '<th style="width:16%">ทุนประกันชีวิต</th><th style="width:15%">เงินค่าเวนคืน (CV)</th>'+
    '<th style="width:15%">กรมธรรม์ใช้เงินสำเร็จ (RPU)</th><th style="width:12%">ประมาณการประหยัดภาษี</th>';
  const combinedPages=groupsOf(allYears,rowsPerPage).map((rows,index)=>
-   '<div class="legacy3-heading">3 ตารางสรุปผลประโยชน์และมูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
+   '<div class="legacy3-heading">4 ตารางสรุปผลประโยชน์และมูลค่ากรมธรรม์'+(index?' (ต่อ)':'')+'</div>'+
    '<p class="legacy3-section-description">อายุ '+rows[0].age+'–'+rows[rows.length-1].age+' ปี · หน่วย: บาท · ชำระเบี้ย '+d.term+' ปี</p>'+
    '<table class="legacy3-table-full legacy-v4-table"><thead><tr>'+columns+'</tr></thead><tbody>'+
    rows.map(r=>'<tr><td>'+r.year+'</td><td>'+r.age+'</td>'+
@@ -18118,16 +18125,19 @@ function buildLegacyReportHTML(){
  if(wpciCount!==44)throw Error('WPCI V4 must include all 44 items');
  // Balanced columns: odd-numbered groups contain 24 terms, even-numbered groups 20.
  const wpciColumn=(indexes)=>indexes.map(i=>wpciCard(d.groups[i],starts[i])).join('');
- const wpciPage='<div class="legacy3-heading">2 WPCI — 44 โรค/การรักษา</div>'+
+ const wpciPage='<div class="legacy3-heading legacy-v41-wpci-heading">2 WPCI — 44 โรค/การรักษา</div>'+
+   '<div class="legacy-v41-wpci-copy">ได้รับยกเว้นเบี้ยประกันส่วนที่ยังชำระไม่ครบสัญญา กรณีเจ็บป่วยด้วย 44 โรคร้าย / การรักษา (จำกัดผลประโยชน์โรคเดียวเท่านั้น) เช่น สัญญา 20 ปี ชำระมาแล้ว 3 ปี อีก 17 ปีที่เหลือจะได้รับการยกเว้นเบี้ย <strong>ขึ้นอยู่กับการพิจารณาของบริษัท</strong></div>'+
+   '<p class="legacy-v41-condition">ยกเว้นเฉพาะส่วนที่ได้รับอนุมัติ ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน ตามเงื่อนไขสัญญาเพิ่มเติม</p>'+
    '<p class="legacy3-section-description">รายการโรคร้ายแรง 6 กลุ่ม ครบ 44 รายการ · คุ้มครองตามเงื่อนไขสัญญาเพิ่มเติมและข้อยกเว้น</p>'+
    '<div class="legacy-v3-wpci-intro"><b>WPCI · 6 หมวด / 44 โรคและการรักษา</b><span>ชื่อรายการอ้างอิงข้อมูลเดียวกับหน้าคำนวณ</span></div>'+
    '<div class="legacy-v3-wpci-columns"><div>'+wpciColumn([0,2,4])+'</div><div>'+wpciColumn([1,3,5])+'</div></div>'+
+   '<div class="legacy3-heading legacy-v41-ti-heading">3 TI — ผลประโยชน์เจ็บป่วยระยะสุดท้าย</div>'+
+   '<div class="legacy-v41-ti-copy">หากได้รับการวินิจฉัยจากแพทย์ผู้เชี่ยวชาญว่าจะเสียชีวิต ภายใน 12 เดือน หรือไม่สามารถรักษาได้แล้ว บริษัทจะจ่ายเงิน 90% ของเงินเอาประกันชีวิต(เงินก้อน) โดยส่วนที่ได้รับไปแล้ว จะหักออกจากทุนประกันชีวิต และเหลือความคุ้มครองต่อในส่วนที่เหลือจากการหักไปแล้ว โดยที่ผู้เอาประกันจะได้รับการยกเว้นเบี้ยที่เหลือ</div>'+
+   '<p class="legacy-v41-condition">ข้อความ TI ฉบับร่างสำหรับตรวจสอบภายใน: เงื่อนไขการวินิจฉัยและฐานคำนวณผลประโยชน์ต้องได้รับการยืนยันจากผู้รับผิดชอบผลิตภัณฑ์ก่อนเผยแพร่</p>'+
    '<div class="legacy3-heading legacy-v3-resources-heading">โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
    '<div class="legacy-v3-resources"><div class="legacy-v3-brochure">'+
      buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
-     '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
-   '<p class="legacy3-page-note">รายชื่อโรคเป็นข้อมูลสรุปเท่านั้น ความคุ้มครองขึ้นกับคำนิยามและข้อยกเว้นของกรมธรรม์ · '+
-   'โปรโมชั่น 0% 4 เดือนตรวจสอบเงื่อนไขและช่วงเวลาที่มีผลก่อนใช้งาน · เอกสารสำหรับตรวจสอบภายใน ไม่ใช่ใบเสนอขายอย่างเป็นทางการ</p>';
+     '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>';
  const pageBodies=[page1Body+wpciPage,...combinedPages];
  const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
