@@ -41,21 +41,27 @@ try{
  await page.locator('.btn-export').click();
  assert.equal(await page.locator('.rp-preview-legacy-zoom').count(),0,'Legacy zoom button removed');
  const pages=page.locator('.rp-preview-fit-paper .legacy-report-page');
- assert.equal(await pages.count(),5,'female age 35 / 15 Pay V3 report must use exactly five A4 pages');
+ assert.equal(await pages.count(),3,'female age 35 / 15 Pay V4 report must use exactly three A4 pages');
  const titles=await pages.locator('.legacy3-heading').allInnerTexts();
- assert.ok(titles.some(x=>x.includes('ตาราง A'))&&titles.some(x=>x.includes('ตาราง B')));
+ assert.equal(titles.filter(x=>x.includes('ตารางสรุปผลประโยชน์และมูลค่ากรมธรรม์')).length,2);
  const aRows=await page.locator('.rp-preview-pdf-source .legacy-report-page .legacy3-table-full').nth(0).locator('tbody tr').count();
- assert.equal(aRows,32,'Table A must fit 32 complete years on first page');
+ assert.equal(aRows,32,'Combined table must fit 32 complete years on first table page');
+ const combined=page.locator('.rp-preview-pdf-source .legacy-v4-table');
+ assert.equal(await combined.count(),2);
+ const years=await combined.locator('tbody tr td:first-child').allInnerTexts();
+ assert.deepEqual(years,Array.from({length:64},(_,i)=>String(i+1)));
+ assert.equal(await combined.first().locator('thead th').count(),8);
+ const cells=await combined.first().locator('tbody tr:nth-child(2) td').allInnerTexts();
+ assert.equal(cells[5].trim(),'120,000');
+ assert.equal(cells[6].trim(),'720,000');
  const wpciTitles=await page.locator('.rp-preview-pdf-source .legacy-v3-wpci-title').count();
  const wpciItems=await page.locator('.rp-preview-pdf-source .legacy-v3-wpci-group li').count();
  assert.equal(wpciTitles,6,'WPCI six groups must be present');
  assert.equal(wpciItems,44,'WPCI 44 disease/treatment names must be present');
- assert.equal(await pages.last().locator('.rp-resource-card[data-resource-type="brochure"]').count(),1);
- assert.equal(await pages.last().locator('.rp-resource-card[data-resource-type="payment"]').count(),1);
- const labels=await pages.first().locator('.legacy3-years span').allInnerTexts();
- assert.deepEqual(labels,Array.from({length:20},(_,i)=>String(i+1)));
- const triangles=await pages.first().locator('.legacy3-tris span').allInnerTexts();
- assert.equal(triangles.filter(v=>v==='▲').length,15);
+ assert.equal(await pages.first().locator('.rp-resource-card[data-resource-type="brochure"]').count(),1);
+ assert.equal(await pages.first().locator('.rp-resource-card[data-resource-type="payment"]').count(),1);
+ assert.equal(await pages.first().locator('.legacy3-years span').count(),0);
+ assert.equal(await pages.first().locator('.legacy-v3-wpci-group li').count(),44);
  const overflow=await pages.evaluateAll(items=>items.map(p=>{
    const paper=p.getBoundingClientRect(),body=p.querySelector('.legacy3-body')?.getBoundingClientRect();
    return !!body&&body.bottom>paper.bottom-5;
@@ -82,8 +88,8 @@ try{
  });
  await page.locator('.btn-export').click();
  await page.locator('.rp-preview-fit-paper .legacy-report-page').first().waitFor({timeout:15000});
- assert.equal(await page.locator('.rp-preview-fit-paper .legacy-report-page').count(),5,
-   'older Safari without Array.at/findLastIndex must still open all five pages');
+ assert.equal(await page.locator('.rp-preview-fit-paper .legacy-report-page').count(),3,
+   'older Safari without Array.at/findLastIndex must still open all three pages');
  assert.deepEqual(errors,[],'older Safari compatibility must not throw browser errors');
  // Close the print-preview overlay before exercising original plan tabs.
  // Reload preserves the same release code, but resets the modal to its normal closed state.
@@ -104,7 +110,7 @@ try{
  assert.equal(await page.locator('.tab[data-id="legacy"]').getAttribute('aria-pressed'),'true',
    'Legacy remains reachable after switching back from original plans');
  assert.deepEqual(errors,[],'no browser runtime errors or PDF alerts');
- console.log('PASS: Legacy V3 5-page A4, WPCI 44, brochure and payment promo, real PDF');
+ console.log('PASS: Legacy V4 3-page A4, WPCI 44, brochure and payment promo, real PDF');
 }finally{
  await browser.close();
 }
