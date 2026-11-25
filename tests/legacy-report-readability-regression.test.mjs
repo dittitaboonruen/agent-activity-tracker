@@ -16,14 +16,18 @@ test('Legacy PDF improves readability without changing report source rows',()=>{
    '.legacy3-page-note,.legacy-report-page .legacy3-note{font-size:11.5px']){
    assert.ok(pdf.includes(rule),rule);
  }
- assert.match(pdf,/const rowsPerPage=32/);
- assert.match(pdf,/const y=Array.from\(\{length:20\}/);
- assert.match(pdf,/i<d\.term\?'▲':'·'/);
- assert.match(pdf,/const tableAChunks=groupsOf\(allYears,rowsPerPage\)/);
- assert.match(pdf,/const tableBChunks=shownBYears\.length\?groupsOf\(shownBYears,36\)/);
- assert.match(pdf,/const dash='—'/);
+ assert.match(pdf,/const rowsPerPage=28/);
+ assert.match(pdf,/groupsOf\(allYears,rowsPerPage\)/);
+ assert.match(pdf,/paid:a\.paid,taxRelief:a\.taxRelief,policy:/);
+ assert.match(pdf,/renderNum\(r\.policy\?\.surrender,'cv'\)/);
+ assert.match(pdf,/renderNum\(r\.policy\?\.paidUp,'rpu'\)/);
+ assert.match(pdf,/wpciCount!==44/);
+ assert.match(pdf,/buildBrochureSlot\('legacy'/);
+ assert.match(pdf,/buildPaymentCard\(GLOBAL_REPORT_PAYMENT,true\)/);
+ assert.match(pdf,/legacy-v4-table th\{padding:5px 2px;font-size:9\.5px/);
+ assert.match(pdf,/โปรดตรวจสอบกับบริษัทประกันภัยอีกครั้ง/);
 });
-test('Legacy V3 preview uses auto fit only while PDF source remains unscaled',()=>{
+test('Legacy V4 preview uses auto fit only while PDF source remains unscaled',()=>{
  assert.doesNotMatch(preview,/rp-preview-legacy-zoom/);
  assert.doesNotMatch(preview,/legacyZoomFull/);
  assert.match(preview,/const scale = Math.min\(1, availableWidth \/ reportWidth\)/);
