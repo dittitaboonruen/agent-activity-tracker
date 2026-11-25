@@ -17856,7 +17856,7 @@ function buildLegacyWPCICategoriesHTML(){
   '</section>';
 }
 
-const LEGACY_REPORT_VERSION='1.4.1';
+const LEGACY_REPORT_VERSION='1.4.2';
 function buildLegacyReportData(){
   const c=calcLegacyPrestige(state.age,state.gender,state.sum,state.legacy.term,state.tax);
   return {c,age:state.age,gender:state.gender,sum:state.sum,term:state.legacy.term,
@@ -18098,7 +18098,7 @@ function buildLegacyReportHTML(){
    const cls=value===0?'legacy3-zero':'legacy3-amount';
    return '<td class="'+cls+'">'+fmt(value)+'</td>';
  };
- const columns='<th style="width:7%">ปีกรมธรรม์</th><th style="width:6%">อายุ</th>'+
+ const columns='<th style="width:7%">ปีที่</th><th style="width:6%">อายุ</th>'+
    '<th style="width:14%">เบี้ยหลักต่อปี</th><th style="width:15%">เบี้ยสะสม</th>'+
    '<th style="width:16%">ทุนประกันชีวิต</th><th style="width:15%">เงินค่าเวนคืน (CV)</th>'+
    '<th style="width:15%">กรมธรรม์ใช้เงินสำเร็จ (RPU)</th><th style="width:12%">ประมาณการประหยัดภาษี</th>';
@@ -18115,7 +18115,7 @@ function buildLegacyReportHTML(){
          ?'<td class="legacy3-empty">—</td>'
          :renderNum(r.policy?.paidUp,'rpu'))+
      '<td>'+fmt(r.taxRelief)+'</td></tr>').join('')+'</tbody></table>'+
-   '<p class="legacy3-page-note">* มูลค่าเวนคืนกรมธรรม์ โปรดตรวจสอบกับบริษัทประกันภัยอีกครั้ง หรือดูจากตารางมูลค่าเวนคืนในกรมธรรม์ · รอยืนยัน RPU = รอยืนยันความหมายจากต้นฉบับ · — = ไม่มีข้อมูล RPU · 0 = ค่าศูนย์จริงหรือไม่มีเบี้ย/ภาษีในปีนั้น · ภาษีเป็นประมาณการ</p>');
+   (rows[rows.length-1].age===98?'<p class="legacy3-page-note">* มูลค่าเวนคืนกรมธรรม์ โปรดตรวจสอบกับบริษัทประกันภัยอีกครั้ง หรือดูจากตารางมูลค่าเวนคืนในกรมธรรม์</p>':''));
  // The actual protected source list is always the app's 44-item WPCI registry.
  const wpciCard=(group,offset)=>'<div class="legacy-v3-wpci-group">'+
    '<div class="legacy-v3-wpci-title">'+esc(group.title)+' <small>('+group.items.length+' รายการ)</small></div>'+
@@ -18128,12 +18128,11 @@ function buildLegacyReportHTML(){
  const wpciPage='<div class="legacy3-heading legacy-v41-wpci-heading">2 WPCI — 44 โรค/การรักษา</div>'+
    '<div class="legacy-v41-wpci-copy">ได้รับยกเว้นเบี้ยประกันส่วนที่ยังชำระไม่ครบสัญญา กรณีเจ็บป่วยด้วย 44 โรคร้าย / การรักษา (จำกัดผลประโยชน์โรคเดียวเท่านั้น) เช่น สัญญา 20 ปี ชำระมาแล้ว 3 ปี อีก 17 ปีที่เหลือจะได้รับการยกเว้นเบี้ย <strong>ขึ้นอยู่กับการพิจารณาของบริษัท</strong></div>'+
    '<p class="legacy-v41-condition">ยกเว้นเฉพาะส่วนที่ได้รับอนุมัติ ถึงอายุ 80 ปีหรือสิ้นสุดระยะชำระเบี้ย แล้วแต่วันใดก่อน ตามเงื่อนไขสัญญาเพิ่มเติม</p>'+
-   '<p class="legacy3-section-description">รายการโรคร้ายแรง 6 กลุ่ม ครบ 44 รายการ · คุ้มครองตามเงื่อนไขสัญญาเพิ่มเติมและข้อยกเว้น</p>'+
+   '<p class="legacy3-section-description">โรคร้ายแรง 44 โรค แบ่งเป็น 6 กลุ่ม · คุ้มครองตามเงื่อนไขสัญญาเพิ่มเติมและข้อยกเว้น</p>'+
    '<div class="legacy-v3-wpci-intro"><b>WPCI · 6 หมวด / 44 โรคและการรักษา</b><span>ชื่อรายการอ้างอิงข้อมูลเดียวกับหน้าคำนวณ</span></div>'+
    '<div class="legacy-v3-wpci-columns"><div>'+wpciColumn([0,2,4])+'</div><div>'+wpciColumn([1,3,5])+'</div></div>'+
    '<div class="legacy3-heading legacy-v41-ti-heading">3 TI — ผลประโยชน์เจ็บป่วยระยะสุดท้าย</div>'+
    '<div class="legacy-v41-ti-copy">หากได้รับการวินิจฉัยจากแพทย์ผู้เชี่ยวชาญว่าจะเสียชีวิต ภายใน 12 เดือน หรือไม่สามารถรักษาได้แล้ว บริษัทจะจ่ายเงิน 90% ของเงินเอาประกันชีวิต(เงินก้อน) โดยส่วนที่ได้รับไปแล้ว จะหักออกจากทุนประกันชีวิต และเหลือความคุ้มครองต่อในส่วนที่เหลือจากการหักไปแล้ว โดยที่ผู้เอาประกันจะได้รับการยกเว้นเบี้ยที่เหลือ</div>'+
-   '<p class="legacy-v41-condition">ข้อความ TI ฉบับร่างสำหรับตรวจสอบภายใน: เงื่อนไขการวินิจฉัยและฐานคำนวณผลประโยชน์ต้องได้รับการยืนยันจากผู้รับผิดชอบผลิตภัณฑ์ก่อนเผยแพร่</p>'+
    '<div class="legacy3-heading legacy-v3-resources-heading">โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
    '<div class="legacy-v3-resources"><div class="legacy-v3-brochure">'+
      buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
