@@ -14,7 +14,7 @@ out = Path("artifacts/legacy-pdf-a4-qa")
 out.mkdir(parents=True, exist_ok=True)
 shutil.copy2(source, out / "synthetic-legacy-report.pdf")
 doc = fitz.open(source)
-assert len(doc) >= 4, f"Expected at least four PDF pages, got {len(doc)}"
+assert len(doc) == 3, f"Expected three V4 PDF pages for the 64-year smoke fixture, got {len(doc)}"
 summary = []
 for index, page in enumerate(doc):
     n = index + 1
