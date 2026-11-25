@@ -18137,9 +18137,7 @@ function buildLegacyReportHTML(){
    '<div class="legacy3-heading legacy-v3-resources-heading">โบรชัวร์และโปรโมชั่นชำระเบี้ย</div>'+
    '<div class="legacy-v3-resources"><div class="legacy-v3-brochure">'+
      buildBrochureSlot('legacy',LEGACY_BROCHURE_FIXED,{},true)+'</div>'+
-     '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>'+
-   '<p class="legacy3-page-note">รายชื่อโรคเป็นข้อมูลสรุปเท่านั้น ความคุ้มครองขึ้นกับคำนิยามและข้อยกเว้นของกรมธรรม์ · '+
-   'โปรโมชั่น 0% 4 เดือนตรวจสอบเงื่อนไขและช่วงเวลาที่มีผลก่อนใช้งาน · เอกสารสำหรับตรวจสอบภายใน ไม่ใช่ใบเสนอขายอย่างเป็นทางการ</p>';
+     '<div class="legacy-v3-payment">'+buildPaymentCard(GLOBAL_REPORT_PAYMENT,true)+'</div></div>';
  const pageBodies=[page1Body+wpciPage,...combinedPages];
  const pages=pageBodies.map((body,index)=>wrap(body,index+1,pageBodies.length,index===0));
  return '<div class="rp-report" data-report-version="'+LEGACY_REPORT_VERSION+
