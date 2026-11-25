@@ -18073,7 +18073,7 @@ function buildLegacyReportHTML(){
  const totalRows=99-d.age;
  if(displayRows.length!==totalRows||d.c.rows.length!==totalRows||
     !policyValues?.byAge)throw Error('ตาราง A/B ยังไม่พร้อมสำหรับการแสดงครบทุกอายุ');
- const rowsPerPage=28; // V4: reserve space for repeated notes and eight columns
+ const rowsPerPage=32; // V4: fit 64 policy years in two table pages
  const groupsOf=(items,size)=>Array.from({length:Math.ceil(items.length/size)},
    (_,i)=>items.slice(i*size,(i+1)*size));
  const allYears=Array.from({length:totalRows},(_,index)=>{
