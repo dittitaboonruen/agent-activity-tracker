@@ -72,6 +72,13 @@ try{
  assert.equal(await first.locator('.legacy-v41-death-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(166, 56, 56)');
  assert.equal(await first.locator('.legacy-v41-ti-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(245, 214, 117)');
 
+ assert.ok((await first.innerText()).includes('โรคร้ายแรง 44 โรค แบ่งเป็น 6 กลุ่ม'));
+ assert.ok(!(await first.innerText()).includes('ข้อความ TI ฉบับร่างสำหรับตรวจสอบภายใน'));
+ assert.deepEqual(await combined.locator('thead th:first-child').allInnerTexts(),['ปีที่','ปีที่']);
+ assert.equal(await pages.locator('.legacy3-page-note').count(),1);
+ assert.equal(await pages.last().locator('tbody tr:last-child td:nth-child(2)').innerText(),'98');
+ assert.equal(await pages.last().locator('.legacy3-page-note').innerText(),'* มูลค่าเวนคืนกรมธรรม์ โปรดตรวจสอบกับบริษัทประกันภัยอีกครั้ง หรือดูจากตารางมูลค่าเวนคืนในกรมธรรม์');
+ assert.ok(!(await pages.allInnerTexts()).join(' ').includes('รอยืนยัน RPU ='));
  const overflow=await pages.evaluateAll(items=>items.map(p=>{
    const paper=p.getBoundingClientRect(),body=p.querySelector('.legacy3-body')?.getBoundingClientRect();
    return !!body&&body.bottom>paper.bottom-5;
