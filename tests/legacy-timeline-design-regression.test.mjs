@@ -20,21 +20,12 @@ test('calculator keeps years 1–20 and triangle markers for each 10/15/20 Pay c
   assert.doesNotMatch(calculator,/legacy-graphic-track/);
 });
 
-test('PDF keeps 1–20 year headings, gold ▲ for paid years and dot for others',()=>{
-  assert.match(report,/const y=Array\.from\(\{length:20\}/);
-  assert.match(report,/const t=Array\.from\(\{length:20\}/);
-  assert.match(report,/i<d\.term\?'▲':'·'/);
-  assert.match(report,/legacy3-years/);
-  assert.match(report,/legacy3-tris/);
-  assert.match(report,/#B29A63/);
-  assert.doesNotMatch(report,/legacy3-period-track/);
-});
-
-test('design changes do not remove Table A/B or source-grounded missing-value handling',()=>{
-  assert.match(html,/data-legacy-table="A"/);
-  assert.match(html,/data-legacy-table="B"/);
-  assert.match(report,/const tableAChunks=groupsOf/);
-  assert.match(report,/const tableBChunks=shownBYears\.length\?groupsOf/);
-  assert.match(report,/const dash='—'/);
-  assert.match(report,/value===null\|\|value===undefined/);
+test('V4 PDF removes timeline and combines all source rows',()=>{
+ assert.doesNotMatch(report,/const timeline=|const y=Array\.from|const t=Array\.from/);
+ assert.match(html,/data-legacy-table="A"/);
+ assert.match(html,/data-legacy-table="B"/);
+ assert.match(report,/groupsOf\(allYears,rowsPerPage\)/);
+ assert.match(report,/value===null\|\|value===undefined/);
+ assert.match(report,/kind==='cv'\?'\*':'—'/);
+ assert.match(report,/const pageBodies=\[page1Body\+wpciPage,\.\.\.combinedPages\]/);
 });
