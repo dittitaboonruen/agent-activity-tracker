@@ -113,7 +113,17 @@ try{
  await page.reload({waitUntil:'domcontentloaded'});
  // Non-Legacy regression: all pre-existing tabs must remain navigable
  // after Legacy Table B, preview, and PDF operations in the same session.
- const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"])')
+ // The new Term foundation must be visible but intentionally unavailable.
+ const termFoundation=page.locator('.tab[data-id="termFoundation"]');
+ assert.equal(await termFoundation.count(),1,'Term placeholder must exist');
+ assert.equal(await termFoundation.isVisible(),true,'Term placeholder must be visible');
+ assert.equal(await termFoundation.isDisabled(),true,'Term placeholder must remain disabled');
+ assert.ok((await termFoundation.innerText()).includes('กำลังพัฒนา'));
+ const activeBeforeTerm=await page.locator('.tab[aria-pressed="true"]').getAttribute('data-id');
+ await termFoundation.evaluate(el=>el.click());
+ assert.equal(await page.locator('.tab[aria-pressed="true"]').getAttribute('data-id'),activeBeforeTerm,'Term must not change the selected calculator');
+ assert.equal(await page.locator('#term-foundation-duration').count(),0,'Term calculator must not render');
+ const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"]):not([data-id="termFoundation"])')
    .evaluateAll(nodes=>nodes.map(el=>el.getAttribute('data-id')).filter(Boolean));
  assert.ok(nonLegacyTabs.length>=3,'legacy must not remove original calculator tabs');
  for(const tabId of nonLegacyTabs){
