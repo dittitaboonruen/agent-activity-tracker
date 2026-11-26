@@ -10217,7 +10217,7 @@ const TABS = [
   {id:'paylifeplus', label:'20Pay Life Plus', group:'life'},
   {id:'plusHappy', label:'20Pay Life Plus + Health Happy', group:'life'},
   {id:'plusSaver', label:'20Pay Life Plus + Health Saver', group:'life'},
-  {id:'termFoundation', label:'AIA Term 5/10/15/20 · กำลังพัฒนา', group:'life'},
+  {id:'termFoundation', label:'AIA Term 5/10/15/20 · กำลังพัฒนา', group:'life', comingSoon:true},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -10241,7 +10241,14 @@ function buildTabs(){
     b.dataset.id = t.id;
     b.setAttribute('aria-pressed','false');
     b.setAttribute('aria-label',t.label);
+    if(t.comingSoon){
+      b.disabled=true;
+      b.title='กำลังพัฒนา ยังไม่เปิดใช้งาน';
+      b.style.opacity='0.65';
+      b.style.cursor='not-allowed';
+    }
     b.onclick = ()=>{
+      if(t.comingSoon) return;
       if(t.id==='legacy' && state.tab!=='legacy'){
         state.standardSavedSum=state.sum;
         const remembered=state.legacy.savedSum;
