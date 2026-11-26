@@ -123,7 +123,17 @@ try{
  await termFoundation.evaluate(el=>el.click());
  assert.equal(await page.locator('.tab[aria-pressed="true"]').getAttribute('data-id'),activeBeforeTerm,'Term must not change the selected calculator');
  assert.equal(await page.locator('#term-foundation-duration').count(),0,'Term calculator must not render');
- const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"]):not([data-id="termFoundation"])')
+ const pay5Foundation=page.locator('#tabs-savings .tab[data-id="pay5Foundation"]');
+ assert.equal(await pay5Foundation.count(),1,'5Pay10 placeholder must be in Savings');
+ assert.equal(await pay5Foundation.isVisible(),true);
+ assert.equal(await pay5Foundation.isDisabled(),true);
+ assert.ok((await pay5Foundation.innerText()).includes('กำลังพัฒนา'));
+ const activeBeforePay5=await page.locator('.tab[aria-pressed="true"]').getAttribute('data-id');
+ const panelBeforePay5=await page.locator('#app').innerHTML();
+ await pay5Foundation.evaluate(el=>el.click());
+ assert.equal(await page.locator('.tab[aria-pressed="true"]').getAttribute('data-id'),activeBeforePay5);
+ assert.equal(await page.locator('#app').innerHTML(),panelBeforePay5,'5Pay10 must not replace current calculator');
+ const nonLegacyTabs=await page.locator('.tab[data-id]:not([data-id="legacy"]):not([data-id="termFoundation"]):not([data-id="pay5Foundation"])')
    .evaluateAll(nodes=>nodes.map(el=>el.getAttribute('data-id')).filter(Boolean));
  assert.ok(nonLegacyTabs.length>=3,'legacy must not remove original calculator tabs');
  for(const tabId of nonLegacyTabs){
