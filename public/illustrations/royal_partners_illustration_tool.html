@@ -10206,6 +10206,7 @@ const state = { age:35, gender:'ชาย', sum:1000000, tax:0.1, tab:'paylife20
   annuityfix: { annualPension:200000, income:1000000, frequency:'รายปี' },
   annuitysure: { payPlan:'ชำระเบี้ยฯ จนถึงอายุ 60 ปี' },
   legacy: { term:10, savedSum:null, tableView:'A' },
+  termFoundation: { term:10 },
   standardSavedSum:1000000
 };
 
@@ -10216,6 +10217,7 @@ const TABS = [
   {id:'paylifeplus', label:'20Pay Life Plus', group:'life'},
   {id:'plusHappy', label:'20Pay Life Plus + Health Happy', group:'life'},
   {id:'plusSaver', label:'20Pay Life Plus + Health Saver', group:'life'},
+  {id:'termFoundation', label:'AIA Term 5/10/15/20 · กำลังพัฒนา', group:'life'},
   {id:'excellent', label:'Excellent', group:'savings'},
   {id:'pay25', label:'15 Pay 25', group:'savings'},
   {id:'ciprocare', label:'CI Pro Care', group:'ci'},
@@ -18731,13 +18733,37 @@ function viewLegacyPrestige(app){
   addExportButton(app,'legacy');
 }
 
+/* ===================== AIA Term foundation V0.1 (no calculation or export) ===================== */
+function viewTermFoundation(app){
+  const term=state.termFoundation.term;
+  app.innerHTML=panelShell('life','AIA Term '+term,'ชำระเบี้ย '+term+' ปี • คุ้มครองชีวิต '+term+' ปี');
+  const panel=app.querySelector('.panel');
+  panel.querySelector('.rp-selected-badge').textContent='กำลังพัฒนา';
+  const controls=document.createElement('div');
+  controls.className='pl20-rider-wrap plus-term-panel';
+  controls.innerHTML='<label for="term-foundation-duration" style="display:block;margin-bottom:8px;font-weight:700">เลือกระยะเวลาความคุ้มครอง</label><select id="term-foundation-duration" style="max-width:280px;width:100%;padding:10px;border:1px solid #d9d2bf;border-radius:8px">'+[5,10,15,20].map(n=>'<option value="'+n+'" '+(n===term?'selected':'')+'>'+n+' ปี</option>').join('')+'</select><p role="status">กำลังพัฒนาเครื่องคำนวณ ยังไม่สามารถคำนวณเบี้ยหรือจัดทำใบสรุปข้อเสนอได้</p>';
+  panel.appendChild(controls);
+  controls.querySelector('select').addEventListener('change',e=>{state.termFoundation.term=Number(e.target.value);render();});
+  fillSummary(app,[{lbl:'เบี้ยประกันมาตรฐาน / ปี',val:'—'},{lbl:'ส่วนลดเบี้ยประกัน / ปี',val:'—'},{lbl:'เบี้ยสุทธิ / ปี',val:'—'},{lbl:'ความคุ้มครองชีวิต',val:'—'}]);
+  panel.querySelector('.smart-summary-chip').textContent='รอตรวจสอบข้อมูล';
+  const ledger=document.createElement('div');
+  ledger.className='ledger-wrap';
+  ledger.innerHTML='<h3>ตารางสรุปผลประโยชน์รายปี (โครงร่าง)</h3><div class="ledger-el"></div><p>— = ยังไม่เปิดคำนวณ ไม่ใช่ค่าศูนย์</p>';
+  panel.appendChild(ledger);
+  renderLedger(ledger.querySelector('.ledger-el'),Array.from({length:term},(_,i)=>({year:i+1})),[{key:'year',label:'ปีที่'},{key:'age',label:'อายุ'},{key:'premium',label:'เบี้ยรายปี'},{key:'cumulative',label:'เบี้ยสะสม'},{key:'coverage',label:'คุ้มครองชีวิต'}]);
+  const row=document.createElement('div');
+  row.className='export-row';
+  row.innerHTML='<button class="btn-export" disabled aria-disabled="true">ดูใบสรุปฉบับเต็ม (กำลังพัฒนา)</button>';
+  panel.appendChild(row);
+}
+
 /* ===================== main render ===================== */
 function render(){
   syncSelectedPlanSumMinimum();
   syncTabActive();
   const app = document.getElementById('app');
   app.innerHTML = '';
-  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacy:viewLegacyPrestige };
+  const map = { excellent:viewExcellent, pay25:viewPay25, paylife20:view20PayLife, paylifeplus:viewPayLifePlus, plusHappy:app=>viewPlusHealth(app,'happy'), plusSaver:app=>viewPlusHealth(app,'saver'), pay20happy:app=>view20HealthCombo(app,'happy'), pay20saver:app=>view20HealthCombo(app,'saver'), ciprocare:viewCIProCare, cisupercare:viewCISuperCare, annuityfix:viewAnnuityFix, annuitysure:viewAnnuitySure, legacy:viewLegacyPrestige, termFoundation:viewTermFoundation };
   map[state.tab](app);
 }
 
